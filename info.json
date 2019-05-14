@@ -1,0 +1,13 @@
+
+{
+    "name": "dana",
+    "version": "0.0.1",
+    "title": "Dana: crafting tree/graph explorer",
+    "author": "Credne",
+    "contact": "",
+    "homepage": "",
+    "factorio_version": "0.17",
+    "dependencies": ["base >= 0.17"],
+    "description": "Dana provides ways to explore and display the crafting graph of Factorio.",
+    "license": "GPLv3"
+}
