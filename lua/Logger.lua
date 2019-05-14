@@ -23,7 +23,7 @@ local Logger = {
 
 local Impl = {
     -- Prefix for all messages.
-    Prefix = "[mymod] "
+    Prefix = "[" .. script.mod_name .. "] "
 }
 
 -- Logs a debug message.
