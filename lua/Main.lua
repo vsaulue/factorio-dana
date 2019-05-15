@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local DirectedHypergraph = require("lua/DirectedHypergraph")
 local Player = require("lua/Player")
 
 local Main = {
@@ -28,9 +29,17 @@ local Main = {
 local Impl = {
     -- Map of Player instances, indexed by their rawPlayer.index (stored in global).
     players = {},
+
+    -- Graph hodling crafting chains (vertices: items, edges: recipes).
+    graph = DirectedHypergraph.new(),
+
+    initGraph = nil, -- implemented later.
 }
 
 function Main.on_load()
+    Impl.graph = global.graph
+    DirectedHypergraph.setmetatable(Impl.graph)
+
     Impl.players = global.players
     for _,player in pairs(Impl.players) do
         Player.setmetatable(player)
@@ -38,9 +47,31 @@ function Main.on_load()
 end
 
 function Main.on_init()
+    global.graph = Impl.graph
+    Impl.initGraph()
+
     global.players = Impl.players
     for _,rawPlayer in pairs(game.players) do
         Impl.players[rawPlayer.index] = Player.new({rawPlayer = rawPlayer})
+    end
+end
+
+-- Initialize Impl.graph to represent the crafting graph.
+--
+function Impl.initGraph()
+    for _,recipe in pairs(game.recipe_prototypes) do
+        local newEdge = {
+            index = recipe.name,
+            inbound = {},
+            outbound = {},
+        }
+        for _,ingredient in pairs(recipe.ingredients) do
+            table.insert(newEdge.inbound, ingredient.name)
+        end
+        for _,product in pairs(recipe.products) do
+            table.insert(newEdge.outbound, product.name)
+        end
+        Impl.graph:addEdge(newEdge)
     end
 end
 
