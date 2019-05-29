@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local DirectedHypergraph = require("lua/DirectedHypergraph")
+local PrototypeDatabase = require("lua/PrototypeDatabase")
 local Player = require("lua/Player")
 
 local Main = {
@@ -33,10 +34,15 @@ local Impl = {
     -- Graph hodling crafting chains (vertices: items, edges: recipes).
     graph = DirectedHypergraph.new(),
 
+    prototypes = nil,
+
     initGraph = nil, -- implemented later.
 }
 
 function Main.on_load()
+    Impl.prototypes = global.prototypes
+    PrototypeDatabase.setmetatable(Impl.prototypes)
+
     Impl.graph = global.graph
     DirectedHypergraph.setmetatable(Impl.graph)
 
@@ -47,6 +53,9 @@ function Main.on_load()
 end
 
 function Main.on_init()
+    Impl.prototypes = PrototypeDatabase.new(game)
+    global.prototypes = Impl.prototypes
+
     global.graph = Impl.graph
     Impl.initGraph()
 
