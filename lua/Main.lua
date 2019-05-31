@@ -18,6 +18,17 @@ local DirectedHypergraph = require("lua/DirectedHypergraph")
 local PrototypeDatabase = require("lua/PrototypeDatabase")
 local Player = require("lua/Player")
 
+-- Main class of this mod.
+--
+-- Singleton class.
+--
+-- Stored in global: yes.
+--
+-- Fields:
+-- * graph: a DirectedHypergraph with all recipes.
+-- * players: map of Player objects, indexed by their Factorio index.
+-- * prototypes: PrototypeDatabase wrapping all useful prototypes from Factorio.
+--
 local Main = {
     -- Function to call in Factorio's on_load event.
     on_load = nil, -- implemented later
@@ -28,46 +39,27 @@ local Main = {
 
 -- Implementation stuff (private scope).
 local Impl = {
-    -- Map of Player instances, indexed by their rawPlayer.index (stored in global).
-    players = {},
-
-    -- Graph hodling crafting chains (vertices: items, edges: recipes).
-    graph = DirectedHypergraph.new(),
-
-    prototypes = nil,
-
     initGraph = nil, -- implemented later.
+
+    new = nil, -- implemented later.
+
+    -- Restores the metatable of a Main instance, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        PrototypeDatabase.setmetatable(object.prototypes)
+        DirectedHypergraph.setmetatable(object.graph)
+        for _,player in pairs(object.players) do
+            Player.setmetatable(player)
+        end
+    end
 }
-
-function Main.on_load()
-    Impl.prototypes = global.prototypes
-    PrototypeDatabase.setmetatable(Impl.prototypes)
-
-    Impl.graph = global.graph
-    DirectedHypergraph.setmetatable(Impl.graph)
-
-    Impl.players = global.players
-    for _,player in pairs(Impl.players) do
-        Player.setmetatable(player)
-    end
-end
-
-function Main.on_init()
-    Impl.prototypes = PrototypeDatabase.new(game)
-    global.prototypes = Impl.prototypes
-
-    global.graph = Impl.graph
-    Impl.initGraph()
-
-    global.players = Impl.players
-    for _,rawPlayer in pairs(game.players) do
-        Impl.players[rawPlayer.index] = Player.new({rawPlayer = rawPlayer})
-    end
-end
 
 -- Initialize Impl.graph to represent the crafting graph.
 --
-function Impl.initGraph()
+function Impl.initGraph(self)
     for _,recipe in pairs(game.recipe_prototypes) do
         local newEdge = {
             index = recipe.name,
@@ -80,8 +72,29 @@ function Impl.initGraph()
         for _,product in pairs(recipe.products) do
             table.insert(newEdge.outbound, product.name)
         end
-        Impl.graph:addEdge(newEdge)
+        self.graph:addEdge(newEdge)
     end
+end
+
+function Impl.new(gameScript)
+    local result = {
+        graph = DirectedHypergraph.new(),
+        players = {},
+        prototypes = PrototypeDatabase.new(gameScript),
+    }
+    for _,rawPlayer in pairs(game.players) do
+        result.players[rawPlayer.index] = Player.new({rawPlayer = rawPlayer})
+    end
+    Impl.initGraph(result)
+    return result
+end
+
+function Main.on_load()
+    Impl.setmetatable(global.Main)
+end
+
+function Main.on_init()
+    global.Main = Impl.new(game)
 end
 
 return Main
