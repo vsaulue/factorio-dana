@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local DirectedHypergraph = require("lua/DirectedHypergraph")
 local Gui = require("lua/Gui")
 local GuiElement = require("lua/GuiElement")
 
@@ -23,6 +24,7 @@ local GuiElement = require("lua/GuiElement")
 --
 -- Fields:
 -- * rawPlayer: Associated LuaPlayer instance.
+-- * graph: DirectedHypergraph currently displayed to this player.
 --
 -- RO properties:
 -- * gui: rawPlayer.gui wrapped in a Gui object.
@@ -46,6 +48,8 @@ local Impl = {
         end,
     },
 
+    buildGraph = nil,
+
     initGui = nil, -- implemented later
 
     startCallbacks = {
@@ -65,20 +69,43 @@ GuiElement.newCallbacks(Impl.startCallbacks)
 --
 function Player.new(object)
     setmetatable(object, Impl.Metatable)
+    object.graph = DirectedHypergraph.new()
+    Impl.buildGraph(object)
     Impl.initGui(object)
     return object
 end
 
--- Assigns the metatable of Player class to the argument.
---
--- Intended to restore metatable of objects in the global table.
+-- Restores the metatable of a Player instance, and all its owned objects.
 --
 -- Args:
 -- * object: Table to modify.
+--
 function Player.setmetatable(object)
     setmetatable(object, Impl.Metatable)
+    DirectedHypergraph.setmetatable(object.graph)
 end
 
+-- Initialize the "graph" field of a Player object.
+--
+-- Args:
+-- * self: Player whose graph will be built.
+--
+function Impl.buildGraph(self)
+    for _,recipe in pairs(self.prototypes.entries.recipe) do
+        local newEdge = {
+            index = recipe,
+            inbound = {},
+            outbound = {},
+        }
+        for _,ingredient in pairs(recipe.ingredients) do
+            table.insert(newEdge.inbound, ingredient)
+        end
+        for _,product in pairs(recipe.products) do
+            table.insert(newEdge.outbound, product)
+        end
+        self.graph:addEdge(newEdge)
+    end
+end
 
 -- Initialize the GUI of a player.
 --

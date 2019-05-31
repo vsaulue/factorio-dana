@@ -14,7 +14,6 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local DirectedHypergraph = require("lua/DirectedHypergraph")
 local PrototypeDatabase = require("lua/PrototypeDatabase")
 local Player = require("lua/Player")
 
@@ -25,7 +24,6 @@ local Player = require("lua/Player")
 -- Stored in global: yes.
 --
 -- Fields:
--- * graph: a DirectedHypergraph with all recipes.
 -- * players: map of Player objects, indexed by their Factorio index.
 -- * prototypes: PrototypeDatabase wrapping all useful prototypes from Factorio.
 --
@@ -39,8 +37,6 @@ local Main = {
 
 -- Implementation stuff (private scope).
 local Impl = {
-    initGraph = nil, -- implemented later.
-
     new = nil, -- implemented later.
 
     -- Restores the metatable of a Main instance, and all its owned objects.
@@ -50,42 +46,23 @@ local Impl = {
     --
     setmetatable = function(object)
         PrototypeDatabase.setmetatable(object.prototypes)
-        DirectedHypergraph.setmetatable(object.graph)
         for _,player in pairs(object.players) do
             Player.setmetatable(player)
         end
     end
 }
 
--- Initialize Impl.graph to represent the crafting graph.
---
-function Impl.initGraph(self)
-    for _,recipe in pairs(game.recipe_prototypes) do
-        local newEdge = {
-            index = recipe.name,
-            inbound = {},
-            outbound = {},
-        }
-        for _,ingredient in pairs(recipe.ingredients) do
-            table.insert(newEdge.inbound, ingredient.name)
-        end
-        for _,product in pairs(recipe.products) do
-            table.insert(newEdge.outbound, product.name)
-        end
-        self.graph:addEdge(newEdge)
-    end
-end
-
 function Impl.new(gameScript)
     local result = {
-        graph = DirectedHypergraph.new(),
         players = {},
         prototypes = PrototypeDatabase.new(gameScript),
     }
     for _,rawPlayer in pairs(game.players) do
-        result.players[rawPlayer.index] = Player.new({rawPlayer = rawPlayer})
+        result.players[rawPlayer.index] = Player.new({
+            prototypes = result.prototypes,
+            rawPlayer = rawPlayer,
+        })
     end
-    Impl.initGraph(result)
     return result
 end
 
