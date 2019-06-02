@@ -70,6 +70,7 @@ function Impl.Metatable.__index.rebuild(self,gameScript)
     self.entries = {
         fluid = {},
         item = {},
+        ["offshore-pump"] = {},
         recipe = {},
         resource = {},
     }
@@ -101,6 +102,13 @@ function Impl.Metatable.__index.rebuild(self,gameScript)
                 end
                 self.entries.resource[entity.name] = newResource
             end
+        elseif entity.type == "offshore-pump" then
+            local newOffshorePump = {
+                rawPrototype = entity,
+                ingredients = {},
+                products = {self.entries.fluid[entity.fluid.name]},
+            }
+            self.entries["offshore-pump"][entity.name] = newOffshorePump
         end
     end
     for _,recipe in pairs(gameScript.recipe_prototypes) do
