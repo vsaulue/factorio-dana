@@ -68,6 +68,7 @@ local Impl = {
 --
 function Impl.Metatable.__index.rebuild(self,gameScript)
     self.entries = {
+        boiler = {},
         fluid = {},
         item = {},
         ["offshore-pump"] = {},
@@ -109,6 +110,31 @@ function Impl.Metatable.__index.rebuild(self,gameScript)
                 products = {self.entries.fluid[entity.fluid.name]},
             }
             self.entries["offshore-pump"][entity.name] = newOffshorePump
+        elseif entity.type == "boiler" then
+            local inputs = {}
+            local outputs = {}
+            for _,fluidbox in pairs(entity.fluidbox_prototypes) do
+                if fluidbox.filter then
+                    local fluid = self.entries.fluid[fluidbox.filter.name]
+                    local boxType = fluidbox.production_type
+                    if boxType == "output" then
+                        table.insert(outputs, fluid)
+                    elseif boxType == "input-output" or boxType == "input" then
+                        table.insert(inputs, fluid)
+                    end
+                end
+            end
+            if inputs[1] and outputs[1] then
+                if #inputs == 1 and #outputs == 1 then
+                    self.entries.boiler[entity.name] = {
+                        rawPrototype = entity,
+                        ingredients = inputs,
+                        products = outputs,
+                    }
+                else
+                    Logger.warn("Boiler prototype '" .. entity.name .. "' ignored (multiple inputs or outputs).")
+                end
+            end
         end
     end
     for _,recipe in pairs(gameScript.recipe_prototypes) do
