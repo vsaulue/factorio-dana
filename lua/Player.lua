@@ -17,6 +17,7 @@
 local DirectedHypergraph = require("lua/DirectedHypergraph")
 local Gui = require("lua/Gui")
 local GuiElement = require("lua/GuiElement")
+local LayerLayout = require("lua/LayerLayout")
 
 -- Class holding data associated to a player in this mod.
 --
@@ -49,6 +50,28 @@ local Impl = {
     },
 
     buildGraph = nil,
+
+    -- Turns an entry from a PrototypeDatabase into a DirectedHypergraph edge.
+    --
+    -- Args:
+    -- * entry: An entry from PrototypeDatabase (supported types: recipe, boiler)
+    --
+    -- Returns: the new edge.
+    --
+    makeEdge = function(entry)
+        local result = {
+            index = entry,
+            inbound = {},
+            outbound = {},
+        }
+        for _,ingredient in pairs(entry.ingredients) do
+            table.insert(result.inbound, ingredient)
+        end
+        for _,product in pairs(entry.products) do
+            table.insert(result.outbound, product)
+        end
+        return result
+    end,
 
     initGui = nil, -- implemented later
 
@@ -92,18 +115,10 @@ end
 --
 function Impl.buildGraph(self)
     for _,recipe in pairs(self.prototypes.entries.recipe) do
-        local newEdge = {
-            index = recipe,
-            inbound = {},
-            outbound = {},
-        }
-        for _,ingredient in pairs(recipe.ingredients) do
-            table.insert(newEdge.inbound, ingredient)
-        end
-        for _,product in pairs(recipe.products) do
-            table.insert(newEdge.outbound, product)
-        end
-        self.graph:addEdge(newEdge)
+        self.graph:addEdge(Impl.makeEdge(recipe))
+    end
+    for _,boiler in pairs(self.prototypes.entries.boiler) do
+        self.graph:addEdge(Impl.makeEdge(boiler))
     end
 end
 
@@ -127,6 +142,38 @@ function Impl.initGui(player)
         callbacksIndex = Impl.startCallbacks.index,
         window = window,
     })
+    local rawMaterials = {}
+    for _,resource in pairs(player.prototypes.entries.resource) do
+        for _,product in pairs(resource.products) do
+            rawMaterials[product] = true
+        end
+    end
+    for _,offshorePump in pairs(player.prototypes.entries["offshore-pump"]) do
+        for _,product in pairs(offshorePump.products) do
+            rawMaterials[product] = true
+        end
+    end
+    local layout = LayerLayout.new(player.graph,rawMaterials)
+    local layersFlow = window:add({
+        direction = "vertical",
+        type = "flow",
+    })
+    for _,layer in ipairs(layout.layers) do
+        local layerFlow = layersFlow:add({
+            direction = "horizontal",
+            type = "flow",
+        })
+        for _,vertexIndex in ipairs(layer) do
+            layerFlow:add({
+                caption = vertexIndex.rawPrototype.name .. " | ",
+                type = "label",
+            })
+        end
+        layersFlow:add({
+            caption = "------------------------------------------------",
+            type = "label",
+        })
+    end
 end
 
 return Player
