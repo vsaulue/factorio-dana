@@ -43,6 +43,7 @@ local Logger = require("lua/Logger")
 --
 -- Methods:
 -- * addEdge: adds a new edge to the hypergraph.
+-- * addVertexIndex: adds a single vertex to the hypergraph.
 --
 local DirectedHypergraph = {
     new = nil, -- implemented later
@@ -55,6 +56,7 @@ local Impl = {
     Metatable = {
         __index = {
             addEdge = nil, -- implemented later
+            addVertexIndex = nil, -- implemented later
         },
     },
 
@@ -128,6 +130,16 @@ function Impl.Metatable.__index.addEdge(self, newEdge)
     else
         Logger.error("Duplicate edge index in Hypergraph (index: " .. index .. ").")
     end
+end
+
+-- Adds a new vertex to the graph.
+--
+-- Args:
+-- * self: Hypergraph object.
+-- * vertexIndex: index of the new vertex.
+--
+function Impl.Metatable.__index.addVertexIndex(self, vertexIndex)
+    Impl.initVertex(self, vertexIndex)
 end
 
 return DirectedHypergraph
