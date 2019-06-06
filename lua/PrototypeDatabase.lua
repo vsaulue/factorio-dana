@@ -77,11 +77,13 @@ function Impl.Metatable.__index.rebuild(self,gameScript)
     }
     for _,item in pairs(gameScript.item_prototypes) do
         self.entries.item[item.name] = {
+            type = "item",
             rawPrototype = item,
         }
     end
     for _,fluid in pairs(gameScript.fluid_prototypes) do
         self.entries.fluid[fluid.name] = {
+            type = "fluid",
             rawPrototype = fluid,
         }
     end
@@ -90,6 +92,7 @@ function Impl.Metatable.__index.rebuild(self,gameScript)
             local mineable_props = entity.mineable_properties
             if mineable_props.minable then
                 local newResource = {
+                    type = "entity",
                     rawPrototype = entity,
                     ingredients = {},
                     products = {},
@@ -105,6 +108,7 @@ function Impl.Metatable.__index.rebuild(self,gameScript)
             end
         elseif entity.type == "offshore-pump" then
             local newOffshorePump = {
+                type = "entity",
                 rawPrototype = entity,
                 ingredients = {},
                 products = {self.entries.fluid[entity.fluid.name]},
@@ -127,6 +131,7 @@ function Impl.Metatable.__index.rebuild(self,gameScript)
             if inputs[1] and outputs[1] then
                 if #inputs == 1 and #outputs == 1 then
                     self.entries.boiler[entity.name] = {
+                        type = "entity",
                         rawPrototype = entity,
                         ingredients = inputs,
                         products = outputs,
@@ -139,6 +144,7 @@ function Impl.Metatable.__index.rebuild(self,gameScript)
     end
     for _,recipe in pairs(gameScript.recipe_prototypes) do
         local newRecipe = {
+            type = "recipe",
             rawPrototype = recipe,
             ingredients = {},
             products = {},
