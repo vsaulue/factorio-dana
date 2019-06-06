@@ -163,9 +163,9 @@ function Impl.initGui(player)
             direction = "horizontal",
             type = "flow",
         })
-        for _,vertexIndex in ipairs(layer) do
+        for _,layerEntry in ipairs(layer) do
             layerFlow:add({
-                caption = vertexIndex.rawPrototype.name .. " | ",
+                caption = layerEntry.index.rawPrototype.name .. " | ",
                 type = "label",
             })
         end

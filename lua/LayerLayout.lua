@@ -26,28 +26,37 @@ local HyperSrcMinDist = require("lua/HyperSrcMinDist")
 -- Stored in global: no.
 --
 -- Fields:
+-- * graph: input graph.
 -- * layers: 2-dim array of vertex indices (1st index: layer index, 2nd index: vertex position in layer).
 --
 local LayerLayout = {
     new = nil,
 }
 
--- Creates a new layer layout for the given graph.
+-- Implementation stuff (private scope).
+local Impl = {
+    assignVerticesToLayers = nil, -- implemented later
+
+    processEdges = nil, -- implemented later
+}
+
+-- Splits vertices of the input graph into multiple layers.
+--
+-- Vertices are assigned in even layers (2nd layer, 4th layer, ...). Odd layers are reserved for edges.
+--
+-- This function does NOT order the layers themselves.
 --
 -- Args:
--- * graph: DirectedHypergraph to draw.
--- * sourceVertices: subset of vertex indices from the graph. They'll be placed preferably in first layers.
+-- * self: LayerLayout object.
+-- * sourceVertices: set of vertices to place preferably in the first layers.
 --
--- Returns: A new LayerLayout object holding the result.
---
-function LayerLayout.new(graph,sourceVertices)
-    local result = {
-        layers = {},
-    }
-    local minDist = HyperSrcMinDist.run(graph,sourceVertices)
+function Impl.assignVerticesToLayers(self,sourceVertices)
+    -- 1) First layer assignment using distance from source vertices.
+    local minDist = HyperSrcMinDist.run(self.graph,sourceVertices)
 
+    -- 2) Refine layering using topological order of SCCs.
     local depGraph = DirectedHypergraph.new()
-    for _,edge in pairs(graph.edges) do
+    for _,edge in pairs(self.graph.edges) do
         local edgeDist = minDist.edgeDist[edge.index] or math.huge
         local newEdge = {
             index = edge.index,
@@ -70,26 +79,68 @@ function LayerLayout.new(graph,sourceVertices)
         local scc = sccs.components[index]
         local sccVertex = sccGraph.vertices[scc]
         if sccVertex then
-            local layerId = 1
+            local layerId = 2
             for _,edge in pairs(sccVertex.inbound) do
                 for _,previousId in pairs(edge.inbound) do
                     local previousLayerId = sccToLayer[previousId]
                     if previousLayerId then
-                            layerId = math.max(layerId, previousLayerId + 1)
+                            layerId = math.max(layerId, previousLayerId + 2)
                     else
                         Logger.error("LayerLayout: Invalid inputs from HyperSCC (wrong topological order, or non-acyclic graph).")
                     end
                 end
             end
             sccToLayer[scc] = layerId
-            result.layers[layerId] = result.layers[layerId] or {}
+            self.layers[layerId] = self.layers[layerId] or {}
             for vertexIndex in pairs(scc) do
-                table.insert(result.layers[layerId], vertexIndex)
+                table.insert(self.layers[layerId], {
+                    type = "vertex",
+                    index = vertexIndex,
+                })
+                self.vertexIdToLayer[vertexIndex] = layerId
             end
         else
             Logger.error("LayerLayout: Invalid component index")
         end
     end
+end
+
+-- Assigns hyperedges to layers.
+--
+-- Args:
+-- * self: LayerLayout object.
+--
+function Impl.processEdges(self)
+    self.layers[1] = {}
+    for _,edge in pairs(self.graph.edges) do
+        local layerId = 1
+        for _,vertexIndex in pairs(edge.inbound) do
+            layerId = math.max(layerId, 1 + self.vertexIdToLayer[vertexIndex])
+        end
+        self.layers[layerId] = self.layers[layerId] or {}
+        table.insert(self.layers[layerId],{
+            type = "edge",
+            index = edge.index,
+        })
+    end
+end
+
+-- Creates a new layer layout for the given graph.
+--
+-- Args:
+-- * graph: DirectedHypergraph to draw.
+-- * sourceVertices: subset of vertex indices from the graph. They'll be placed preferably in first layers.
+--
+-- Returns: A new LayerLayout object holding the result.
+--
+function LayerLayout.new(graph,sourceVertices)
+    local result = {
+        graph = graph,
+        layers = {},
+        vertexIdToLayer = {},
+    }
+    Impl.assignVerticesToLayers(result,sourceVertices)
+    Impl.processEdges(result)
     return result
 end
 
