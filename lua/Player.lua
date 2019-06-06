@@ -78,7 +78,10 @@ local Impl = {
 
     initGui = nil, -- implemented later
 
-    startCallbacks = {
+    renderGraph = nil, -- implemented later
+
+    -- Callbacks for the top-left button.
+    StartCallbacks = {
         index = "startButton",
         on_click = function(self, event)
             local player = self.player
@@ -95,7 +98,7 @@ local Impl = {
     },
 }
 
-GuiElement.newCallbacks(Impl.startCallbacks)
+GuiElement.newCallbacks(Impl.StartCallbacks)
 
 -- Creates a new Player object.
 --
@@ -108,6 +111,7 @@ function Player.new(object)
     object.opened = false
     Impl.buildGraph(object)
     Impl.initGui(object)
+    Impl.renderGraph(object)
     return object
 end
 
@@ -138,34 +142,42 @@ end
 -- Initialize the GUI of a player.
 --
 -- Args:
--- * player: Player whose GUI will be created.
+-- * self: Player whose GUI will be created.
 --
-function Impl.initGui(player)
-    player.gui.left:add({
+function Impl.initGui(self)
+    self.gui.left:add({
         type = "button",
         name = "menuButton",
         caption = "Chains",
     },{
-        callbacksIndex = Impl.startCallbacks.index,
-        player = player,
+        callbacksIndex = Impl.StartCallbacks.index,
+        player = self,
         previousPosition = {0,0},
     })
+end
+
+-- Renders the current graph of this player.
+--
+-- Args:
+-- * self: Player object.
+--
+function Impl.renderGraph(self)
     local rawMaterials = {}
-    for _,resource in pairs(player.prototypes.entries.resource) do
+    for _,resource in pairs(self.prototypes.entries.resource) do
         for _,product in pairs(resource.products) do
             rawMaterials[product] = true
         end
     end
-    for _,offshorePump in pairs(player.prototypes.entries["offshore-pump"]) do
+    for _,offshorePump in pairs(self.prototypes.entries["offshore-pump"]) do
         for _,product in pairs(offshorePump.products) do
             rawMaterials[product] = true
         end
     end
 
-    local layout = LayerLayout.new(player.graph,rawMaterials)
+    local layout = LayerLayout.new(self.graph,rawMaterials)
     local renderer = SimpleRenderer.new({
-        rawPlayer = player.rawPlayer,
-        surface = player.graphSurface,
+        rawPlayer = self.rawPlayer,
+        surface = self.graphSurface,
     })
     renderer:draw(layout)
 end
