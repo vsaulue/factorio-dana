@@ -24,6 +24,7 @@ local Player = require("lua/Player")
 -- Stored in global: yes.
 --
 -- Fields:
+-- * graphSurface: surface used to draw graphs.
 -- * players: map of Player objects, indexed by their Factorio index.
 -- * prototypes: PrototypeDatabase wrapping all useful prototypes from Factorio.
 --
@@ -38,6 +39,31 @@ local Main = {
 -- Implementation stuff (private scope).
 local Impl = {
     new = nil, -- implemented later.
+
+    -- Creates a new surface.
+    --
+    -- Args:
+    -- * gameScript: LuaGameScript object.
+    --
+    -- Returns: the new surface.
+    --
+    newSurface = function(gameScript)
+        local MapGenSettings = {
+            height = 1,
+            width = 1,
+        }
+        local namePrefix = script.mod_name
+        local result = gameScript.create_surface(namePrefix, MapGenSettings)
+        local number = 1
+        while not result do
+            result = gameScript.create_surface(namePrefix .. "_" .. number, MapGenSettings)
+            number = number + 1
+        end
+        result.set_chunk_generated_status({0, 0}, defines.chunk_generated_status.entities)
+        result.always_day = true
+        result.freeze_daytime = true
+        return result
+    end,
 
     -- Restores the metatable of a Main instance, and all its owned objects.
     --
@@ -54,11 +80,13 @@ local Impl = {
 
 function Impl.new(gameScript)
     local result = {
+        graphSurface = Impl.newSurface(gameScript),
         players = {},
         prototypes = PrototypeDatabase.new(gameScript),
     }
     for _,rawPlayer in pairs(game.players) do
         result.players[rawPlayer.index] = Player.new({
+            graphSurface = result.graphSurface,
             prototypes = result.prototypes,
             rawPlayer = rawPlayer,
         })

@@ -26,6 +26,7 @@ local LayerLayout = require("lua/LayerLayout")
 -- Fields:
 -- * rawPlayer: Associated LuaPlayer instance.
 -- * graph: DirectedHypergraph currently displayed to this player.
+-- * graphSurface: LuaSurface used to display graphs to this player.
 --
 -- RO properties:
 -- * gui: rawPlayer.gui wrapped in a Gui object.
