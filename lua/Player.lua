@@ -18,6 +18,7 @@ local DirectedHypergraph = require("lua/DirectedHypergraph")
 local Gui = require("lua/Gui")
 local GuiElement = require("lua/GuiElement")
 local LayerLayout = require("lua/LayerLayout")
+local SimpleRenderer = require("lua/SimpleRenderer")
 
 -- Class holding data associated to a player in this mod.
 --
@@ -30,6 +31,7 @@ local LayerLayout = require("lua/LayerLayout")
 --
 -- RO properties:
 -- * gui: rawPlayer.gui wrapped in a Gui object.
+-- * opened: true if the GUI is opened.
 --
 local Player = {
     new = nil, -- implemented later
@@ -79,7 +81,16 @@ local Impl = {
     startCallbacks = {
         index = "startButton",
         on_click = function(self, event)
-            self.window.rawElement.visible = not self.window.rawElement.visible
+            local player = self.player
+            local targetPosition = self.previousPosition
+            self.previousPosition = player.rawPlayer.position
+            if player.opened then
+                player.rawPlayer.teleport(targetPosition, self.previousSurface)
+            else
+                self.previousSurface = player.rawPlayer.surface
+                player.rawPlayer.teleport(targetPosition, player.graphSurface)
+            end
+            player.opened = not player.opened
         end,
     },
 }
@@ -94,6 +105,7 @@ GuiElement.newCallbacks(Impl.startCallbacks)
 function Player.new(object)
     setmetatable(object, Impl.Metatable)
     object.graph = DirectedHypergraph.new()
+    object.opened = false
     Impl.buildGraph(object)
     Impl.initGui(object)
     return object
@@ -129,19 +141,14 @@ end
 -- * player: Player whose GUI will be created.
 --
 function Impl.initGui(player)
-    local window = player.gui.center:add({
-        type = "frame",
-        name = "mainWindow",
-        caption = "Chains",
-        visible = false,
-    })
     player.gui.left:add({
         type = "button",
         name = "menuButton",
         caption = "Chains",
     },{
         callbacksIndex = Impl.startCallbacks.index,
-        window = window,
+        player = player,
+        previousPosition = {0,0},
     })
     local rawMaterials = {}
     for _,resource in pairs(player.prototypes.entries.resource) do
@@ -154,27 +161,13 @@ function Impl.initGui(player)
             rawMaterials[product] = true
         end
     end
+
     local layout = LayerLayout.new(player.graph,rawMaterials)
-    local layersFlow = window:add({
-        direction = "vertical",
-        type = "flow",
+    local renderer = SimpleRenderer.new({
+        rawPlayer = player.rawPlayer,
+        surface = player.graphSurface,
     })
-    for _,layer in ipairs(layout.layers) do
-        local layerFlow = layersFlow:add({
-            direction = "horizontal",
-            type = "flow",
-        })
-        for _,layerEntry in ipairs(layer) do
-            layerFlow:add({
-                caption = layerEntry.index.rawPrototype.name .. " | ",
-                type = "label",
-            })
-        end
-        layersFlow:add({
-            caption = "------------------------------------------------",
-            type = "label",
-        })
-    end
+    renderer:draw(layout)
 end
 
 return Player
