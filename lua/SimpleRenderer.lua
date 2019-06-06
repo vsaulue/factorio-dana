@@ -41,7 +41,7 @@ local Impl = {
 -- * layout: LayerLayout object to draw.
 --
 function Impl.Metatable.__index.draw(self,layout)
-    for layerId,layer in ipairs(layout.layers) do
+    for layerId,layer in ipairs(layout.layers.entries) do
         for vertexOrder,layerEntry in ipairs(layer) do
             rendering.draw_sprite({
                 players = {self.rawPlayer},

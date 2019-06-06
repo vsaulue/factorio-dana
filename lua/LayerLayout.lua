@@ -16,6 +16,7 @@
 
 local DirectedHypergraph = require("lua/DirectedHypergraph")
 local HyperSCC = require("lua/HyperSCC")
+local Layers = require("lua/Layers")
 local Logger = require("lua/Logger")
 local HyperSrcMinDist = require("lua/HyperSrcMinDist")
 
@@ -25,9 +26,9 @@ local HyperSrcMinDist = require("lua/HyperSrcMinDist")
 --
 -- Stored in global: no.
 --
--- Fields:
+-- RO properties:
 -- * graph: input graph.
--- * layers: 2-dim array of vertex indices (1st index: layer index, 2nd index: vertex position in layer).
+-- * layers: Layers object holding the computed layout.
 --
 local LayerLayout = {
     new = nil,
@@ -91,13 +92,11 @@ function Impl.assignVerticesToLayers(self,sourceVertices)
                 end
             end
             sccToLayer[scc] = layerId
-            self.layers[layerId] = self.layers[layerId] or {}
             for vertexIndex in pairs(scc) do
-                table.insert(self.layers[layerId], {
+                self.layers:newEntry(layerId, {
                     type = "vertex",
                     index = vertexIndex,
                 })
-                self.vertexIdToLayer[vertexIndex] = layerId
             end
         else
             Logger.error("LayerLayout: Invalid component index")
@@ -111,14 +110,12 @@ end
 -- * self: LayerLayout object.
 --
 function Impl.processEdges(self)
-    self.layers[1] = {}
     for _,edge in pairs(self.graph.edges) do
         local layerId = 1
         for _,vertexIndex in pairs(edge.inbound) do
-            layerId = math.max(layerId, 1 + self.vertexIdToLayer[vertexIndex])
+            layerId = math.max(layerId, 1 + self.layers.reverse.vertex[vertexIndex][1])
         end
-        self.layers[layerId] = self.layers[layerId] or {}
-        table.insert(self.layers[layerId],{
+        self.layers:newEntry(layerId, {
             type = "edge",
             index = edge.index,
         })
@@ -136,8 +133,7 @@ end
 function LayerLayout.new(graph,sourceVertices)
     local result = {
         graph = graph,
-        layers = {},
-        vertexIdToLayer = {},
+        layers = Layers.new(),
     }
     Impl.assignVerticesToLayers(result,sourceVertices)
     Impl.processEdges(result)
