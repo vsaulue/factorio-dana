@@ -93,11 +93,7 @@ function Impl.assignVerticesToLayers(self,sourceVertices)
             end
             sccToLayer[scc] = layerId
             for vertexIndex in pairs(scc) do
-                self.layers:newEntry(layerId, {
-                    type = "vertex",
-                    index = vertexIndex,
-                    uplinks = {},
-                })
+                self.layers:newVertex(layerId, vertexIndex)
             end
         else
             Logger.error("LayerLayout: Invalid component index")
@@ -116,23 +112,8 @@ function Impl.processEdges(self)
         for _,vertexIndex in pairs(edge.inbound) do
             layerId = math.max(layerId, 1 + self.layers.reverse.vertex[vertexIndex][1])
         end
-        local edgeEntry = {
-            type = "edge",
-            index = edge.index,
-            uplinks = {},
-        }
-        self.layers:newEntry(layerId, edgeEntry)
-
-        for _,vertexIndex in pairs(edge.inbound) do
-            local vertexEntry = self.layers:getEntry("vertex",vertexIndex)
-            self.layers:link(edgeEntry, vertexEntry, true)
+        self.layers:newEdge(layerId, edge)
         end
-
-        for _,vertexIndex in pairs(edge.outbound) do
-            local vertexEntry = self.layers:getEntry("vertex",vertexIndex)
-            self.layers:link(edgeEntry, vertexEntry, false)
-        end
-    end
 end
 
 -- Creates a new layer layout for the given graph.
