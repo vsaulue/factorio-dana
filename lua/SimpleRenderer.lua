@@ -32,6 +32,8 @@ local Impl = {
             draw = nil, -- implemented later
         },
     },
+
+    White = {r = 1, g = 1, b = 1, a = 1},
 }
 
 -- Draws a graph.
@@ -43,12 +45,35 @@ local Impl = {
 function Impl.Metatable.__index.draw(self,layout)
     for layerId,layer in ipairs(layout.layers.entries) do
         for vertexOrder,layerEntry in ipairs(layer) do
-            rendering.draw_sprite({
-                players = {self.rawPlayer},
-                sprite = layerEntry.index.type .. "/" .. layerEntry.index.rawPrototype.name,
-                surface = self.surface,
-                target = {vertexOrder*4,layerId*4},
-            })
+            local coordinates = {vertexOrder*4,layerId*4}
+            if layerEntry.type == "edge" or layerEntry.type == "vertex" then
+                rendering.draw_sprite({
+                    players = {self.rawPlayer},
+                    sprite = layerEntry.index.type .. "/" .. layerEntry.index.rawPrototype.name,
+                    surface = self.surface,
+                    target = coordinates,
+                })
+            elseif layerEntry.type == "link" then
+                rendering.draw_circle({
+                    color = Impl.White,
+                    filled = true,
+                    players = {self.rawPlayer},
+                    radius = 0.125,
+                    surface = self.surface,
+                    target = coordinates,
+                })
+            end
+
+            for _,upEntry in pairs(layerEntry.uplinks) do
+                local upPos = layout.layers.reverse[upEntry.type][upEntry.index]
+                rendering.draw_line({
+                    color = Impl.White,
+                    from = {upPos[2] * 4, upPos[1] * 4},
+                    surface = self.surface,
+                    to = coordinates,
+                    width = 1,
+                })
+            end
         end
     end
 end

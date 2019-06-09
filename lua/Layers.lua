@@ -27,13 +27,73 @@
 -- * maxLayerId: index of the latest layer.
 -- * reverse[type,index]: 2-dim array giving coordinates from keys (reverse of entries).
 --
+-- Methods:
+-- * getEntry: Gets an entry from its type and index.
+-- * link: creates a link between a vertex and an edge.
+-- * newEntry: adds a new entry.
+--
 local Layers = {
     new = nil,
 }
 
+-- Implementation stuff (private scope).
 local Impl = {
+    -- Metatable of the Layers class.
     Metatable = {
         __index = {
+            -- Gets an entry from its type and index.
+            --
+            -- Args:
+            -- * self: Layers object.
+            -- * type: Type of the entry to look for.
+            -- * index: Index of the entry to search.
+            --
+            -- Returns: The entry with the given index / type.
+            --
+            getEntry = function(self,type,index)
+                local pos = self.reverse[type][index]
+                return self.entries[pos[1]][pos[2]]
+            end,
+
+            -- Creates a link entry between a vertex and an edge.
+            --
+            -- Args:
+            -- * self: Layers object.
+            -- * edgeEntry: Entry of the edge to link.
+            -- * vertexEntry: Entry of the vertex to link.
+            --
+            link = function(self,edgeEntry,vertexEntry)
+                local edgePos = self.reverse[edgeEntry.type][edgeEntry.index]
+                local vertexPos = self.reverse[vertexEntry.type][vertexEntry.index]
+
+                -- Default values: edgePos[1] <= vertexPos[1]
+                local minLayerId = vertexPos[1]
+                local minEntry = vertexEntry
+                local maxLayerId = edgePos[1]
+                local maxEntry = edgeEntry
+                if vertexPos[1] > edgePos[1] then
+                    minLayerId = edgePos[1]
+                    minEntry = edgeEntry
+                    maxLayerId = vertexPos[1]
+                    maxEntry = vertexEntry
+                end
+
+                local i = maxLayerId - 1
+                local previousEntry = maxEntry
+                while i > minLayerId do
+                    local entry = {
+                        type = "link",
+                        index = {},
+                        uplinks = {},
+                    }
+                    self:newEntry(i, entry)
+                    i = i - 1
+                    table.insert(previousEntry.uplinks, entry)
+                    previousEntry = entry
+                end
+                table.insert(previousEntry.uplinks, minEntry)
+            end,
+
             -- Adds a new entry to this layout.
             --
             -- Args:

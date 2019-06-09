@@ -96,6 +96,7 @@ function Impl.assignVerticesToLayers(self,sourceVertices)
                 self.layers:newEntry(layerId, {
                     type = "vertex",
                     index = vertexIndex,
+                    uplinks = {},
                 })
             end
         else
@@ -115,10 +116,22 @@ function Impl.processEdges(self)
         for _,vertexIndex in pairs(edge.inbound) do
             layerId = math.max(layerId, 1 + self.layers.reverse.vertex[vertexIndex][1])
         end
-        self.layers:newEntry(layerId, {
+        local edgeEntry = {
             type = "edge",
             index = edge.index,
-        })
+            uplinks = {},
+        }
+        self.layers:newEntry(layerId, edgeEntry)
+
+        for _,vertexIndex in pairs(edge.inbound) do
+            local vertexEntry = self.layers:getEntry("vertex",vertexIndex)
+            self.layers:link(edgeEntry, vertexEntry, true)
+        end
+
+        for _,vertexIndex in pairs(edge.outbound) do
+            local vertexEntry = self.layers:getEntry("vertex",vertexIndex)
+            self.layers:link(edgeEntry, vertexEntry, false)
+        end
     end
 end
 
