@@ -33,6 +33,7 @@ local Impl = {
         },
     },
 
+    Red = {r = 1, a = 1},
     White = {r = 1, g = 1, b = 1, a = 1},
 }
 
@@ -54,8 +55,12 @@ function Impl.Metatable.__index.draw(self,layout)
                     target = coordinates,
                 })
             elseif layerEntry.type == "link" then
+                local color = Impl.White
+                if not layerEntry.isForward then
+                    color = Impl.Red
+                end
                 rendering.draw_circle({
-                    color = Impl.White,
+                    color = color,
                     filled = true,
                     players = {self.rawPlayer},
                     radius = 0.125,
