@@ -107,6 +107,7 @@ function Impl.Metatable.__index.newVertex(self,layerIndex,vertexIndex)
     Impl.newEntry(self,layerIndex,{
         type = "vertex",
         index = vertexIndex,
+        linkNodes = {},
     })
 end
 
@@ -135,17 +136,28 @@ function Impl.link(self,edgeEntry,vertexEntry)
 
     local i = maxLayerId - 1
     local previousEntry = maxEntry
-    while i > minLayerId do
-        local entry = {
-            type = "link",
-            index = {},
-        }
-        Impl.newEntry(self, i, entry)
-        i = i - 1
-        table.insert(previousEntry.uplinks, entry)
-        previousEntry = entry
+    local connected = false
+    while not connected do
+        if i > minLayerId then
+            if vertexEntry.linkNodes[i] then
+                table.insert(previousEntry.uplinks, vertexEntry.linkNodes[i])
+                connected = true
+            else
+                local entry = {
+                    type = "link",
+                    index = {},
+                }
+                Impl.newEntry(self, i, entry)
+                vertexEntry.linkNodes[i] = entry
+                i = i - 1
+                table.insert(previousEntry.uplinks, entry)
+                previousEntry = entry
+            end
+        else
+            table.insert(previousEntry.uplinks, minEntry)
+            connected = true
+        end
     end
-    table.insert(previousEntry.uplinks, minEntry)
 end
 
 -- Creates a new Layers object, with no vertices or edges.
