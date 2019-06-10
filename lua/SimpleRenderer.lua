@@ -61,6 +61,7 @@ function Impl.Metatable.__index.draw(self,layout)
                 end
                 rendering.draw_circle({
                     color = color,
+                    draw_on_ground = true,
                     filled = true,
                     players = {self.rawPlayer},
                     radius = 0.125,
@@ -73,6 +74,7 @@ function Impl.Metatable.__index.draw(self,layout)
                 local upPos = layout.layers.reverse[upEntry.type][upEntry.index]
                 rendering.draw_line({
                     color = Impl.White,
+                    draw_on_ground = true,
                     from = {upPos[2] * 4, upPos[1] * 4},
                     surface = self.surface,
                     to = coordinates,
