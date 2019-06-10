@@ -16,14 +16,22 @@
 
 -- Class holding layers for a layer graph representation.
 --
--- Each node entry (node in the layer graph) is a table with the following fields:
+-- Each entry (node in the layer graph) is a table with the following fields:
 -- * type: must be either "edge", "link", or "vertex".
 -- * index: an identifier.
+-- * uplinks: array of entries. This is the list of entries in previous layers linked to this entry.
+--
+-- Additional fields for "vertex" type:
+-- * forwardLinkNodes[layerId]: the unique node in the given layer for forward links.
+-- * backwardLinkNodes[layerId]: the unique node in the given layer for backward links.
+--
+-- Additional fields for "link" type:
+-- * isForward: true if the links of this entry are going from 1st layers to last layers.
 --
 -- For an entry, {type,index} acts as a primary key: duplicates are forbidden.
 --
 -- RO fields:
--- * entries[layerId,rankInLayer]: 2-dim array representing the layers.
+-- * entries[layerId,rankInLayer]: 2-dim array of entries, representing the layers.
 -- * maxLayerId: index of the latest layer.
 -- * reverse[type,index]: 2-dim array giving coordinates from keys (reverse of entries).
 --
@@ -85,6 +93,20 @@ local Impl = {
     end,
 }
 
+-- Adds a new hyperedge from the input hypergraph to a Layers object.
+--
+-- This function will create a new entry of type "edge" into the Layers object, and links
+-- between the vertices and this entry. It will also add intermediate "link" entries for links to
+-- ensure no link crosses multiple layers.
+--
+-- It will try to reuse "link" entries: in a given layer, there is at most 2 "link" entries
+-- for each vertexIndex: one for forward links, one for backward links.
+--
+-- Args:
+-- * self: Layers object.
+-- * layerIndex: Index of the layer in which the vertex will be inserted.
+-- * edge: Edge from the input hypergraph to add.
+--
 function Impl.Metatable.__index.newEdge(self,layerIndex,edge)
     local edgeEntry = {
         type = "edge",
@@ -94,44 +116,60 @@ function Impl.Metatable.__index.newEdge(self,layerIndex,edge)
 
     for _,vertexIndex in pairs(edge.inbound) do
         local vertexEntry = self:getEntry("vertex",vertexIndex)
-        Impl.link(self,edgeEntry, vertexEntry)
+        Impl.link(self,edgeEntry, vertexEntry, true)
     end
 
     for _,vertexIndex in pairs(edge.outbound) do
         local vertexEntry = self:getEntry("vertex",vertexIndex)
-        Impl.link(self,edgeEntry, vertexEntry)
+        Impl.link(self,edgeEntry, vertexEntry, false)
     end
 end
 
+-- Adds a new vertex from the input hypergraph to a Layers object
+--
+-- Args:
+-- * self: Layers object.
+-- * layerIndex: Index of the layer in which the vertex will be inserted.
+-- * vertexIndex: Index of the vertex from the hypergraph.
+--
 function Impl.Metatable.__index.newVertex(self,layerIndex,vertexIndex)
     Impl.newEntry(self,layerIndex,{
         type = "vertex",
         index = vertexIndex,
-        linkNodes = {},
+        backwardLinkNodes = {},
+        forwardLinkNodes = {},
     })
 end
 
--- Creates a link entry between a vertex and an edge.
+-- Creates a sequence of links entry between a vertex and an edge.
 --
 -- Args:
 -- * self: Layers object.
 -- * edgeEntry: Entry of the edge to link.
 -- * vertexEntry: Entry of the vertex to link.
+-- * isFromVertexToEdge: true if the link goes from the vertex to the edge, false for the other way.
 --
-function Impl.link(self,edgeEntry,vertexEntry)
+function Impl.link(self,edgeEntry,vertexEntry,isFromVertexToEdge)
     local edgePos = self.reverse[edgeEntry.type][edgeEntry.index]
     local vertexPos = self.reverse[vertexEntry.type][vertexEntry.index]
 
-    -- Default values: edgePos[1] <= vertexPos[1]
+    -- Default values: edgePos[1] >= vertexPos[1]
     local minLayerId = vertexPos[1]
     local minEntry = vertexEntry
     local maxLayerId = edgePos[1]
     local maxEntry = edgeEntry
+    local isForward = isFromVertexToEdge
     if vertexPos[1] > edgePos[1] then
         minLayerId = edgePos[1]
         minEntry = edgeEntry
         maxLayerId = vertexPos[1]
         maxEntry = vertexEntry
+        isForward = not isFromVertexToEdge
+    end
+
+    local linkNodeName = "backwardLinkNodes"
+    if isForward then
+        linkNodeName = "forwardLinkNodes"
     end
 
     local i = maxLayerId - 1
@@ -139,16 +177,17 @@ function Impl.link(self,edgeEntry,vertexEntry)
     local connected = false
     while not connected do
         if i > minLayerId then
-            if vertexEntry.linkNodes[i] then
-                table.insert(previousEntry.uplinks, vertexEntry.linkNodes[i])
+            if vertexEntry[linkNodeName][i] then
+                table.insert(previousEntry.uplinks, vertexEntry[linkNodeName][i])
                 connected = true
             else
                 local entry = {
                     type = "link",
                     index = {},
+                    isForward = isForward,
                 }
                 Impl.newEntry(self, i, entry)
-                vertexEntry.linkNodes[i] = entry
+                vertexEntry[linkNodeName][i] = entry
                 i = i - 1
                 table.insert(previousEntry.uplinks, entry)
                 previousEntry = entry
