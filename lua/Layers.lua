@@ -19,19 +19,25 @@
 -- Each entry (node in the layer graph) is a table with the following fields:
 -- * type: must be either "edge", "linkNode", or "vertex".
 -- * index: an identifier.
--- * uplinks: array of entries. This is the list of entries in previous layers linked to this entry.
 --
 -- Additional fields for "vertex" type:
 -- * forwardLinkNodes[layerId]: the unique node in the given layer for forward links.
 -- * backwardLinkNodes[layerId]: the unique node in the given layer for backward links.
 --
 -- Additional fields for "linkNode" type:
--- * isForward: true if the links of this entry are going from 1st layers to last layers.
+-- * isForward: true if the links of this entry are going from lower to higher layer indices.
 --
 -- For an entry, {type,index} acts as a primary key: duplicates are forbidden.
 --
+-- A link is a table with the following fields:
+-- * inbound: source entry.
+-- * outbound: destination entry.
+-- * isForward: true if this link is going from lower to higher layer indices.
+--
 -- RO fields:
 -- * entries[layerId,rankInLayer]: 2-dim array of entries, representing the layers.
+-- * links.backward[someEntry]: set of links in which someEntry has the greatest layerId.
+-- * links.forward[someEntry]: set of links in which someEntry has the lowest layerId.
 -- * maxLayerId: index of the latest layer.
 -- * reverse[type,index]: 2-dim array giving coordinates from keys (reverse of entries).
 --
@@ -80,7 +86,8 @@ local Impl = {
     --
     newEntry = function(self,layerIndex,entry)
         assert(not self.reverse[entry.type][entry.index], "Layers: duplicate primary key.")
-        entry.uplinks = {}
+        self.links.backward[entry] = {}
+        self.links.forward[entry] = {}
         if self.maxLayerId < layerIndex then
             for i=self.maxLayerId+1,layerIndex do
                 self.entries[i] = {}
@@ -91,6 +98,8 @@ local Impl = {
         self.entries[layerIndex][rank] = entry
         self.reverse[entry.type][entry.index] = {layerIndex, rank}
     end,
+
+    newLink = nil, -- implemented later
 }
 
 -- Adds a new hyperedge from the input hypergraph to a Layers object.
@@ -178,7 +187,7 @@ function Impl.link(self,edgeEntry,vertexEntry,isFromVertexToEdge)
     while not connected do
         if i > minLayerId then
             if vertexEntry[linkNodeName][i] then
-                table.insert(previousEntry.uplinks, vertexEntry[linkNodeName][i])
+                Impl.newLink(self, vertexEntry[linkNodeName][i], previousEntry, isForward)
                 connected = true
             else
                 local entry = {
@@ -189,14 +198,37 @@ function Impl.link(self,edgeEntry,vertexEntry,isFromVertexToEdge)
                 Impl.newEntry(self, i, entry)
                 vertexEntry[linkNodeName][i] = entry
                 i = i - 1
-                table.insert(previousEntry.uplinks, entry)
+                Impl.newLink(self, entry, previousEntry, isForward)
                 previousEntry = entry
             end
         else
-            table.insert(previousEntry.uplinks, minEntry)
+            Impl.newLink(self, minEntry, previousEntry, isForward)
             connected = true
         end
     end
+end
+
+-- Creates a new link.
+--
+-- Args:
+-- * self: Layers object.
+-- * lowEntry: Entry with the lowest layerId to link.
+-- * highEntry: Entry with the greatest layerId to link.
+-- * isForward: True if the link goes from lowEntry to highEntry, false otherwise.
+--
+function Impl.newLink(self,lowEntry,highEntry,isForward)
+    local newLink = {
+        isForward = isForward,
+    }
+    if isForward then
+        newLink.inbound = lowEntry
+        newLink.outbound = highEntry
+    else
+        newLink.inbound = highEntry
+        newLink.outbound = lowEntry
+    end
+    self.links.backward[highEntry][newLink] = true
+    self.links.forward[lowEntry][newLink] = true
 end
 
 -- Creates a new Layers object, with no vertices or edges.
@@ -206,6 +238,10 @@ end
 function Layers.new()
     local result = {
         entries = {},
+        links = {
+            forward = {},
+            backward = {},
+        },
         maxLayerId = 0,
         reverse = {
             edge = {},

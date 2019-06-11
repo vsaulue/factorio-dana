@@ -70,12 +70,16 @@ function Impl.Metatable.__index.draw(self,layout)
                 })
             end
 
-            for _,upEntry in pairs(layerEntry.uplinks) do
-                local upPos = layout.layers.reverse[upEntry.type][upEntry.index]
+            for link in pairs(layout.layers.links.backward[layerEntry]) do
+                local otherEntry = link.outbound
+                if link.isForward then
+                    otherEntry = link.inbound
+                end
+                local otherPos = layout.layers.reverse[otherEntry.type][otherEntry.index]
                 rendering.draw_line({
                     color = Impl.White,
                     draw_on_ground = true,
-                    from = {upPos[2] * 4, upPos[1] * 4},
+                    from = {otherPos[2] * 4, otherPos[1] * 4},
                     surface = self.surface,
                     to = coordinates,
                     width = 1,
