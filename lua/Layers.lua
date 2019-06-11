@@ -14,26 +14,15 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local LayerEntry = require("lua/LayerEntry")
 local LayerLink = require("lua/LayerLink")
 
-
--- Class holding layers for a layer graph representation.
---
--- Each entry (node in the layer graph) is a table with the following fields:
--- * type: must be either "edge", "linkNode", or "vertex".
--- * index: an identifier.
---
--- Additional fields for "vertex" type:
--- * forwardLinkNodes[layerId]: the unique node in the given layer for forward links.
--- * backwardLinkNodes[layerId]: the unique node in the given layer for backward links.
---
--- Additional fields for "linkNode" type:
--- * isForward: true if the links of this entry are going from lower to higher layer indices.
+-- Class holding a layer graph representation.
 --
 -- For an entry, {type,index} acts as a primary key: duplicates are forbidden.
 --
 -- RO fields:
--- * entries[layerId,rankInLayer]: 2-dim array of entries, representing the layers.
+-- * entries[layerId,rankInLayer]: 2-dim array of LayerEntry, representing the layers.
 -- * links.backward[someEntry]: set of LayerLink in which someEntry is the greatest layerId end.
 -- * links.forward[someEntry]: set of LayerLink in which someEntry is the lowest layerId end.
 -- * maxLayerId: index of the latest layer.
@@ -80,12 +69,13 @@ local Impl = {
     -- Args:
     -- * self: Layers object.
     -- * layerIndex: Index of the layer in which the entry will be inserted.
-    -- * entry: the new entry.
+    -- * entry: Constructor argument for the new LayerEntry.
     --
     newEntry = function(self,layerIndex,entry)
-        assert(not self.reverse[entry.type][entry.index], "Layers: duplicate primary key.")
-        self.links.backward[entry] = {}
-        self.links.forward[entry] = {}
+        local newEntry = LayerEntry.new(entry)
+        assert(not self.reverse[newEntry.type][newEntry.index], "Layers: duplicate primary key.")
+        self.links.backward[newEntry] = {}
+        self.links.forward[newEntry] = {}
         if self.maxLayerId < layerIndex then
             for i=self.maxLayerId+1,layerIndex do
                 self.entries[i] = {}
@@ -93,8 +83,8 @@ local Impl = {
             self.maxLayerId = layerIndex
         end
         local rank = 1 + #self.entries[layerIndex]
-        self.entries[layerIndex][rank] = entry
-        self.reverse[entry.type][entry.index] = {layerIndex, rank}
+        self.entries[layerIndex][rank] = newEntry
+        self.reverse[newEntry.type][newEntry.index] = {layerIndex, rank}
     end,
 
     newLink = nil, -- implemented later
@@ -121,7 +111,7 @@ function Impl.Metatable.__index.newEdge(self,layerIndex,edge)
         type = "edge",
         index = edge.index,
     }
-    Impl.newEntry(self,layerIndex, edgeEntry)
+    Impl.newEntry(self, layerIndex, edgeEntry)
 
     for _,vertexIndex in pairs(edge.inbound) do
         local vertexEntry = self:getEntry("vertex",vertexIndex)

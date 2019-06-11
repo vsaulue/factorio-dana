@@ -19,8 +19,8 @@ local Logger = require("lua/Logger")
 -- Class representing a link in a Layers object.
 --
 -- RO fields:
--- * inbound: source entry.
--- * outbound: destination entry.
+-- * inbound: source LayerEntry.
+-- * outbound: destination LayerEntry.
 -- * isForward: true if this link is going from lower to greater layer indices.
 --
 -- Methods:
@@ -61,11 +61,11 @@ local Impl = {
 -- Creates a new link.
 --
 -- Args:
--- * lowEntry: Entry with the lowest layerId to link.
--- * highEntry: Entry with the greatest layerId to link.
+-- * lowEntry: LayerEntry with the lowest layerId to link.
+-- * highEntry: LayerEntry with the greatest layerId to link.
 -- * isForward: True if the link goes from lowEntry to highEntry, false otherwise.
 --
-function LayerLink.new(lowEntry,highEntry,isForward)
+function LayerLink.new(lowEntry, highEntry, isForward)
     assert(lowEntry)
     assert(highEntry)
     local result = {
