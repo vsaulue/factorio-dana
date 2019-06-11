@@ -17,7 +17,7 @@
 -- Class holding layers for a layer graph representation.
 --
 -- Each entry (node in the layer graph) is a table with the following fields:
--- * type: must be either "edge", "link", or "vertex".
+-- * type: must be either "edge", "linkNode", or "vertex".
 -- * index: an identifier.
 -- * uplinks: array of entries. This is the list of entries in previous layers linked to this entry.
 --
@@ -25,7 +25,7 @@
 -- * forwardLinkNodes[layerId]: the unique node in the given layer for forward links.
 -- * backwardLinkNodes[layerId]: the unique node in the given layer for backward links.
 --
--- Additional fields for "link" type:
+-- Additional fields for "linkNode" type:
 -- * isForward: true if the links of this entry are going from 1st layers to last layers.
 --
 -- For an entry, {type,index} acts as a primary key: duplicates are forbidden.
@@ -96,10 +96,10 @@ local Impl = {
 -- Adds a new hyperedge from the input hypergraph to a Layers object.
 --
 -- This function will create a new entry of type "edge" into the Layers object, and links
--- between the vertices and this entry. It will also add intermediate "link" entries for links to
+-- between the vertices and this entry. It will also add intermediate "linkNode" entries to
 -- ensure no link crosses multiple layers.
 --
--- It will try to reuse "link" entries: in a given layer, there is at most 2 "link" entries
+-- It will try to reuse "linkNode" entries: in a given layer, there is at most 2 "linkNode" entries
 -- for each vertexIndex: one for forward links, one for backward links.
 --
 -- Args:
@@ -141,7 +141,7 @@ function Impl.Metatable.__index.newVertex(self,layerIndex,vertexIndex)
     })
 end
 
--- Creates a sequence of links entry between a vertex and an edge.
+-- Creates a sequence of links & linkNode entries between a vertex and an edge.
 --
 -- Args:
 -- * self: Layers object.
@@ -182,7 +182,7 @@ function Impl.link(self,edgeEntry,vertexEntry,isFromVertexToEdge)
                 connected = true
             else
                 local entry = {
-                    type = "link",
+                    type = "linkNode",
                     index = {},
                     isForward = isForward,
                 }
@@ -209,7 +209,7 @@ function Layers.new()
         maxLayerId = 0,
         reverse = {
             edge = {},
-            link = {},
+            linkNode = {},
             vertex = {},
         },
     }

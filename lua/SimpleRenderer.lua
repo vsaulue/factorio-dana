@@ -54,7 +54,7 @@ function Impl.Metatable.__index.draw(self,layout)
                     surface = self.surface,
                     target = coordinates,
                 })
-            elseif layerEntry.type == "link" then
+            elseif layerEntry.type == "linkNode" then
                 local color = Impl.White
                 if not layerEntry.isForward then
                     color = Impl.Red
