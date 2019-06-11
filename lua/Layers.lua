@@ -14,6 +14,9 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local LayerLink = require("lua/LayerLink")
+
+
 -- Class holding layers for a layer graph representation.
 --
 -- Each entry (node in the layer graph) is a table with the following fields:
@@ -29,15 +32,10 @@
 --
 -- For an entry, {type,index} acts as a primary key: duplicates are forbidden.
 --
--- A link is a table with the following fields:
--- * inbound: source entry.
--- * outbound: destination entry.
--- * isForward: true if this link is going from lower to higher layer indices.
---
 -- RO fields:
 -- * entries[layerId,rankInLayer]: 2-dim array of entries, representing the layers.
--- * links.backward[someEntry]: set of links in which someEntry has the greatest layerId.
--- * links.forward[someEntry]: set of links in which someEntry has the lowest layerId.
+-- * links.backward[someEntry]: set of LayerLink in which someEntry is the greatest layerId end.
+-- * links.forward[someEntry]: set of LayerLink in which someEntry is the lowest layerId end.
 -- * maxLayerId: index of the latest layer.
 -- * reverse[type,index]: 2-dim array giving coordinates from keys (reverse of entries).
 --
@@ -217,16 +215,7 @@ end
 -- * isForward: True if the link goes from lowEntry to highEntry, false otherwise.
 --
 function Impl.newLink(self,lowEntry,highEntry,isForward)
-    local newLink = {
-        isForward = isForward,
-    }
-    if isForward then
-        newLink.inbound = lowEntry
-        newLink.outbound = highEntry
-    else
-        newLink.inbound = highEntry
-        newLink.outbound = lowEntry
-    end
+    local newLink = LayerLink.new(lowEntry, highEntry, isForward)
     self.links.backward[highEntry][newLink] = true
     self.links.forward[lowEntry][newLink] = true
 end
