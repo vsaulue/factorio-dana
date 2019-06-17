@@ -19,6 +19,7 @@
 local Logger = {
     debug = nil, -- implemented later
     error = nil, -- implemented later
+    perfDebug = nil, -- implemented later
     warn = nil, -- implemented later
 }
 
@@ -53,6 +54,16 @@ end
 function Logger.error(message)
     local fullMsg = Impl.Prefix .. "Error: " .. message
     error(fullMsg)
+end
+
+-- Logs a performance debug message.
+--
+-- A performance debug message is a trace message to help the developers optimize the code.
+-- They should not be displayed anywhere in a "production" environment.
+--
+function Logger.perfDebug(message)
+    game.print(Impl.Prefix .. "Perf: " .. message)
+    game.print(debug.traceback())
 end
 
 -- Logs a warning message.
