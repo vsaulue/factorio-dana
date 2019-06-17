@@ -40,19 +40,19 @@ function Logger.debug(message)
     game.print(Impl.Prefix .. "Debug: " .. message)
 end
 
--- Logs an error message.
+-- Logs an error message & and terminates the program.
 --
 -- An error message is raised when the mod is in an inconsistent state.
 --
--- The mod is now in "undefined behaviour" mode: it is extremely likely to give wrong results
--- from now.
+-- The mod is now in "undefined behaviour" mode, so the game is stopped to prevent
+-- things from going worse.
 --
 -- Args:
 -- * message: Message to log.
 --
 function Logger.error(message)
-    game.print(Impl.Prefix .. "Error: " .. message)
-    game.print(debug.traceback())
+    local fullMsg = Impl.Prefix .. "Error: " .. message
+    error(fullMsg)
 end
 
 -- Logs a warning message.
