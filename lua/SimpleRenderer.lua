@@ -44,8 +44,10 @@ local Impl = {
 -- * layout: LayerLayout object to draw.
 --
 function Impl.Metatable.__index.draw(self,layout)
-    for layerId,layer in ipairs(layout.layers.entries) do
-        for vertexOrder,layerEntry in ipairs(layer) do
+    for layerId=1,layout.layers.entries.count do
+        local layer = layout.layers.entries[layerId]
+        for vertexOrder=1,layer.count do
+            local layerEntry = layer[vertexOrder]
             local coordinates = {vertexOrder*4,layerId*4}
             if layerEntry.type == "edge" or layerEntry.type == "vertex" then
                 rendering.draw_sprite({

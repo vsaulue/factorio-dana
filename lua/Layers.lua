@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local Array = require("lua/Array")
 local LayerEntry = require("lua/LayerEntry")
 local LayerLink = require("lua/LayerLink")
 
@@ -22,10 +23,9 @@ local LayerLink = require("lua/LayerLink")
 -- For an entry, {type,index} acts as a primary key: duplicates are forbidden.
 --
 -- RO fields:
--- * entries[layerId,rankInLayer]: 2-dim array of LayerEntry, representing the layers.
+-- * entries[layerId,rankInLayer]: 2-dim Array of LayerEntry, representing the layers.
 -- * links.backward[someEntry]: set of LayerLink in which someEntry is the greatest layerId end.
 -- * links.forward[someEntry]: set of LayerLink in which someEntry is the lowest layerId end.
--- * maxLayerId: index of the latest layer.
 -- * reverse[type,index]: 2-dim array giving coordinates from keys (reverse of entries).
 --
 -- Methods:
@@ -76,15 +76,15 @@ local Impl = {
         assert(not self.reverse[newEntry.type][newEntry.index], "Layers: duplicate primary key.")
         self.links.backward[newEntry] = {}
         self.links.forward[newEntry] = {}
-        if self.maxLayerId < layerIndex then
-            for i=self.maxLayerId+1,layerIndex do
-                self.entries[i] = {}
+        if self.entries.count < layerIndex then
+            for i=self.entries.count+1,layerIndex do
+                self.entries[i] = Array.new()
             end
-            self.maxLayerId = layerIndex
+            self.entries.count = layerIndex
         end
-        local rank = 1 + #self.entries[layerIndex]
-        self.entries[layerIndex][rank] = newEntry
-        self.reverse[newEntry.type][newEntry.index] = {layerIndex, rank}
+        local layer = self.entries[layerIndex]
+        layer:pushBack(newEntry)
+        self.reverse[newEntry.type][newEntry.index] = {layerIndex, layer.count}
     end,
 
     newLink = nil, -- implemented later
@@ -230,12 +230,11 @@ end
 --
 function Layers.new()
     local result = {
-        entries = {},
+        entries = Array.new(),
         links = {
             forward = {},
             backward = {},
         },
-        maxLayerId = 0,
         reverse = {
             edge = {},
             linkNode = {},
