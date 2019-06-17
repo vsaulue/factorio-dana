@@ -59,6 +59,43 @@ local Impl = {
             newEdge = nil, -- implemented later
 
             newVertex = nil, -- implemented later
+
+            -- Swaps 2 entries in a layer.
+            --
+            -- Args:
+            -- * self: Layers object.
+            -- * layerId: Index of the layer containing the entries.
+            -- * x1: Rank of the 1st entry to swap.
+            -- * x2: rank of the 2nd entry to swap.
+            --
+            swap = function(self, layerId, x1, x2)
+                local layer = self.entries[layerId]
+                local entry1 = layer[x1]
+                local entry2 = layer[x2]
+                layer[x1] = entry2
+                layer[x2] = entry1
+                self.reverse[entry1.type][entry1.index][2] = x2
+                self.reverse[entry2.type][entry2.index][2] = x1
+            end,
+
+            -- Sorts a layer in place.
+            --
+            -- The layer is sorted from lower to higher weights.
+            --
+            -- Args:
+            -- * self: Layers object.
+            -- * layerId: Index of the layer to sort.
+            -- * weights[entryId]: Map associating a weight to each entry of the sorted layer.
+            --
+            sortLayer = function(self, layerId, weights)
+                local layer = self.entries[layerId]
+                layer:sort(weights)
+                for x=1,layer.count do
+                    local entry = layer[x]
+                    local position = self.reverse[entry.type][entry.index]
+                    position[2] = x
+                end
+            end,
         },
     },
 
