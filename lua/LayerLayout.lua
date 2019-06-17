@@ -14,11 +14,14 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local Array = require("lua/Array")
 local DirectedHypergraph = require("lua/DirectedHypergraph")
 local HyperSCC = require("lua/HyperSCC")
+local Iterator = require("lua/Iterator")
 local Layers = require("lua/Layers")
 local Logger = require("lua/Logger")
 local HyperSrcMinDist = require("lua/HyperSrcMinDist")
+local OrderedSet = require("lua/OrderedSet")
 
 -- Computes a layer layout for an hypergraph.
 --
@@ -37,6 +40,18 @@ local LayerLayout = {
 -- Implementation stuff (private scope).
 local Impl = {
     assignVerticesToLayers = nil, -- implemented later
+
+    computeCouplingScore = nil, -- implemented later
+
+    countAdjacentCrossings = nil, -- implemented later
+
+    doInitialOrdering = nil, -- implemented later
+
+    normalizeX = nil, -- implemented later
+
+    orderByPermutation = nil, -- implemented later
+
+    orderByBarycenter = nil, -- implemented later
 
     processEdges = nil, -- implemented later
 }
@@ -101,6 +116,286 @@ function Impl.assignVerticesToLayers(self,sourceVertices)
     end
 end
 
+-- Counts the number of crossing/non-crossing pairs of links for consecutive entries.
+--
+-- Args:
+-- * layers: Layers object containing the entries.
+-- * layerId: Index of the layer containing the entries.
+-- * x: Rank of the first entry in the layer (the second entry is the one of rank `x+1`).
+-- * direction: Either "forward" or "backward", depending on which sets of links to consider.
+--
+-- Returns:
+-- * The number of crossing pairs.
+-- * The number of non-crossing pairs.
+--
+function Impl.countAdjacentCrossings(layers,layerId,x,direction)
+    local crossingCount = 0
+    local nonCrossingCount = 0
+    local e1 = layers.entries[layerId][x]
+    local e2 = layers.entries[layerId][x+1]
+    for link in pairs(layers.links[direction][e1]) do
+        local entry = link:getOtherEntry(e1)
+        local xEntry = layers.reverse[entry.type][entry.index][2]
+        for otherLink in pairs(layers.links[direction][e2]) do
+            local otherEntry = otherLink:getOtherEntry(e2)
+            local xOtherEntry = layers.reverse[otherEntry.type][otherEntry.index][2]
+            if xEntry > xOtherEntry then
+                crossingCount = crossingCount + 1
+            elseif xEntry < xOtherEntry then
+                nonCrossingCount = nonCrossingCount + 1
+            end
+        end
+    end
+    return crossingCount,nonCrossingCount
+end
+
+-- Computes a score indicating if the order of a set "fits well" the given couplings.
+--
+-- The order of a set "fits well" a coupling function if pairs with a high coupling value
+-- tends to be close of each other in the set.
+--
+-- Inspired by gravity forces: a good order minimizes the potential energy:
+-- Ep = - sum(G * m1 * m2 / d(m1,m2)) = - sum(couplings(m1,m2)/d(m1,m2))
+--
+-- Args:
+-- * order: OrderedSet object.
+-- * couplings[m1,m2]: a table giving the coupling values for each pair in `order`
+--
+-- Returns: a score (higher is better).
+--
+function Impl.computeCouplingScore(rootOrder, couplings)
+    local result = 0
+    local entries = rootOrder.entries
+    local it1 = entries[OrderedSet.Begin]
+    while it1 ~= OrderedSet.End do
+        local it2 = entries[it1]
+        local dist = 1
+        while it2 ~= OrderedSet.End do
+            result = result + (couplings[it1][it2] or 0) / dist
+            dist = dist + 1
+            it2 = entries[it2]
+        end
+        it1 = entries[it1]
+    end
+    return result
+end
+
+-- Assigns an initial order to all layers.
+--
+-- This is a global algorithm, parsing the full layer graph, and using a heuristic to give an initial
+-- "good enough" ordering of layers. Local heuristics can refine the work after that.
+--
+-- Algorithm works as follow:
+-- 1a) Computes roots (entries with no backward links)
+-- 1b) For non-roots, compute the number of paths to each roots.
+-- 2)  Compute a "coupling" value between each root pairs (great coupling <=> many entries have paths to these roots).
+-- 3)  Order the roots using couplings (try to place pairs with high couplings close of each other).
+-- 4)  Compute order of non-roots, using barycenter of the roots they're linked to.
+--
+-- Args:
+-- * self: LayerLayout object.
+--
+function Impl.doInitialOrdering(self)
+    -- 1a & 1b) Computes root entries, and number of paths to roots for other entries.
+    local paths = {}
+    local counts = {}
+    local roots = {}
+    local layersEntries = self.layers.entries
+    for layerId=1,layersEntries.count do
+        local layer = layersEntries[layerId]
+        for x=1,layer.count do
+            local entry = layer[x]
+            paths[entry] = {}
+            counts[entry] = 0
+            for link in pairs(self.layers.links.backward[entry]) do
+                local otherEntry = link:getOtherEntry(entry)
+                for parent,weight in pairs(paths[otherEntry]) do
+                    local currentValue = paths[entry][parent] or 0
+                    paths[entry][parent] = currentValue + weight
+                end
+                counts[entry] = counts[entry] + counts[otherEntry]
+            end
+            if counts[entry] == 0 then
+                roots[entry] = true
+                paths[entry][entry] = 1
+                counts[entry] = 1
+            end
+        end
+    end
+
+    -- 2) Compute coupling scores between each roots.
+    -- Coupling score inspired from gravity force (coupling = G * m1 * m2)
+    local couplings = {}
+    for entry in pairs(roots) do
+        couplings[entry] = {}
+    end
+    for layerId=1,layersEntries.count do
+        local layer = layersEntries[layerId]
+        for x=1,layer.count do
+            local entry = layer[x]
+            local sqrCount = counts[entry] * counts[entry]
+            local it1 = Iterator.new(paths[entry])
+            local it2 = Iterator.new()
+            while it1:next() do
+                it2:copy(it1)
+                while it2:next() do
+                    local prevCoupling = couplings[it1.key][it2.key] or 0
+                    local newCoupling = prevCoupling + (it1.value * it2.value) / sqrCount
+                    couplings[it1.key][it2.key] = newCoupling
+                    couplings[it2.key][it1.key] = newCoupling
+                end
+            end
+        end
+    end
+
+    -- 3) Order roots, by placing pairs with high coupling close together.
+    -- 3.1: process roots by their highest coupling coefficients
+    local rootProcessingOrder = Array.new()
+    local rootGreatestCouplings = {}
+    local max = math.max
+    for root in pairs(roots) do
+        local greatestCoupling = 0
+        for _,coupling in pairs(couplings[root]) do
+            greatestCoupling = max(coupling, greatestCoupling)
+        end
+        rootProcessingOrder:pushBack(root)
+        rootGreatestCouplings[root] = greatestCoupling
+    end
+    rootProcessingOrder:sort(rootGreatestCouplings)
+
+    -- 3.2: Main algorithm
+    local rootOrder = OrderedSet.new()
+    for i=1,rootProcessingOrder.count do
+        local root = rootProcessingOrder[i]
+        -- Logger.debug(root.index.rawPrototype.name .. ": " .. rootGreatestCouplings[root])
+        local optimalScore = -math.huge
+        local optimalPos = nil
+        local it = OrderedSet.Begin
+        while it ~= OrderedSet.End do
+            rootOrder:insertAfter(it,root)
+            local score = Impl.computeCouplingScore(rootOrder, couplings)
+            rootOrder:removeAfter(it)
+            if score > optimalScore then
+                optimalScore = score
+                optimalPos = it
+            end
+            it = rootOrder.entries[it]
+        end
+        rootOrder:insertAfter(optimalPos, root)
+    end
+
+    -- 4) Computes order of each layers
+    -- roots: the x-coordinate is the rank in the previous set.
+    -- other: the x-coordinate is the barycenter of the linked roots, weighed by path count.
+    -- Layer order is computed by sorting x-coordinates of the entries.
+    local it = rootOrder.entries[OrderedSet.Begin]
+    local rootPos = {}
+    local pos = 1
+    while it ~= OrderedSet.End do
+        rootPos[it] = pos
+        pos = pos + 1
+        it = rootOrder.entries[it]
+    end
+    for layerId=1,layersEntries.count do
+        local layer = layersEntries[layerId]
+        local positions = {}
+        for x=1,layer.count do
+            local entry = layer[x]
+            if rootPos[entry] then
+                positions[entry] = rootPos[entry]
+            else
+                local newPos = 0
+                for rootEntry,coef in pairs(paths[entry]) do
+                    newPos = newPos + coef * rootPos[rootEntry]
+                end
+                positions[entry] = newPos / counts[entry]
+            end
+        end
+        self.layers:sortLayer(layerId,positions)
+    end
+end
+
+-- Normalizes the rank of an entry in a layer.
+--
+-- Args:
+-- * position: Rank to normalize.
+-- * length: Length of the layer.
+--
+-- Returns: The normalized rank.
+--
+function Impl.normalizeX(position,length)
+    return (2 * position - 1) / (2 * length)
+end
+
+-- Refines the ordering of layers using the barycenters heuristics.
+--
+-- Args:
+-- * self: LayerLayout object.
+--
+function Impl.orderByBarycenter(self)
+    local layersEntries = self.layers.entries
+    for layerId=1,layersEntries.count do
+        local layer = layersEntries[layerId]
+        local prevLayerCount = 0
+        if layerId > 1 then
+            prevLayerCount = layersEntries[layerId-1].count
+        end
+        local nextLayerCount = 0
+        if layerId < layersEntries.count then
+            nextLayerCount = layersEntries[layerId+1].count
+        end
+        local barycenters = {}
+        for i=1,layer.count do
+            local entry = layer[i]
+            local sum = 0
+            local count = 0
+            for link in pairs(self.layers.links.backward[entry]) do
+                local otherEntry = link:getOtherEntry(entry)
+                local rawX = self.layers.reverse[otherEntry.type][otherEntry.index][2]
+                count = count + 1
+                sum = sum + Impl.normalizeX(rawX, prevLayerCount)
+            end
+            for link in pairs(self.layers.links.forward[entry]) do
+                local otherEntry = link:getOtherEntry(entry)
+                local rawX = self.layers.reverse[otherEntry.type][otherEntry.index][2]
+                count = count + 1
+                sum = sum + Impl.normalizeX(rawX, nextLayerCount)
+            end
+            if count == 0 then
+                barycenters[entry] = math.huge
+            else
+                barycenters[entry] = sum / count
+            end
+        end
+        self.layers:sortLayer(layerId, barycenters)
+    end
+end
+
+-- Refines the ordering of layers with permutations of adjacent entries.
+--
+-- Args:
+-- * self: LayerLayout instance.
+--
+function Impl.orderByPermutation(self)
+    local layersEntries = self.layers.entries
+    for layerId=1,layersEntries.count do
+        local layer = layersEntries[layerId]
+        repeat
+            local hasImproved = false
+            for x=1,layer.count-1 do
+                local c1,n1 = Impl.countAdjacentCrossings(self.layers,layerId,x,"backward")
+                local c2,n2 = Impl.countAdjacentCrossings(self.layers,layerId,x,"forward")
+                local c = c1 + c2
+                local n = n1 + n2
+                if (c > n) or (c == n and c1 > n1) then
+                    self.layers:swap(layerId, x, x+1)
+                    hasImproved = true
+                end
+            end
+        until not hasImproved
+    end
+end
+
 -- Assigns hyperedges to layers.
 --
 -- Args:
@@ -129,8 +424,16 @@ function LayerLayout.new(graph,sourceVertices)
         graph = graph,
         layers = Layers.new(),
     }
+
+    -- 1) Assign vertices, edges to layers & add dummy vertices.
     Impl.assignVerticesToLayers(result,sourceVertices)
     Impl.processEdges(result)
+
+    -- 2) Order vertices within their layers (crossing minimization).
+    Impl.doInitialOrdering(result)
+    Impl.orderByBarycenter(result)
+    Impl.orderByPermutation(result)
+
     return result
 end
 
