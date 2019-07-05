@@ -14,6 +14,8 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local LayoutParameters = require("lua/LayoutParameters")
+
 -- Class used to render graphs onto a LuaSurface.
 --
 -- RO properties:
@@ -26,6 +28,9 @@ local SimpleRenderer = {
 
 -- Implementation stuff (private scope).
 local Impl = {
+    -- LayoutParameters object, used by all instances of SimpleRenderer.
+    LayoutParameters = LayoutParameters.new(),
+
     -- Metatable of the SimpleRenderer class.
     Metatable = {
         __index = {
@@ -33,9 +38,49 @@ local Impl = {
         },
     },
 
+    renderTree = nil, -- implemented later
+
     Red = {r = 1, a = 1},
     White = {r = 1, g = 1, b = 1, a = 1},
 }
+
+-- Renders a tree link.
+--
+-- TODO: non-recursive implementation
+--
+-- Args:
+-- * self: SimpleRenderer object.
+-- * tree: The tree link to render.
+-- * color: Color used to draw the link.
+--
+function Impl.renderTree(self,tree,color)
+    local from = {tree.x, tree.y}
+    local count = 0
+    for subtree in pairs(tree.children) do
+        count = count + 1
+        rendering.draw_line({
+            color = color,
+            draw_on_ground = true,
+            from = from,
+            players = {self.rawPlayer},
+            surface = self.surface,
+            to = {subtree.x, subtree.y},
+            width = 1,
+        })
+        Impl.renderTree(self, subtree, color)
+    end
+    if count > 1 then
+        rendering.draw_circle({
+            color = color,
+            draw_on_ground = true,
+            filled = true,
+            players = {self.rawPlayer},
+            radius = 0.125,
+            surface = self.surface,
+            target = from,
+        })
+    end
+end
 
 -- Draws a graph.
 --
@@ -44,51 +89,29 @@ local Impl = {
 -- * layout: LayerLayout object to draw.
 --
 function Impl.Metatable.__index.draw(self,layout)
-    for layerId=1,layout.layers.entries.count do
-        local layer = layout.layers.entries[layerId]
-        for vertexOrder=1,layer.count do
-            local layerEntry = layer[vertexOrder]
-            local coordinates = {vertexOrder*4,layerId*4}
-            if layerEntry.type == "edge" or layerEntry.type == "vertex" then
-                rendering.draw_sprite({
-                    players = {self.rawPlayer},
-                    sprite = layerEntry.index.type .. "/" .. layerEntry.index.rawPrototype.name,
-                    surface = self.surface,
-                    target = coordinates,
-                })
-            elseif layerEntry.type == "linkNode" then
-                local color = Impl.White
-                if not layerEntry.isForward then
-                    color = Impl.Red
-                end
-                rendering.draw_circle({
-                    color = color,
-                    draw_on_ground = true,
-                    filled = true,
-                    players = {self.rawPlayer},
-                    radius = 0.125,
-                    surface = self.surface,
-                    target = coordinates,
-                })
-            end
-
-            for link in pairs(layout.layers.links.backward[layerEntry]) do
-                local otherEntry = link:getOtherEntry(layerEntry)
-                local color = Impl.White
-                if not link.isForward then
-                    color = Impl.Red
-                end
-                local otherPos = layout.layers.reverse[otherEntry.type][otherEntry.index]
-                rendering.draw_line({
-                    color = color,
-                    draw_on_ground = true,
-                    from = {otherPos[2] * 4, otherPos[1] * 4},
-                    surface = self.surface,
-                    to = coordinates,
-                    width = 1,
-                })
-            end
+    local layoutCoordinates = layout:computeCoordinates(Impl.LayoutParameters)
+    for vertexIndex,coordinates in pairs(layoutCoordinates.vertices) do
+        rendering.draw_sprite({
+            players = {self.rawPlayer},
+            sprite = vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
+            surface = self.surface,
+            target = {coordinates.xMin,coordinates.yMin},
+        })
+    end
+    for edgeIndex,coordinates in pairs(layoutCoordinates.edges) do
+        rendering.draw_sprite({
+            players = {self.rawPlayer},
+            sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
+            surface = self.surface,
+            target = {coordinates.xMin,coordinates.yMin},
+        })
+    end
+    for rendererLink in pairs(layoutCoordinates.links) do
+        local color = Impl.White
+        if rendererLink.category == "backward" then
+            color = Impl.Red
         end
+        Impl.renderTree(self, rendererLink.tree, color)
     end
 end
 
