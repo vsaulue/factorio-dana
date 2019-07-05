@@ -19,6 +19,8 @@ local Logger = require("lua/Logger")
 -- Utility to make tables throw errors on invalid reads.
 --
 local ErrorOnInvalidRead = {
+    new = nil, -- implemented later
+
     setmetatable = nil, -- implemented later
 }
 
@@ -28,6 +30,19 @@ local Metatable = {
         Logger.error("Invalid access at index: " .. tostring(field))
     end,
 }
+
+-- Creates a new ErrorOnInvalidRead table.
+--
+-- Args:
+-- * Table to turn into a ErrorOnInvalidRead object, or nil to create a new table.
+--
+-- Returns: The new ErrorOnInvalidRead table.
+--
+function ErrorOnInvalidRead.new(object)
+    local result = object or {}
+    setmetatable(result,Metatable)
+    return result
+end
 
 -- Assigns ErrorOnInvalidRead's metatable to the argument.
 --
