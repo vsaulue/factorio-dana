@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local Array = require("lua/Array")
+local ErrorOnInvalidRead = require("lua/ErrorOnInvalidRead")
 local LayerEntry = require("lua/LayerEntry")
 local LayerLink = require("lua/LayerLink")
 
@@ -110,9 +111,9 @@ local Impl = {
     --
     newEntry = function(self,layerIndex,entry)
         local newEntry = LayerEntry.new(entry)
-        assert(not self.reverse[newEntry.type][newEntry.index], "Layers: duplicate primary key.")
-        self.links.backward[newEntry] = {}
-        self.links.forward[newEntry] = {}
+        assert(not rawget(self.reverse[newEntry.type], newEntry.index), "Layers: duplicate primary key.")
+        self.links.backward[newEntry] = ErrorOnInvalidRead.new()
+        self.links.forward[newEntry] = ErrorOnInvalidRead.new()
         if self.entries.count < layerIndex then
             for i=self.entries.count+1,layerIndex do
                 self.entries[i] = Array.new()
@@ -268,14 +269,14 @@ end
 function Layers.new()
     local result = {
         entries = Array.new(),
-        links = {
-            forward = {},
-            backward = {},
+        links = ErrorOnInvalidRead.new{
+            forward = ErrorOnInvalidRead.new(),
+            backward = ErrorOnInvalidRead.new(),
         },
-        reverse = {
-            edge = {},
-            linkNode = {},
-            vertex = {},
+        reverse = ErrorOnInvalidRead.new{
+            edge = ErrorOnInvalidRead.new(),
+            linkNode = ErrorOnInvalidRead.new(),
+            vertex = ErrorOnInvalidRead.new(),
         },
     }
     setmetatable(result, Impl.Metatable)
