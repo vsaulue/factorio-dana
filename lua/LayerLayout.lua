@@ -16,12 +16,15 @@
 
 local Array = require("lua/Array")
 local DirectedHypergraph = require("lua/DirectedHypergraph")
+local ErrorOnInvalidRead = require("lua/ErrorOnInvalidRead")
 local HyperSCC = require("lua/HyperSCC")
 local Iterator = require("lua/Iterator")
 local Layers = require("lua/Layers")
+local LayoutCoordinates = require("lua/LayoutCoordinates")
 local Logger = require("lua/Logger")
 local HyperSrcMinDist = require("lua/HyperSrcMinDist")
 local OrderedSet = require("lua/OrderedSet")
+local Tree = require("lua/Tree")
 
 -- Computes a layer layout for an hypergraph.
 --
@@ -33,6 +36,9 @@ local OrderedSet = require("lua/OrderedSet")
 -- * graph: input graph.
 -- * layers: Layers object holding the computed layout.
 --
+-- Methods:
+-- * computeCoordinates: Computes the coordinates according to the given parameters.
+--
 local LayerLayout = {
     new = nil,
 }
@@ -41,11 +47,22 @@ local LayerLayout = {
 local Impl = {
     assignVerticesToLayers = nil, -- implemented later
 
+    buildTree = nil, -- implemented later
+
+    buildTreeImpl = nil, -- implemented later
+
     computeCouplingScore = nil, -- implemented later
 
     countAdjacentCrossings = nil, -- implemented later
 
     doInitialOrdering = nil, -- implemented later
+
+    -- Metatable of the LayerLayout class.
+    Metatable = {
+        __index = ErrorOnInvalidRead.new{
+            computeCoordinates = nil, -- implemented later
+        },
+    },
 
     normalizeX = nil, -- implemented later
 
@@ -114,6 +131,75 @@ function Impl.assignVerticesToLayers(self,sourceVertices)
             Logger.error("LayerLayout: Invalid component index")
         end
     end
+end
+
+-- Implementation of Impl.buildTree.
+--
+-- TODO: non-recursive implementation
+--
+-- Args:
+-- * entry: Root of the tree being built.
+-- * links: Map of links to use (ex: Layers.link.forward or Layers.links.backward).
+-- * entriesX: Map of X-coordinates for each entry.
+-- * entriesY: Map of Y-coordinates for each entry.
+--
+-- Returns: A tree of the links from entry.
+--
+function Impl.buildTreeImpl(entry,links, entriesX, entriesY)
+    local result = Tree.new({
+        x = entriesX[entry],
+        y = entriesY[entry],
+    })
+    if entry.type == "linkNode" then
+        for link in pairs(links[entry]) do
+            local otherEntry = link:getOtherEntry(entry)
+            local subtree = Impl.buildTreeImpl(otherEntry, links,entriesX,entriesY)
+            result.children[subtree] = true
+        end
+    else
+        if entry.type ~= "edge" then
+            Logger.error("LayerLayout: link connecting multiple vertices together.")
+        end
+        result.type = entry.type
+        result.index = entry.index
+    end
+    return result
+end
+
+-- Builds trees for each link starting from the specified vertex entry.
+--
+-- This function builds a tree of links starting from the given vertex entry. It
+-- is only allowed to cross "linkNode" entries.
+--
+-- Args:
+-- * entry: Vertex entry from which to start.
+-- * links: Map of links to use (ex: Layers.link.forward or Layers.links.backward).
+-- * entriesX: Map of X-coordinates for each entry.
+-- * entriesY: Map of Y-coordinates for each entry.
+--
+-- Returns: The trees, in a map[tree] -> category (category is either "backward" or "forward").
+--
+function Impl.buildTree(entry,links,entriesX,entriesY)
+    local result = {}
+    for link in pairs(links[entry]) do
+        local otherEntry = link:getOtherEntry(entry)
+        local subTree = Impl.buildTreeImpl(otherEntry, links,entriesX,entriesY)
+        local newTree = Tree.new({
+            type = entry.type,
+            index = entry.index,
+            x = entriesX[entry],
+            y = entriesY[entry],
+            children = {
+                [subTree] = true,
+            },
+        })
+        local category = "backward"
+        if link.isForward then
+            category = "forward"
+        end
+        result[newTree] = category
+    end
+    return result
 end
 
 -- Counts the number of crossing/non-crossing pairs of links for consecutive entries.
@@ -315,6 +401,63 @@ function Impl.doInitialOrdering(self)
     end
 end
 
+-- Computes the final layout of this graph.
+--
+-- Args:
+-- * self: LayerLayout object.
+-- * layoutParams: LayoutParameters object, describing constraints for the coordinates of elements.
+--
+-- Returns: a LayoutCoordinates object.
+--
+function Impl.Metatable.__index.computeCoordinates(self, layoutParams)
+    local result = LayoutCoordinates.new()
+    local entriesX = ErrorOnInvalidRead.new()
+    local entriesY = ErrorOnInvalidRead.new()
+    for layerId=1,self.layers.entries.count do
+        local layer = self.layers.entries[layerId]
+        for rank=1,layer.count do
+            local entry = layer[rank]
+            local entryType = entry.type
+            local x = 4*rank
+            local y = 4*layerId
+            if entryType ~= "linkNode" then
+                local targetTable = result.edges
+                if entryType == "vertex" then
+                    targetTable = result.vertices
+                end
+                targetTable[entry.index] = ErrorOnInvalidRead.new{
+                    xMin = x,
+                    xMax = x + 1,
+                    yMin = y,
+                    yMax = y + 1,
+                }
+            end
+            entriesX[entry] = x
+            entriesY[entry] = y
+        end
+    end
+    for _,pos in pairs(self.layers.reverse.vertex) do
+        local vertexEntry = self.layers.entries[pos[1]][pos[2]]
+        local forwardTrees = Impl.buildTree(vertexEntry, self.layers.links.forward, entriesX, entriesY)
+        for tree,category in pairs(forwardTrees) do
+            local newRendererLink = ErrorOnInvalidRead.new{
+                tree = tree,
+                category = category,
+            }
+            result.links[newRendererLink] = true
+        end
+        local backwardTrees = Impl.buildTree(vertexEntry, self.layers.links.backward, entriesX, entriesY)
+        for tree,category in pairs(backwardTrees) do
+            local newRendererLink = ErrorOnInvalidRead.new{
+                tree = tree,
+                category = category,
+            }
+            result.links[newRendererLink] = true
+        end
+    end
+    return result
+end
+
 -- Normalizes the rank of an entry in a layer.
 --
 -- Args:
@@ -424,6 +567,7 @@ function LayerLayout.new(graph,sourceVertices)
         graph = graph,
         layers = Layers.new(),
     }
+    setmetatable(result, Impl.Metatable)
 
     -- 1) Assign vertices, edges to layers & add dummy vertices.
     Impl.assignVerticesToLayers(result,sourceVertices)
