@@ -29,7 +29,17 @@ local SimpleRenderer = {
 -- Implementation stuff (private scope).
 local Impl = {
     -- LayoutParameters object, used by all instances of SimpleRenderer.
-    LayoutParameters = LayoutParameters.new(),
+    LayoutParameters = LayoutParameters.new{
+        edgeMarginX = 0.2,
+        edgeMarginY = 0.2,
+        edgeMinX = 1.6,
+        edgeMinY = 1.6,
+        linkWidth = 0.25,
+        vertexMarginX = 0.2,
+        vertexMarginY = 0.2,
+        vertexMinX = 1.6,
+        vertexMinY = 1.6,
+    },
 
     -- Metatable of the SimpleRenderer class.
     Metatable = {
