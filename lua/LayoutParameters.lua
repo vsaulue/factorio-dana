@@ -22,9 +22,13 @@ local ErrorOnInvalidRead = require("lua/ErrorOnInvalidRead")
 -- which one is horizontal/vertical (or do fancier transforms).
 --
 -- Fields:
+-- * edgeMarginX: Space to leave around hyperedges on the X-axis.
+-- * edgeMarginY: Space to leave around hyperedges on the Y-axis.
 -- * edgeMinX: Minimum desired X-length of hyperedges.
 -- * edgeMinY: Minimum desired Y-length of hyperedges.
 -- * linkWidth: Width of links, including margins (if you want 0.1-wide links separated by 0.5 gaps, set it to 0.6).
+-- * vertexMarginX: Space to leave around vertices on the X-axis.
+-- * vertexMarginY: Space to leave around vertices on the Y-axis.
 -- * vertexMinX: Minimum desired X-length if vertices.
 -- * vertexMinY: Minimum desired Y-length if vertices.
 --
@@ -35,9 +39,13 @@ local LayoutParameters = {
 -- Metatable of the LayoutParameters class.
 local Metatable = {
     __index = ErrorOnInvalidRead.new{
+        edgeMarginX = 1,
+        edgeMarginY = 1,
         edgeMinX = 1,
         edgeMinY = 1,
         linkWidth = 1,
+        vertexMarginX = 1,
+        vertexMarginY = 1,
         vertexMinX = 1,
         vertexMinY = 1,
     },
