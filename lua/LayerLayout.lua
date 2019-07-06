@@ -176,30 +176,48 @@ end
 -- * links: Map of links to use (ex: Layers.link.forward or Layers.links.backward).
 -- * entriesX: Map of X-coordinates for each entry.
 -- * entriesY: Map of Y-coordinates for each entry.
+-- * output: The table in which to store the generated trees.
 --
--- Returns: The trees, in a map[tree] -> category (category is either "backward" or "forward").
---
-function Impl.buildTree(entry,links,entriesX,entriesY)
-    local result = {}
+function Impl.buildTree(entry, links, entriesX, entriesY, output)
+    local forwardCount = 0
+    local forwardTree = Tree.new({
+        type = entry.type,
+        index = entry.index,
+        x = entriesX[entry],
+        y = entriesY[entry],
+    })
+    local backwardCount = 0
+    local backwardTree = Tree.new({
+        type = entry.type,
+        index = entry.index,
+        x = entriesX[entry],
+        y = entriesY[entry],
+    })
     for link in pairs(links[entry]) do
         local otherEntry = link:getOtherEntry(entry)
-        local subTree = Impl.buildTreeImpl(otherEntry, links,entriesX,entriesY)
-        local newTree = Tree.new({
-            type = entry.type,
-            index = entry.index,
-            x = entriesX[entry],
-            y = entriesY[entry],
-            children = {
-                [subTree] = true,
-            },
-        })
-        local category = "backward"
+        local newTree = Impl.buildTreeImpl(otherEntry, links,entriesX, entriesY)
         if link.isForward then
-            category = "forward"
+            forwardTree.children[newTree] = true
+            forwardCount = forwardCount + 1
+        else
+            backwardTree.children[newTree] = true
+            backwardCount = backwardCount + 1
         end
-        result[newTree] = category
     end
-    return result
+    if forwardCount > 0 then
+        local newTreeLink = ErrorOnInvalidRead.new{
+            tree = forwardTree,
+            category = "forward",
+        }
+        output[newTreeLink] = true
+    end
+    if backwardCount > 0 then
+        local newTreeLink = ErrorOnInvalidRead.new{
+            tree = backwardTree,
+            category = "backward",
+        }
+        output[newTreeLink] = true
+    end
 end
 
 -- Counts the number of crossing/non-crossing pairs of links for consecutive entries.
@@ -462,22 +480,8 @@ function Impl.Metatable.__index.computeCoordinates(self, params)
     end
     for _,pos in pairs(self.layers.reverse.vertex) do
         local vertexEntry = self.layers.entries[pos[1]][pos[2]]
-        local forwardTrees = Impl.buildTree(vertexEntry, self.layers.links.forward, entriesX, entriesY)
-        for tree,category in pairs(forwardTrees) do
-            local newRendererLink = ErrorOnInvalidRead.new{
-                tree = tree,
-                category = category,
-            }
-            result.links[newRendererLink] = true
-        end
-        local backwardTrees = Impl.buildTree(vertexEntry, self.layers.links.backward, entriesX, entriesY)
-        for tree,category in pairs(backwardTrees) do
-            local newRendererLink = ErrorOnInvalidRead.new{
-                tree = tree,
-                category = category,
-            }
-            result.links[newRendererLink] = true
-        end
+        Impl.buildTree(vertexEntry, self.layers.links.forward, entriesX, entriesY, result.links)
+        Impl.buildTree(vertexEntry, self.layers.links.backward, entriesX, entriesY, result.links)
     end
     return result
 end
