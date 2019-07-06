@@ -52,6 +52,8 @@ local Impl = {
 
     Red = {r = 1, a = 1},
     White = {r = 1, g = 1, b = 1, a = 1},
+    DarkGrey = {r = 0.1, g = 0.1, b = 0.1, a = 1},
+    LightGrey = {r = 0.2, g = 0.2, b = 0.2, a = 1}
 }
 
 -- Renders a tree link.
@@ -100,20 +102,38 @@ end
 --
 function Impl.Metatable.__index.draw(self,layout)
     local layoutCoordinates = layout:computeCoordinates(Impl.LayoutParameters)
-    for vertexIndex,coordinates in pairs(layoutCoordinates.vertices) do
+    for vertexIndex,coords in pairs(layoutCoordinates.vertices) do
+        rendering.draw_rectangle({
+            color = Impl.LightGrey,
+            draw_on_ground = true,
+            filled = true,
+            left_top = {coords.xMin, coords.yMin},
+            players = {self.rawPlayer},
+            right_bottom = {coords.xMax, coords.yMax},
+            surface = self.surface,
+        })
         rendering.draw_sprite({
             players = {self.rawPlayer},
             sprite = vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
             surface = self.surface,
-            target = {coordinates.xMin,coordinates.yMin},
+            target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
         })
     end
-    for edgeIndex,coordinates in pairs(layoutCoordinates.edges) do
+    for edgeIndex,coords in pairs(layoutCoordinates.edges) do
+        rendering.draw_rectangle({
+            color = Impl.DarkGrey,
+            draw_on_ground = true,
+            filled = true,
+            left_top = {coords.xMin, coords.yMin},
+            players = {self.rawPlayer},
+            right_bottom = {coords.xMax, coords.yMax},
+            surface = self.surface,
+        })
         rendering.draw_sprite({
             players = {self.rawPlayer},
             sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
             surface = self.surface,
-            target = {coordinates.xMin,coordinates.yMin},
+            target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
         })
     end
     for rendererLink in pairs(layoutCoordinates.links) do
