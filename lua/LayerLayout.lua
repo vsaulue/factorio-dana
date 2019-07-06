@@ -413,28 +413,52 @@ function Impl.Metatable.__index.computeCoordinates(self, layoutParams)
     local result = LayoutCoordinates.new()
     local entriesX = ErrorOnInvalidRead.new()
     local entriesY = ErrorOnInvalidRead.new()
+    local typeToMinX = ErrorOnInvalidRead.new{
+        edge = layoutParams.edgeMinX,
+        linkNode = layoutParams.linkWidth,
+        vertex = layoutParams.vertexMinX,
+    }
+    local typeToMarginX = ErrorOnInvalidRead.new{
+        edge = layoutParams.edgeMarginX,
+        linkNode = 0,
+        vertex = layoutParams.vertexMarginX,
+    }
+    local typeToMinY = ErrorOnInvalidRead.new{
+        edge = layoutParams.edgeMinY,
+        vertex = layoutParams.vertexMinY,
+    }
+    local yLayerLength = math.max(
+        layoutParams.edgeMinY + 2 * layoutParams.edgeMarginY,
+        layoutParams.vertexMinY + 2 * layoutParams.vertexMarginY
+    )
+    local middleY = yLayerLength / 2
     for layerId=1,self.layers.entries.count do
         local layer = self.layers.entries[layerId]
+        local x = 0
         for rank=1,layer.count do
             local entry = layer[rank]
             local entryType = entry.type
-            local x = 4*rank
-            local y = 4*layerId
+            local xLength = typeToMinX[entryType]
+            local xMargin = typeToMarginX[entryType]
+            x = x + xMargin
             if entryType ~= "linkNode" then
                 local targetTable = result.edges
                 if entryType == "vertex" then
                     targetTable = result.vertices
                 end
+                local yHalfLength = typeToMinY[entryType] / 2
                 targetTable[entry.index] = ErrorOnInvalidRead.new{
                     xMin = x,
-                    xMax = x + 1,
-                    yMin = y,
-                    yMax = y + 1,
+                    xMax = x + xLength,
+                    yMin = middleY - yHalfLength,
+                    yMax = middleY + yHalfLength,
                 }
             end
-            entriesX[entry] = x
-            entriesY[entry] = y
+            entriesX[entry] = x + xLength / 2
+            entriesY[entry] = middleY
+            x = x + xLength + xMargin
         end
+        middleY = middleY + 4 * yLayerLength
     end
     for _,pos in pairs(self.layers.reverse.vertex) do
         local vertexEntry = self.layers.entries[pos[1]][pos[2]]
