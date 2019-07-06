@@ -405,31 +405,31 @@ end
 --
 -- Args:
 -- * self: LayerLayout object.
--- * layoutParams: LayoutParameters object, describing constraints for the coordinates of elements.
+-- * params: LayoutParameters object, describing constraints for the coordinates of elements.
 --
 -- Returns: a LayoutCoordinates object.
 --
-function Impl.Metatable.__index.computeCoordinates(self, layoutParams)
+function Impl.Metatable.__index.computeCoordinates(self, params)
     local result = LayoutCoordinates.new()
     local entriesX = ErrorOnInvalidRead.new()
     local entriesY = ErrorOnInvalidRead.new()
     local typeToMinX = ErrorOnInvalidRead.new{
-        edge = layoutParams.edgeMinX,
-        linkNode = layoutParams.linkWidth,
-        vertex = layoutParams.vertexMinX,
+        edge = params.edgeMinX,
+        linkNode = params.linkWidth,
+        vertex = params.vertexMinX,
     }
     local typeToMarginX = ErrorOnInvalidRead.new{
-        edge = layoutParams.edgeMarginX,
+        edge = params.edgeMarginX,
         linkNode = 0,
-        vertex = layoutParams.vertexMarginX,
+        vertex = params.vertexMarginX,
     }
     local typeToMinY = ErrorOnInvalidRead.new{
-        edge = layoutParams.edgeMinY,
-        vertex = layoutParams.vertexMinY,
+        edge = params.edgeMinY,
+        vertex = params.vertexMinY,
     }
     local yLayerLength = math.max(
-        layoutParams.edgeMinY + 2 * layoutParams.edgeMarginY,
-        layoutParams.vertexMinY + 2 * layoutParams.vertexMarginY
+        params.edgeMinY + 2 * params.edgeMarginY,
+        params.vertexMinY + 2 * params.vertexMarginY
     )
     local middleY = yLayerLength / 2
     for layerId=1,self.layers.entries.count do
