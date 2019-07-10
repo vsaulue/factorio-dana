@@ -98,6 +98,8 @@ local Impl = {
     end,
 
     newLink = nil, -- implemented later
+
+    newLink2 = nil, -- implemented later
 }
 
 -- Adds a new hyperedge from the input hypergraph to a Layers object.
@@ -160,18 +162,16 @@ function Impl.link(self,edgeEntry,vertexEntry,isFromVertexToEdge)
     local edgePos = self.reverse[edgeEntry.type][edgeEntry.index]
     local vertexPos = self.reverse[vertexEntry.type][vertexEntry.index]
 
+    local edgeLayerId = edgePos[1]
+    local vertexLayerId = vertexPos[1]
     -- Default values: edgePos[1] >= vertexPos[1]
-    local minLayerId = vertexPos[1]
-    local minEntry = vertexEntry
-    local maxLayerId = edgePos[1]
-    local maxEntry = edgeEntry
+    local step = -1
     local isForward = isFromVertexToEdge
-    if vertexPos[1] > edgePos[1] then
-        minLayerId = edgePos[1]
-        minEntry = edgeEntry
-        maxLayerId = vertexPos[1]
-        maxEntry = vertexEntry
+    local newLink = Impl.newLink
+    if edgeLayerId < vertexLayerId then
+        step = 1
         isForward = not isFromVertexToEdge
+        newLink = Impl.newLink2
     end
 
     local linkNodeName = "backwardLinkNodes"
@@ -179,13 +179,14 @@ function Impl.link(self,edgeEntry,vertexEntry,isFromVertexToEdge)
         linkNodeName = "forwardLinkNodes"
     end
 
-    local i = maxLayerId - 1
-    local previousEntry = maxEntry
+    local i = edgeLayerId + step
+    local previousEntry = edgeEntry
     local connected = false
     while not connected do
-        if i > minLayerId then
-            if vertexEntry[linkNodeName][i] then
-                Impl.newLink(self, vertexEntry[linkNodeName][i], previousEntry, isForward)
+        if i ~= vertexLayerId then
+            local linkNode = vertexEntry[linkNodeName][i]
+            if linkNode then
+                newLink(self, linkNode, previousEntry, isForward)
                 connected = true
             else
                 local entry = {
@@ -195,12 +196,12 @@ function Impl.link(self,edgeEntry,vertexEntry,isFromVertexToEdge)
                 }
                 Impl.newEntry(self, i, entry)
                 vertexEntry[linkNodeName][i] = entry
-                i = i - 1
-                Impl.newLink(self, entry, previousEntry, isForward)
+                i = i + step
+                newLink(self, entry, previousEntry, isForward)
                 previousEntry = entry
             end
         else
-            Impl.newLink(self, minEntry, previousEntry, isForward)
+            newLink(self, vertexEntry, previousEntry, isForward)
             connected = true
         end
     end
@@ -215,9 +216,22 @@ end
 -- * isForward: True if the link goes from lowEntry to highEntry, false otherwise.
 --
 function Impl.newLink(self,lowEntry,highEntry,isForward)
+    assert(self.reverse[lowEntry.type][lowEntry.index][1] == self.reverse[highEntry.type][highEntry.index][1] - 1, "LayerLayout: invalid link creation.")
     local newLink = LayerLink.new(lowEntry, highEntry, isForward)
     self.links.backward[highEntry][newLink] = true
     self.links.forward[lowEntry][newLink] = true
+end
+
+-- Creates a new link.
+--
+-- Args:
+-- * self: Layers object.
+-- * lowEntry: Entry with the lowest layerId to link.
+-- * highEntry: Entry with the greatest layerId to link.
+-- * isForward: True if the link goes from lowEntry to highEntry, false otherwise.
+--
+function Impl.newLink2(self,highEntry,lowEntry,isForward)
+    Impl.newLink(self, lowEntry, highEntry, isForward)
 end
 
 -- Creates a new Layers object, with no vertices or edges.
