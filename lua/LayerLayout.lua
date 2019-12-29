@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local Array = require("lua/Array")
+local ChannelIndexFactory = require("lua/ChannelIndexFactory")
 local DirectedHypergraph = require("lua/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/ErrorOnInvalidRead")
 local HyperSCC = require("lua/HyperSCC")
@@ -591,9 +592,12 @@ end
 -- Returns: A new LayerLayout object holding the result.
 --
 function LayerLayout.new(graph,sourceVertices)
+    local channelIndexFactory = ChannelIndexFactory.new()
     local result = {
         graph = graph,
-        layers = Layers.new(),
+        layers = Layers.new{
+            channelIndexFactory = channelIndexFactory,
+        },
     }
     setmetatable(result, Impl.Metatable)
 

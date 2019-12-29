@@ -14,15 +14,13 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ErrorOnInvalidRead = require("lua/ErrorOnInvalidRead")
+
 -- Class for representing an entry (node) in a Layers object.
 --
 -- RO properties:
 -- * type: must be either "edge", "linkNode", or "vertex".
 -- * index: an identifier.
---
--- Additional fields for "vertex" type:
--- * forwardLinkNodes[layerId]: the unique node in the given layer for forward links.
--- * backwardLinkNodes[layerId]: the unique node in the given layer for backward links.
 --
 -- Additional fields for "linkNode" type:
 -- * isForward: true if the link of this entry are going from lower to higher layer indices.
@@ -49,10 +47,7 @@ local Impl = {
 function LayerEntry.new(object)
     assert(Impl.ValidTypes[object.type], "LayerEntry: invalid type.")
     assert(object.index, "LayerEntry: invalid index.")
-    if object.type == "vertex" then
-        object.backwardLinkNodes = {}
-        object.forwardLinkNodes = {}
-    end
+    ErrorOnInvalidRead.setmetatable(object)
     return object
 end
 

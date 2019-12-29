@@ -27,6 +27,7 @@ local LayerLink = require("lua/LayerLink")
 -- * entries[layerId,rankInLayer]: 2-dim Array of LayerEntry, representing the layers.
 -- * links.backward[someEntry]: set of LayerLink in which someEntry is the greatest layerId end.
 -- * links.forward[someEntry]: set of LayerLink in which someEntry is the lowest layerId end.
+-- * linkNodes[channelIndex,layerIndex]: map giving the vertex/linkNode entry for the specified channel in the specified layer.
 -- * reverse[type,index]: 2-dim array giving coordinates from keys (reverse of entries).
 --
 -- Methods:
@@ -123,6 +124,7 @@ local Impl = {
         local layer = self.entries[layerIndex]
         layer:pushBack(newEntry)
         self.reverse[newEntry.type][newEntry.index] = {layerIndex, layer.count}
+        return newEntry
     end,
 
     newLink = nil, -- implemented later
@@ -170,12 +172,16 @@ end
 -- * vertexIndex: Index of the vertex from the hypergraph.
 --
 function Impl.Metatable.__index.newVertex(self,layerIndex,vertexIndex)
-    Impl.newEntry(self,layerIndex,{
+    local newEntry = Impl.newEntry(self,layerIndex,{
         type = "vertex",
         index = vertexIndex,
-        backwardLinkNodes = {},
-        forwardLinkNodes = {},
     })
+    local channelFactory = self.channelIndexFactory
+    local linkNodes = self.linkNodes
+    local forwardIndex = channelFactory:get(vertexIndex, true)
+    linkNodes[forwardIndex] = { [layerIndex] = newEntry }
+    local backwardIndex = channelFactory:get(vertexIndex, false)
+    linkNodes[backwardIndex] = { [layerIndex] = newEntry }
 end
 
 -- Creates a sequence of links & linkNode entries between a vertex and an edge.
@@ -186,7 +192,7 @@ end
 -- * vertexEntry: Entry of the vertex to link.
 -- * isFromVertexToEdge: true if the link goes from the vertex to the edge, false for the other way.
 --
-function Impl.link(self,edgeEntry,vertexEntry,isFromVertexToEdge)
+function Impl.link(self, edgeEntry, vertexEntry, isFromVertexToEdge)
     local edgePos = self.reverse[edgeEntry.type][edgeEntry.index]
     local vertexPos = self.reverse[vertexEntry.type][vertexEntry.index]
 
@@ -202,35 +208,28 @@ function Impl.link(self,edgeEntry,vertexEntry,isFromVertexToEdge)
         newLink = Impl.newLink2
     end
 
-    local linkNodeName = "backwardLinkNodes"
-    if isForward then
-        linkNodeName = "forwardLinkNodes"
-    end
+    local channelIndex = self.channelIndexFactory:get(vertexEntry.index, isForward)
+    local linkNodes = self.linkNodes[channelIndex]
 
     local i = edgeLayerId + step
     local previousEntry = edgeEntry
     local connected = false
     while not connected do
-        if i ~= vertexLayerId then
-            local linkNode = vertexEntry[linkNodeName][i]
-            if linkNode then
-                newLink(self, linkNode, previousEntry, isForward)
-                connected = true
-            else
-                local entry = {
-                    type = "linkNode",
-                    index = {},
-                    isForward = isForward,
-                }
-                Impl.newEntry(self, i, entry)
-                vertexEntry[linkNodeName][i] = entry
-                i = i + step
-                newLink(self, entry, previousEntry, isForward)
-                previousEntry = entry
-            end
-        else
-            newLink(self, vertexEntry, previousEntry, isForward)
+        local linkNode = linkNodes[i]
+        if linkNode then
+            newLink(self, linkNode, previousEntry, isForward)
             connected = true
+        else
+            local entry = {
+                type = "linkNode",
+                index = {},
+                isForward = isForward,
+            }
+            Impl.newEntry(self, i, entry)
+            linkNodes[i] = entry
+            i = i + step
+            newLink(self, entry, previousEntry, isForward)
+            previousEntry = entry
         end
     end
 end
@@ -264,23 +263,26 @@ end
 
 -- Creates a new Layers object, with no vertices or edges.
 --
+-- Args:
+-- * object: Table to turn into a Layers object (must have a channelIndexFactory field).
+--
 -- Returns: The new Layers object.
 --
-function Layers.new()
-    local result = {
-        entries = Array.new(),
-        links = ErrorOnInvalidRead.new{
-            forward = ErrorOnInvalidRead.new(),
-            backward = ErrorOnInvalidRead.new(),
-        },
-        reverse = ErrorOnInvalidRead.new{
-            edge = ErrorOnInvalidRead.new(),
-            linkNode = ErrorOnInvalidRead.new(),
-            vertex = ErrorOnInvalidRead.new(),
-        },
+function Layers.new(object)
+    assert(object.channelIndexFactory, "Layers.new(): missing channelIndexFactory field.")
+    object.entries = Array.new()
+    object.links = ErrorOnInvalidRead.new{
+        forward = ErrorOnInvalidRead.new(),
+        backward = ErrorOnInvalidRead.new(),
     }
-    setmetatable(result, Impl.Metatable)
-    return result
+    object.linkNodes = ErrorOnInvalidRead.new()
+    object.reverse = ErrorOnInvalidRead.new{
+        edge = ErrorOnInvalidRead.new(),
+        linkNode = ErrorOnInvalidRead.new(),
+        vertex = ErrorOnInvalidRead.new(),
+    }
+    setmetatable(object, Impl.Metatable)
+    return object
 end
 
 return Layers
