@@ -35,7 +35,7 @@ local LayerLink = {
 local Impl = {
     -- Metatable of the LayerLink class.
     Metatable = {
-        __index = {
+        __index = ErrorOnInvalidRead.new{
             -- Gets the other end of this link.
             --
             -- Args:
