@@ -58,6 +58,8 @@ local Impl = {
 
     doInitialOrdering = nil, -- implemented later
 
+    getMiddleEntryPos = nil, -- implemented later
+
     -- Metatable of the LayerLayout class.
     Metatable = {
         __index = ErrorOnInvalidRead.new{
@@ -134,6 +136,21 @@ function Impl.assignVerticesToLayers(self,sourceVertices)
     end
 end
 
+-- Gets the coordinates of the middle of an entry.
+--
+-- Args:
+-- * entry: Entry which coordinates will be computed.
+-- * entryPositions[type,index]: map of entries position data.
+--
+-- Returns: x,y coordinates of the middle of the entry.
+--
+function Impl.getMiddleEntryPos(entry, entryPositions)
+    local entryPos = entryPositions[entry.type][entry.index]
+    local entryMiddleX = (entryPos.xMin + entryPos.xMax) / 2
+    local entryMiddleY = (entryPos.yMin + entryPos.yMax) / 2
+    return entryMiddleX, entryMiddleY
+end
+
 -- Implementation of Impl.buildTree.
 --
 -- TODO: non-recursive implementation
@@ -141,20 +158,21 @@ end
 -- Args:
 -- * entry: Root of the tree being built.
 -- * links: Map of links to use (ex: Layers.link.forward or Layers.links.backward).
--- * entriesX: Map of X-coordinates for each entry.
--- * entriesY: Map of Y-coordinates for each entry.
+-- * entryPositions[type,index]: Map holding the position of each entry.
 --
 -- Returns: A tree of the links from entry.
 --
-function Impl.buildTreeImpl(entry,links, entriesX, entriesY)
+function Impl.buildTreeImpl(entry,links, entryPositions)
+    local entryPos = entryPositions
+    local entryX, entryY = Impl.getMiddleEntryPos(entry, entryPositions)
     local result = Tree.new({
-        x = entriesX[entry],
-        y = entriesY[entry],
+        x = entryX,
+        y = entryY,
     })
     if entry.type == "linkNode" then
         for link in pairs(links[entry]) do
             local otherEntry = link:getOtherEntry(entry)
-            local subtree = Impl.buildTreeImpl(otherEntry, links,entriesX,entriesY)
+            local subtree = Impl.buildTreeImpl(otherEntry, links, entryPositions)
             result.children[subtree] = true
         end
     else
@@ -175,28 +193,28 @@ end
 -- Args:
 -- * entry: Vertex entry from which to start.
 -- * links: Map of links to use (ex: Layers.link.forward or Layers.links.backward).
--- * entriesX: Map of X-coordinates for each entry.
--- * entriesY: Map of Y-coordinates for each entry.
+-- * entryPositions[type,index]: Map holding the position of each entry.
 -- * output: The table in which to store the generated trees.
 --
-function Impl.buildTree(entry, links, entriesX, entriesY, output)
+function Impl.buildTree(entry, links, entryPositions, output)
     local forwardCount = 0
+    local entryX, entryY = Impl.getMiddleEntryPos(entry, entryPositions)
     local forwardTree = Tree.new({
         type = entry.type,
         index = entry.index,
-        x = entriesX[entry],
-        y = entriesY[entry],
+        x = entryX,
+        y = entryY,
     })
     local backwardCount = 0
     local backwardTree = Tree.new({
         type = entry.type,
         index = entry.index,
-        x = entriesX[entry],
-        y = entriesY[entry],
+        x = entryX,
+        y = entryY,
     })
     for link in pairs(links[entry]) do
         local otherEntry = link:getOtherEntry(entry)
-        local newTree = Impl.buildTreeImpl(otherEntry, links,entriesX, entriesY)
+        local newTree = Impl.buildTreeImpl(otherEntry, links, entryPositions)
         if link.channelIndex.isForward then
             forwardTree.children[newTree] = true
             forwardCount = forwardCount + 1
@@ -430,8 +448,11 @@ end
 --
 function Impl.Metatable.__index.computeCoordinates(self, params)
     local result = LayoutCoordinates.new()
-    local entriesX = ErrorOnInvalidRead.new()
-    local entriesY = ErrorOnInvalidRead.new()
+    local entryPositions = ErrorOnInvalidRead.new{
+        edge = result.edges,
+        linkNode = ErrorOnInvalidRead.new(),
+        vertex = result.vertices,
+    }
     local typeToMinX = ErrorOnInvalidRead.new{
         edge = params.edgeMinX,
         linkNode = params.linkWidth,
@@ -444,6 +465,7 @@ function Impl.Metatable.__index.computeCoordinates(self, params)
     }
     local typeToMinY = ErrorOnInvalidRead.new{
         edge = params.edgeMinY,
+        linkNode = 0,
         vertex = params.vertexMinY,
     }
     local yLayerLength = math.max(
@@ -460,29 +482,21 @@ function Impl.Metatable.__index.computeCoordinates(self, params)
             local xLength = typeToMinX[entryType]
             local xMargin = typeToMarginX[entryType]
             x = x + xMargin
-            if entryType ~= "linkNode" then
-                local targetTable = result.edges
-                if entryType == "vertex" then
-                    targetTable = result.vertices
-                end
-                local yHalfLength = typeToMinY[entryType] / 2
-                targetTable[entry.index] = ErrorOnInvalidRead.new{
-                    xMin = x,
-                    xMax = x + xLength,
-                    yMin = middleY - yHalfLength,
-                    yMax = middleY + yHalfLength,
-                }
-            end
-            entriesX[entry] = x + xLength / 2
-            entriesY[entry] = middleY
+            local yHalfLength = typeToMinY[entryType] / 2
+            entryPositions[entry.type][entry.index] = ErrorOnInvalidRead.new{
+                xMin = x,
+                xMax = x + xLength,
+                yMin = middleY - yHalfLength,
+                yMax = middleY + yHalfLength,
+            }
             x = x + xLength + xMargin
         end
         middleY = middleY + 4 * yLayerLength
     end
     for _,pos in pairs(self.layers.reverse.vertex) do
         local vertexEntry = self.layers.entries[pos[1]][pos[2]]
-        Impl.buildTree(vertexEntry, self.layers.links.forward, entriesX, entriesY, result.links)
-        Impl.buildTree(vertexEntry, self.layers.links.backward, entriesX, entriesY, result.links)
+        Impl.buildTree(vertexEntry, self.layers.links.forward, entryPositions, result.links)
+        Impl.buildTree(vertexEntry, self.layers.links.backward, entryPositions, result.links)
     end
     return result
 end
