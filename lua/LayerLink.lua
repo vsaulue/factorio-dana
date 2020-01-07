@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ErrorOnInvalidRead = require("lua/ErrorOnInvalidRead")
 local Logger = require("lua/Logger")
 
 -- Class representing a link in a Layers object.
@@ -21,7 +22,7 @@ local Logger = require("lua/Logger")
 -- RO fields:
 -- * inbound: source LayerEntry.
 -- * outbound: destination LayerEntry.
--- * isForward: true if this link is going from lower to greater layer indices.
+-- * channelIndex: ChannelIndex object, holding the vertexIndex & direction of this link.
 --
 -- Methods:
 -- * getOtherEntry: get the other end of this link.
@@ -63,18 +64,18 @@ local Impl = {
 -- Args:
 -- * lowEntry: LayerEntry with the lowest layerId to link.
 -- * highEntry: LayerEntry with the greatest layerId to link.
--- * isForward: True if the link goes from lowEntry to highEntry, false otherwise.
+-- * channelIndex: ChannelIndex object, defining the vertexIndex & direction of this link.
 --
-function LayerLink.new(lowEntry, highEntry, isForward)
+function LayerLink.new(lowEntry, highEntry, channelIndex)
     assert(lowEntry)
     assert(highEntry)
-    local result = {
-        isForward = isForward,
+    assert(channelIndex)
+    local result = ErrorOnInvalidRead.new{
+        channelIndex = channelIndex,
+        inbound = lowEntry,
+        outbound = highEntry,
     }
-    if isForward then
-        result.inbound = lowEntry
-        result.outbound = highEntry
-    else
+    if not channelIndex.isForward then
         result.inbound = highEntry
         result.outbound = lowEntry
     end

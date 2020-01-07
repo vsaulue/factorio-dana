@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -217,18 +217,17 @@ function Impl.link(self, edgeEntry, vertexEntry, isFromVertexToEdge)
     while not connected do
         local linkNode = linkNodes[i]
         if linkNode then
-            newLink(self, linkNode, previousEntry, isForward)
+            newLink(self, linkNode, previousEntry, channelIndex)
             connected = true
         else
             local entry = {
                 type = "linkNode",
                 index = {},
-                isForward = isForward,
             }
             Impl.newEntry(self, i, entry)
             linkNodes[i] = entry
             i = i + step
-            newLink(self, entry, previousEntry, isForward)
+            newLink(self, entry, previousEntry, channelIndex)
             previousEntry = entry
         end
     end
@@ -240,11 +239,11 @@ end
 -- * self: Layers object.
 -- * lowEntry: Entry with the lowest layerId to link.
 -- * highEntry: Entry with the greatest layerId to link.
--- * isForward: True if the link goes from lowEntry to highEntry, false otherwise.
+-- * channelIndex: ChannelIndex of this link.
 --
-function Impl.newLink(self,lowEntry,highEntry,isForward)
+function Impl.newLink(self, lowEntry, highEntry, channelIndex)
     assert(self.reverse[lowEntry.type][lowEntry.index][1] == self.reverse[highEntry.type][highEntry.index][1] - 1, "LayerLayout: invalid link creation.")
-    local newLink = LayerLink.new(lowEntry, highEntry, isForward)
+    local newLink = LayerLink.new(lowEntry, highEntry, channelIndex)
     self.links.backward[highEntry][newLink] = true
     self.links.forward[lowEntry][newLink] = true
 end
@@ -255,10 +254,10 @@ end
 -- * self: Layers object.
 -- * lowEntry: Entry with the lowest layerId to link.
 -- * highEntry: Entry with the greatest layerId to link.
--- * isForward: True if the link goes from lowEntry to highEntry, false otherwise.
+-- * channelIndex: ChannelIndex of this link.
 --
-function Impl.newLink2(self,highEntry,lowEntry,isForward)
-    Impl.newLink(self, lowEntry, highEntry, isForward)
+function Impl.newLink2(self, highEntry, lowEntry, channelIndex)
+    Impl.newLink(self, lowEntry, highEntry, channelIndex)
 end
 
 -- Creates a new Layers object, with no vertices or edges.

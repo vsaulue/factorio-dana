@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -197,7 +197,7 @@ function Impl.buildTree(entry, links, entriesX, entriesY, output)
     for link in pairs(links[entry]) do
         local otherEntry = link:getOtherEntry(entry)
         local newTree = Impl.buildTreeImpl(otherEntry, links,entriesX, entriesY)
-        if link.isForward then
+        if link.channelIndex.isForward then
             forwardTree.children[newTree] = true
             forwardCount = forwardCount + 1
         else
