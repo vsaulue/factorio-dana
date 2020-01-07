@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -43,9 +43,9 @@ local LayoutCoordinates = {
 --
 function LayoutCoordinates.new()
     local result = ErrorOnInvalidRead.new{
-        edges = {},
-        links = {},
-        vertices = {},
+        edges = ErrorOnInvalidRead.new(),
+        links = ErrorOnInvalidRead.new(),
+        vertices = ErrorOnInvalidRead.new(),
     }
     return result
 end
