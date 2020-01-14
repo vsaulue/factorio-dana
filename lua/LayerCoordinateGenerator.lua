@@ -19,7 +19,16 @@ local LayoutCoordinates = require("lua/LayoutCoordinates")
 local Logger = require("lua/Logger")
 local Tree = require("lua/Tree")
 
--- Helper library to compute final coordinates of a LayerLayout object.
+-- Helper class to compute the final coordinates of a LayerLayout object.
+--
+-- This class is private (not accessible from other files): it is just an intermediate
+-- used during the layout generation.
+--
+-- Fields:
+-- * entryPositions[type][index]: Placement data of the entry with the given type & index.
+-- * layout: Input LayerLayout instance.
+-- * result: Output LayoutCoordinates object.
+--
 local LayerCoordinateGenerator = ErrorOnInvalidRead.new{
     run = nil, -- implemented later
 }
@@ -43,10 +52,14 @@ local Impl = ErrorOnInvalidRead.new{
 --
 function LayerCoordinateGenerator.run(layout, params)
     local result = LayoutCoordinates.new()
-    local entryPositions = ErrorOnInvalidRead.new{
-        edge = result.edges,
-        linkNode = ErrorOnInvalidRead.new(),
-        vertex = result.vertices,
+    local self = ErrorOnInvalidRead.new{
+        entryPositions = ErrorOnInvalidRead.new{
+            edge = result.edges,
+            linkNode = ErrorOnInvalidRead.new(),
+            vertex = result.vertices,
+        },
+        layout = layout,
+        result = result,
     }
     local typeToMinX = ErrorOnInvalidRead.new{
         edge = params.edgeMinX,
@@ -78,7 +91,7 @@ function LayerCoordinateGenerator.run(layout, params)
             local xMargin = typeToMarginX[entryType]
             x = x + xMargin
             local yHalfLength = typeToMinY[entryType] / 2
-            entryPositions[entry.type][entry.index] = ErrorOnInvalidRead.new{
+            self.entryPositions[entry.type][entry.index] = ErrorOnInvalidRead.new{
                 xMin = x,
                 xMax = x + xLength,
                 yMin = middleY - yHalfLength,
@@ -90,8 +103,8 @@ function LayerCoordinateGenerator.run(layout, params)
     end
     for _,pos in pairs(layout.layers.reverse.vertex) do
         local vertexEntry = layout.layers.entries[pos[1]][pos[2]]
-        Impl.buildTree(vertexEntry, layout.layers.links.forward, entryPositions, result.links)
-        Impl.buildTree(vertexEntry, layout.layers.links.backward, entryPositions, result.links)
+        Impl.buildTree(vertexEntry, layout.layers.links.forward, self.entryPositions, result.links)
+        Impl.buildTree(vertexEntry, layout.layers.links.backward, self.entryPositions, result.links)
     end
     return result
 end
