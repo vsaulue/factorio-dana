@@ -64,7 +64,7 @@ function LayerCoordinateGenerator.run(layout, params)
     }
     local typeToMinY = ErrorOnInvalidRead.new{
         edge = params.edgeMinY,
-        linkNode = 0,
+        linkNode = math.max(params.edgeMinY, params.vertexMinY),
         vertex = params.vertexMinY,
     }
     local yLayerLength = math.max(

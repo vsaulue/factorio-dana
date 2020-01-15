@@ -28,8 +28,6 @@ local LayerTreeLinkGenerator = ErrorOnInvalidRead.new{
 local Impl = ErrorOnInvalidRead.new{
     getXSlotCoordinate = nil, -- implemented later
 
-    getSlotCoordinates = nil, -- implemented later
-
     -- Parser data to generate trees from high to low layer indexes.
     HighToLowData = ErrorOnInvalidRead.new{
         -- Indicates if we're parsing layers from lower to higher index.
@@ -53,6 +51,8 @@ local Impl = ErrorOnInvalidRead.new{
         yVertexCoordName = "yMax",
     },
 
+    makeTreeNode = nil, -- implemented later
+
     makeTree = nil, -- implemented later
 
     runOneDirection = nil, -- implemented later
@@ -72,7 +72,7 @@ function Impl.getXSlotCoordinate(entryPosition, rank, slotCount)
     return xMin + (entryPosition.xMax - xMin) * (rank - 0.5) / slotCount
 end
 
--- Get the coordinates of a slot by its channel index.
+-- Creates the tree node of a specified slot on an entry.
 --
 -- Args:
 -- * coordinateGenerator: LayerCoordinateGenerator object of the layout to generate.
@@ -80,11 +80,9 @@ end
 -- * channelIndex: ChannelIndex of the desired slot.
 -- * isInbound: True to parse inbound slots. False for outbound slots.
 --
--- Returns:
--- * X coordinate of the slot.
--- * Y coordinate of the slot.
+-- Returns: A tree node with the slot's x/y coordinates.
 --
-function Impl.getSlotCoordinates(coordinateGenerator, entry, channelIndex, isInbound)
+function Impl.makeTreeNode(coordinateGenerator, entry, channelIndex, isInbound)
     local entryPosition = coordinateGenerator.entryPositions[entry.type][entry.index]
     local slots = entry.outboundSlots
     local y = entryPosition.yMax
@@ -93,7 +91,10 @@ function Impl.getSlotCoordinates(coordinateGenerator, entry, channelIndex, isInb
         y = entryPosition.yMin
     end
     local x = Impl.getXSlotCoordinate(entryPosition, slots[channelIndex], slots.count)
-    return x,y
+    return Tree.new{
+        x = x,
+        y = y,
+    }
 end
 
 -- Creates a LinkTree recursively.
@@ -111,18 +112,16 @@ end
 function Impl.makeTree(coordinateGenerator, parentEntry, link, parserData)
     local childEntry = link:getOtherEntry(parentEntry)
     local channelIndex = link.channelIndex
-    local x,y = Impl.getSlotCoordinates(coordinateGenerator, childEntry, channelIndex, parserData.isLowToHigh)
-    local result = Tree.new{
-        x = x,
-        y = y,
-    }
+    local result = Impl.makeTreeNode(coordinateGenerator, childEntry, channelIndex, parserData.isLowToHigh)
     local type = childEntry.type
     if type == "linkNode" then
+        local subTree = Impl.makeTreeNode(coordinateGenerator, childEntry, channelIndex, not parserData.isLowToHigh)
+        result.children[subTree] = true
         local links = coordinateGenerator.layout.layers.links[parserData.linksName][childEntry]
         local makeTree = Impl.makeTree
         for nextLink in pairs(links) do
-            local subTree = makeTree(coordinateGenerator, childEntry, nextLink, parserData)
-            result.children[subTree] = true
+            local subTree2 = makeTree(coordinateGenerator, childEntry, nextLink, parserData)
+            subTree.children[subTree2] = true
         end
     else
         if type ~= "edge" then
