@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -15,12 +15,15 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/ErrorOnInvalidRead")
+local ReversibleArray = require("lua/ReversibleArray")
 
 -- Class for representing an entry (node) in a Layers object.
 --
 -- RO properties:
 -- * type: must be either "edge", "linkNode", or "vertex".
 -- * index: an identifier.
+-- * inboundSlots: ReversibleArray containing the set of inbound ChannelIndex objects.
+-- * outboundSlots: ReversibleArray containing the set of outbound ChannelIndex objects.
 --
 -- Additional fields for "linkNode" type:
 -- * isForward: true if the link of this entry are going from lower to higher layer indices.
@@ -47,6 +50,8 @@ local Impl = {
 function LayerEntry.new(object)
     assert(Impl.ValidTypes[object.type], "LayerEntry: invalid type.")
     assert(object.index, "LayerEntry: invalid index.")
+    object.inboundSlots = ReversibleArray.new()
+    object.outboundSlots = ReversibleArray.new()
     ErrorOnInvalidRead.setmetatable(object)
     return object
 end
