@@ -451,6 +451,24 @@ function LayerLayout.new(graph,sourceVertices)
     Impl.orderByBarycenter(result)
     Impl.orderByPermutation(result)
 
+    -- 3) Attach points.
+    local entries = result.layers.entries
+    local forwardLinks = result.layers.links.forward
+    for i=1,entries.count do
+        local layer = entries[i]
+        for j=1,layer.count do
+            local entry = layer[j]
+            local links = forwardLinks[entry]
+            for link in pairs(links) do
+                local channelIndex = link.channelIndex
+                local slots = entry.outboundSlots
+                slots:pushBackIfNotPresent(channelIndex)
+                slots = link:getOtherEntry(entry).inboundSlots
+                slots:pushBackIfNotPresent(channelIndex)
+            end
+        end
+    end
+
     return result
 end
 
