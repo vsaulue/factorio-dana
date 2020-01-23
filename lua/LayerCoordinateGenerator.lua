@@ -78,7 +78,8 @@ function LayerCoordinateGenerator.run(layout, params)
         for rank=1,layer.count do
             local entry = layer[rank]
             local entryType = entry.type
-            local xLength = typeToMinX[entryType]
+            local maxSlotsCount = math.max(entry.inboundSlots.count, entry.outboundSlots.count)
+            local xLength = math.max(typeToMinX[entryType], params.linkWidth * maxSlotsCount)
             local xMargin = typeToMarginX[entryType]
             x = x + xMargin
             local yHalfLength = typeToMinY[entryType] / 2
