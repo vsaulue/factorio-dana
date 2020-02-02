@@ -16,6 +16,7 @@
 
 local Array = require("lua/Array")
 local ChannelIndexFactory = require("lua/ChannelIndexFactory")
+local ChannelLayer = require("lua/ChannelLayer")
 local DirectedHypergraph = require("lua/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/ErrorOnInvalidRead")
 local HyperSCC = require("lua/HyperSCC")
@@ -33,6 +34,7 @@ local OrderedSet = require("lua/OrderedSet")
 -- Stored in global: no.
 --
 -- RO properties:
+-- * channelLayers: Array of ChannelLayer objects (1st channel layer is before the 1st entry layer).
 -- * graph: input graph.
 -- * layers: Layers object holding the computed layout.
 --
@@ -50,6 +52,8 @@ local Impl = {
     computeCouplingScore = nil, -- implemented later
 
     countAdjacentCrossings = nil, -- implemented later
+
+    createChannelLayers = nil, -- implemented later
 
     doInitialOrdering = nil, -- implemented later
 
@@ -191,6 +195,19 @@ function Impl.computeCouplingScore(rootOrder, couplings)
         it1 = entries[it1]
     end
     return result
+end
+
+-- Populates the LayerLayout.channelLayers array with empty ChannelLayer objects.
+--
+-- Args:
+-- * self: the LayerLayout object.
+--
+function Impl.createChannelLayers(self)
+    local count = self.layers.entries.count + 1
+    for i=1,count do
+        self.channelLayers[i] = ChannelLayer.new()
+    end
+    self.channelLayers.count = count
 end
 
 -- Assigns an initial order to all layers.
@@ -435,6 +452,7 @@ end
 function LayerLayout.new(graph,sourceVertices)
     local channelIndexFactory = ChannelIndexFactory.new()
     local result = {
+        channelLayers = Array.new(),
         graph = graph,
         layers = Layers.new{
             channelIndexFactory = channelIndexFactory,
@@ -451,20 +469,26 @@ function LayerLayout.new(graph,sourceVertices)
     Impl.orderByBarycenter(result)
     Impl.orderByPermutation(result)
 
-    -- 3) Attach points.
+    -- 3) Channel layers & attach points.
+    Impl.createChannelLayers(result)
     local entries = result.layers.entries
+    local backwardLinks = result.layers.links.backward
     local forwardLinks = result.layers.links.forward
     for i=1,entries.count do
         local layer = entries[i]
+        local lowChannelLayer = result.channelLayers[i]
+        local highChannelLayer = result.channelLayers[i+1]
         for j=1,layer.count do
             local entry = layer[j]
-            local links = forwardLinks[entry]
-            for link in pairs(links) do
+            for link in pairs(forwardLinks[entry]) do
                 local channelIndex = link.channelIndex
-                local slots = entry.outboundSlots
-                slots:pushBackIfNotPresent(channelIndex)
-                slots = link:getOtherEntry(entry).inboundSlots
-                slots:pushBackIfNotPresent(channelIndex)
+                entry.outboundSlots:pushBackIfNotPresent(channelIndex)
+                highChannelLayer:appendLowEntry(channelIndex, entry)
+            end
+            for link in pairs(backwardLinks[entry]) do
+                local channelIndex = link.channelIndex
+                entry.inboundSlots:pushBackIfNotPresent(channelIndex)
+                lowChannelLayer:appendHighEntry(channelIndex, entry)
             end
         end
     end
