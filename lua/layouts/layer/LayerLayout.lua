@@ -15,16 +15,16 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local Array = require("lua/containers/Array")
-local ChannelIndexFactory = require("lua/ChannelIndexFactory")
-local ChannelLayer = require("lua/ChannelLayer")
-local DirectedHypergraph = require("lua/DirectedHypergraph")
+local ChannelIndexFactory = require("lua/layouts/layer/ChannelIndexFactory")
+local ChannelLayer = require("lua/layouts/layer/ChannelLayer")
+local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local HyperSCC = require("lua/HyperSCC")
+local HyperSCC = require("lua/hypergraph/algorithms/HyperSCC")
 local Iterator = require("lua/containers/utils/Iterator")
-local LayerCoordinateGenerator = require("lua/LayerCoordinateGenerator")
-local Layers = require("lua/Layers")
+local LayerCoordinateGenerator = require("lua/layouts/layer/LayerCoordinateGenerator")
+local Layers = require("lua/layouts/layer/Layers")
 local Logger = require("lua/Logger")
-local HyperSrcMinDist = require("lua/HyperSrcMinDist")
+local HyperSrcMinDist = require("lua/hypergraph/algorithms/HyperSrcMinDist")
 local OrderedSet = require("lua/containers/OrderedSet")
 
 -- Computes a layer layout for an hypergraph.

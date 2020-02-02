@@ -14,10 +14,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local DirectedHypergraph = require("lua/DirectedHypergraph")
+local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local Gui = require("lua/gui/Gui")
 local GuiElement = require("lua/gui/GuiElement")
-local LayerLayout = require("lua/LayerLayout")
+local LayerLayout = require("lua/layouts/layer/LayerLayout")
 local SimpleRenderer = require("lua/SimpleRenderer")
 
 -- Class holding data associated to a player in this mod.

@@ -14,7 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local LayoutParameters = require("lua/LayoutParameters")
+local LayoutParameters = require("lua/layouts/LayoutParameters")
 
 -- Class used to render graphs onto a LuaSurface.
 --

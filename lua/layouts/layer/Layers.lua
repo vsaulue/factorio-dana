@@ -16,8 +16,8 @@
 
 local Array = require("lua/containers/Array")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local LayerEntry = require("lua/LayerEntry")
-local LayerLink = require("lua/LayerLink")
+local LayerEntry = require("lua/layouts/layer/LayerEntry")
+local LayerLink = require("lua/layouts/layer/LayerLink")
 
 -- Class holding a layer graph representation.
 --
