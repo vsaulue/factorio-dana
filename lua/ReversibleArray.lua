@@ -39,6 +39,27 @@ local ReversibleArray = ErrorOnInvalidRead.new{
 
 -- Implementation stuff (private scope).
 local Impl = ErrorOnInvalidRead.new{
+    -- Function used to iterate through a ReversibleArray object.
+    --
+    -- Args:
+    -- * self: ReversibleArray object.
+    -- * index: Index of the element accessed in the previous iteration step.
+    --
+    -- Returns:
+    -- * The index of the next element (or nil if the end of the array was reached).
+    -- * The value of the next element (or nil if the end of the array was reached).
+    --
+    iteratorNext = function(self, index)
+        local nextIndex = index + 1
+        local nextValue = nil
+        if nextIndex <= self.count then
+            nextValue = self[nextIndex]
+        else
+            nextIndex = nil
+        end
+        return nextIndex, nextValue
+    end,
+
     -- Metatable of the LayerLink class.
     Metatable = {
         __index = ErrorOnInvalidRead.new{
@@ -75,6 +96,12 @@ local Impl = ErrorOnInvalidRead.new{
         },
     },
 }
+
+function Impl.Metatable.__ipairs(self)
+    return Impl.iteratorNext, self, 0
+end
+
+Impl.Metatable.__pairs = Impl.Metatable.__ipairs
 
 -- Creates a new empty ReversibleArray.
 --
