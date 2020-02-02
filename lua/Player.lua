@@ -15,8 +15,8 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local DirectedHypergraph = require("lua/DirectedHypergraph")
-local Gui = require("lua/Gui")
-local GuiElement = require("lua/GuiElement")
+local Gui = require("lua/gui/Gui")
+local GuiElement = require("lua/gui/GuiElement")
 local LayerLayout = require("lua/LayerLayout")
 local SimpleRenderer = require("lua/SimpleRenderer")
 
