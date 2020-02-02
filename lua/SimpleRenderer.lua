@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -81,7 +81,10 @@ function Impl.renderTree(self,tree,color)
         })
         Impl.renderTree(self, subtree, color)
     end
-    if count > 1 then
+    if rawget(tree, "parent") then
+        count = count + 1
+    end
+    if count > 2 then
         rendering.draw_circle({
             color = color,
             draw_on_ground = true,

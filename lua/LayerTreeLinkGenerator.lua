@@ -116,12 +116,12 @@ function Impl.makeTree(coordinateGenerator, parentEntry, link, parserData)
     local type = childEntry.type
     if type == "linkNode" then
         local subTree = Impl.makeTreeNode(coordinateGenerator, childEntry, channelIndex, not parserData.isLowToHigh)
-        result.children[subTree] = true
+        result:addChild(subTree)
         local links = coordinateGenerator.layout.layers.links[parserData.linksName][childEntry]
         local makeTree = Impl.makeTree
         for nextLink in pairs(links) do
             local subTree2 = makeTree(coordinateGenerator, childEntry, nextLink, parserData)
-            subTree.children[subTree2] = true
+            subTree:addChild(subTree2)
         end
     else
         if type ~= "edge" then
@@ -170,7 +170,7 @@ function Impl.runOneDirection(coordinateGenerator, entry, parserData)
     local makeTree = Impl.makeTree
     for link in pairs(links) do
         local newTree = makeTree(coordinateGenerator, entry, link, parserData)
-        trees[link.channelIndex].children[newTree] = true
+        trees[link.channelIndex]:addChild(newTree)
     end
 end
 
