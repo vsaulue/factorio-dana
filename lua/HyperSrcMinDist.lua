@@ -15,7 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local Logger = require("lua/Logger")
-local Queue = require("lua/Queue")
+local Queue = require("lua/containers/Queue")
 
 -- DirectedHypergraph algorithm: computes the minimal distance of all vertices from a given subset.
 --

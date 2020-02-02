@@ -14,8 +14,8 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ErrorOnInvalidRead = require("lua/ErrorOnInvalidRead")
-local ReversibleArray = require("lua/ReversibleArray")
+local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local ReversibleArray = require("lua/containers/ReversibleArray")
 
 -- Class holding the connection data between two layers in a LayersLayout object.
 --

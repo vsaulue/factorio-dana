@@ -15,7 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ChannelTreeBuilder = require("lua/ChannelTreeBuilder")
-local ErrorOnInvalidRead = require("lua/ErrorOnInvalidRead")
+local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayoutCoordinates = require("lua/LayoutCoordinates")
 local Logger = require("lua/Logger")
 

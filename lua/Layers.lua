@@ -14,8 +14,8 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local Array = require("lua/Array")
-local ErrorOnInvalidRead = require("lua/ErrorOnInvalidRead")
+local Array = require("lua/containers/Array")
+local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayerEntry = require("lua/LayerEntry")
 local LayerLink = require("lua/LayerLink")
 

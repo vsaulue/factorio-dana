@@ -15,7 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local DirectedHypergraph = require("lua/DirectedHypergraph")
-local Stack = require("lua/Stack")
+local Stack = require("lua/containers/Stack")
 
 -- Computes the Strongly Connected Components (SCC) of a DirectedHypergraph.
 --

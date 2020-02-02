@@ -14,9 +14,9 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ErrorOnInvalidRead = require("lua/ErrorOnInvalidRead")
-local Iterator = require("lua/Iterator")
-local Tree = require("lua/Tree")
+local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local Iterator = require("lua/containers/utils/Iterator")
+local Tree = require("lua/containers/Tree")
 
 -- Helper class to build the tree link of a specific channel.
 --
