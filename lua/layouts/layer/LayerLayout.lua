@@ -22,7 +22,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperSCC = require("lua/hypergraph/algorithms/HyperSCC")
 local Iterator = require("lua/containers/utils/Iterator")
 local LayerCoordinateGenerator = require("lua/layouts/layer/LayerCoordinateGenerator")
-local Layers = require("lua/layouts/layer/Layers")
+local LayersBuilder = require("lua/layouts/layer/LayersBuilder")
 local Logger = require("lua/Logger")
 local HyperSrcMinDist = require("lua/hypergraph/algorithms/HyperSrcMinDist")
 local OrderedSet = require("lua/containers/OrderedSet")
@@ -86,16 +86,17 @@ local Impl = {
 -- This function does NOT order the layers themselves.
 --
 -- Args:
--- * self: LayerLayout object.
+-- * layersBuilder: LayersBuilder object to fill.
+-- * graph: DirectedHypergraph to draw.
 -- * sourceVertices: set of vertices to place preferably in the first layers.
 --
-function Impl.assignVerticesToLayers(self,sourceVertices)
+function Impl.assignVerticesToLayers(layersBuilder, graph, sourceVertices)
     -- 1) First layer assignment using distance from source vertices.
-    local minDist = HyperSrcMinDist.run(self.graph,sourceVertices)
+    local minDist = HyperSrcMinDist.run(graph, sourceVertices)
 
     -- 2) Refine layering using topological order of SCCs.
     local depGraph = DirectedHypergraph.new()
-    for _,edge in pairs(self.graph.edges) do
+    for _,edge in pairs(graph.edges) do
         local edgeDist = minDist.edgeDist[edge.index] or math.huge
         local newEdge = {
             index = edge.index,
@@ -131,7 +132,7 @@ function Impl.assignVerticesToLayers(self,sourceVertices)
             end
             sccToLayer[scc] = layerId
             for vertexIndex in pairs(scc) do
-                self.layers:newVertex(layerId, vertexIndex)
+                layersBuilder:newVertex(layerId, vertexIndex)
             end
         else
             Logger.error("LayerLayout: Invalid component index")
@@ -165,7 +166,7 @@ end
 -- Counts the number of crossing/non-crossing pairs of links for consecutive entries.
 --
 -- Args:
--- * layers: Layers object containing the entries.
+-- * layersBuilder: LayersBuilder object containing the entries.
 -- * layerId: Index of the layer containing the entries.
 -- * x: Rank of the first entry in the layer (the second entry is the one of rank `x+1`).
 -- * direction: Either "forward" or "backward", depending on which sets of links to consider.
@@ -174,15 +175,16 @@ end
 -- * The number of crossing pairs.
 -- * The number of non-crossing pairs.
 --
-function Impl.countAdjacentCrossings(layers,layerId,x,direction)
+function Impl.countAdjacentCrossings(layersBuilder, layerId, x, direction)
+    local layers = layersBuilder.layers
     local crossingCount = 0
     local nonCrossingCount = 0
     local e1 = layers.entries[layerId][x]
     local e2 = layers.entries[layerId][x+1]
-    for link in pairs(layers.links[direction][e1]) do
+    for link in pairs(layersBuilder.links[direction][e1]) do
         local entry = link:getOtherEntry(e1)
         local xEntry = layers.reverse[entry.type][entry.index][2]
-        for otherLink in pairs(layers.links[direction][e2]) do
+        for otherLink in pairs(layersBuilder.links[direction][e2]) do
             local otherEntry = otherLink:getOtherEntry(e2)
             local xOtherEntry = layers.reverse[otherEntry.type][otherEntry.index][2]
             if xEntry > xOtherEntry then
@@ -252,21 +254,21 @@ end
 -- 4)  Compute order of non-roots, using barycenter of the roots they're linked to.
 --
 -- Args:
--- * self: LayerLayout object.
+-- * layersBuilder: LayerBuilder object.
 --
-function Impl.doInitialOrdering(self)
+function Impl.doInitialOrdering(layersBuilder)
     -- 1a & 1b) Computes root entries, and number of paths to roots for other entries.
     local paths = {}
     local counts = {}
     local roots = {}
-    local layersEntries = self.layers.entries
+    local layersEntries = layersBuilder.layers.entries
     for layerId=1,layersEntries.count do
         local layer = layersEntries[layerId]
         for x=1,layer.count do
             local entry = layer[x]
             paths[entry] = {}
             counts[entry] = 0
-            for link in pairs(self.layers.links.backward[entry]) do
+            for link in pairs(layersBuilder.links.backward[entry]) do
                 local otherEntry = link:getOtherEntry(entry)
                 for parent,weight in pairs(paths[otherEntry]) do
                     local currentValue = paths[entry][parent] or 0
@@ -370,7 +372,7 @@ function Impl.doInitialOrdering(self)
                 positions[entry] = newPos / counts[entry]
             end
         end
-        self.layers:sortLayer(layerId,positions)
+        layersBuilder.layers:sortLayer(layerId,positions)
     end
 end
 
@@ -379,10 +381,10 @@ end
 -- Args:
 -- * self: LayerLayout object.
 --
-function Impl.fillChannelsAndSlots(self)
+function Impl.fillChannelsAndSlots(self, layersBuilder)
     local entries = self.layers.entries
-    local backwardLinks = self.layers.links.backward
-    local forwardLinks = self.layers.links.forward
+    local backwardLinks = layersBuilder.links.backward
+    local forwardLinks = layersBuilder.links.forward
     for i=1,entries.count do
         local layer = entries[i]
         local lowChannelLayer = self.channelLayers[i]
@@ -418,10 +420,10 @@ end
 -- Refines the ordering of layers using the barycenters heuristics.
 --
 -- Args:
--- * self: LayerLayout object.
+-- * layersBuilder: LayersBuilder object.
 --
-function Impl.orderByBarycenter(self)
-    local layersEntries = self.layers.entries
+function Impl.orderByBarycenter(layersBuilder)
+    local layersEntries = layersBuilder.layers.entries
     for layerId=1,layersEntries.count do
         local layer = layersEntries[layerId]
         local prevLayerCount = 0
@@ -437,15 +439,15 @@ function Impl.orderByBarycenter(self)
             local entry = layer[i]
             local sum = 0
             local count = 0
-            for link in pairs(self.layers.links.backward[entry]) do
+            for link in pairs(layersBuilder.links.backward[entry]) do
                 local otherEntry = link:getOtherEntry(entry)
-                local rawX = self.layers.reverse[otherEntry.type][otherEntry.index][2]
+                local rawX = layersBuilder.layers.reverse[otherEntry.type][otherEntry.index][2]
                 count = count + 1
                 sum = sum + Impl.normalizeX(rawX, prevLayerCount)
             end
-            for link in pairs(self.layers.links.forward[entry]) do
+            for link in pairs(layersBuilder.links.forward[entry]) do
                 local otherEntry = link:getOtherEntry(entry)
-                local rawX = self.layers.reverse[otherEntry.type][otherEntry.index][2]
+                local rawX = layersBuilder.layers.reverse[otherEntry.type][otherEntry.index][2]
                 count = count + 1
                 sum = sum + Impl.normalizeX(rawX, nextLayerCount)
             end
@@ -455,28 +457,28 @@ function Impl.orderByBarycenter(self)
                 barycenters[entry] = sum / count
             end
         end
-        self.layers:sortLayer(layerId, barycenters)
+        layersBuilder.layers:sortLayer(layerId, barycenters)
     end
 end
 
 -- Refines the ordering of layers with permutations of adjacent entries.
 --
 -- Args:
--- * self: LayerLayout instance.
+-- * layersBuilder: LayersBuilder object.
 --
-function Impl.orderByPermutation(self)
-    local layersEntries = self.layers.entries
+function Impl.orderByPermutation(layersBuilder)
+    local layersEntries = layersBuilder.layers.entries
     for layerId=1,layersEntries.count do
         local layer = layersEntries[layerId]
         repeat
             local hasImproved = false
             for x=1,layer.count-1 do
-                local c1,n1 = Impl.countAdjacentCrossings(self.layers,layerId,x,"backward")
-                local c2,n2 = Impl.countAdjacentCrossings(self.layers,layerId,x,"forward")
+                local c1,n1 = Impl.countAdjacentCrossings(layersBuilder, layerId, x, "backward")
+                local c2,n2 = Impl.countAdjacentCrossings(layersBuilder, layerId, x, "forward")
                 local c = c1 + c2
                 local n = n1 + n2
                 if (c > n) or (c == n and c1 > n1) then
-                    self.layers:swap(layerId, x, x+1)
+                    layersBuilder.layers:swap(layerId, x, x+1)
                     hasImproved = true
                 end
             end
@@ -487,16 +489,17 @@ end
 -- Assigns hyperedges to layers.
 --
 -- Args:
--- * self: LayerLayout object.
+-- * layersBuilder: LayersBuilder object to fill.
+-- * graph: DirectedHypergraph to draw.
 --
-function Impl.processEdges(self)
-    for _,edge in pairs(self.graph.edges) do
+function Impl.processEdges(layersBuilder, graph)
+    for _,edge in pairs(graph.edges) do
         local layerId = 1
         for _,vertexIndex in pairs(edge.inbound) do
-            layerId = math.max(layerId, 1 + self.layers.reverse.vertex[vertexIndex][1])
+            layerId = math.max(layerId, 1 + layersBuilder.layers.reverse.vertex[vertexIndex][1])
         end
-        self.layers:newEdge(layerId, edge)
-        end
+        layersBuilder:newEdge(layerId, edge)
+    end
 end
 
 -- Sorts the slots of all entries of the layout.
@@ -542,27 +545,28 @@ end
 --
 function LayerLayout.new(graph,sourceVertices)
     local channelIndexFactory = ChannelIndexFactory.new()
+    local layersBuilder = LayersBuilder.new{
+        channelIndexFactory = channelIndexFactory
+    }
     local result = {
         channelLayers = Array.new(),
         graph = graph,
-        layers = Layers.new{
-            channelIndexFactory = channelIndexFactory,
-        },
+        layers = layersBuilder.layers,
     }
     setmetatable(result, Impl.Metatable)
 
     -- 1) Assign vertices, edges to layers & add dummy vertices.
-    Impl.assignVerticesToLayers(result,sourceVertices)
-    Impl.processEdges(result)
+    Impl.assignVerticesToLayers(layersBuilder, graph, sourceVertices)
+    Impl.processEdges(layersBuilder, graph)
 
     -- 2) Order vertices within their layers (crossing minimization).
-    Impl.doInitialOrdering(result)
-    Impl.orderByBarycenter(result)
-    Impl.orderByPermutation(result)
+    Impl.doInitialOrdering(layersBuilder)
+    Impl.orderByBarycenter(layersBuilder)
+    Impl.orderByPermutation(layersBuilder)
 
     -- 3) Channel layers & attach points.
     Impl.createChannelLayers(result)
-    Impl.fillChannelsAndSlots(result)
+    Impl.fillChannelsAndSlots(result, layersBuilder)
     Impl.sortSlots(result)
 
     return result

@@ -17,7 +17,7 @@
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Logger = require("lua/Logger")
 
--- Class representing a link in a Layers object.
+-- Class representing a link in a LayersBuilder object.
 --
 -- RO fields:
 -- * inbound: source LayerEntry.
