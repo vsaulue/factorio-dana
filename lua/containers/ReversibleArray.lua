@@ -32,6 +32,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 -- Methods:
 -- * pushBack: Adds a new value at the end of this ReversibleArray.
 -- * pushBackIfNotPresent: Append a value if it's not already present, else does nothing.
+-- * sort: sorts the array in place.
 --
 local ReversibleArray = ErrorOnInvalidRead.new{
     new = nil, -- implemented later
@@ -91,6 +92,25 @@ local Impl = ErrorOnInvalidRead.new{
             pushBackIfNotPresent = function(self, value)
                 if not rawget(self, value) then
                     self:pushBack(value)
+                end
+            end,
+
+            -- Sorts this reversible array in place.
+            --
+            -- Args:
+            -- * self: ReversibleArray object to sort.
+            -- * weights[arrayValue]: a map giving a score for each value in the array. Values will be sorted
+            -- from lowest to greatest scores.
+            --
+            sort = function(self, weights)
+                local compare = function(a,b)
+                    local w = weights
+                    return w[a] < w[b]
+                end
+                table.sort(self, compare)
+                for i=1,self.count do
+                    local value = self[i]
+                    self[value] = i
                 end
             end,
         },
