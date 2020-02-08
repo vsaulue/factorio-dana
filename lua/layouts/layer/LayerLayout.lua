@@ -46,6 +46,8 @@ local LayerLayout = ErrorOnInvalidRead.new{
 
 -- Implementation stuff (private scope).
 local Impl = ErrorOnInvalidRead.new{
+    assignEdgesToLayers = nil, -- implemented later
+
     assignVerticesToLayers = nil, -- implemented later
 
     avgEntryRank = nil, -- implemented later
@@ -69,10 +71,24 @@ local Impl = ErrorOnInvalidRead.new{
 
     orderByBarycenter = nil, -- implemented later
 
-    processEdges = nil, -- implemented later
-
     sortSlots = nil, -- implemented later
 }
+
+-- Assigns hyperedges to layers.
+--
+-- Args:
+-- * layersBuilder: LayersBuilder object to fill.
+-- * graph: DirectedHypergraph to draw.
+--
+function Impl.assignEdgesToLayers(layersBuilder, graph)
+    for _,edge in pairs(graph.edges) do
+        local layerId = 1
+        for _,vertexIndex in pairs(edge.inbound) do
+            layerId = math.max(layerId, 1 + layersBuilder.layers.reverse.vertex[vertexIndex][1])
+        end
+        layersBuilder:newEdge(layerId, edge)
+    end
+end
 
 -- Splits vertices of the input graph into multiple layers.
 --
@@ -439,22 +455,6 @@ function Impl.orderByPermutation(layersBuilder)
     end
 end
 
--- Assigns hyperedges to layers.
---
--- Args:
--- * layersBuilder: LayersBuilder object to fill.
--- * graph: DirectedHypergraph to draw.
---
-function Impl.processEdges(layersBuilder, graph)
-    for _,edge in pairs(graph.edges) do
-        local layerId = 1
-        for _,vertexIndex in pairs(edge.inbound) do
-            layerId = math.max(layerId, 1 + layersBuilder.layers.reverse.vertex[vertexIndex][1])
-        end
-        layersBuilder:newEdge(layerId, edge)
-    end
-end
-
 -- Sorts the slots of all entries of the layout.
 --
 -- Args:
@@ -504,7 +504,7 @@ function LayerLayout.new(graph,sourceVertices)
 
     -- 1) Assign vertices, edges to layers & add dummy vertices.
     Impl.assignVerticesToLayers(layersBuilder, graph, sourceVertices)
-    Impl.processEdges(layersBuilder, graph)
+    Impl.assignEdgesToLayers(layersBuilder, graph)
 
     -- 2) Order vertices within their layers (crossing minimization).
     Impl.doInitialOrdering(layersBuilder)
