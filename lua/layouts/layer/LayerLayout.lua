@@ -41,12 +41,12 @@ local OrderedSet = require("lua/containers/OrderedSet")
 -- Methods:
 -- * computeCoordinates: Computes the coordinates according to the given parameters.
 --
-local LayerLayout = {
+local LayerLayout = ErrorOnInvalidRead.new{
     new = nil,
 }
 
 -- Implementation stuff (private scope).
-local Impl = {
+local Impl = ErrorOnInvalidRead.new{
     assignVerticesToLayers = nil, -- implemented later
 
     avgEntryRank = nil, -- implemented later
