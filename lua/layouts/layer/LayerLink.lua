@@ -27,12 +27,12 @@ local Logger = require("lua/Logger")
 -- Methods:
 -- * getOtherEntry: get the other end of this link.
 --
-local LayerLink = {
+local LayerLink = ErrorOnInvalidRead.new{
     new = nil, -- implemented later
 }
 
 -- Implementation stuff (private scope).
-local Impl = {
+local Impl = ErrorOnInvalidRead.new{
     -- Metatable of the LayerLink class.
     Metatable = {
         __index = ErrorOnInvalidRead.new{
