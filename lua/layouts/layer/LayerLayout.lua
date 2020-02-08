@@ -57,6 +57,8 @@ local Impl = {
 
     doInitialOrdering = nil, -- implemented later
 
+    fillChannelsAndSlots = nil, -- implemented later
+
     -- Metatable of the LayerLayout class.
     Metatable = {
         __index = ErrorOnInvalidRead.new{
@@ -345,6 +347,35 @@ function Impl.doInitialOrdering(self)
     end
 end
 
+-- Fills inbound/outbound slots of entries, and channel layers.
+--
+-- Args:
+-- * self: LayerLayout object.
+--
+function Impl.fillChannelsAndSlots(self)
+    local entries = self.layers.entries
+    local backwardLinks = self.layers.links.backward
+    local forwardLinks = self.layers.links.forward
+    for i=1,entries.count do
+        local layer = entries[i]
+        local lowChannelLayer = self.channelLayers[i]
+        local highChannelLayer = self.channelLayers[i+1]
+        for j=1,layer.count do
+            local entry = layer[j]
+            for link in pairs(forwardLinks[entry]) do
+                local channelIndex = link.channelIndex
+                entry.outboundSlots:pushBackIfNotPresent(channelIndex)
+                highChannelLayer:appendLowEntry(channelIndex, entry)
+            end
+            for link in pairs(backwardLinks[entry]) do
+                local channelIndex = link.channelIndex
+                entry.inboundSlots:pushBackIfNotPresent(channelIndex)
+                lowChannelLayer:appendHighEntry(channelIndex, entry)
+            end
+        end
+    end
+end
+
 -- Normalizes the rank of an entry in a layer.
 --
 -- Args:
@@ -471,27 +502,7 @@ function LayerLayout.new(graph,sourceVertices)
 
     -- 3) Channel layers & attach points.
     Impl.createChannelLayers(result)
-    local entries = result.layers.entries
-    local backwardLinks = result.layers.links.backward
-    local forwardLinks = result.layers.links.forward
-    for i=1,entries.count do
-        local layer = entries[i]
-        local lowChannelLayer = result.channelLayers[i]
-        local highChannelLayer = result.channelLayers[i+1]
-        for j=1,layer.count do
-            local entry = layer[j]
-            for link in pairs(forwardLinks[entry]) do
-                local channelIndex = link.channelIndex
-                entry.outboundSlots:pushBackIfNotPresent(channelIndex)
-                highChannelLayer:appendLowEntry(channelIndex, entry)
-            end
-            for link in pairs(backwardLinks[entry]) do
-                local channelIndex = link.channelIndex
-                entry.inboundSlots:pushBackIfNotPresent(channelIndex)
-                lowChannelLayer:appendHighEntry(channelIndex, entry)
-            end
-        end
-    end
+    Impl.fillChannelsAndSlots(result)
 
     return result
 end
