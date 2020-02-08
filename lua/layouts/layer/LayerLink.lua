@@ -20,8 +20,8 @@ local Logger = require("lua/Logger")
 -- Class representing a link in a LayersBuilder object.
 --
 -- RO fields:
--- * inbound: source LayerEntry.
--- * outbound: destination LayerEntry.
+-- * entryA: source LayerEntry.
+-- * entryB: destination LayerEntry.
 -- * channelIndex: ChannelIndex object, holding the vertexIndex & direction of this link.
 --
 -- Methods:
@@ -46,10 +46,10 @@ local Impl = ErrorOnInvalidRead.new{
             --
             getOtherEntry = function(self, firstEntry)
                 local result = nil
-                if self.inbound == firstEntry then
-                    result = self.outbound
-                elseif self.outbound == firstEntry then
-                    result = self.inbound
+                if self.entryA == firstEntry then
+                    result = self.entryB
+                elseif self.entryB == firstEntry then
+                    result = self.entryA
                 else
                     Logger.error("LayerLink:getOtherEntry(): argument is not an entry of this link.")
                 end
@@ -62,23 +62,19 @@ local Impl = ErrorOnInvalidRead.new{
 -- Creates a new link.
 --
 -- Args:
--- * lowEntry: LayerEntry with the lowest layerId to link.
--- * highEntry: LayerEntry with the greatest layerId to link.
+-- * entryA: first LayerEntry to link.
+-- * entryB: second LayerEntry to link.
 -- * channelIndex: ChannelIndex object, defining the vertexIndex & direction of this link.
 --
-function LayerLink.new(lowEntry, highEntry, channelIndex)
-    assert(lowEntry)
-    assert(highEntry)
+function LayerLink.new(entryA, entryB, channelIndex)
+    assert(entryA)
+    assert(entryB)
     assert(channelIndex)
     local result = ErrorOnInvalidRead.new{
         channelIndex = channelIndex,
-        inbound = lowEntry,
-        outbound = highEntry,
+        entryA = entryA,
+        entryB = entryB,
     }
-    if not channelIndex.isForward then
-        result.inbound = highEntry
-        result.outbound = lowEntry
-    end
     setmetatable(result, Impl.Metatable)
     return result
 end
