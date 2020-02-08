@@ -32,15 +32,15 @@ local LayerEntry = require("lua/layouts/layer/LayerEntry")
 -- * sortLayer: Sorts a layer in place.
 -- * swap: Swaps 2 entries in a layer.
 --
-local Layers = {
+local Layers = ErrorOnInvalidRead.new{
     new = nil,
 }
 
 -- Implementation stuff (private scope).
-local Impl = {
+local Impl = ErrorOnInvalidRead.new{
     -- Metatable of the Layers class.
     Metatable = {
-        __index = {
+        __index = ErrorOnInvalidRead.new{
             -- Gets an entry from its type and index.
             --
             -- Args:
