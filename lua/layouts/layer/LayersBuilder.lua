@@ -14,6 +14,8 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local Array = require("lua/containers/Array")
+local ChannelLayer = require("lua/layouts/layer/ChannelLayer")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Layers = require("lua/layouts/layer/Layers")
 local LayerLink = require("lua/layouts/layer/LayerLink")
@@ -27,6 +29,7 @@ local LayerLink = require("lua/layouts/layer/LayerLink")
 -- * linkNodes[channelIndex,layerIndex]: map giving the vertex/linkNode entry for the specified channel in the specified layer.
 --
 -- Methods:
+-- * generateChannelLayers: Generates the channel layers for this layer layout.
 -- * newEdge: Adds a new hyperedge from the input hypergraph to a Layers object.
 -- * newVertex: Adds a new vertex from the input hypergraph to a Layers object.
 --
@@ -40,6 +43,8 @@ local Impl = ErrorOnInvalidRead.new{
     -- Metatable of the LayersBuilder class.
     Metatable = {
         __index = ErrorOnInvalidRead.new{
+            generateChannelLayers = nil, -- implemented later
+
             newEdge = nil, -- implemented later
 
             newVertex = nil, -- implemented later
@@ -100,6 +105,49 @@ function Impl.link(self, edgeEntry, vertexEntry, isFromVertexToEdge)
             previousEntry = entry
         end
     end
+end
+
+-- Generates the channel layers for this layer layout.
+--
+-- N+1 channel layers are generated (N being the number of entry layers). The first channel
+-- layer returned by this function is placed before the first entry layer. The last channel
+-- layer of the returned array is placed after the last entry layer.
+--
+-- Args:
+-- * self: LayersBuilder object.
+--
+-- Returns: An array containing the generated channel layers.
+--
+function Impl.Metatable.__index.generateChannelLayers(self)
+    local entries = self.layers.entries
+    local result = Array.new()
+
+    -- 1) Create N+1 channel layers.
+    local count = entries.count + 1
+    for i=1,count do
+        result[i] = ChannelLayer.new()
+    end
+    result.count = count
+
+    -- 2) Fill them.
+    local backwardLinks = self.links.backward
+    local forwardLinks = self.links.forward
+    for i=1,entries.count do
+        local layer = entries[i]
+        local lowChannelLayer = result[i]
+        local highChannelLayer = result[i+1]
+        for j=1,layer.count do
+            local entry = layer[j]
+            for link in pairs(forwardLinks[entry]) do
+                highChannelLayer:appendLowEntry(link.channelIndex, entry)
+            end
+            for link in pairs(backwardLinks[entry]) do
+                lowChannelLayer:appendHighEntry(link.channelIndex, entry)
+            end
+        end
+    end
+
+    return result
 end
 
 -- Adds a new hyperedge from the input hypergraph to a Layers object.

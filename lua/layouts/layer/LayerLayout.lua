@@ -16,7 +16,6 @@
 
 local Array = require("lua/containers/Array")
 local ChannelIndexFactory = require("lua/layouts/layer/ChannelIndexFactory")
-local ChannelLayer = require("lua/layouts/layer/ChannelLayer")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperSCC = require("lua/hypergraph/algorithms/HyperSCC")
@@ -55,11 +54,7 @@ local Impl = ErrorOnInvalidRead.new{
 
     countAdjacentCrossings = nil, -- implemented later
 
-    createChannelLayers = nil, -- implemented later
-
     doInitialOrdering = nil, -- implemented later
-
-    fillChannels = nil, -- implemented later
 
     -- Metatable of the LayerLayout class.
     Metatable = {
@@ -228,19 +223,6 @@ function Impl.computeCouplingScore(rootOrder, couplings)
     return result
 end
 
--- Populates the LayerLayout.channelLayers array with empty ChannelLayer objects.
---
--- Args:
--- * self: the LayerLayout object.
---
-function Impl.createChannelLayers(self)
-    local count = self.layers.entries.count + 1
-    for i=1,count do
-        self.channelLayers[i] = ChannelLayer.new()
-    end
-    self.channelLayers.count = count
-end
-
 -- Assigns an initial order to all layers.
 --
 -- This is a global algorithm, parsing the full layer graph, and using a heuristic to give an initial
@@ -373,31 +355,6 @@ function Impl.doInitialOrdering(layersBuilder)
             end
         end
         layersBuilder.layers:sortLayer(layerId,positions)
-    end
-end
-
--- Fills channel layers.
---
--- Args:
--- * self: LayerLayout object.
---
-function Impl.fillChannels(self, layersBuilder)
-    local entries = self.layers.entries
-    local backwardLinks = layersBuilder.links.backward
-    local forwardLinks = layersBuilder.links.forward
-    for i=1,entries.count do
-        local layer = entries[i]
-        local lowChannelLayer = self.channelLayers[i]
-        local highChannelLayer = self.channelLayers[i+1]
-        for j=1,layer.count do
-            local entry = layer[j]
-            for link in pairs(forwardLinks[entry]) do
-                highChannelLayer:appendLowEntry(link.channelIndex, entry)
-            end
-            for link in pairs(backwardLinks[entry]) do
-                lowChannelLayer:appendHighEntry(link.channelIndex, entry)
-            end
-        end
     end
 end
 
@@ -544,12 +501,6 @@ function LayerLayout.new(graph,sourceVertices)
     local layersBuilder = LayersBuilder.new{
         channelIndexFactory = channelIndexFactory
     }
-    local result = {
-        channelLayers = Array.new(),
-        graph = graph,
-        layers = layersBuilder.layers,
-    }
-    setmetatable(result, Impl.Metatable)
 
     -- 1) Assign vertices, edges to layers & add dummy vertices.
     Impl.assignVerticesToLayers(layersBuilder, graph, sourceVertices)
@@ -560,9 +511,18 @@ function LayerLayout.new(graph,sourceVertices)
     Impl.orderByBarycenter(layersBuilder)
     Impl.orderByPermutation(layersBuilder)
 
-    -- 3) Channel layers & attach points.
-    Impl.createChannelLayers(result)
-    Impl.fillChannels(result, layersBuilder)
+    -- 3) Channel layers (= connection layers between vertex/edge layers).
+    local channelLayers = layersBuilder:generateChannelLayers()
+
+    -- 4) Build the new LayerLayout object.
+    local result = {
+        channelLayers = channelLayers,
+        graph = graph,
+        layers = layersBuilder.layers,
+    }
+    setmetatable(result, Impl.Metatable)
+
+    -- 5) Bonus: Little things to make the result slightly less incomprehensible
     Impl.sortSlots(result)
 
     return result
