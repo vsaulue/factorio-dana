@@ -182,6 +182,8 @@ function Impl.newLink(self, lowEntry, highEntry, channelIndex)
     local reverse = self.layers.reverse
     assert(reverse[lowEntry.type][lowEntry.index][1] == reverse[highEntry.type][highEntry.index][1] - 1, "LayerLayout: invalid link creation.")
     local newLink = LayerLink.new(lowEntry, highEntry, channelIndex)
+    lowEntry.outboundSlots:pushBackIfNotPresent(channelIndex)
+    highEntry.inboundSlots:pushBackIfNotPresent(channelIndex)
     self.links.backward[highEntry][newLink] = true
     self.links.forward[lowEntry][newLink] = true
 end

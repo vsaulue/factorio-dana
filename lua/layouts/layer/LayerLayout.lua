@@ -59,7 +59,7 @@ local Impl = ErrorOnInvalidRead.new{
 
     doInitialOrdering = nil, -- implemented later
 
-    fillChannelsAndSlots = nil, -- implemented later
+    fillChannels = nil, -- implemented later
 
     -- Metatable of the LayerLayout class.
     Metatable = {
@@ -376,12 +376,12 @@ function Impl.doInitialOrdering(layersBuilder)
     end
 end
 
--- Fills inbound/outbound slots of entries, and channel layers.
+-- Fills channel layers.
 --
 -- Args:
 -- * self: LayerLayout object.
 --
-function Impl.fillChannelsAndSlots(self, layersBuilder)
+function Impl.fillChannels(self, layersBuilder)
     local entries = self.layers.entries
     local backwardLinks = layersBuilder.links.backward
     local forwardLinks = layersBuilder.links.forward
@@ -392,14 +392,10 @@ function Impl.fillChannelsAndSlots(self, layersBuilder)
         for j=1,layer.count do
             local entry = layer[j]
             for link in pairs(forwardLinks[entry]) do
-                local channelIndex = link.channelIndex
-                entry.outboundSlots:pushBackIfNotPresent(channelIndex)
-                highChannelLayer:appendLowEntry(channelIndex, entry)
+                highChannelLayer:appendLowEntry(link.channelIndex, entry)
             end
             for link in pairs(backwardLinks[entry]) do
-                local channelIndex = link.channelIndex
-                entry.inboundSlots:pushBackIfNotPresent(channelIndex)
-                lowChannelLayer:appendHighEntry(channelIndex, entry)
+                lowChannelLayer:appendHighEntry(link.channelIndex, entry)
             end
         end
     end
@@ -566,7 +562,7 @@ function LayerLayout.new(graph,sourceVertices)
 
     -- 3) Channel layers & attach points.
     Impl.createChannelLayers(result)
-    Impl.fillChannelsAndSlots(result, layersBuilder)
+    Impl.fillChannels(result, layersBuilder)
     Impl.sortSlots(result)
 
     return result
