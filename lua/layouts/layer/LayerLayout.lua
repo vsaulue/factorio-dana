@@ -49,6 +49,8 @@ local LayerLayout = {
 local Impl = {
     assignVerticesToLayers = nil, -- implemented later
 
+    avgEntryRank = nil, -- implemented later
+
     computeCouplingScore = nil, -- implemented later
 
     countAdjacentCrossings = nil, -- implemented later
@@ -73,6 +75,8 @@ local Impl = {
     orderByBarycenter = nil, -- implemented later
 
     processEdges = nil, -- implemented later
+
+    sortSlots = nil, -- implemented later
 }
 
 -- Splits vertices of the input graph into multiple layers.
@@ -133,6 +137,29 @@ function Impl.assignVerticesToLayers(self,sourceVertices)
             Logger.error("LayerLayout: Invalid component index")
         end
     end
+end
+
+-- Computes the average entry rank of an array of entries.
+--
+-- Args:
+-- * self: LayerLayout object containing the entries.
+-- * channelEntries: Array of entries to evaluate.
+--
+-- Returns: the average rank of the entries (or 0 if the array is empty).
+--
+function Impl.avgEntryRank(self, channelEntries)
+    local result = 0
+    local count = channelEntries.count
+    if count > 0 then
+        local sum = 0
+        for i=1,count do
+            local entry = channelEntries[i]
+            local entryRank = self.layers.reverse[entry.type][entry.index][2]
+            sum = sum + entryRank
+        end
+        result = sum / count
+    end
+    return result
 end
 
 -- Counts the number of crossing/non-crossing pairs of links for consecutive entries.
@@ -472,6 +499,39 @@ function Impl.processEdges(self)
         end
 end
 
+-- Sorts the slots of all entries of the layout.
+--
+-- Args:
+-- * self: LayerLayout object.
+--
+function Impl.sortSlots(self)
+    local lCount = self.channelLayers.count
+    for lRank=1,lCount do
+        local xAvgHigh = ErrorOnInvalidRead.new()
+        local xAvgLow = ErrorOnInvalidRead.new()
+        local channelLayer = self.channelLayers[lRank]
+        for cRank=1,channelLayer.order.count do
+            local channelIndex = channelLayer.order[cRank]
+            xAvgHigh[channelIndex] = Impl.avgEntryRank(self, channelLayer.highEntries[channelIndex])
+            xAvgLow[channelIndex] = Impl.avgEntryRank(self,channelLayer.lowEntries[channelIndex])
+        end
+        if lRank > 1 then
+            local layer = self.layers.entries[lRank-1]
+            for eRank=1,layer.count do
+                local entry = layer[eRank]
+                entry.outboundSlots:sort(xAvgHigh)
+            end
+        end
+        if lRank < lCount then
+            local layer = self.layers.entries[lRank]
+            for eRank=1,layer.count do
+                local entry = layer[eRank]
+                entry.inboundSlots:sort(xAvgLow)
+            end
+        end
+    end
+end
+
 -- Creates a new layer layout for the given graph.
 --
 -- Args:
@@ -503,6 +563,7 @@ function LayerLayout.new(graph,sourceVertices)
     -- 3) Channel layers & attach points.
     Impl.createChannelLayers(result)
     Impl.fillChannelsAndSlots(result)
+    Impl.sortSlots(result)
 
     return result
 end
