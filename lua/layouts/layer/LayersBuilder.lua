@@ -38,6 +38,8 @@ local LayersBuilder = ErrorOnInvalidRead.new{
 }
 
 local Impl = ErrorOnInvalidRead.new{
+    initLinkNodes = nil, -- implemented later
+
     link = nil, -- implemented later
 
     -- Metatable of the LayersBuilder class.
@@ -57,6 +59,20 @@ local Impl = ErrorOnInvalidRead.new{
 
     newLink2 = nil, -- implemented later
 }
+
+-- Adds a new set in the `linkNodes` field for the specified channel index.
+--
+-- Args:
+-- * self: LayersBuilder object.
+-- * vertexIndex: Value of the vertexIndex field of the ChannelIndex.
+-- * isForward: Value of the isForward field of the ChannelIndex.
+-- * isFromVertexToEdge: Value of the isFromVertexToEdge field of the ChannelIndex.
+-- * value: Set to add in `self.linkNodes` (or nil for an empty set).
+--
+function Impl.initLinkNodes(self, vertexIndex, isForward, isFromVertexToEdge, value)
+    local channelIndex = self.channelIndexFactory:get(vertexIndex, isForward, isFromVertexToEdge)
+    self.linkNodes[channelIndex] = value or {}
+end
 
 -- Creates a sequence of links & linkNode entries between a vertex and an edge.
 --
@@ -82,7 +98,7 @@ function Impl.link(self, edgeEntry, vertexEntry, isFromVertexToEdge)
         newLink = Impl.newLink2
     end
 
-    local channelIndex = self.channelIndexFactory:get(vertexEntry.index, isForward)
+    local channelIndex = self.channelIndexFactory:get(vertexEntry.index, isForward, isFromVertexToEdge)
     local linkNodes = self.linkNodes[channelIndex]
 
     local i = edgeLayerId + step
@@ -194,12 +210,19 @@ function Impl.Metatable.__index.newVertex(self, layerIndex, vertexIndex)
         type = "vertex",
         index = vertexIndex,
     })
-    local channelFactory = self.channelIndexFactory
-    local linkNodes = self.linkNodes
-    local forwardIndex = channelFactory:get(vertexIndex, true)
-    linkNodes[forwardIndex] = { [layerIndex] = newEntry }
-    local backwardIndex = channelFactory:get(vertexIndex, false)
-    linkNodes[backwardIndex] = { [layerIndex] = newEntry }
+
+    Impl.initLinkNodes(self, vertexIndex, true, false, {
+        [layerIndex] = newEntry,
+    })
+    Impl.initLinkNodes(self, vertexIndex, true, true, {
+        [layerIndex] = newEntry,
+    })
+    Impl.initLinkNodes(self, vertexIndex, false, false, {
+        [layerIndex] = newEntry,
+    })
+
+    -- Current layer assignation never produce backward & 'vertex -> edge' links.
+    -- Impl.initLinkNodes(self, vertexIndex, false, true)
 end
 
 -- Adds a new entry to this layout.

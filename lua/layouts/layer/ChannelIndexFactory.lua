@@ -20,13 +20,14 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 --
 -- A ChannelIndex object is a 2 field table:
 -- * isForward: true if the link is going from lower to higher index layer, false otherwise.
+-- * isFromVertexToEdge: true if the link is going from a vertex to an edge, false otherwise.
 -- * vertexIndex: Unique identifier of a vertex in an hypergraph.
 --
 -- This implementation does memoization, and ensure the same ChannelIndex is always returned for
 -- the same vertexIndex/isForward couple. This enables fast comparison and map lookup.
 --
 -- RO fields:
--- * cache[isForward,vertexId]: 2-levels deep table caching already generated ChannelIndex objects.
+-- * cache[isForward,isFromVertexToEdge,vertexId]: 3-levels deep table caching already generated ChannelIndex objects.
 --
 -- Methods:
 -- * get: Gets (or create) the ChannelIndex object associated with the arguments.
@@ -49,14 +50,15 @@ local Metatable = {
         -- * isForward: isForward value of the channel index.
         --
         -- Returns: A ChannelObject instance with the specified vertexIndex/isForward values.
-        get = function(self, vertexIndex, isForward)
-            local result = self.cache[isForward][vertexIndex]
+        get = function(self, vertexIndex, isForward, isFromVertexToEdge)
+            local result = self.cache[isForward][isFromVertexToEdge][vertexIndex]
             if not result then
                 result = ErrorOnInvalidRead.new{
                     isForward = isForward,
+                    isFromVertexToEdge = isFromVertexToEdge,
                     vertexIndex = vertexIndex,
                 }
-                self.cache[isForward][vertexIndex] = result
+                self.cache[isForward][isFromVertexToEdge][vertexIndex] = result
             end
             return result
         end,
@@ -70,8 +72,14 @@ local Metatable = {
 function ChannelIndexFactory.new()
     local result = {
         cache = ErrorOnInvalidRead.new{
-            [true] = {},
-            [false] = {},
+            [true] = ErrorOnInvalidRead.new{
+                [true] = {},
+                [false] = {},
+            },
+            [false] = ErrorOnInvalidRead.new{
+                [true] = {},
+                [false] = {},
+            },
         },
     }
     setmetatable(result, Metatable)
