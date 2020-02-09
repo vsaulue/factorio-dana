@@ -24,8 +24,10 @@ local LayerLink = require("lua/layouts/layer/LayerLink")
 --
 -- RO fields:
 -- * layers: Layer object being built.
--- * links.backward[someEntry]: set of LayerLink in which someEntry is the greatest layerId end.
--- * links.forward[someEntry]: set of LayerLink in which someEntry is the lowest layerId end.
+-- * links.backward[someEntry]: set of LayerLink connecting someEntry to an entry in a lower layer.
+-- * links.forward[someEntry]: set of LayerLink connecting someEntry to an entry in an higher layer.
+-- * links.highHorizontal[someEntry]: set of LayerLink connecting someEntry to another in the same layer (by the upper channel layer).
+-- * links.lowHorizontal[someEntry]: set of LayerLink connecting someEntry to another in the same layer (by the lower channel layer).
 -- * linkNodes[channelIndex,layerIndex]: map giving the vertex/linkNode entry for the specified channel in the specified layer.
 --
 -- Methods:
@@ -148,6 +150,8 @@ function Impl.Metatable.__index.generateChannelLayers(self)
     -- 2) Fill them.
     local backwardLinks = self.links.backward
     local forwardLinks = self.links.forward
+    local highLinks = self.links.highHorizontal
+    local lowLinks = self.links.lowHorizontal
     for i=1,entries.count do
         local layer = entries[i]
         local lowChannelLayer = result[i]
@@ -158,6 +162,12 @@ function Impl.Metatable.__index.generateChannelLayers(self)
                 highChannelLayer:appendLowEntry(link.channelIndex, entry)
             end
             for link in pairs(backwardLinks[entry]) do
+                lowChannelLayer:appendHighEntry(link.channelIndex, entry)
+            end
+            for link in pairs(highLinks[entry]) do
+                highChannelLayer:appendLowEntry(link.channelIndex, entry)
+            end
+            for link in pairs(lowLinks[entry]) do
                 lowChannelLayer:appendHighEntry(link.channelIndex, entry)
             end
         end
@@ -236,8 +246,9 @@ end
 --
 function Impl.newEntry(self, layerIndex, newEntry)
     self.layers:newEntry(layerIndex, newEntry)
-    self.links.backward[newEntry] = ErrorOnInvalidRead.new()
-    self.links.forward[newEntry] = ErrorOnInvalidRead.new()
+    for _,linkTable in pairs(self.links) do
+        linkTable[newEntry] = ErrorOnInvalidRead.new()
+    end
     return newEntry
 end
 
@@ -286,6 +297,8 @@ function LayersBuilder.new(object)
     object.links = ErrorOnInvalidRead.new{
         forward = ErrorOnInvalidRead.new(),
         backward = ErrorOnInvalidRead.new(),
+        highHorizontal = ErrorOnInvalidRead.new(),
+        lowHorizontal = ErrorOnInvalidRead.new(),
     }
     object.linkNodes = ErrorOnInvalidRead.new()
 
