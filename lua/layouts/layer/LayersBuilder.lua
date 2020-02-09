@@ -57,9 +57,13 @@ local Impl = ErrorOnInvalidRead.new{
 
     newEntry = nil, -- implemented later
 
-    newLink = nil, -- implemented later
+    newHorizontalLink = nil, -- implemented later
 
-    newLink2 = nil, -- implemented later
+    newLinkNode = nil, -- implemented later
+
+    newVerticalLink = nil, -- implemented later
+
+    newVerticalLink2 = nil, -- implemented later
 }
 
 -- Adds a new set in the `linkNodes` field for the specified channel index.
@@ -85,42 +89,53 @@ end
 -- * isFromVertexToEdge: true if the link goes from the vertex to the edge, false for the other way.
 --
 function Impl.link(self, edgeEntry, vertexEntry, isFromVertexToEdge)
-    local edgePos = self.layers.reverse[edgeEntry.type][edgeEntry.index]
-    local vertexPos = self.layers.reverse[vertexEntry.type][vertexEntry.index]
+    local edgeLayerId = self.layers:getPos(edgeEntry)[1]
+    local vertexLayerId = self.layers:getPos(vertexEntry)[1]
 
-    local edgeLayerId = edgePos[1]
-    local vertexLayerId = vertexPos[1]
-    -- Default values: edgePos[1] >= vertexPos[1]
+    local isForward = false
     local step = -1
-    local isForward = isFromVertexToEdge
-    local newLink = Impl.newLink
+    local newVerticalLink = Impl.newVerticalLink
     if edgeLayerId < vertexLayerId then
         step = 1
         isForward = not isFromVertexToEdge
-        newLink = Impl.newLink2
+        newVerticalLink = Impl.newVerticalLink2
+    elseif edgeLayerId > vertexLayerId then
+        isForward = isFromVertexToEdge
     end
 
     local channelIndex = self.channelIndexFactory:get(vertexEntry.index, isForward, isFromVertexToEdge)
     local linkNodes = self.linkNodes[channelIndex]
 
-    local i = edgeLayerId + step
+    -- Horizontal connections.
     local previousEntry = edgeEntry
-    local connected = false
+    if not isForward then
+        local linkNode = linkNodes[vertexLayerId]
+        if not linkNode then
+            linkNode = Impl.newLinkNode(self, vertexLayerId, channelIndex)
+        end
+        Impl.newHorizontalLink(self, linkNode, vertexEntry, channelIndex, not isFromVertexToEdge)
+
+        linkNode = linkNodes[edgeLayerId]
+        if not linkNode then
+            linkNode = Impl.newLinkNode(self, edgeLayerId, channelIndex)
+        end
+        Impl.newHorizontalLink(self, linkNode, edgeEntry, channelIndex, isFromVertexToEdge)
+        previousEntry = linkNode
+    end
+
+    -- Vertical connections.
+    local i = edgeLayerId + step
+    local connected = (edgeLayerId == vertexLayerId)
     while not connected do
         local linkNode = linkNodes[i]
         if linkNode then
-            newLink(self, linkNode, previousEntry, channelIndex)
+            newVerticalLink(self, linkNode, previousEntry, channelIndex)
             connected = true
         else
-            local entry = {
-                type = "linkNode",
-                index = {},
-            }
-            Impl.newEntry(self, i, entry)
-            linkNodes[i] = entry
+            linkNode = Impl.newLinkNode(self, i, channelIndex)
             i = i + step
-            newLink(self, entry, previousEntry, channelIndex)
-            previousEntry = entry
+            newVerticalLink(self, linkNode, previousEntry, channelIndex)
+            previousEntry = linkNode
         end
     end
 end
@@ -227,9 +242,7 @@ function Impl.Metatable.__index.newVertex(self, layerIndex, vertexIndex)
     Impl.initLinkNodes(self, vertexIndex, true, true, {
         [layerIndex] = newEntry,
     })
-    Impl.initLinkNodes(self, vertexIndex, false, false, {
-        [layerIndex] = newEntry,
-    })
+    Impl.initLinkNodes(self, vertexIndex, false, false)
 
     -- Current layer assignation never produce backward & 'vertex -> edge' links.
     -- Impl.initLinkNodes(self, vertexIndex, false, true)
@@ -252,7 +265,53 @@ function Impl.newEntry(self, layerIndex, newEntry)
     return newEntry
 end
 
--- Creates a new link.
+-- Creates a new horizontal link.
+--
+-- Args:
+-- * self: LayersBuilder object.
+-- * entryA: One of the entry to link.
+-- * entryB: The other entry to link.
+-- * channelIndex: ChannelIndex of this link.
+-- * isLow: True to insert the link into the lower channel layer, false for the upper channel layer.
+--
+function Impl.newHorizontalLink(self, entryA, entryB, channelIndex, isLow)
+    assert(self.layers:getPos(entryA)[1] == self.layers:getPos(entryA)[1], "LayerLayout: invalid link creation.")
+
+    local slotTableName = "outboundSlots"
+    local linkTable = self.links.highHorizontal
+    if isLow then
+        slotTableName = "inboundSlots"
+        linkTable = self.links.lowHorizontal
+    end
+
+    local newLink = LayerLink.new(entryA, entryB, channelIndex)
+    entryA[slotTableName]:pushBackIfNotPresent(channelIndex)
+    entryB[slotTableName]:pushBackIfNotPresent(channelIndex)
+    linkTable[entryA][newLink] = true
+    linkTable[entryB][newLink] = true
+end
+
+-- Creates a new linkNode.
+--
+-- Args:
+-- * self: LayersBuilder object.
+-- * layerId: Index of the layer in which the entry will be inserted.
+-- * channelIndex: ChannelIndex of the new linkNode entry.
+--
+-- Returns: The new linkNode entry.
+--
+function Impl.newLinkNode(self, layerId, channelIndex)
+    local linkNodes = self.linkNodes[channelIndex]
+    assert(not linkNodes[layerId], "LayersBuilder: attempt to override a linkNode entry.")
+    local result = Impl.newEntry(self, layerId, {
+        type = "linkNode",
+        index = {},
+    })
+    linkNodes[layerId] = result
+    return result
+end
+
+-- Creates a new vertical link.
 --
 -- Args:
 -- * self: LayersBuilder object.
@@ -260,7 +319,7 @@ end
 -- * highEntry: Entry with the greatest layerId to link.
 -- * channelIndex: ChannelIndex of this link.
 --
-function Impl.newLink(self, lowEntry, highEntry, channelIndex)
+function Impl.newVerticalLink(self, lowEntry, highEntry, channelIndex)
     local reverse = self.layers.reverse
     assert(reverse[lowEntry.type][lowEntry.index][1] == reverse[highEntry.type][highEntry.index][1] - 1, "LayerLayout: invalid link creation.")
     local newLink = LayerLink.new(lowEntry, highEntry, channelIndex)
@@ -270,7 +329,7 @@ function Impl.newLink(self, lowEntry, highEntry, channelIndex)
     self.links.forward[lowEntry][newLink] = true
 end
 
--- Creates a new link.
+-- Creates a new vertical link.
 --
 -- Args:
 -- * self: LayersBuilder object.
@@ -278,8 +337,8 @@ end
 -- * lowEntry: Entry with the lowest layerId to link.
 -- * channelIndex: ChannelIndex of this link.
 --
-function Impl.newLink2(self, highEntry, lowEntry, channelIndex)
-    Impl.newLink(self, lowEntry, highEntry, channelIndex)
+function Impl.newVerticalLink2(self, highEntry, lowEntry, channelIndex)
+    Impl.newVerticalLink(self, lowEntry, highEntry, channelIndex)
 end
 
 -- Creates a new LayersBuilder object.
