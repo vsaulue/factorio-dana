@@ -28,6 +28,7 @@ local LayerEntry = require("lua/layouts/layer/LayerEntry")
 --
 -- Methods:
 -- * getEntry: Gets an entry from its type and index.
+-- * getPos: Gets the position of an entry.
 -- * newEdge: Creates and add a new entry to this layout.
 -- * sortLayer: Sorts a layer in place.
 -- * swap: Swaps 2 entries in a layer.
@@ -53,6 +54,18 @@ local Impl = ErrorOnInvalidRead.new{
             getEntry = function(self,type,index)
                 local pos = self.reverse[type][index]
                 return self.entries[pos[1]][pos[2]]
+            end,
+
+            -- Gets the position of an entry.
+            --
+            -- Args:
+            -- * self: Layers object.
+            -- * entry: Entry to lookup.
+            --
+            -- Returns: The position of the given entry ([1] = layerId, [2] = rank).
+            --
+            getPos = function(self, entry)
+                return self.reverse[entry.type][entry.index]
             end,
 
             -- Creates and add a new entry to this layout.
