@@ -56,6 +56,8 @@ local Impl = ErrorOnInvalidRead.new{
 
     countAdjacentCrossings = nil, -- implemented later
 
+    countHorizontalLinks = nil, -- implemented later
+
     doInitialOrdering = nil, -- implemented later
 
     -- Metatable of the LayerLayout class.
@@ -64,6 +66,8 @@ local Impl = ErrorOnInvalidRead.new{
             computeCoordinates = LayerCoordinateGenerator.run,
         },
     },
+
+    minmax = nil, -- implemented later
 
     normalizeX = nil, -- implemented later
 
@@ -174,37 +178,108 @@ function Impl.avgEntryRank(self, channelEntries)
     return result
 end
 
+-- Counts the number of links following certain properties in the given set.
+--
+-- Args:
+-- * layers: Layers object containing the entries.
+-- * entry: Entry whose links are counted.
+-- * lowX: Upper bound for the rank of entries in the first category.
+-- * highX: Lower bound for the rank of entries in the second category.
+--
+-- Returns:
+-- * the number of links whose other entry has a rank strictly lower than `lowX`.
+-- * the number of links whose other entry has a rank strictly higher than `highX`.
+--
+function Impl.countHorizontalLinks(layers, entry, lowX, highX, links)
+    local low = 0
+    local high = 0
+    for link in pairs(links[entry]) do
+        local otherEntry = link:getOtherEntry(entry)
+        local xOther = layers:getPos(otherEntry)[2]
+        if xOther > highX then
+            high = high + 1
+        elseif xOther < lowX then
+            low = low + 1
+        end
+    end
+    return low, high
+end
+
 -- Counts the number of crossing/non-crossing pairs of links for consecutive entries.
 --
 -- Args:
 -- * layersBuilder: LayersBuilder object containing the entries.
 -- * layerId: Index of the layer containing the entries.
--- * x: Rank of the first entry in the layer (the second entry is the one of rank `x+1`).
--- * direction: Either "forward" or "backward", depending on which sets of links to consider.
+-- * x1: Rank of the first entry in the layer (the second entry is the one of rank `x+1`).
+-- * isLowerLinks: True if working on the links in the lower channel layer, false for the upper channel.
 --
 -- Returns:
--- * The number of crossing pairs.
--- * The number of non-crossing pairs.
+-- * The number of cuurently crossing pairs.
+-- * The number of crossing pairs if the two entries were swapped.
 --
-function Impl.countAdjacentCrossings(layersBuilder, layerId, x, direction)
+function Impl.countAdjacentCrossings(layersBuilder, layerId, x1, isLowerLinks)
     local layers = layersBuilder.layers
+    local x2 = x1 + 1
     local crossingCount = 0
     local nonCrossingCount = 0
-    local e1 = layers.entries[layerId][x]
-    local e2 = layers.entries[layerId][x+1]
-    for link in pairs(layersBuilder.links[direction][e1]) do
-        local entry = link:getOtherEntry(e1)
-        local xEntry = layers.reverse[entry.type][entry.index][2]
-        for otherLink in pairs(layersBuilder.links[direction][e2]) do
-            local otherEntry = otherLink:getOtherEntry(e2)
-            local xOtherEntry = layers.reverse[otherEntry.type][otherEntry.index][2]
+    local e1 = layers.entries[layerId][x1]
+    local e2 = layers.entries[layerId][x2]
+
+    local verticalLinks = layersBuilder.links.forward
+    local horizontalLinks = layersBuilder.links.highHorizontal
+    if isLowerLinks then
+        verticalLinks = layersBuilder.links.backward
+        horizontalLinks = layersBuilder.links.lowHorizontal
+    end
+
+    -- Vertical<->Vertical crossings.
+    local e1v = 0
+    for link in pairs(verticalLinks[e1]) do
+        local xEntry = layers:getPos(link:getOtherEntry(e1))[2]
+        for otherLink in pairs(verticalLinks[e2]) do
+            local xOtherEntry = layers:getPos(otherLink:getOtherEntry(e2))[2]
             if xEntry > xOtherEntry then
                 crossingCount = crossingCount + 1
             elseif xEntry < xOtherEntry then
                 nonCrossingCount = nonCrossingCount + 1
             end
         end
+        e1v = e1v + 1
     end
+
+    -- Horizontal<->Horizontal crossings.
+    for link in pairs(horizontalLinks[e1]) do
+        local ox1 = layers:getPos(link:getOtherEntry(e1))[2]
+        local min1,max1 = Impl.minmax(x1,ox1)
+        for otherLink in pairs(horizontalLinks[e2]) do
+            local ox2 = layers:getPos(otherLink:getOtherEntry(e2))[2]
+            if ox1 ~= ox2 and ox2 ~= x1 and ox1 ~= x2 then
+                local inter = 0
+                if x2 < max1 then
+                    inter = inter + 1
+                end
+                if min1 < ox2 and ox2 < max1 then
+                    inter = inter + 1
+                end
+                if inter == 1 then
+                    crossingCount = crossingCount + 1
+                else
+                    nonCrossingCount = nonCrossingCount + 1
+                end
+            end
+        end
+    end
+
+    -- Vertical<->Horizontal crossings.
+    local e1low, e1high = Impl.countHorizontalLinks(layers, e1, x1, x2, horizontalLinks)
+    local e2low, e2high = Impl.countHorizontalLinks(layers, e2, x1, x2, horizontalLinks)
+    local e2v = 0
+    for _ in pairs(verticalLinks[e2]) do
+        e2v = e2v + 1
+    end
+    crossingCount = crossingCount + e1v * e2low + e2v * e1high
+    nonCrossingCount = nonCrossingCount + e1v * e2high + e2v * e1low
+
     return crossingCount,nonCrossingCount
 end
 
@@ -374,6 +449,25 @@ function Impl.doInitialOrdering(layersBuilder)
     end
 end
 
+-- Gets the min & max of two values.
+--
+-- Args:
+-- * a: First value.
+-- * b: Second value.
+--
+-- Returns:
+-- * The lowest value of the 2 arguments.
+-- * The highest value of the 2 arguments.
+function Impl.minmax(a,b)
+    local min = a
+    local max = b
+    if a > b then
+        min = b
+        max = a
+    end
+    return min,max
+end
+
 -- Normalizes the rank of an entry in a layer.
 --
 -- Args:
@@ -442,8 +536,8 @@ function Impl.orderByPermutation(layersBuilder)
         repeat
             local hasImproved = false
             for x=1,layer.count-1 do
-                local c1,n1 = Impl.countAdjacentCrossings(layersBuilder, layerId, x, "backward")
-                local c2,n2 = Impl.countAdjacentCrossings(layersBuilder, layerId, x, "forward")
+                local c1,n1 = Impl.countAdjacentCrossings(layersBuilder, layerId, x, true)
+                local c2,n2 = Impl.countAdjacentCrossings(layersBuilder, layerId, x, false)
                 local c = c1 + c2
                 local n = n1 + n2
                 if (c > n) or (c == n and c1 > n1) then
