@@ -487,6 +487,7 @@ end
 --
 function Impl.orderByBarycenter(layersBuilder)
     local layersEntries = layersBuilder.layers.entries
+    local links = layersBuilder.links
     for layerId=1,layersEntries.count do
         local layer = layersEntries[layerId]
         local prevLayerCount = 0
@@ -497,22 +498,31 @@ function Impl.orderByBarycenter(layersBuilder)
         if layerId < layersEntries.count then
             nextLayerCount = layersEntries[layerId+1].count
         end
+        local currentLayerCount = layer.count
         local barycenters = {}
         for i=1,layer.count do
             local entry = layer[i]
             local sum = 0
             local count = 0
-            for link in pairs(layersBuilder.links.backward[entry]) do
-                local otherEntry = link:getOtherEntry(entry)
-                local rawX = layersBuilder.layers.reverse[otherEntry.type][otherEntry.index][2]
+            for link in pairs(links.backward[entry]) do
+                local rawX = layersBuilder.layers:getPos(link:getOtherEntry(entry))[2]
                 count = count + 1
                 sum = sum + Impl.normalizeX(rawX, prevLayerCount)
             end
-            for link in pairs(layersBuilder.links.forward[entry]) do
-                local otherEntry = link:getOtherEntry(entry)
-                local rawX = layersBuilder.layers.reverse[otherEntry.type][otherEntry.index][2]
+            for link in pairs(links.forward[entry]) do
+                local rawX = layersBuilder.layers:getPos(link:getOtherEntry(entry))[2]
                 count = count + 1
                 sum = sum + Impl.normalizeX(rawX, nextLayerCount)
+            end
+            for link in pairs(links.lowHorizontal[entry]) do
+                local rawX = layersBuilder.layers:getPos(link:getOtherEntry(entry))[2]
+                count = count + 1
+                sum = sum + Impl.normalizeX(rawX, currentLayerCount)
+            end
+            for link in pairs(links.highHorizontal[entry]) do
+                local rawX = layersBuilder.layers:getPos(link:getOtherEntry(entry))[2]
+                count = count + 1
+                sum = sum + Impl.normalizeX(rawX, currentLayerCount)
             end
             if count == 0 then
                 barycenters[entry] = math.huge
