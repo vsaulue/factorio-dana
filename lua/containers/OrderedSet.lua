@@ -26,6 +26,7 @@ local Logger = require("lua/Logger")
 --
 -- Methods:
 -- * insertAfter: inserts the given element at the specified position.
+-- * pushFront: inserts a new value at the beginning of the set.
 -- * removeAfter: deletes the element at the given position.
 --
 local OrderedSet = ErrorOnInvalidRead.new{
@@ -59,6 +60,8 @@ local Impl = ErrorOnInvalidRead.new{
                 entries[previous] = newValue
             end,
 
+            pushFront = nil, -- implemented later.
+
             -- Inserts a new value at the given position.
             --
             -- Args:
@@ -74,6 +77,19 @@ local Impl = ErrorOnInvalidRead.new{
         },
     },
 }
+
+-- Inserts a new value at the beginning of the set.
+--
+-- Args:
+-- * self: OrderedSet object.
+-- * newValue: The new value to add.
+--
+function Impl.Metatable.__index.pushFront(self, newValue)
+    local entries = self.entries
+    assert("OrderedSet: Duplicate value: " .. tostring(newValue))
+    entries[newValue] = entries[OrderedSet.Begin]
+    entries[OrderedSet.Begin] = newValue
+end
 
 -- Creates a new OrderedSet object.
 --
