@@ -18,15 +18,30 @@ local Array = require("lua/containers/Array")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Iterator = require("lua/containers/utils/Iterator")
 local OrderedSet = require("lua/containers/OrderedSet")
+local ReversibleArray = require("lua/containers/ReversibleArray")
 
 -- Helper class for sorting entries in their layers.
 --
 -- This is a global algorithm, parsing the full layer graph, and using a heuristic to give an initial
 -- "good enough" ordering of layers. Local heuristics can refine the work after that.
 --
+-- Fields:
+-- * counts[entry]: Map giving the total number of paths to roots of a given entry.
+-- * layersBuilder: LayersBuilder object on which the sorting algorithm is running.
+-- * paths[entry][root]: 2-dim map giving the number of path from `entry` to `root`.
+-- * roots: OrderedSet containing the root entries in the layer layout.
+--
 local LayersInitialSorter = ErrorOnInvalidRead.new{
     run = nil, -- implemented later
 }
+
+-- Implementation stuff (private scope).
+local computeCouplingScore
+local computeRootsAndPaths
+local createCouplings
+local getOrderByHighestCouplingCoefficients
+local sortLayers
+local sortRoots
 
 -- Computes a score indicating if the order of a set "fits well" the given couplings.
 --
@@ -42,7 +57,7 @@ local LayersInitialSorter = ErrorOnInvalidRead.new{
 --
 -- Returns: a score (higher is better).
 --
-local function computeCouplingScore(rootOrder, couplings)
+computeCouplingScore = function(rootOrder, couplings)
     local result = 0
     local entries = rootOrder.entries
     local it1 = entries[OrderedSet.Begin]
@@ -59,31 +74,23 @@ local function computeCouplingScore(rootOrder, couplings)
     return result
 end
 
--- Assigns an initial order to all layers.
---
--- Algorithm works as follow:
--- 1a) Computes roots (entries with no backward links)
--- 1b) For non-roots, compute the number of paths to each roots.
--- 2)  Compute a "coupling" value between each root pairs (great coupling <=> many entries have paths to these roots).
--- 3)  Order the roots using couplings (try to place pairs with high couplings close of each other).
--- 4)  Compute order of non-roots, using barycenter of the roots they're linked to.
+-- Fills the `paths`, `counts` and `roots` fields of a LayersInitialSorter object.
 --
 -- Args:
--- * layersBuilder: LayerBuilder object.
+-- * self: LayersInitialSorter object.
 --
-function LayersInitialSorter.run(layersBuilder)
-    -- 1a & 1b) Computes root entries, and number of paths to roots for other entries.
-    local paths = {}
-    local counts = {}
-    local roots = {}
-    local layersEntries = layersBuilder.layers.entries
+computeRootsAndPaths = function(self)
+    local layersEntries = self.layersBuilder.layers.entries
+    local paths = self.paths
+    local counts = self.counts
+    local roots = self.roots
     for layerId=1,layersEntries.count do
         local layer = layersEntries[layerId]
         for x=1,layer.count do
             local entry = layer[x]
             paths[entry] = {}
             counts[entry] = 0
-            for link in pairs(layersBuilder.links.backward[entry]) do
+            for link in pairs(self.layersBuilder.links.backward[entry]) do
                 local otherEntry = link:getOtherEntry(entry)
                 for parent,weight in pairs(paths[otherEntry]) do
                     local currentValue = paths[entry][parent] or 0
@@ -92,55 +99,133 @@ function LayersInitialSorter.run(layersBuilder)
                 counts[entry] = counts[entry] + counts[otherEntry]
             end
             if counts[entry] == 0 then
-                roots[entry] = true
+                roots:pushFront(entry)
                 paths[entry][entry] = 1
                 counts[entry] = 1
             end
         end
     end
+end
 
-    -- 2) Compute coupling scores between each roots.
-    -- Coupling score inspired from gravity force (coupling = G * m1 * m2)
-    local couplings = {}
-    for entry in pairs(roots) do
-        couplings[entry] = {}
+-- Computes coupling scores between each roots.
+--
+-- Args:
+-- * self: LayersInitialSorter object.
+--
+-- Returns: a 2-dim map, giving the coupling between root entries.
+--
+createCouplings = function(self)
+    local result = ErrorOnInvalidRead.new()
+
+    local roots = self.roots
+    local it = roots.entries[OrderedSet.Begin]
+    while it ~= OrderedSet.End do
+        result[it] = {}
+        it = roots.entries[it]
     end
-    for layerId=1,layersEntries.count do
-        local layer = layersEntries[layerId]
+
+    local entries = self.layersBuilder.layers.entries
+    for layerId=1,entries.count do
+        local layer = entries[layerId]
         for x=1,layer.count do
             local entry = layer[x]
-            local sqrCount = counts[entry] * counts[entry]
-            local it1 = Iterator.new(paths[entry])
+            local count = self.counts[entry]
+            local sqrCount = count * count
+            local it1 = Iterator.new(self.paths[entry])
             local it2 = Iterator.new()
             while it1:next() do
                 it2:copy(it1)
                 while it2:next() do
-                    local prevCoupling = couplings[it1.key][it2.key] or 0
+                    local prevCoupling = result[it1.key][it2.key] or 0
                     local newCoupling = prevCoupling + (it1.value * it2.value) / sqrCount
-                    couplings[it1.key][it2.key] = newCoupling
-                    couplings[it2.key][it1.key] = newCoupling
+                    result[it1.key][it2.key] = newCoupling
+                    result[it2.key][it1.key] = newCoupling
                 end
             end
         end
     end
+    return result
+end
 
-    -- 3) Order roots, by placing pairs with high coupling close together.
-    -- 3.1: process roots by their highest coupling coefficients
-    local rootProcessingOrder = Array.new()
-    local rootGreatestCouplings = {}
+-- Order a set of roots by maximum coupling coefficient.
+--
+-- This function takes the maximum coupling coefficient of each root, then sort them with
+-- this value.
+--
+-- Args:
+-- * roots: OrderedSet of roots to consider.
+-- * couplings: Coupling coefficients.
+--
+-- Returns: Array object containing all roots, ordered from their lowest to highest coupling coefficient.
+--
+getOrderByHighestCouplingCoefficients = function(roots, couplings)
+    local result = Array.new()
+    local rootGreatestCouplings = ErrorOnInvalidRead.new()
     local max = math.max
-    for root in pairs(roots) do
+    local it = roots.entries[OrderedSet.Begin]
+    while it ~= OrderedSet.End do
         local greatestCoupling = 0
-        for _,coupling in pairs(couplings[root]) do
+        for _,coupling in pairs(couplings[it]) do
             greatestCoupling = max(coupling, greatestCoupling)
         end
-        rootProcessingOrder:pushBack(root)
-        rootGreatestCouplings[root] = greatestCoupling
+        result:pushBack(it)
+        rootGreatestCouplings[it] = greatestCoupling
+        it = roots.entries[it]
     end
-    rootProcessingOrder:sort(rootGreatestCouplings)
+    result:sort(rootGreatestCouplings)
+    return result
+end
 
-    -- 3.2: Main algorithm
-    local rootOrder = OrderedSet.new()
+-- Sort each layers according to their coupling to root nodes.
+--
+-- Layer order is computed by sorting x-coordinates of the entries, computed as follows:
+-- * roots: the x-coordinate is the rank in the previous set.
+-- * other: the x-coordinate is the barycenter of the linked roots, weighed by path count.
+--
+-- Args:
+-- * self: LayersInitialSorter object.
+--
+sortLayers = function(self)
+    local it = self.roots.entries[OrderedSet.Begin]
+    local rootPos = ReversibleArray.new()
+    while it ~= OrderedSet.End do
+        rootPos:pushBack(it)
+        it = self.roots.entries[it]
+    end
+    local entries = self.layersBuilder.layers.entries
+    for layerId=1,entries.count do
+        local layer = entries[layerId]
+        local positions = {}
+        for x=1,layer.count do
+            local entry = layer[x]
+            local rPos = rawget(rootPos, entry)
+            if rPos then
+                positions[entry] = rPos
+            else
+                local newPos = 0
+                for rootEntry,coef in pairs(self.paths[entry]) do
+                    newPos = newPos + coef * rootPos[rootEntry]
+                end
+                positions[entry] = newPos / self.counts[entry]
+            end
+        end
+        self.layersBuilder.layers:sortLayer(layerId, positions)
+    end
+end
+
+-- Order roots, by placing pairs with high coupling close together.
+--
+-- Coupling score inspired from gravity force (coupling = G * m1 * m2)
+--
+-- Args:
+-- * self: LayersInitialSorter object.
+--
+sortRoots = function(self)
+    local couplings = createCouplings(self)
+    local roots = self.roots
+    local rootProcessingOrder = getOrderByHighestCouplingCoefficients(roots, couplings)
+
+    roots = OrderedSet.new()
     for i=1,rootProcessingOrder.count do
         local root = rootProcessingOrder[i]
         -- Logger.debug(root.index.rawPrototype.name .. ": " .. rootGreatestCouplings[root])
@@ -148,47 +233,36 @@ function LayersInitialSorter.run(layersBuilder)
         local optimalPos = nil
         local it = OrderedSet.Begin
         while it ~= OrderedSet.End do
-            rootOrder:insertAfter(it,root)
-            local score = computeCouplingScore(rootOrder, couplings)
-            rootOrder:removeAfter(it)
+            roots:insertAfter(it,root)
+            local score = computeCouplingScore(roots, couplings)
+            roots:removeAfter(it)
             if score > optimalScore then
                 optimalScore = score
                 optimalPos = it
             end
-            it = rootOrder.entries[it]
+            it = roots.entries[it]
         end
-        rootOrder:insertAfter(optimalPos, root)
+        roots:insertAfter(optimalPos, root)
     end
+    self.roots = roots
+end
 
-    -- 4) Computes order of each layers
-    -- roots: the x-coordinate is the rank in the previous set.
-    -- other: the x-coordinate is the barycenter of the linked roots, weighed by path count.
-    -- Layer order is computed by sorting x-coordinates of the entries.
-    local it = rootOrder.entries[OrderedSet.Begin]
-    local rootPos = {}
-    local pos = 1
-    while it ~= OrderedSet.End do
-        rootPos[it] = pos
-        pos = pos + 1
-        it = rootOrder.entries[it]
-    end
-    for layerId=1,layersEntries.count do
-        local layer = layersEntries[layerId]
-        local positions = {}
-        for x=1,layer.count do
-            local entry = layer[x]
-            if rootPos[entry] then
-                positions[entry] = rootPos[entry]
-            else
-                local newPos = 0
-                for rootEntry,coef in pairs(paths[entry]) do
-                    newPos = newPos + coef * rootPos[rootEntry]
-                end
-                positions[entry] = newPos / counts[entry]
-            end
-        end
-        layersBuilder.layers:sortLayer(layerId,positions)
-    end
+-- Runs the sorting algorithm on a LayersBuilder object.
+--
+-- Args:
+-- * layersBuilder: LayersBuilder object.
+--
+function LayersInitialSorter.run(layersBuilder)
+    local self = ErrorOnInvalidRead.new{
+        counts = ErrorOnInvalidRead.new(),
+        layersBuilder = layersBuilder,
+        paths = ErrorOnInvalidRead.new(),
+        roots = OrderedSet.new(),
+    }
+
+    computeRootsAndPaths(self)
+    sortRoots(self)
+    sortLayers(self)
 end
 
 return LayersInitialSorter
