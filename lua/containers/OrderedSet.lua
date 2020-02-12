@@ -28,7 +28,7 @@ local Logger = require("lua/Logger")
 -- * insertAfter: inserts the given element at the specified position.
 -- * removeAfter: deletes the element at the given position.
 --
-local OrderedSet = {
+local OrderedSet = ErrorOnInvalidRead.new{
     new = nil, -- implemented later
 
     -- Sentinel value, placed before the first element of an ordered set.
@@ -39,10 +39,10 @@ local OrderedSet = {
 }
 
 -- Implementation stuff (private scope).
-local Impl = {
+local Impl = ErrorOnInvalidRead.new{
     -- Metatable of the OrderedSet class.
     Metatable = {
-        __index = {
+        __index = ErrorOnInvalidRead.new{
             -- Inserts a new value at the given position.
             --
             -- Args:
@@ -75,19 +75,16 @@ local Impl = {
     },
 }
 
-ErrorOnInvalidRead.setmetatable(Impl.Metatable.__index)
-
 -- Creates a new OrderedSet object.
 --
 -- Returns: the new OrderedSet object.
 --
 function OrderedSet.new()
     local result = {
-        entries = {
+        entries = ErrorOnInvalidRead.new{
             [OrderedSet.Begin] = OrderedSet.End,
         },
     }
-    ErrorOnInvalidRead.setmetatable(result.entries)
     setmetatable(result, Impl.Metatable)
     return result
 end
