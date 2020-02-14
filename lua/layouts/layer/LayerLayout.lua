@@ -24,6 +24,7 @@ local LayersBuilder = require("lua/layouts/layer/LayersBuilder")
 local LayersInitialSorter = require("lua/layouts/layer/LayersInitialSorter")
 local Logger = require("lua/Logger")
 local HyperSrcMinDist = require("lua/hypergraph/algorithms/HyperSrcMinDist")
+local SlotsSorter = require("lua/layouts/layer/SlotsSorter")
 
 -- Computes a layer layout for an hypergraph.
 --
@@ -48,8 +49,6 @@ local Impl = ErrorOnInvalidRead.new{
     assignEdgesToLayers = nil, -- implemented later
 
     assignVerticesToLayers = nil, -- implemented later
-
-    avgEntryRank = nil, -- implemented later
 
     countAdjacentCrossings = nil, -- implemented later
 
@@ -148,29 +147,6 @@ function Impl.assignVerticesToLayers(layersBuilder, graph, sourceVertices)
             Logger.error("LayerLayout: Invalid component index")
         end
     end
-end
-
--- Computes the average entry rank of an array of entries.
---
--- Args:
--- * self: LayerLayout object containing the entries.
--- * channelEntries: Array of entries to evaluate.
---
--- Returns: the average rank of the entries (or 0 if the array is empty).
---
-function Impl.avgEntryRank(self, channelEntries)
-    local result = 0
-    local count = channelEntries.count
-    if count > 0 then
-        local sum = 0
-        for i=1,count do
-            local entry = channelEntries[i]
-            local entryRank = self.layers.reverse[entry.type][entry.index][2]
-            sum = sum + entryRank
-        end
-        result = sum / count
-    end
-    return result
 end
 
 -- Counts the number of links following certain properties in the given set.
@@ -388,39 +364,6 @@ function Impl.orderByPermutation(layersBuilder)
     end
 end
 
--- Sorts the slots of all entries of the layout.
---
--- Args:
--- * self: LayerLayout object.
---
-function Impl.sortSlots(self)
-    local lCount = self.channelLayers.count
-    for lRank=1,lCount do
-        local xAvgHigh = ErrorOnInvalidRead.new()
-        local xAvgLow = ErrorOnInvalidRead.new()
-        local channelLayer = self.channelLayers[lRank]
-        for cRank=1,channelLayer.order.count do
-            local channelIndex = channelLayer.order[cRank]
-            xAvgHigh[channelIndex] = Impl.avgEntryRank(self, channelLayer.highEntries[channelIndex])
-            xAvgLow[channelIndex] = Impl.avgEntryRank(self,channelLayer.lowEntries[channelIndex])
-        end
-        if lRank > 1 then
-            local layer = self.layers.entries[lRank-1]
-            for eRank=1,layer.count do
-                local entry = layer[eRank]
-                entry.outboundSlots:sort(xAvgHigh)
-            end
-        end
-        if lRank < lCount then
-            local layer = self.layers.entries[lRank]
-            for eRank=1,layer.count do
-                local entry = layer[eRank]
-                entry.inboundSlots:sort(xAvgLow)
-            end
-        end
-    end
-end
-
 -- Creates a new layer layout for the given graph.
 --
 -- Args:
@@ -456,7 +399,7 @@ function LayerLayout.new(graph,sourceVertices)
     setmetatable(result, Impl.Metatable)
 
     -- 5) Bonus: Little things to make the result slightly less incomprehensible
-    Impl.sortSlots(result)
+    SlotsSorter.run(result)
 
     return result
 end
