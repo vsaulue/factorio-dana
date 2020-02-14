@@ -36,12 +36,32 @@ local LayersInitialSorter = ErrorOnInvalidRead.new{
 }
 
 -- Implementation stuff (private scope).
+local addPath
 local computeCouplingScore
 local computeRootsAndPaths
 local createCouplings
 local getOrderByHighestCouplingCoefficients
+local initNode
+local makeRootIfNoPath
 local sortLayers
 local sortRoots
+
+-- Adds a path between two nodes.
+--
+-- Args:
+-- * self: LayersInitialSorter object.
+-- * child: Destination node of the path.
+-- * parent: Source node of the path.
+--
+addPath = function(self, child, parent)
+    local paths = self.paths
+    local counts = self.counts
+    for parent,weight in pairs(paths[parent]) do
+        local currentValue = paths[child][parent] or 0
+        paths[child][parent] = currentValue + weight
+    end
+    counts[child] = counts[child] + counts[parent]
+end
 
 -- Computes a score indicating if the order of a set "fits well" the given couplings.
 --
@@ -80,29 +100,61 @@ end
 -- * self: LayersInitialSorter object.
 --
 computeRootsAndPaths = function(self)
-    local layersEntries = self.layersBuilder.layers.entries
+    local channelLayers = self.layersBuilder:generateChannelLayers()
+    local entries = self.layersBuilder.layers.entries
     local paths = self.paths
     local counts = self.counts
-    local roots = self.roots
-    for layerId=1,layersEntries.count do
-        local layer = layersEntries[layerId]
-        for x=1,layer.count do
-            local entry = layer[x]
-            paths[entry] = {}
-            counts[entry] = 0
-            for link in pairs(self.layersBuilder.links.backward[entry]) do
-                local otherEntry = link:getOtherEntry(entry)
-                for parent,weight in pairs(paths[otherEntry]) do
-                    local currentValue = paths[entry][parent] or 0
-                    paths[entry][parent] = currentValue + weight
+    for layerId=1,entries.count do
+        local layer = entries[layerId]
+        for rank=1,layer.count do
+            initNode(self, layer[rank])
+        end
+
+        -- First pass: process channels with lower & higher entries.
+        local lowChannelLayer = channelLayers[layerId]
+        local pureLowChannels = ErrorOnInvalidRead.new()
+        for channelIndex,lowEntries in pairs(lowChannelLayer.lowEntries) do
+            local highEntries = lowChannelLayer.highEntries[channelIndex]
+            if lowEntries.count == 0 then
+                pureLowChannels[channelIndex] = highEntries
+            else
+                local newNode = ErrorOnInvalidRead.new()
+                initNode(self, newNode)
+                for i=1,lowEntries.count do
+                    local entry = lowEntries[i]
+                    addPath(self, newNode, entry)
                 end
-                counts[entry] = counts[entry] + counts[otherEntry]
+                for i=1,highEntries.count do
+                    local entry = highEntries[i]
+                    addPath(self, entry, newNode)
+                end
             end
-            if counts[entry] == 0 then
-                roots:pushFront(entry)
-                paths[entry][entry] = 1
-                counts[entry] = 1
+        end
+
+        -- Second pass: process channels which have only higher entries.
+        for channelIndex,highEntries in pairs(pureLowChannels) do
+            local vertexEntry = nil
+            for i=1,highEntries.count do
+                local entry = highEntries[i]
+                if entry.type == "vertex" then
+                    vertexEntry = entry
+                end
             end
+            if vertexEntry then
+                makeRootIfNoPath(self, vertexEntry)
+                for i=1,highEntries.count do
+                    local entry = highEntries[i]
+                    if entry ~= vertexEntry then
+                        addPath(self, entry, vertexEntry)
+                    end
+                end
+            end
+        end
+
+        -- Third pass: turn any unprocessed entry into a node.
+        for rank=1,layer.count do
+            local entry = layer[rank]
+            makeRootIfNoPath(self, entry)
         end
     end
 end
@@ -174,6 +226,31 @@ getOrderByHighestCouplingCoefficients = function(roots, couplings)
     end
     result:sort(rootGreatestCouplings)
     return result
+end
+
+-- Initializes a new node in the sorter.
+--
+-- Args:
+-- * self: LayersInitialSorter object.
+-- * entryOrNode: New node.
+--
+initNode = function(self, entryOrNode)
+    self.paths[entryOrNode] = {}
+    self.counts[entryOrNode] = 0
+end
+
+-- Turns an entry into a root if it has no path to an existing root.
+--
+-- Args:
+-- * self: LayersInitialSorter object.
+-- * entry: Entry to turn into a root.
+--
+makeRootIfNoPath = function(self, entry)
+    if self.counts[entry] == 0 then
+        self.roots:pushFront(entry)
+        self.paths[entry][entry] = 1
+        self.counts[entry] = 1
+    end
 end
 
 -- Sort each layers according to their coupling to root nodes.
