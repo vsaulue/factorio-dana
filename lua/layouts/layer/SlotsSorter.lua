@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local Array = require("lua/containers/Array")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 -- Helper library to sort slots of entries in a LayerLayout object.
@@ -28,6 +29,36 @@ local SlotsSorter = ErrorOnInvalidRead.new{
 
 -- Implementation stuff (private scope).
 local avgEntryRank
+local sortSlotsSide
+
+-- Dummy index, used to insert a tail sentinel value in some arrays.
+local DummyIndex = "dummy"
+
+-- Structure holding information to configure the algorithm for either inbound or outbound slots.
+--
+-- RO Fields:
+-- * channelLayerOffset: Difference between a layer index, and the index of the channel layer to parse.
+-- * nearEntriesName: Name of the field in ChannelLayer containing the entries of the current layer.
+-- * farEntriesName: Name of the field in ChannelLayer containing the entries of the other layer.
+-- * slotsName: Name of the field in LayerEntry of the slots to sort.
+--
+local SlotSorterParser = ErrorOnInvalidRead.new{
+    -- Parser configuration for outboundSlots.
+    OutboundSlots = ErrorOnInvalidRead.new{
+        channelLayerOffset = 1,
+        nearEntriesName = "lowEntries",
+        farEntriesName = "highEntries",
+        slotsName = "outboundSlots",
+    },
+
+    -- Parser configuration for inboundSlots.
+    InboundSlots = ErrorOnInvalidRead.new{
+        channelLayerOffset = 0,
+        nearEntriesName = "highEntries",
+        farEntriesName = "lowEntries",
+        slotsName = "inboundSlots",
+    },
+}
 
 -- Computes the average entry rank of an array of entries.
 --
@@ -52,36 +83,57 @@ avgEntryRank = function(layerLayout, channelEntries)
     return result
 end
 
+-- Runs the slot sorting algorithm on a specific layer, for a specific side.
+--
+-- Args:
+-- * layerLayout: LayerLayout object on which the algorithm will be run.
+-- * lRank: Index of the layer to process.
+-- * parser: SlotSorterParser object, determining which slots will be sorted.
+--
+sortSlotsSide = function(layerLayout, lRank, parser)
+    local layer = layerLayout.layers.entries[lRank]
+    local doubleLength = 2 * layer.count
+    local channelLayer = layerLayout.channelLayers[lRank+parser.channelLayerOffset]
+    local xTargets = ErrorOnInvalidRead.new()
+    local horizontalXAvg = ErrorOnInvalidRead.new()
+    local horizontalOrder = Array.new()
+    for channelIndex,farEntries in pairs(channelLayer[parser.farEntriesName]) do
+        local nearEntries = channelLayer[parser.nearEntriesName][channelIndex]
+        if farEntries.count == 0 then
+            local avg = avgEntryRank(layerLayout, nearEntries)
+            horizontalXAvg[channelIndex] = avg
+            xTargets[channelIndex] = doubleLength - avg
+            horizontalOrder:pushBack(channelIndex)
+        else
+            xTargets[channelIndex] = avgEntryRank(layerLayout, farEntries)
+        end
+    end
+    horizontalOrder:sort(horizontalXAvg)
+    horizontalOrder:pushBack(DummyIndex)
+    horizontalXAvg[DummyIndex] = math.huge
+    local flipIndex = 1
+    local nextFlipX = horizontalXAvg[horizontalOrder[1]]
+    for eRank=1,layer.count do
+        local entry = layer[eRank]
+        while nextFlipX < eRank do
+            local channelIndex = horizontalOrder[flipIndex]
+            xTargets[channelIndex] = - horizontalXAvg[channelIndex]
+            flipIndex = flipIndex + 1
+            nextFlipX = horizontalXAvg[horizontalOrder[flipIndex]]
+        end
+        entry[parser.slotsName]:sort(xTargets)
+    end
+end
+
 -- Runs the slot sorting algorithm.
 --
 -- Args:
 -- * layerLayout: LayerLayout object on which the algorithm will be run.
 --
 function SlotsSorter.run(layerLayout)
-    local lCount = layerLayout.channelLayers.count
-    for lRank=1,lCount do
-        local xAvgHigh = ErrorOnInvalidRead.new()
-        local xAvgLow = ErrorOnInvalidRead.new()
-        local channelLayer = layerLayout.channelLayers[lRank]
-        for cRank=1,channelLayer.order.count do
-            local channelIndex = channelLayer.order[cRank]
-            xAvgHigh[channelIndex] = avgEntryRank(layerLayout, channelLayer.highEntries[channelIndex])
-            xAvgLow[channelIndex] = avgEntryRank(layerLayout,channelLayer.lowEntries[channelIndex])
-        end
-        if lRank > 1 then
-            local layer = layerLayout.layers.entries[lRank-1]
-            for eRank=1,layer.count do
-                local entry = layer[eRank]
-                entry.outboundSlots:sort(xAvgHigh)
-            end
-        end
-        if lRank < lCount then
-            local layer = layerLayout.layers.entries[lRank]
-            for eRank=1,layer.count do
-                local entry = layer[eRank]
-                entry.inboundSlots:sort(xAvgLow)
-            end
-        end
+    for lRank=1,layerLayout.layers.entries.count do
+        sortSlotsSide(layerLayout, lRank, SlotSorterParser.InboundSlots)
+        sortSlotsSide(layerLayout, lRank, SlotSorterParser.OutboundSlots)
     end
 end
 
