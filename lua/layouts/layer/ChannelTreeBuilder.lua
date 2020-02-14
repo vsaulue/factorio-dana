@@ -36,20 +36,6 @@ local ChannelTreeBuilder = ErrorOnInvalidRead.new{
 
 -- Implementation stuff (private scope).
 local Impl = ErrorOnInvalidRead.new{
-    -- Get the X coordinate of a slot by its rank.
-    --
-    -- Args:
-    -- * entryPosition: Position data of the entry.
-    -- * rank: Rank of the slot.
-    -- * slotCount: Total number of slots.
-    --
-    -- Returns: The X coordinate of the slot.
-    --
-    getXSlotCoordinate = function(entryPosition, rank, slotCount)
-        local xMin = entryPosition.xMin
-        return xMin + (entryPosition.xMax - xMin) * (rank - 0.5) / slotCount
-    end,
-
     nextHigh = nil, -- implemented later
 
     nextLow = nil, -- implemented later
@@ -136,10 +122,10 @@ function Impl.nextHigh(self)
     end
     if itHigh:next() then
         local entry = itHigh.value
-        local entryPosition = self.entryPositions[entry].output
+        local entryPosition = self.entryPositions[entry]
         local slots = entry.inboundSlots
         local rank = slots[self.channelIndex]
-        self.xHigh = Impl.getXSlotCoordinate(entryPosition, rank, slots.count)
+        self.xHigh = entryPosition.output.xMin + entryPosition.inboundOffsets[rank]
     else
         self.xHigh = nil
     end
@@ -159,10 +145,10 @@ function Impl.nextLow(self)
     end
     if itLow:next() then
         local entry = itLow.value
-        local entryPosition = self.entryPositions[entry].output
+        local entryPosition = self.entryPositions[entry]
         local slots = entry.outboundSlots
         local rank = slots[self.channelIndex]
-        self.xLow = Impl.getXSlotCoordinate(entryPosition, rank, slots.count)
+        self.xLow = entryPosition.output.xMin + entryPosition.outboundOffsets[rank]
     else
         self.xLow = nil
     end

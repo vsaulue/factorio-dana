@@ -29,6 +29,8 @@ local Logger = require("lua/Logger")
 --   * output: placement data of this entry, returned in the LayoutCoordinates object.
 --   * inboundNodes[channelIndex]: Tree node of the given channel index for inbound slots.
 --   * outboundNodes[channelIndex]: Tree node of the given channel index for outbound slots.
+--   * inboundOffsets[rank]: x-offset of the given inbound slot.
+--   * outboundOffsets[rank]: x-offset of the given outbound slot.
 --
 -- Fields:
 -- * entryPositions[entry]: LayerEntryPosition object associated to a specific entry.
@@ -45,6 +47,7 @@ local attachLinksToEntries
 local createEntryCoordinateRecords
 local computeX
 local computeYAndLinks
+local fillSlotOffsets
 local processChannelLayer
 
 -- Set the Y coordinate of tree nodes attached to entries.
@@ -86,7 +89,9 @@ createEntryCoordinateRecords = function(self)
             local entryRecord = ErrorOnInvalidRead.new{
                 output = ErrorOnInvalidRead.new(),
                 inboundNodes = ErrorOnInvalidRead.new(),
+                inboundOffsets = ErrorOnInvalidRead.new(),
                 outboundNodes = ErrorOnInvalidRead.new(),
+                outboundOffsets = ErrorOnInvalidRead.new(),
             }
             if entryType ~= "linkNode" then
                 local tableName = "vertices"
@@ -133,6 +138,8 @@ computeX = function(self)
             local entryRecord = self.entryPositions[entry]
             entryRecord.output.xMin = x
             entryRecord.output.xMax = x + xLength
+            fillSlotOffsets(entry.inboundSlots, entryRecord.inboundOffsets, xLength)
+            fillSlotOffsets(entry.outboundSlots, entryRecord.outboundOffsets, xLength)
             x = x + xLength + xMargin
         end
         if x > xLengthMax then
@@ -190,6 +197,21 @@ computeYAndLinks = function(self)
         y = y + yLayerLength
     end
     processChannelLayer(self, entries.count + 1, y)
+end
+
+-- Fill the inboundOffsets & outboundOffsets fields of a LayerEntryPosition object.
+--
+-- Args:
+-- * slots: ReversibleArray of slots (ex: LayerEntry.inboundSlots).
+-- * output: Table in which the offsets should be written.
+-- * xLength: Length of the entry.
+--
+fillSlotOffsets = function(slots, output, xLength)
+    local count = slots.count
+    for rank=1,count do
+        local channelIndex = slots[rank]
+        output[rank] = xLength * (rank - 0.5) / count
+    end
 end
 
 -- Creates a tree links for all the channel indices of a channel layers.
