@@ -118,6 +118,8 @@ computeX = function(self)
         vertex = params.vertexMarginX,
     }
     local entries = self.layout.layers.entries
+    local xLengthMax = - math.huge
+    local layerXLengths = ErrorOnInvalidRead.new()
     for layerId=1,entries.count do
         local layer = entries[layerId]
         local x = 0
@@ -132,6 +134,21 @@ computeX = function(self)
             entryRecord.output.xMin = x
             entryRecord.output.xMax = x + xLength
             x = x + xLength + xMargin
+        end
+        if x > xLengthMax then
+            xLengthMax = x
+        end
+        layerXLengths[layerId] = x
+    end
+
+    -- Center
+    for layerId=1,entries.count do
+        local layer = entries[layerId]
+        local xDelta = (xLengthMax - layerXLengths[layerId]) / 2
+        for rank=1,layer.count do
+            local output = self.entryPositions[layer[rank]].output
+            output.xMin = output.xMin + xDelta
+            output.xMax = output.xMax + xDelta
         end
     end
 end
