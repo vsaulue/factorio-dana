@@ -28,7 +28,7 @@ local ReversibleArray = require("lua/containers/ReversibleArray")
 -- Fields:
 -- * counts[entry]: Map giving the total number of paths to roots of a given entry.
 -- * layersBuilder: LayersBuilder object on which the sorting algorithm is running.
--- * paths[entry][root]: 2-dim map giving the number of path from `entry` to `root`.
+-- * pathsToRoots[entry][root]: 2-dim map giving the number of path from `entry` to `root`.
 -- * roots: OrderedSet containing the root entries in the layer layout.
 --
 local LayersInitialSorter = ErrorOnInvalidRead.new{
@@ -54,11 +54,11 @@ local sortRoots
 -- * parent: Source node of the path.
 --
 addPath = function(self, child, parent)
-    local paths = self.paths
+    local pathsToRoots = self.pathsToRoots
     local counts = self.counts
-    for parent,weight in pairs(paths[parent]) do
-        local currentValue = paths[child][parent] or 0
-        paths[child][parent] = currentValue + weight
+    for parent,weight in pairs(pathsToRoots[parent]) do
+        local currentValue = pathsToRoots[child][parent] or 0
+        pathsToRoots[child][parent] = currentValue + weight
     end
     counts[child] = counts[child] + counts[parent]
 end
@@ -102,7 +102,6 @@ end
 computeRootsAndPaths = function(self)
     local channelLayers = self.layersBuilder:generateChannelLayers()
     local entries = self.layersBuilder.layers.entries
-    local paths = self.paths
     local counts = self.counts
     for layerId=1,entries.count do
         local layer = entries[layerId]
@@ -183,7 +182,7 @@ createCouplings = function(self)
             local entry = layer[x]
             local count = self.counts[entry]
             local sqrCount = count * count
-            local it1 = Iterator.new(self.paths[entry])
+            local it1 = Iterator.new(self.pathsToRoots[entry])
             local it2 = Iterator.new()
             while it1:next() do
                 it2:copy(it1)
@@ -235,7 +234,7 @@ end
 -- * entryOrNode: New node.
 --
 initNode = function(self, entryOrNode)
-    self.paths[entryOrNode] = {}
+    self.pathsToRoots[entryOrNode] = {}
     self.counts[entryOrNode] = 0
 end
 
@@ -248,7 +247,7 @@ end
 makeRootIfNoPath = function(self, entry)
     if self.counts[entry] == 0 then
         self.roots:pushFront(entry)
-        self.paths[entry][entry] = 1
+        self.pathsToRoots[entry][entry] = 1
         self.counts[entry] = 1
     end
 end
@@ -280,7 +279,7 @@ sortLayers = function(self)
                 positions[entry] = rPos
             else
                 local newPos = 0
-                for rootEntry,coef in pairs(self.paths[entry]) do
+                for rootEntry,coef in pairs(self.pathsToRoots[entry]) do
                     newPos = newPos + coef * rootPos[rootEntry]
                 end
                 positions[entry] = newPos / self.counts[entry]
@@ -333,7 +332,7 @@ function LayersInitialSorter.run(layersBuilder)
     local self = ErrorOnInvalidRead.new{
         counts = ErrorOnInvalidRead.new(),
         layersBuilder = layersBuilder,
-        paths = ErrorOnInvalidRead.new(),
+        pathsToRoots = ErrorOnInvalidRead.new(),
         roots = OrderedSet.new(),
     }
 
