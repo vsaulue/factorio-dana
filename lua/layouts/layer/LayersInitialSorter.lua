@@ -19,6 +19,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Iterator = require("lua/containers/utils/Iterator")
 local OrderedSet = require("lua/containers/OrderedSet")
 local ReversibleArray = require("lua/containers/ReversibleArray")
+local StrictPoset = require("lua/containers/StrictPoset")
 
 -- Helper class for sorting entries in their layers.
 --
@@ -28,6 +29,8 @@ local ReversibleArray = require("lua/containers/ReversibleArray")
 -- Fields:
 -- * counts[entry]: Map giving the total number of paths to roots of a given entry.
 -- * layersBuilder: LayersBuilder object on which the sorting algorithm is running.
+-- * layersDependencyOrder[layerId]: StrictPoset, determining the processing order of nodes in a given layer.
+-- * pathsToParents[entry][parent]: 2-dim map of booleans, set only if `entry` is a child of `parent`.
 -- * pathsToRoots[entry][root]: 2-dim map giving the number of path from `entry` to `root`.
 -- * roots: OrderedSet containing the root entries in the layer layout.
 --
@@ -60,6 +63,7 @@ addPath = function(self, child, parent)
         local currentValue = pathsToRoots[child][parent] or 0
         pathsToRoots[child][parent] = currentValue + weight
     end
+    self.pathsToParents[child][parent] = true
     counts[child] = counts[child] + counts[parent]
 end
 
@@ -104,9 +108,11 @@ computeRootsAndPaths = function(self)
     local entries = self.layersBuilder.layers.entries
     local counts = self.counts
     for layerId=1,entries.count do
+        local processingOrder = StrictPoset.new()
+        self.layersDependencyOrder[layerId] = processingOrder
         local layer = entries[layerId]
         for rank=1,layer.count do
-            initNode(self, layer[rank])
+            initNode(self, layer[rank], processingOrder)
         end
 
         -- First pass: process channels with lower & higher entries.
@@ -118,7 +124,7 @@ computeRootsAndPaths = function(self)
                 pureLowChannels[channelIndex] = highEntries
             else
                 local newNode = ErrorOnInvalidRead.new()
-                initNode(self, newNode)
+                initNode(self, newNode, processingOrder)
                 for i=1,lowEntries.count do
                     local entry = lowEntries[i]
                     addPath(self, newNode, entry)
@@ -126,6 +132,7 @@ computeRootsAndPaths = function(self)
                 for i=1,highEntries.count do
                     local entry = highEntries[i]
                     addPath(self, entry, newNode)
+                    processingOrder:addRelation(newNode, entry)
                 end
             end
         end
@@ -144,7 +151,8 @@ computeRootsAndPaths = function(self)
                 for i=1,highEntries.count do
                     local entry = highEntries[i]
                     if entry ~= vertexEntry then
-                        addPath(self, entry, vertexEntry)
+                        addPath(self, entry, vertexEntry, processingOrder)
+                        processingOrder:addRelation(vertexEntry, entry)
                     end
                 end
             end
@@ -232,10 +240,13 @@ end
 -- Args:
 -- * self: LayersInitialSorter object.
 -- * entryOrNode: New node.
+-- * processingOrder: StrictPoset containing the processing order of the layer.
 --
-initNode = function(self, entryOrNode)
+initNode = function(self, entryOrNode, processingOrder)
+    self.pathsToParents[entryOrNode] = ErrorOnInvalidRead.new()
     self.pathsToRoots[entryOrNode] = {}
     self.counts[entryOrNode] = 0
+    processingOrder:insert(entryOrNode)
 end
 
 -- Turns an entry into a root if it has no path to an existing root.
@@ -271,19 +282,33 @@ sortLayers = function(self)
     local entries = self.layersBuilder.layers.entries
     for layerId=1,entries.count do
         local layer = entries[layerId]
-        local positions = {}
-        for x=1,layer.count do
-            local entry = layer[x]
+        local positions = ErrorOnInvalidRead.new()
+        if layerId > 1 then
+            local prevLayer = entries[layerId-1]
+            for rank=1,prevLayer.count do
+                local entry = prevLayer[rank]
+                positions[entry] = rank
+            end
+        end
+        local processingOrder = self.layersDependencyOrder[layerId]:makeLinearExtension()
+        for pOrderRank=1,processingOrder.count do
+            local entry = processingOrder[pOrderRank]
             local rPos = rawget(rootPos, entry)
             if rPos then
                 positions[entry] = rPos
             else
+                local count = 0
                 local newPos = 0
-                for rootEntry,coef in pairs(self.pathsToRoots[entry]) do
-                    newPos = newPos + coef * rootPos[rootEntry]
+                for parentEntry,coef in pairs(self.pathsToParents[entry]) do
+                    count = count + 1
+                    newPos = newPos + positions[parentEntry]
                 end
-                positions[entry] = newPos / self.counts[entry]
+                positions[entry] = newPos / count
             end
+        end
+        for x=1,layer.count do
+            local entry = layer[x]
+            assert(positions[entry], tostring(layerId) .. ": " .. entry.type)
         end
         self.layersBuilder.layers:sortLayer(layerId, positions)
     end
@@ -332,7 +357,9 @@ function LayersInitialSorter.run(layersBuilder)
     local self = ErrorOnInvalidRead.new{
         counts = ErrorOnInvalidRead.new(),
         layersBuilder = layersBuilder,
+        layersDependencyOrder = ErrorOnInvalidRead.new(),
         pathsToRoots = ErrorOnInvalidRead.new(),
+        pathsToParents = ErrorOnInvalidRead.new(),
         roots = OrderedSet.new(),
     }
 
