@@ -49,22 +49,48 @@ local makeRootIfNoPath
 local sortLayers
 local sortRoots
 
+-- Class for any computation intermediate during the sorting phase.
+--
+-- Each node will be assigned an X coordinate at some point, used to determine the final position
+-- of entries relative to each other.
+--
+-- A node can either directly represent an entry in the Layer object, or just be an abstract intermediate.
+--
+-- Fields:
+-- * parents: Set of Node.
+-- * pathsToRoots[root]: Map of root -> number of paths to this entry.
+-- * counts: Total number of paths to all roots (= sum of pathtoRoots values).
+--
+local Node = ErrorOnInvalidRead.new{
+    -- Creates a new Node object.
+    --
+    -- Returns: the new node object.
+    --
+    new = function()
+        return ErrorOnInvalidRead.new{
+            parents = ErrorOnInvalidRead.new(),
+            pathsToRoots = ErrorOnInvalidRead.new(),
+            counts = 0,
+        }
+    end,
+}
+
 -- Adds a path between two nodes.
 --
 -- Args:
 -- * self: LayersInitialSorter object.
--- * child: Destination node of the path.
--- * parent: Source node of the path.
+-- * childIndex: Index of the child node of the path.
+-- * parentIndex: Index of the Source node of the path.
 --
-addPath = function(self, child, parent)
-    local pathsToRoots = self.pathsToRoots
-    local counts = self.counts
-    for parent,weight in pairs(pathsToRoots[parent]) do
-        local currentValue = pathsToRoots[child][parent] or 0
-        pathsToRoots[child][parent] = currentValue + weight
+addPath = function(self, childIndex, parentIndex)
+    local childNode = self.nodes[childIndex]
+    local parentNode = self.nodes[parentIndex]
+    for root,count in pairs(parentNode.pathsToRoots) do
+        local currentValue = rawget(childNode.pathsToRoots, root) or 0
+        childNode.pathsToRoots[root] = currentValue + count
     end
-    self.pathsToParents[child][parent] = true
-    counts[child] = counts[child] + counts[parent]
+    childNode.parents[parentIndex] = true
+    childNode.counts = childNode.counts + parentNode.counts
 end
 
 -- Computes a score indicating if the order of a set "fits well" the given couplings.
@@ -106,7 +132,6 @@ end
 computeRootsAndPaths = function(self)
     local channelLayers = self.layersBuilder:generateChannelLayers()
     local entries = self.layersBuilder.layers.entries
-    local counts = self.counts
     for layerId=1,entries.count do
         local processingOrder = StrictPoset.new()
         self.layersDependencyOrder[layerId] = processingOrder
@@ -123,16 +148,16 @@ computeRootsAndPaths = function(self)
             if lowEntries.count == 0 then
                 pureLowChannels[channelIndex] = highEntries
             else
-                local newNode = ErrorOnInvalidRead.new()
-                initNode(self, newNode, processingOrder)
+                local newNodeIndex = ErrorOnInvalidRead.new()
+                initNode(self, newNodeIndex, processingOrder)
                 for i=1,lowEntries.count do
                     local entry = lowEntries[i]
-                    addPath(self, newNode, entry)
+                    addPath(self, newNodeIndex, entry)
                 end
                 for i=1,highEntries.count do
                     local entry = highEntries[i]
-                    addPath(self, entry, newNode)
-                    processingOrder:addRelation(newNode, entry)
+                    addPath(self, entry, newNodeIndex)
+                    processingOrder:addRelation(newNodeIndex, entry)
                 end
             end
         end
@@ -151,7 +176,7 @@ computeRootsAndPaths = function(self)
                 for i=1,highEntries.count do
                     local entry = highEntries[i]
                     if entry ~= vertexEntry then
-                        addPath(self, entry, vertexEntry, processingOrder)
+                        addPath(self, entry, vertexEntry)
                         processingOrder:addRelation(vertexEntry, entry)
                     end
                 end
@@ -188,9 +213,10 @@ createCouplings = function(self)
         local layer = entries[layerId]
         for x=1,layer.count do
             local entry = layer[x]
-            local count = self.counts[entry]
+            local node = self.nodes[entry]
+            local count = node.counts
             local sqrCount = count * count
-            local it1 = Iterator.new(self.pathsToRoots[entry])
+            local it1 = Iterator.new(node.pathsToRoots)
             local it2 = Iterator.new()
             while it1:next() do
                 it2:copy(it1)
@@ -239,27 +265,26 @@ end
 --
 -- Args:
 -- * self: LayersInitialSorter object.
--- * entryOrNode: New node.
+-- * nodeIndex: Index of the new node.
 -- * processingOrder: StrictPoset containing the processing order of the layer.
 --
-initNode = function(self, entryOrNode, processingOrder)
-    self.pathsToParents[entryOrNode] = ErrorOnInvalidRead.new()
-    self.pathsToRoots[entryOrNode] = {}
-    self.counts[entryOrNode] = 0
-    processingOrder:insert(entryOrNode)
+initNode = function(self, nodeIndex, processingOrder)
+    self.nodes[nodeIndex] = Node.new(nodeIndex)
+    processingOrder:insert(nodeIndex)
 end
 
 -- Turns an entry into a root if it has no path to an existing root.
 --
 -- Args:
 -- * self: LayersInitialSorter object.
--- * entry: Entry to turn into a root.
+-- * nodeIndex: Index of the node to turn into a root.
 --
-makeRootIfNoPath = function(self, entry)
-    if self.counts[entry] == 0 then
-        self.roots:pushFront(entry)
-        self.pathsToRoots[entry][entry] = 1
-        self.counts[entry] = 1
+makeRootIfNoPath = function(self, nodeIndex)
+    local node = self.nodes[nodeIndex]
+    if node.counts == 0 then
+        self.roots:pushFront(nodeIndex)
+        node.pathsToRoots[nodeIndex] = 1
+        node.counts = 1
     end
 end
 
@@ -293,13 +318,14 @@ sortLayers = function(self)
         local processingOrder = self.layersDependencyOrder[layerId]:makeLinearExtension()
         for pOrderRank=1,processingOrder.count do
             local entry = processingOrder[pOrderRank]
+            local node = self.nodes[entry]
             local rPos = rawget(rootPos, entry)
             if rPos then
                 positions[entry] = rPos
             else
                 local count = 0
                 local newPos = 0
-                for parentEntry,coef in pairs(self.pathsToParents[entry]) do
+                for parentEntry,coef in pairs(node.parents) do
                     count = count + 1
                     newPos = newPos + positions[parentEntry]
                 end
@@ -329,7 +355,6 @@ sortRoots = function(self)
     roots = OrderedSet.new()
     for i=1,rootProcessingOrder.count do
         local root = rootProcessingOrder[i]
-        -- Logger.debug(root.index.rawPrototype.name .. ": " .. rootGreatestCouplings[root])
         local optimalScore = -math.huge
         local optimalPos = nil
         local it = OrderedSet.Begin
@@ -355,11 +380,9 @@ end
 --
 function LayersInitialSorter.run(layersBuilder)
     local self = ErrorOnInvalidRead.new{
-        counts = ErrorOnInvalidRead.new(),
         layersBuilder = layersBuilder,
         layersDependencyOrder = ErrorOnInvalidRead.new(),
-        pathsToRoots = ErrorOnInvalidRead.new(),
-        pathsToParents = ErrorOnInvalidRead.new(),
+        nodes = ErrorOnInvalidRead.new(),
         roots = OrderedSet.new(),
     }
 
