@@ -27,11 +27,8 @@ local StrictPoset = require("lua/containers/StrictPoset")
 -- "good enough" ordering of layers. Local heuristics can refine the work after that.
 --
 -- Fields:
--- * counts[entry]: Map giving the total number of paths to roots of a given entry.
 -- * layersBuilder: LayersBuilder object on which the sorting algorithm is running.
--- * layersDependencyOrder[layerId]: StrictPoset, determining the processing order of nodes in a given layer.
--- * pathsToParents[entry][parent]: 2-dim map of booleans, set only if `entry` is a child of `parent`.
--- * pathsToRoots[entry][root]: 2-dim map giving the number of path from `entry` to `root`.
+-- * layersSortingData[layerId]: Map of LayerSortingData (internal type), indexed by layer index.
 -- * roots: OrderedSet containing the root entries in the layer layout.
 --
 local LayersInitialSorter = ErrorOnInvalidRead.new{
@@ -57,6 +54,7 @@ local sortRoots
 -- A node can either directly represent an entry in the Layer object, or just be an abstract intermediate.
 --
 -- Fields:
+-- * index: Index of the node.
 -- * parents: Set of Node.
 -- * pathsToRoots[root]: Map of root -> number of paths to this entry.
 -- * counts: Total number of paths to all roots (= sum of pathtoRoots values).
@@ -64,10 +62,15 @@ local sortRoots
 local Node = ErrorOnInvalidRead.new{
     -- Creates a new Node object.
     --
+    -- Args:
+    -- * index: Index of the new node.
+    --
     -- Returns: the new node object.
     --
-    new = function()
+    new = function(index)
+        assert(index, "LayersInitialSorter.Node: missing mandatory index.")
         return ErrorOnInvalidRead.new{
+            index = index,
             parents = ErrorOnInvalidRead.new(),
             pathsToRoots = ErrorOnInvalidRead.new(),
             counts = 0,
@@ -75,21 +78,33 @@ local Node = ErrorOnInvalidRead.new{
     end,
 }
 
+-- Layer sorting data.
+--
+-- Fields:
+-- * nodes[nodeIndex]: Map of Node index -> Node object.
+-- * processingOrder: StrictPoset of Nodes, holding the dependencies between nodes.
+--
+local LayerSortingData = ErrorOnInvalidRead.new{
+    new = function()
+        return ErrorOnInvalidRead.new{
+            nodes = ErrorOnInvalidRead.new(),
+            processingOrder = StrictPoset.new(),
+        }
+    end,
+}
+
 -- Adds a path between two nodes.
 --
 -- Args:
--- * self: LayersInitialSorter object.
--- * childIndex: Index of the child node of the path.
--- * parentIndex: Index of the Source node of the path.
+-- * childNode: Child node of the path.
+-- * parentNode: Source node of the path.
 --
-addPath = function(self, childIndex, parentIndex)
-    local childNode = self.nodes[childIndex]
-    local parentNode = self.nodes[parentIndex]
+addPath = function(childNode, parentNode)
     for root,count in pairs(parentNode.pathsToRoots) do
         local currentValue = rawget(childNode.pathsToRoots, root) or 0
         childNode.pathsToRoots[root] = currentValue + count
     end
-    childNode.parents[parentIndex] = true
+    childNode.parents[parentNode.index] = true
     childNode.counts = childNode.counts + parentNode.counts
 end
 
@@ -132,12 +147,15 @@ end
 computeRootsAndPaths = function(self)
     local channelLayers = self.layersBuilder:generateChannelLayers()
     local entries = self.layersBuilder.layers.entries
+    local prevNodes = nil
     for layerId=1,entries.count do
-        local processingOrder = StrictPoset.new()
-        self.layersDependencyOrder[layerId] = processingOrder
+        local layerData = LayerSortingData.new()
+        local processingOrder = layerData.processingOrder
+        local nodes = layerData.nodes
+        self.layersSortingData[layerId] = layerData
         local layer = entries[layerId]
         for rank=1,layer.count do
-            initNode(self, layer[rank], processingOrder)
+            initNode(layerData, layer[rank])
         end
 
         -- First pass: process channels with lower & higher entries.
@@ -148,16 +166,15 @@ computeRootsAndPaths = function(self)
             if lowEntries.count == 0 then
                 pureLowChannels[channelIndex] = highEntries
             else
-                local newNodeIndex = ErrorOnInvalidRead.new()
-                initNode(self, newNodeIndex, processingOrder)
+                local newNode = initNode(layerData, ErrorOnInvalidRead.new())
                 for i=1,lowEntries.count do
-                    local entry = lowEntries[i]
-                    addPath(self, newNodeIndex, entry)
+                    local entryNode = prevNodes[lowEntries[i]]
+                    addPath(newNode, entryNode)
                 end
                 for i=1,highEntries.count do
-                    local entry = highEntries[i]
-                    addPath(self, entry, newNodeIndex)
-                    processingOrder:addRelation(newNodeIndex, entry)
+                    local entryNode = nodes[highEntries[i]]
+                    addPath(entryNode, newNode)
+                    processingOrder:addRelation(newNode, entryNode)
                 end
             end
         end
@@ -172,12 +189,14 @@ computeRootsAndPaths = function(self)
                 end
             end
             if vertexEntry then
-                makeRootIfNoPath(self, vertexEntry)
+                local vertexNode = nodes[vertexEntry]
+                makeRootIfNoPath(self, vertexNode)
                 for i=1,highEntries.count do
                     local entry = highEntries[i]
                     if entry ~= vertexEntry then
-                        addPath(self, entry, vertexEntry)
-                        processingOrder:addRelation(vertexEntry, entry)
+                        local entryNode = nodes[entry]
+                        addPath(entryNode, vertexNode)
+                        processingOrder:addRelation(vertexNode, entryNode)
                     end
                 end
             end
@@ -186,8 +205,10 @@ computeRootsAndPaths = function(self)
         -- Third pass: turn any unprocessed entry into a node.
         for rank=1,layer.count do
             local entry = layer[rank]
-            makeRootIfNoPath(self, entry)
+            makeRootIfNoPath(self, nodes[entry])
         end
+
+        prevNodes = nodes
     end
 end
 
@@ -211,9 +232,10 @@ createCouplings = function(self)
     local entries = self.layersBuilder.layers.entries
     for layerId=1,entries.count do
         local layer = entries[layerId]
+        local nodes = self.layersSortingData[layerId].nodes
         for x=1,layer.count do
             local entry = layer[x]
-            local node = self.nodes[entry]
+            local node = nodes[entry]
             local count = node.counts
             local sqrCount = count * count
             local it1 = Iterator.new(node.pathsToRoots)
@@ -264,26 +286,27 @@ end
 -- Initializes a new node in the sorter.
 --
 -- Args:
--- * self: LayersInitialSorter object.
+-- * layerSortingData: LayersInitialSorter object in which the new node will be inserted.
 -- * nodeIndex: Index of the new node.
--- * processingOrder: StrictPoset containing the processing order of the layer.
 --
-initNode = function(self, nodeIndex, processingOrder)
-    self.nodes[nodeIndex] = Node.new(nodeIndex)
-    processingOrder:insert(nodeIndex)
+initNode = function(layerSortingData, nodeIndex)
+    local newNode = Node.new(nodeIndex)
+    layerSortingData.nodes[nodeIndex] = newNode
+    layerSortingData.processingOrder:insert(newNode)
+    return newNode
 end
 
 -- Turns an entry into a root if it has no path to an existing root.
 --
 -- Args:
 -- * self: LayersInitialSorter object.
--- * nodeIndex: Index of the node to turn into a root.
+-- * node: Node to turn into a root.
 --
-makeRootIfNoPath = function(self, nodeIndex)
-    local node = self.nodes[nodeIndex]
+makeRootIfNoPath = function(self, node)
     if node.counts == 0 then
-        self.roots:pushFront(nodeIndex)
-        node.pathsToRoots[nodeIndex] = 1
+        local index = node.index
+        self.roots:pushFront(index)
+        node.pathsToRoots[index] = 1
         node.counts = 1
     end
 end
@@ -307,6 +330,7 @@ sortLayers = function(self)
     local entries = self.layersBuilder.layers.entries
     for layerId=1,entries.count do
         local layer = entries[layerId]
+        local layerData = self.layersSortingData[layerId]
         local positions = ErrorOnInvalidRead.new()
         if layerId > 1 then
             local prevLayer = entries[layerId-1]
@@ -315,26 +339,22 @@ sortLayers = function(self)
                 positions[entry] = rank
             end
         end
-        local processingOrder = self.layersDependencyOrder[layerId]:makeLinearExtension()
+        local processingOrder = layerData.processingOrder:makeLinearExtension()
         for pOrderRank=1,processingOrder.count do
-            local entry = processingOrder[pOrderRank]
-            local node = self.nodes[entry]
-            local rPos = rawget(rootPos, entry)
+            local node = processingOrder[pOrderRank]
+            local nodeIndex = node.index
+            local rPos = rawget(rootPos, nodeIndex)
             if rPos then
-                positions[entry] = rPos
+                positions[nodeIndex] = rPos
             else
                 local count = 0
                 local newPos = 0
-                for parentEntry,coef in pairs(node.parents) do
+                for parentIndex in pairs(node.parents) do
                     count = count + 1
-                    newPos = newPos + positions[parentEntry]
+                    newPos = newPos + positions[parentIndex]
                 end
-                positions[entry] = newPos / count
+                positions[nodeIndex] = newPos / count
             end
-        end
-        for x=1,layer.count do
-            local entry = layer[x]
-            assert(positions[entry], tostring(layerId) .. ": " .. entry.type)
         end
         self.layersBuilder.layers:sortLayer(layerId, positions)
     end
@@ -381,8 +401,7 @@ end
 function LayersInitialSorter.run(layersBuilder)
     local self = ErrorOnInvalidRead.new{
         layersBuilder = layersBuilder,
-        layersDependencyOrder = ErrorOnInvalidRead.new(),
-        nodes = ErrorOnInvalidRead.new(),
+        layersSortingData = ErrorOnInvalidRead.new(),
         roots = OrderedSet.new(),
     }
 
