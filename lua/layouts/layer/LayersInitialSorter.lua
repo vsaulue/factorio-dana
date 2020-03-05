@@ -39,11 +39,11 @@ local LayersInitialSorter = ErrorOnInvalidRead.new{
 -- Implementation stuff (private scope).
 local addPath
 local computeCouplingScore
-local computeRootsAndPaths
 local createCouplings
 local getOrderByHighestCouplingCoefficients
 local initNode
 local makeRootIfNoPath
+local parseInput
 local sortLayers
 local sortRoots
 
@@ -140,12 +140,12 @@ computeCouplingScore = function(rootOrder, couplings)
     return result
 end
 
--- Fills the `paths`, `counts` and `roots` fields of a LayersInitialSorter object.
+-- Parses the input Layers object into useful intermediate data.
 --
 -- Args:
 -- * self: LayersInitialSorter object.
 --
-computeRootsAndPaths = function(self)
+parseInput = function(self)
     local channelLayers = self.layersBuilder:generateChannelLayers()
     local entries = self.layersBuilder.layers.entries
     local prevNodes = nil
@@ -402,7 +402,7 @@ function LayersInitialSorter.run(layersBuilder)
         roots = OrderedSet.new(),
     }
 
-    computeRootsAndPaths(self)
+    parseInput(self)
     sortRoots(self)
     sortLayers(self)
 end
