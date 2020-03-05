@@ -111,12 +111,18 @@ end
 
 -- Creates a new Array object.
 --
+-- Args:
+-- * object: Table to turn into an Array object (or nil to create an empty one).
+--
 -- Returns: a new empty array.
 --
-function Array.new()
-    local result = {
+function Array.new(object)
+    local result = object or {
         count = 0,
     }
+    if object then
+        result.count = result.count or #object
+    end
     setmetatable(result, Impl.Metatable)
     return result
 end
