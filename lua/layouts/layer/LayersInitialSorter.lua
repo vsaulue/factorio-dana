@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local Array = require("lua/containers/Array")
+local Couplings = require("lua/layouts/layer/Couplings")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Iterator = require("lua/containers/utils/Iterator")
 local OrderedSet = require("lua/containers/OrderedSet")
@@ -130,7 +131,7 @@ computeCouplingScore = function(rootOrder, couplings)
         local it2 = entries[it1]
         local dist = 1
         while it2 ~= OrderedSet.End do
-            result = result + (couplings[it1][it2] or 0) / dist
+            result = result + (couplings:getCoupling(it1, it2) or 0) / dist
             dist = dist + 1
             it2 = entries[it2]
         end
@@ -220,12 +221,12 @@ end
 -- Returns: a 2-dim map, giving the coupling between root entries.
 --
 createCouplings = function(self)
-    local result = ErrorOnInvalidRead.new()
+    local result = Couplings.new()
 
     local roots = self.roots
     local it = roots.entries[OrderedSet.Begin]
     while it ~= OrderedSet.End do
-        result[it] = {}
+        result:newElement(it)
         it = roots.entries[it]
     end
 
@@ -243,10 +244,7 @@ createCouplings = function(self)
             while it1:next() do
                 it2:copy(it1)
                 while it2:next() do
-                    local prevCoupling = result[it1.key][it2.key] or 0
-                    local newCoupling = prevCoupling + (it1.value * it2.value) / sqrCount
-                    result[it1.key][it2.key] = newCoupling
-                    result[it2.key][it1.key] = newCoupling
+                    result:addToCoupling(it1.key, it2.key, (it1.value * it2.value) / sqrCount)
                 end
             end
         end
@@ -267,17 +265,16 @@ end
 --
 getOrderByHighestCouplingCoefficients = function(roots, couplings)
     local result = Array.new()
-    local rootGreatestCouplings = ErrorOnInvalidRead.new()
+    local rootGreatestCouplings = {}
     local max = math.max
-    local it = roots.entries[OrderedSet.Begin]
-    while it ~= OrderedSet.End do
-        local greatestCoupling = 0
-        for _,coupling in pairs(couplings[it]) do
-            greatestCoupling = max(coupling, greatestCoupling)
+    local it1 = roots.entries[OrderedSet.Begin]
+    while it1 ~= OrderedSet.End do
+        for it2,coupling in pairs(couplings[it1]) do
+            rootGreatestCouplings[it1] = max(coupling, rootGreatestCouplings[it1] or 0)
+            rootGreatestCouplings[it2] = max(coupling, rootGreatestCouplings[it2] or 0)
         end
-        result:pushBack(it)
-        rootGreatestCouplings[it] = greatestCoupling
-        it = roots.entries[it]
+        result:pushBack(it1)
+        it1 = roots.entries[it1]
     end
     result:sort(rootGreatestCouplings)
     return result
