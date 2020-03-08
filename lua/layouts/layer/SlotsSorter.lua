@@ -29,6 +29,7 @@ local SlotsSorter = ErrorOnInvalidRead.new{
 
 -- Implementation stuff (private scope).
 local avgEntryRank
+local getOtherLayerLength
 local sortSlotsSide
 
 -- Dummy index, used to insert a tail sentinel value in some arrays.
@@ -38,6 +39,7 @@ local DummyIndex = "dummy"
 --
 -- RO Fields:
 -- * channelLayerOffset: Difference between a layer index, and the index of the channel layer to parse.
+-- * otherLayerOffset: Difference between the layer index, and the index of the adjacent layer to parse.
 -- * nearEntriesName: Name of the field in ChannelLayer containing the entries of the current layer.
 -- * farEntriesName: Name of the field in ChannelLayer containing the entries of the other layer.
 -- * slotsName: Name of the field in LayerEntry of the slots to sort.
@@ -46,6 +48,7 @@ local SlotSorterParser = ErrorOnInvalidRead.new{
     -- Parser configuration for outboundSlots.
     OutboundSlots = ErrorOnInvalidRead.new{
         channelLayerOffset = 1,
+        otherLayerOffset = 1,
         nearEntriesName = "lowEntries",
         farEntriesName = "highEntries",
         slotsName = "outboundSlots",
@@ -54,6 +57,7 @@ local SlotSorterParser = ErrorOnInvalidRead.new{
     -- Parser configuration for inboundSlots.
     InboundSlots = ErrorOnInvalidRead.new{
         channelLayerOffset = 0,
+        otherLayerOffset = -1,
         nearEntriesName = "highEntries",
         farEntriesName = "lowEntries",
         slotsName = "inboundSlots",
@@ -83,6 +87,22 @@ avgEntryRank = function(layerLayout, channelEntries)
     return result
 end
 
+-- Gets the length of the other layer of the parsed channel layer.
+--
+-- Args:
+-- * layerLayout: LayerLayout object on which the algorithm will be run.
+-- * lRank: Index of the layer to process.
+-- * parser: SlotSorterParser object, determining which slots will be sorted.
+--
+getOtherLayerLength = function(layerLayout, lRank, parser)
+    local lRank2 = lRank + parser.otherLayerOffset
+    local result = 0
+    if 1 <= lRank2 and lRank2 <= layerLayout.layers.entries.count then
+        result = layerLayout.layers.entries[lRank2].count
+    end
+    return result
+end
+
 -- Runs the slot sorting algorithm on a specific layer, for a specific side.
 --
 -- Args:
@@ -92,7 +112,7 @@ end
 --
 sortSlotsSide = function(layerLayout, lRank, parser)
     local layer = layerLayout.layers.entries[lRank]
-    local doubleLength = 2 * layer.count
+    local doubleLength = 1 + 2 * (layer.count + getOtherLayerLength(layerLayout, lRank, parser))
     local channelLayer = layerLayout.channelLayers[lRank+parser.channelLayerOffset]
     local xTargets = ErrorOnInvalidRead.new()
     local horizontalXAvg = ErrorOnInvalidRead.new()
