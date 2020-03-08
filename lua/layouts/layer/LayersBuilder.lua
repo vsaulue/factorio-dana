@@ -18,16 +18,11 @@ local Array = require("lua/containers/Array")
 local ChannelLayer = require("lua/layouts/layer/ChannelLayer")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Layers = require("lua/layouts/layer/Layers")
-local LayerLink = require("lua/layouts/layer/LayerLink")
 
 -- Class wraping a Layers object, adding useful intermediates for layer sorting algorithms.
 --
 -- RO fields:
 -- * layers: Layer object being built.
--- * links.backward[someEntry]: set of LayerLink connecting someEntry to an entry in a lower layer.
--- * links.forward[someEntry]: set of LayerLink connecting someEntry to an entry in an higher layer.
--- * links.highHorizontal[someEntry]: set of LayerLink connecting someEntry to another in the same layer (by the upper channel layer).
--- * links.lowHorizontal[someEntry]: set of LayerLink connecting someEntry to another in the same layer (by the lower channel layer).
 -- * linkNodes[channelIndex,layerIndex]: map giving the vertex/linkNode entry for the specified channel in the specified layer.
 --
 -- Methods:
@@ -163,27 +158,19 @@ function Impl.Metatable.__index.generateChannelLayers(self)
     result.count = count
 
     -- 2) Fill them.
-    local backwardLinks = self.links.backward
-    local forwardLinks = self.links.forward
-    local highLinks = self.links.highHorizontal
-    local lowLinks = self.links.lowHorizontal
     for i=1,entries.count do
         local layer = entries[i]
         local lowChannelLayer = result[i]
         local highChannelLayer = result[i+1]
         for j=1,layer.count do
             local entry = layer[j]
-            for link in pairs(forwardLinks[entry]) do
-                highChannelLayer:appendLowEntry(link.channelIndex, entry)
+            local inboundSlots = entry.inboundSlots
+            for i=1,inboundSlots.count do
+                lowChannelLayer:appendHighEntry(inboundSlots[i], entry)
             end
-            for link in pairs(backwardLinks[entry]) do
-                lowChannelLayer:appendHighEntry(link.channelIndex, entry)
-            end
-            for link in pairs(highLinks[entry]) do
-                highChannelLayer:appendLowEntry(link.channelIndex, entry)
-            end
-            for link in pairs(lowLinks[entry]) do
-                lowChannelLayer:appendHighEntry(link.channelIndex, entry)
+            local outboundSlots = entry.outboundSlots
+            for i=1,outboundSlots.count do
+                highChannelLayer:appendLowEntry(outboundSlots[i], entry)
             end
         end
     end
@@ -259,36 +246,28 @@ end
 --
 function Impl.newEntry(self, layerIndex, newEntry)
     self.layers:newEntry(layerIndex, newEntry)
-    for _,linkTable in pairs(self.links) do
-        linkTable[newEntry] = ErrorOnInvalidRead.new()
-    end
     return newEntry
 end
 
--- Creates a new horizontal link.
+-- Connects two entries in the same layer through the specified channel index.
 --
 -- Args:
 -- * self: LayersBuilder object.
--- * entryA: One of the entry to link.
--- * entryB: The other entry to link.
+-- * entryA: One of the entry to connect.
+-- * entryB: The other entry to connect.
 -- * channelIndex: ChannelIndex of this link.
--- * isLow: True to insert the link into the lower channel layer, false for the upper channel layer.
+-- * isLow: True to make the connection in the lower channel layer, false for the upper channel layer.
 --
 function Impl.newHorizontalLink(self, entryA, entryB, channelIndex, isLow)
     assert(self.layers:getPos(entryA)[1] == self.layers:getPos(entryA)[1], "LayerLayout: invalid link creation.")
 
     local slotTableName = "outboundSlots"
-    local linkTable = self.links.highHorizontal
     if isLow then
         slotTableName = "inboundSlots"
-        linkTable = self.links.lowHorizontal
     end
 
-    local newLink = LayerLink.new(entryA, entryB, channelIndex)
     entryA[slotTableName]:pushBackIfNotPresent(channelIndex)
     entryB[slotTableName]:pushBackIfNotPresent(channelIndex)
-    linkTable[entryA][newLink] = true
-    linkTable[entryB][newLink] = true
 end
 
 -- Creates a new linkNode.
@@ -311,30 +290,27 @@ function Impl.newLinkNode(self, layerId, channelIndex)
     return result
 end
 
--- Creates a new vertical link.
+-- Connects two entries from different layers through the specified channel index.
 --
 -- Args:
 -- * self: LayersBuilder object.
--- * lowEntry: Entry with the lowest layerId to link.
--- * highEntry: Entry with the greatest layerId to link.
+-- * lowEntry: Entry with the lowest layerId to connect.
+-- * highEntry: Entry with the greatest layerId to connect.
 -- * channelIndex: ChannelIndex of this link.
 --
 function Impl.newVerticalLink(self, lowEntry, highEntry, channelIndex)
     local reverse = self.layers.reverse
     assert(reverse[lowEntry.type][lowEntry.index][1] == reverse[highEntry.type][highEntry.index][1] - 1, "LayerLayout: invalid link creation.")
-    local newLink = LayerLink.new(lowEntry, highEntry, channelIndex)
     lowEntry.outboundSlots:pushBackIfNotPresent(channelIndex)
     highEntry.inboundSlots:pushBackIfNotPresent(channelIndex)
-    self.links.backward[highEntry][newLink] = true
-    self.links.forward[lowEntry][newLink] = true
 end
 
--- Creates a new vertical link.
+-- Connects two entries from different layers through the specified channel index.
 --
 -- Args:
 -- * self: LayersBuilder object.
--- * highEntry: Entry with the greatest layerId to link.
--- * lowEntry: Entry with the lowest layerId to link.
+-- * highEntry: Entry with the greatest layerId to connect.
+-- * lowEntry: Entry with the lowest layerId to connect.
 -- * channelIndex: ChannelIndex of this link.
 --
 function Impl.newVerticalLink2(self, highEntry, lowEntry, channelIndex)
@@ -353,12 +329,6 @@ function LayersBuilder.new(object)
     assert(object.channelIndexFactory, "LayersBuilder: missing mandatory 'channelIndexFactory' field in constructor.")
 
     object.layers = Layers.new()
-    object.links = ErrorOnInvalidRead.new{
-        forward = ErrorOnInvalidRead.new(),
-        backward = ErrorOnInvalidRead.new(),
-        highHorizontal = ErrorOnInvalidRead.new(),
-        lowHorizontal = ErrorOnInvalidRead.new(),
-    }
     object.linkNodes = ErrorOnInvalidRead.new()
 
     setmetatable(object, Impl.Metatable)
