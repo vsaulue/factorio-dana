@@ -17,9 +17,7 @@
 local Array = require("lua/containers/Array")
 local Couplings = require("lua/layouts/layer/Couplings")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local Iterator = require("lua/containers/utils/Iterator")
 local OrderedSet = require("lua/containers/OrderedSet")
-local ReversibleArray = require("lua/containers/ReversibleArray")
 
 -- Helper class for sorting entries in their layers.
 --
@@ -27,9 +25,9 @@ local ReversibleArray = require("lua/containers/ReversibleArray")
 -- "good enough" ordering of layers. Local heuristics can refine the work after that.
 --
 -- Fields:
--- * layersBuilder: LayersBuilder object on which the sorting algorithm is running.
+-- * channelLayers: ChannelLayers of the layout to sort.
 -- * layersSortingData[layerId]: Map of LayerSortingData (internal type), indexed by layer index.
--- * roots: OrderedSet containing the root entries in the layer layout.
+-- * layers: Layers object, whose layers are to be sorted.
 --
 local LayersInitialSorter = ErrorOnInvalidRead.new{
     run = nil, -- implemented later
@@ -37,13 +35,13 @@ local LayersInitialSorter = ErrorOnInvalidRead.new{
 
 -- Implementation stuff (private scope).
 local addPath
+local computeCouplings
 local computeCouplingScore
+local computePosition
 local createCouplings
-local getOrderByHighestCouplingCoefficients
-local makeRootIfNoPath
 local parseInput
+local sortByHighestCouplingCoefficient
 local sortLayers
-local sortRoots
 
 -- Class for any computation intermediate during the sorting phase.
 --
@@ -70,9 +68,7 @@ local Node = ErrorOnInvalidRead.new{
         assert(index, "LayersInitialSorter.Node: missing mandatory index.")
         return ErrorOnInvalidRead.new{
             index = index,
-            parents = ErrorOnInvalidRead.new(),
-            pathsToRoots = ErrorOnInvalidRead.new(),
-            counts = 0,
+            parents = Array.new(),
         }
     end,
 }
@@ -82,26 +78,32 @@ local Node = ErrorOnInvalidRead.new{
 -- Fields:
 -- * lowChannelNodes[nodeIndex]: Set of Node corresponding to a channel in the lower channel layer.
 -- * firstPass[nodeIndex]: Set of Node corresponding to an entry. Either roots, or directly computable from lowChannelNodes.
+-- * roots: Array of entries which are roots (=no parents).
 -- * secondPass[nodeIndex]: Set of Node corresponding to an entry. Have dependencies to some entries in firstPass.
+-- * couplings: Couplings object, holding coefficients between all entries of this layer.
 --
 local LayerSortingData = ErrorOnInvalidRead.new{
     -- Creates a new LayerSortingData object.
     --
+    -- Args:
+    -- * layer: Array of LayerEntry associated to this object.
+    --
     -- Returns: The new LayerSortingData object.
     --
-    new = function()
-        return ErrorOnInvalidRead.new{
+    new = function(layer)
+        local couplings = Couplings.new()
+        local result = ErrorOnInvalidRead.new{
             lowChannelNodes = ErrorOnInvalidRead.new(),
             firstPass = ErrorOnInvalidRead.new(),
+            roots = Array.new(),
             secondPass = ErrorOnInvalidRead.new(),
+            couplings = couplings,
         }
+        for x=1,layer.count do
+            couplings:newElement(layer[x])
+        end
+        return result
     end,
-
-    -- Array of field names of LayerSortingData. Holds the right processing order for final coordinate generation.
-    NodeSetOrder = Array.new{"lowChannelNodes", "firstPass", "secondPass"},
-
-    -- Array of field names of LayerSortingData. These sets contains all the nodes associated to entries.
-    EntrySets = Array.new{"firstPass", "secondPass"},
 }
 
 -- Adds a path between two nodes.
@@ -111,12 +113,48 @@ local LayerSortingData = ErrorOnInvalidRead.new{
 -- * parentNode: Source node of the path.
 --
 addPath = function(childNode, parentNode)
-    for root,count in pairs(parentNode.pathsToRoots) do
-        local currentValue = rawget(childNode.pathsToRoots, root) or 0
-        childNode.pathsToRoots[root] = currentValue + count
+    childNode.parents:pushBack(parentNode.index)
+end
+
+-- Computes the coupling coefficients between entries in a given layer.
+--
+-- Args:
+-- * newCouplings: The Couplings object to fill.
+-- * higherCouplings: The Couplings object of the higher layer.
+-- * children[entry]: Map indexed by entries in higherCouplings.order. Gives an Array of linked elements in newCouplings.
+--
+computeCouplings = function(newCouplings, higherCouplings, children)
+    local order = higherCouplings.order
+    for i=1,order.count do
+        local elemI = order[i]
+        local couplingsI = higherCouplings[elemI]
+        local childrenI = children[elemI]
+        local countI = childrenI.count
+        -- Recursive couplings: couplings between higherCouplings' elements induce coupling between their children.
+        for elemJ,coef in pairs(couplingsI) do
+            local childrenJ = children[elemJ]
+            local countJ = childrenJ.count
+            local delta = coef / (countI * countJ)
+            for a=1,countI do
+                local elemA = childrenI[a]
+                for b=1,countJ do
+                    local elemB = childrenJ[b]
+                    if elemA ~= elemB then
+                        newCouplings:addToCoupling(elemA, elemB, delta)
+                    end
+                end
+            end
+        end
+        -- New couplings: a single element from higherCouplings induces coupling between all its children.
+        local delta = 1 / (countI * countI)
+        for a=1,countI do
+            local elemA = childrenI[a]
+            for b=a+1,countI do
+                local elemB = childrenI[b]
+                newCouplings:addToCoupling(elemA, elemB, delta)
+            end
+        end
     end
-    childNode.parents[parentNode.index] = true
-    childNode.counts = childNode.counts + parentNode.counts
 end
 
 -- Computes a score indicating if the order of a set "fits well" the given couplings.
@@ -150,23 +188,78 @@ computeCouplingScore = function(rootOrder, couplings)
     return result
 end
 
+-- Computes the position of a Node.
+--
+-- Args:
+-- * positions[nodeIndex]: Map giving the position of parent Nodes by their index.
+-- * node: Node whose position will be computed.
+--
+-- Returns: The position of `node`.
+--
+computePosition = function(positions, node)
+    local count = 0
+    local newPos = 0
+    local parents = node.parents
+    for i=1,parents.count do
+        local parentIndex = parents[i]
+        count = count + 1
+        newPos = newPos + positions[parentIndex]
+    end
+    return newPos / count
+end
+
+-- Computes coupling scores between each roots.
+--
+-- Args:
+-- * self: LayersInitialSorter object.
+--
+-- Returns: a 2-dim map, giving the coupling between root entries.
+--
+createCouplings = function(self)
+    local channelLayers = self.channelLayers
+    local entries = self.layers.entries
+    local layersCount = entries.count
+    local prevCouplings = nil
+    for layerId=layersCount,1,-1 do
+        local layerData = self.layersSortingData[layerId]
+        local highChannelLayer = channelLayers[layerId+1]
+
+        local channelCouplings = Couplings.new()
+        for channelIndex in pairs(highChannelLayer.lowEntries) do
+            channelCouplings:newElement(channelIndex)
+        end
+        if prevCouplings then
+            local children = ErrorOnInvalidRead.new()
+            local order = prevCouplings.order
+            for i=1,order.count do
+                local entry = order[i]
+                children[entry] = entry.inboundSlots
+            end
+            computeCouplings(channelCouplings, prevCouplings, children)
+        end
+
+        computeCouplings(layerData.couplings, channelCouplings, highChannelLayer.lowEntries)
+
+        prevCouplings = layerData.couplings
+    end
+end
+
 -- Parses the input Layers object into useful intermediate data.
 --
 -- Args:
 -- * self: LayersInitialSorter object.
 --
 parseInput = function(self)
-    local channelLayers = self.layersBuilder:generateChannelLayers()
-    local entries = self.layersBuilder.layers.entries
+    local channelLayers = self.channelLayers
+    local entries = self.layers.entries
     local prevNodes = nil
     for layerId=1,entries.count do
-        local layerData = LayerSortingData.new()
+        local layer = entries[layerId]
+        local layerData = LayerSortingData.new(layer)
         local nodes = ErrorOnInvalidRead.new()
         self.layersSortingData[layerId] = layerData
-        local layer = entries[layerId]
         for rank=1,layer.count do
             local node = Node.new(layer[rank])
-            layerData.firstPass[node.index] = node
             nodes[node.index] = node
         end
 
@@ -197,18 +290,17 @@ parseInput = function(self)
             for i=1,highEntries.count do
                 local entry = highEntries[i]
                 if entry.type == "vertex" then
+                    assert(not vertexEntry, "LayersInitialSorter: channel has multiple vertex entries.")
                     vertexEntry = entry
                 end
             end
             if vertexEntry then
                 local vertexNode = nodes[vertexEntry]
-                makeRootIfNoPath(self, vertexNode)
                 for i=1,highEntries.count do
                     local entry = highEntries[i]
                     if entry ~= vertexEntry then
                         local entryNode = nodes[entry]
                         addPath(entryNode, vertexNode)
-                        layerData.firstPass[entryNode.index] = nil
                         layerData.secondPass[entryNode.index] = entryNode
                     end
                 end
@@ -218,177 +310,114 @@ parseInput = function(self)
         -- Third pass: turn any unprocessed entry into a node.
         for rank=1,layer.count do
             local entry = layer[rank]
-            makeRootIfNoPath(self, nodes[entry])
+            if not rawget(layerData.secondPass, entry) then
+                local node = nodes[entry]
+                if node.parents.count == 0 then
+                    layerData.roots:pushBack(entry)
+                else
+                    layerData.firstPass[entry] = node
+                end
+            end
         end
 
         prevNodes = nodes
     end
 end
 
--- Computes coupling scores between each roots.
+-- Sorts an array of elements, by their highest coefficient in a Couplings object.
 --
 -- Args:
--- * self: LayersInitialSorter object.
+-- * elements: Array of elements to sort.
+-- * couplings: Couplings object holding coefficients for the given array of elements.
 --
--- Returns: a 2-dim map, giving the coupling between root entries.
---
-createCouplings = function(self)
-    local result = Couplings.new()
-
-    local roots = self.roots
-    local it = roots.entries[OrderedSet.Begin]
-    while it ~= OrderedSet.End do
-        result:newElement(it)
-        it = roots.entries[it]
-    end
-
-    local entries = self.layersBuilder.layers.entries
-    local EntrySets = LayerSortingData.EntrySets
-    for layerId=1,entries.count do
-        local layer = entries[layerId]
-        for i=1,EntrySets.count do
-            local nodes = self.layersSortingData[layerId][EntrySets[i]]
-            for _,node in pairs(nodes) do
-                local count = node.counts
-                local sqrCount = count * count
-                local it1 = Iterator.new(node.pathsToRoots)
-                local it2 = Iterator.new()
-                while it1:next() do
-                    it2:copy(it1)
-                    while it2:next() do
-                        result:addToCoupling(it1.key, it2.key, (it1.value * it2.value) / sqrCount)
-                    end
-                end
-            end
-        end
-    end
-    return result
-end
-
--- Order a set of roots by maximum coupling coefficient.
---
--- This function takes the maximum coupling coefficient of each root, then sort them with
--- this value.
---
--- Args:
--- * roots: OrderedSet of roots to consider.
--- * couplings: Coupling coefficients.
---
--- Returns: Array object containing all roots, ordered from their lowest to highest coupling coefficient.
---
-getOrderByHighestCouplingCoefficients = function(roots, couplings)
-    local result = Array.new()
+sortByHighestCouplingCoefficient = function(elements, couplings)
     local rootGreatestCouplings = {}
     local max = math.max
-    local it1 = roots.entries[OrderedSet.Begin]
-    while it1 ~= OrderedSet.End do
-        for it2,coupling in pairs(couplings[it1]) do
-            rootGreatestCouplings[it1] = max(coupling, rootGreatestCouplings[it1] or 0)
-            rootGreatestCouplings[it2] = max(coupling, rootGreatestCouplings[it2] or 0)
+    local count = elements.count
+    for i=1,count do
+        local elemI = elements[i]
+        for j=i+1,count do
+            local elemJ = elements[j]
+            local coupling = couplings:getCoupling(elemI, elemJ)
+            rootGreatestCouplings[elemI] = max(coupling, rootGreatestCouplings[elemI] or 0)
+            rootGreatestCouplings[elemJ] = max(coupling, rootGreatestCouplings[elemJ] or 0)
         end
-        result:pushBack(it1)
-        it1 = roots.entries[it1]
     end
-    result:sort(rootGreatestCouplings)
-    return result
+    elements:sort(rootGreatestCouplings)
 end
 
--- Turns an entry into a root if it has no path to an existing root.
+-- Run the sorting algorithm on each layers.
 --
--- Args:
--- * self: LayersInitialSorter object.
--- * node: Node to turn into a root.
+-- Sorting is done layer by layer, following this a multi-step pipeline:
+-- * 1) Greedily place firstPass nodes, at the barycenter of their inbound channel indexes.
+-- * 2) Insert roots, by trying to minimize couplings score of the layer.
+-- * 3) Places secondPass nodes, as barycenter of their parents.
 --
-makeRootIfNoPath = function(self, node)
-    if node.counts == 0 then
-        local index = node.index
-        self.roots:pushFront(index)
-        node.pathsToRoots[index] = 1
-        node.counts = 1
-    end
-end
-
--- Sort each layers according to their coupling to root nodes.
---
--- Layer order is computed by sorting x-coordinates of the entries, computed as follows:
--- * roots: the x-coordinate is the rank in the previous set.
--- * other: the x-coordinate is the barycenter of the linked roots, weighed by path count.
+-- Between each step of the pipeline, the result is consolidated in an array. The next step
+-- uses the rank of entries from the previous step as positions.
 --
 -- Args:
 -- * self: LayersInitialSorter object.
 --
 sortLayers = function(self)
-    local it = self.roots.entries[OrderedSet.Begin]
-    local rootPos = ReversibleArray.new()
-    while it ~= OrderedSet.End do
-        rootPos:pushBack(it)
-        it = self.roots.entries[it]
-    end
-    local entries = self.layersBuilder.layers.entries
-    local NodeSetOrder = LayerSortingData.NodeSetOrder
+    local entries = self.layers.entries
     for layerId=1,entries.count do
         local layer = entries[layerId]
         local layerData = self.layersSortingData[layerId]
-        local positions = ErrorOnInvalidRead.new()
+        local newOrder = Array.new()
+        -- 1) lowChannelNodes & firstPass
         if layerId > 1 then
             local prevLayer = entries[layerId-1]
+            local parentPositions = ErrorOnInvalidRead.new()
+            local positions = ErrorOnInvalidRead.new()
             for rank=1,prevLayer.count do
                 local entry = prevLayer[rank]
-                positions[entry] = rank
+                parentPositions[entry] = rank
             end
+            for nodeIndex,node in pairs(layerData.lowChannelNodes) do
+                parentPositions[nodeIndex] = computePosition(parentPositions, node)
+            end
+            for nodeIndex,node in pairs(layerData.firstPass) do
+                positions[nodeIndex] = computePosition(parentPositions, node)
+                newOrder:pushBack(nodeIndex)
+            end
+            newOrder:sort(positions)
         end
-        for i=1,NodeSetOrder.count do
-            local nodes = layerData[NodeSetOrder[i]]
-            for nodeIndex,node in pairs(nodes) do
-                local rPos = rawget(rootPos, nodeIndex)
-                if rPos then
-                    positions[nodeIndex] = rPos
-                else
-                    local count = 0
-                    local newPos = 0
-                    for parentIndex in pairs(node.parents) do
-                        count = count + 1
-                        newPos = newPos + positions[parentIndex]
+        -- 2) roots
+        local roots = layerData.roots
+        if roots.count > 0 then
+            local orderAsSet = OrderedSet.newFromArray(newOrder)
+            sortByHighestCouplingCoefficient(roots, layerData.couplings)
+            for i=1,roots.count do
+                local root = roots[i]
+                local optimalScore = -math.huge
+                local optimalPos = nil
+                local it = OrderedSet.Begin
+                while it ~= OrderedSet.End do
+                    orderAsSet:insertAfter(it, root)
+                    local score = computeCouplingScore(orderAsSet, layerData.couplings)
+                    orderAsSet:removeAfter(it)
+                    if score > optimalScore then
+                        optimalScore = score
+                        optimalPos = it
                     end
-                    positions[nodeIndex] = newPos / count
+                    it = orderAsSet.entries[it]
                 end
+                orderAsSet:insertAfter(optimalPos, root)
             end
+            newOrder:loadFromOrderedSet(orderAsSet)
         end
-        self.layersBuilder.layers:sortLayer(layerId, positions)
-    end
-end
-
--- Order roots, by placing pairs with high coupling close together.
---
--- Coupling score inspired from gravity force (coupling = G * m1 * m2)
---
--- Args:
--- * self: LayersInitialSorter object.
---
-sortRoots = function(self)
-    local couplings = createCouplings(self)
-    local roots = self.roots
-    local rootProcessingOrder = getOrderByHighestCouplingCoefficients(roots, couplings)
-
-    roots = OrderedSet.new()
-    for i=1,rootProcessingOrder.count do
-        local root = rootProcessingOrder[i]
-        local optimalScore = -math.huge
-        local optimalPos = nil
-        local it = OrderedSet.Begin
-        while it ~= OrderedSet.End do
-            roots:insertAfter(it,root)
-            local score = computeCouplingScore(roots, couplings)
-            roots:removeAfter(it)
-            if score > optimalScore then
-                optimalScore = score
-                optimalPos = it
-            end
-            it = roots.entries[it]
+        -- 3) secondPass
+        local positions = ErrorOnInvalidRead.new()
+        for pos=1,newOrder.count do
+            positions[newOrder[pos]] = pos
         end
-        roots:insertAfter(optimalPos, root)
+        for nodeIndex,node in pairs(layerData.secondPass) do
+            positions[nodeIndex] = computePosition(positions, node)
+        end
+        -- Layer sort
+        self.layers:sortLayer(layerId, positions)
     end
-    self.roots = roots
 end
 
 -- Runs the sorting algorithm on a LayersBuilder object.
@@ -398,13 +427,13 @@ end
 --
 function LayersInitialSorter.run(layersBuilder)
     local self = ErrorOnInvalidRead.new{
-        layersBuilder = layersBuilder,
+        channelLayers = layersBuilder:generateChannelLayers(),
+        layers = layersBuilder.layers,
         layersSortingData = ErrorOnInvalidRead.new(),
-        roots = OrderedSet.new(),
     }
 
     parseInput(self)
-    sortRoots(self)
+    createCouplings(self)
     sortLayers(self)
 end
 
