@@ -24,6 +24,10 @@ local Logger = require("lua/Logger")
 -- RO properties:
 -- * entries[prev]: map giving the next element of the set.
 --
+-- Constants:
+-- * Begin: Sentinel value, placed before the first element of an ordered set.
+-- * End: Sentinel value, placed after the last element of an ordered set.
+--
 -- Methods:
 -- * insertAfter: inserts the given element at the specified position.
 -- * pushFront: inserts a new value at the beginning of the set.
@@ -72,6 +76,12 @@ local Impl = ErrorOnInvalidRead.new{
                 entries[previous] = entries[removedValue]
                 entries[removedValue] = nil
             end,
+
+            -- Proxy to constant.
+            Begin = OrderedSet.Begin,
+
+            -- Proxy to constant.
+            End = OrderedSet.End,
         },
     },
 }
