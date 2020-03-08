@@ -36,6 +36,8 @@ local Logger = require("lua/Logger")
 local OrderedSet = ErrorOnInvalidRead.new{
     new = nil, -- implemented later
 
+    newFromArray = nil, -- implemented later
+
     -- Sentinel value, placed before the first element of an ordered set.
     Begin = {},
 
@@ -110,6 +112,23 @@ function OrderedSet.new()
         },
     }
     setmetatable(result, Impl.Metatable)
+    return result
+end
+
+-- Creates a new OrderedSet object, from the values stored in an Array object.
+--
+-- Args:
+-- * array: Array (or ReversibleArray) object containing the initial values.
+--
+-- Returns: the new OrderedSet object.
+--
+function OrderedSet.newFromArray(array)
+    local result = OrderedSet.new()
+    local pushFront = result.pushFront
+    local Begin = OrderedSet.Begin
+    for i=array.count,1,-1 do
+        pushFront(result, array[i])
+    end
     return result
 end
 
