@@ -53,9 +53,7 @@ local Impl = ErrorOnInvalidRead.new{
             --
             insertAfter = function(self,previous,newValue)
                 local entries = self.entries
-                if rawget(entries, newValue) then
-                    Logger.error("OrderedSet: Duplicate value: " .. tostring(newValue))
-                end
+                assert(not rawget(entries, newValue), "OrderedSet: Duplicate value: " .. tostring(newValue))
                 entries[newValue] = entries[previous]
                 entries[previous] = newValue
             end,
@@ -86,7 +84,7 @@ local Impl = ErrorOnInvalidRead.new{
 --
 function Impl.Metatable.__index.pushFront(self, newValue)
     local entries = self.entries
-    assert("OrderedSet: Duplicate value: " .. tostring(newValue))
+    assert(not rawget(entries, newValue), "OrderedSet: Duplicate value: " .. tostring(newValue))
     entries[newValue] = entries[OrderedSet.Begin]
     entries[OrderedSet.Begin] = newValue
 end
