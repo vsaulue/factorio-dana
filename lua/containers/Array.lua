@@ -27,6 +27,7 @@ local Logger = require("lua/Logger")
 -- * [n]: n-th value in this array. "undefined behaviour" if out of bounds.
 --
 -- Methods:
+-- * loadFromOrderedSet: Replaces the content of this array with the values stored in an OrderedSet object.
 -- * pushBack: adds a new value at the end of the array.
 -- * sort: sorts the array in place.
 --
@@ -59,6 +60,25 @@ local Impl = {
     -- Metatable of the array class.
     Metatable = {
         __index = {
+            -- Replaces the content of this array with the values stored in an OrderedSet object.
+            --
+            -- Args:
+            -- * self: Array object.
+            -- * orderedSet: OrderedSet containing the values to import.
+            --
+            loadFromOrderedSet = function(self, orderedSet)
+                local End = orderedSet.End
+                local entries = orderedSet.entries
+                local it = entries[orderedSet.Begin]
+                local count = 0
+                while it ~= End do
+                    count = count + 1
+                    self[count] = it
+                    it = entries[it]
+                end
+                self.count = count
+            end,
+
             -- Adds a new value at the end of the array.
             --
             -- Args:
