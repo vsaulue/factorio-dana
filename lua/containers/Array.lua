@@ -31,11 +31,11 @@ local Logger = require("lua/Logger")
 -- * pushBack: adds a new value at the end of the array.
 -- * sort: sorts the array in place.
 --
-local Array = {
+local Array = ErrorOnInvalidRead.new{
     new = nil, -- implemented later
 }
 
-local Impl = {
+local Impl = ErrorOnInvalidRead.new{
     -- Function used to iterate through an Array object.
     --
     -- Args:
@@ -73,7 +73,7 @@ local Impl = {
             return result
         end,
 
-        __index = {
+        __index = ErrorOnInvalidRead.new{
             -- Replaces the content of this array with the values stored in an OrderedSet object.
             --
             -- Args:
@@ -130,8 +130,6 @@ local Impl = {
         __pairs = nil, -- implemented later
     },
 }
-
-ErrorOnInvalidRead.setmetatable(Impl.Metatable.__index)
 
 function Impl.Metatable.__ipairs(self)
     Logger.perfDebug("Array: __ipairs is deprecated. Use 'for i=1,array.count do ...' instead.")
