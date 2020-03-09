@@ -16,6 +16,7 @@
 
 local Array = require("lua/containers/Array")
 local Couplings = require("lua/layouts/layer/Couplings")
+local EquivalenceClasses = require("lua/layouts/layer/EquivalenceClasses")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local OrderedSet = require("lua/containers/OrderedSet")
 
@@ -46,8 +47,7 @@ local sortLayers
 --
 -- Fields:
 -- * lowChannels[channelIndex]: Map giving the parent entries of a low channel.
--- * firstPass[entry]: Map of entries -> parents. All parents are channel indexes in lowChannels.
--- * roots: Array of entries which are roots (=no parents).
+-- * equivalenceClasses: EquivalenceClasses object, holding entries directly placeable from lowChannels, or roots.
 -- * secondPass[entry]: Map of entry -> vertex entry. The vertex entry must be in firstPass or roots.
 -- * couplings: Couplings object, holding coefficients between all entries of this layer.
 --
@@ -63,8 +63,7 @@ local LayerSortingData = ErrorOnInvalidRead.new{
         local couplings = Couplings.new()
         local result = ErrorOnInvalidRead.new{
             lowChannels = ErrorOnInvalidRead.new(),
-            firstPass = ErrorOnInvalidRead.new(),
-            roots = Array.new(),
+            equivalenceClasses = EquivalenceClasses.new(),
             secondPass = ErrorOnInvalidRead.new(),
             couplings = couplings,
         }
@@ -159,8 +158,8 @@ computePosition = function(positions, parents)
     local count = parents.count
     local newPos = 0
     for i=1,count do
-        local parentIndex = parents[i]
-        newPos = newPos + positions[parentIndex]
+        local parent = parents[i]
+        newPos = newPos + positions[parent]
     end
     return newPos / count
 end
@@ -261,11 +260,7 @@ parseInput = function(self)
             local entry = layer[rank]
             if not rawget(layerData.secondPass, entry) then
                 local parents = entryParents[entry]
-                if parents.count == 0 then
-                    layerData.roots:pushBack(entry)
-                else
-                    layerData.firstPass[entry] = parents
-                end
+                layerData.equivalenceClasses:addToClass(parents, entry)
             end
         end
     end
@@ -324,14 +319,18 @@ sortLayers = function(self)
             for channelIndex,lowEntries in pairs(layerData.lowChannels) do
                 parentPositions[channelIndex] = computePosition(parentPositions, lowEntries)
             end
-            for entry,parents in pairs(layerData.firstPass) do
-                positions[entry] = computePosition(parentPositions, parents)
-                newOrder:pushBack(entry)
+            for parents,classEntries in pairs(layerData.equivalenceClasses.classes) do
+                local classPosition = computePosition(parentPositions, parents)
+                for j=1,classEntries.count do
+                    local entry = classEntries[j]
+                    positions[entry] = classPosition
+                    newOrder:pushBack(entry)
+                end
             end
             newOrder:sort(positions)
         end
         -- 2) roots
-        local roots = layerData.roots
+        local roots = layerData.equivalenceClasses.roots
         if roots.count > 0 then
             local orderAsSet = OrderedSet.newFromArray(newOrder)
             sortByHighestCouplingCoefficient(roots, layerData.couplings)
