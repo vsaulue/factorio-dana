@@ -34,7 +34,6 @@ local LayersInitialSorter = ErrorOnInvalidRead.new{
 }
 
 -- Implementation stuff (private scope).
-local addPath
 local computeCouplings
 local computeCouplingScore
 local computePosition
@@ -43,43 +42,13 @@ local parseInput
 local sortByHighestCouplingCoefficient
 local sortLayers
 
--- Class for any computation intermediate during the sorting phase.
---
--- Each node will be assigned an X coordinate at some point, used to determine the final position
--- of entries relative to each other.
---
--- A node can either directly represent an entry in the Layer object, or just be an abstract intermediate.
---
--- Fields:
--- * index: Index of the node.
--- * parents: Set of Node.
--- * pathsToRoots[root]: Map of root -> number of paths to this entry.
--- * counts: Total number of paths to all roots (= sum of pathtoRoots values).
---
-local Node = ErrorOnInvalidRead.new{
-    -- Creates a new Node object.
-    --
-    -- Args:
-    -- * index: Index of the new node.
-    --
-    -- Returns: the new node object.
-    --
-    new = function(index)
-        assert(index, "LayersInitialSorter.Node: missing mandatory index.")
-        return ErrorOnInvalidRead.new{
-            index = index,
-            parents = Array.new(),
-        }
-    end,
-}
-
 -- Layer sorting data.
 --
 -- Fields:
--- * lowChannelNodes[nodeIndex]: Set of Node corresponding to a channel in the lower channel layer.
--- * firstPass[nodeIndex]: Set of Node corresponding to an entry. Either roots, or directly computable from lowChannelNodes.
+-- * lowChannels[channelIndex]: Map giving the parent entries of a low channel.
+-- * firstPass[entry]: Map of entries -> parents. All parents are channel indexes in lowChannels.
 -- * roots: Array of entries which are roots (=no parents).
--- * secondPass[nodeIndex]: Set of Node corresponding to an entry. Have dependencies to some entries in firstPass.
+-- * secondPass[entry]: Map of entry -> vertex entry. The vertex entry must be in firstPass or roots.
 -- * couplings: Couplings object, holding coefficients between all entries of this layer.
 --
 local LayerSortingData = ErrorOnInvalidRead.new{
@@ -93,7 +62,7 @@ local LayerSortingData = ErrorOnInvalidRead.new{
     new = function(layer)
         local couplings = Couplings.new()
         local result = ErrorOnInvalidRead.new{
-            lowChannelNodes = ErrorOnInvalidRead.new(),
+            lowChannels = ErrorOnInvalidRead.new(),
             firstPass = ErrorOnInvalidRead.new(),
             roots = Array.new(),
             secondPass = ErrorOnInvalidRead.new(),
@@ -105,16 +74,6 @@ local LayerSortingData = ErrorOnInvalidRead.new{
         return result
     end,
 }
-
--- Adds a path between two nodes.
---
--- Args:
--- * childNode: Child node of the path.
--- * parentNode: Source node of the path.
---
-addPath = function(childNode, parentNode)
-    childNode.parents:pushBack(parentNode.index)
-end
 
 -- Computes the coupling coefficients between entries in a given layer.
 --
@@ -188,21 +147,19 @@ computeCouplingScore = function(rootOrder, couplings)
     return result
 end
 
--- Computes the position of a Node.
+-- Computes the position of an element.
 --
 -- Args:
--- * positions[nodeIndex]: Map giving the position of parent Nodes by their index.
--- * node: Node whose position will be computed.
+-- * positions[element]: Map giving the position of parent element by their index.
+-- * parents: Array containing the parents of the element.
 --
--- Returns: The position of `node`.
+-- Returns: The position of the element associated with `parents`.
 --
-computePosition = function(positions, node)
-    local count = 0
+computePosition = function(positions, parents)
+    local count = parents.count
     local newPos = 0
-    local parents = node.parents
-    for i=1,parents.count do
+    for i=1,count do
         local parentIndex = parents[i]
-        count = count + 1
         newPos = newPos + positions[parentIndex]
     end
     return newPos / count
@@ -252,15 +209,13 @@ end
 parseInput = function(self)
     local channelLayers = self.channelLayers
     local entries = self.layers.entries
-    local prevNodes = nil
     for layerId=1,entries.count do
         local layer = entries[layerId]
         local layerData = LayerSortingData.new(layer)
-        local nodes = ErrorOnInvalidRead.new()
+        local entryParents = ErrorOnInvalidRead.new()
         self.layersSortingData[layerId] = layerData
         for rank=1,layer.count do
-            local node = Node.new(layer[rank])
-            nodes[node.index] = node
+            entryParents[layer[rank]] = Array.new()
         end
 
         -- First pass: process channels with lower & higher entries.
@@ -271,20 +226,17 @@ parseInput = function(self)
             if lowEntries.count == 0 then
                 pureLowChannels[channelIndex] = highEntries
             else
-                local newNode = Node.new(ErrorOnInvalidRead.new())
-                layerData.lowChannelNodes[newNode.index] = newNode
-                for i=1,lowEntries.count do
-                    local entryNode = prevNodes[lowEntries[i]]
-                    addPath(newNode, entryNode)
-                end
+                layerData.lowChannels[channelIndex] = lowEntries
                 for i=1,highEntries.count do
-                    local entryNode = nodes[highEntries[i]]
-                    addPath(entryNode, newNode)
+                    entryParents[highEntries[i]]:pushBack(channelIndex)
                 end
             end
         end
 
         -- Second pass: process channels which have only higher entries.
+        -- Right now, horizontal high channels are only backward links looping back to a vertex entry.
+        -- They should only be attached to linkNodes, and those will be placed next to the vertex entry
+        -- in the secondPass.
         for channelIndex,highEntries in pairs(pureLowChannels) do
             local vertexEntry = nil
             for i=1,highEntries.count do
@@ -295,32 +247,27 @@ parseInput = function(self)
                 end
             end
             if vertexEntry then
-                local vertexNode = nodes[vertexEntry]
                 for i=1,highEntries.count do
                     local entry = highEntries[i]
                     if entry ~= vertexEntry then
-                        local entryNode = nodes[entry]
-                        addPath(entryNode, vertexNode)
-                        layerData.secondPass[entryNode.index] = entryNode
+                        layerData.secondPass[entry] = vertexEntry
                     end
                 end
             end
         end
 
-        -- Third pass: turn any unprocessed entry into a node.
+        -- Third pass: assign any unprocessed entry to either roots or firstPass sets.
         for rank=1,layer.count do
             local entry = layer[rank]
             if not rawget(layerData.secondPass, entry) then
-                local node = nodes[entry]
-                if node.parents.count == 0 then
+                local parents = entryParents[entry]
+                if parents.count == 0 then
                     layerData.roots:pushBack(entry)
                 else
-                    layerData.firstPass[entry] = node
+                    layerData.firstPass[entry] = parents
                 end
             end
         end
-
-        prevNodes = nodes
     end
 end
 
@@ -349,9 +296,9 @@ end
 -- Run the sorting algorithm on each layers.
 --
 -- Sorting is done layer by layer, following this a multi-step pipeline:
--- * 1) Greedily place firstPass nodes, at the barycenter of their inbound channel indexes.
+-- * 1) Greedily place firstPass entries, at the barycenter of their inbound channel indexes.
 -- * 2) Insert roots, by trying to minimize couplings score of the layer.
--- * 3) Places secondPass nodes, as barycenter of their parents.
+-- * 3) Places secondPass entries, as barycenter of their parents.
 --
 -- Between each step of the pipeline, the result is consolidated in an array. The next step
 -- uses the rank of entries from the previous step as positions.
@@ -365,7 +312,7 @@ sortLayers = function(self)
         local layer = entries[layerId]
         local layerData = self.layersSortingData[layerId]
         local newOrder = Array.new()
-        -- 1) lowChannelNodes & firstPass
+        -- 1) lowChannels & firstPass
         if layerId > 1 then
             local prevLayer = entries[layerId-1]
             local parentPositions = ErrorOnInvalidRead.new()
@@ -374,12 +321,12 @@ sortLayers = function(self)
                 local entry = prevLayer[rank]
                 parentPositions[entry] = rank
             end
-            for nodeIndex,node in pairs(layerData.lowChannelNodes) do
-                parentPositions[nodeIndex] = computePosition(parentPositions, node)
+            for channelIndex,lowEntries in pairs(layerData.lowChannels) do
+                parentPositions[channelIndex] = computePosition(parentPositions, lowEntries)
             end
-            for nodeIndex,node in pairs(layerData.firstPass) do
-                positions[nodeIndex] = computePosition(parentPositions, node)
-                newOrder:pushBack(nodeIndex)
+            for entry,parents in pairs(layerData.firstPass) do
+                positions[entry] = computePosition(parentPositions, parents)
+                newOrder:pushBack(entry)
             end
             newOrder:sort(positions)
         end
@@ -412,8 +359,8 @@ sortLayers = function(self)
         for pos=1,newOrder.count do
             positions[newOrder[pos]] = pos
         end
-        for nodeIndex,node in pairs(layerData.secondPass) do
-            positions[nodeIndex] = computePosition(positions, node)
+        for entry,parent in pairs(layerData.secondPass) do
+            positions[entry] = positions[parent]
         end
         -- Layer sort
         self.layers:sortLayer(layerId, positions)
