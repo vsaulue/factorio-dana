@@ -59,6 +59,20 @@ local Impl = {
 
     -- Metatable of the array class.
     Metatable = {
+        __eq = function(self, otherTable)
+            local result = rawequal(self, otherTable)
+            if not result then
+                local sCount = self.count
+                result = sCount == otherTable.count
+                local i = 1
+                while i <= sCount and result do
+                    result = self[i] == otherTable[i]
+                    i = i + 1
+                end
+            end
+            return result
+        end,
+
         __index = {
             -- Replaces the content of this array with the values stored in an OrderedSet object.
             --
