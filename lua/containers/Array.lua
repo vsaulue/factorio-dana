@@ -82,13 +82,13 @@ local Impl = ErrorOnInvalidRead.new{
             --
             loadFromOrderedSet = function(self, orderedSet)
                 local End = orderedSet.End
-                local entries = orderedSet.entries
-                local it = entries[orderedSet.Begin]
+                local forward = orderedSet.forward
+                local it = forward[orderedSet.Begin]
                 local count = 0
                 while it ~= End do
                     count = count + 1
                     self[count] = it
-                    it = entries[it]
+                    it = forward[it]
                 end
                 self.count = count
             end,

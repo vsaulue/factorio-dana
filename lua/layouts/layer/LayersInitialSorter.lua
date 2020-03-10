@@ -131,17 +131,17 @@ end
 --
 computeCouplingScore = function(rootOrder, couplings)
     local result = 0
-    local entries = rootOrder.entries
-    local it1 = entries[OrderedSet.Begin]
+    local forward = rootOrder.forward
+    local it1 = forward[OrderedSet.Begin]
     while it1 ~= OrderedSet.End do
-        local it2 = entries[it1]
+        local it2 = forward[it1]
         local dist = 1
         while it2 ~= OrderedSet.End do
             result = result + (couplings:getCoupling(it1, it2) or 0) / dist
             dist = dist + 1
-            it2 = entries[it2]
+            it2 = forward[it2]
         end
-        it1 = entries[it1]
+        it1 = forward[it1]
     end
     return result
 end
@@ -342,12 +342,12 @@ sortLayers = function(self)
                 while it ~= OrderedSet.End do
                     orderAsSet:insertAfter(it, root)
                     local score = computeCouplingScore(orderAsSet, layerData.couplings)
-                    orderAsSet:removeAfter(it)
+                    orderAsSet:remove(root)
                     if score > optimalScore then
                         optimalScore = score
                         optimalPos = it
                     end
-                    it = orderAsSet.entries[it]
+                    it = orderAsSet.forward[it]
                 end
                 orderAsSet:insertAfter(optimalPos, root)
             end

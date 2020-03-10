@@ -22,7 +22,8 @@ local Logger = require("lua/Logger")
 -- Optimized for fast insertion/deletion of elements (constant time if the predecessor is known).
 --
 -- RO properties:
--- * entries[prev]: map giving the next element of the set.
+-- * backward[next]: map giving the previous element in the set.
+-- * forward[prev]: map giving the next element in the set.
 --
 -- Constants:
 -- * Begin: Sentinel value, placed before the first element of an ordered set.
@@ -57,26 +58,34 @@ local Impl = ErrorOnInvalidRead.new{
             -- * previous: A value already in the list. newValue will be inserted after it.
             -- * newValue: The new value to add.
             --
-            insertAfter = function(self,previous,newValue)
-                local entries = self.entries
-                assert(not rawget(entries, newValue), "OrderedSet: Duplicate value: " .. tostring(newValue))
-                entries[newValue] = entries[previous]
-                entries[previous] = newValue
+            insertAfter = function(self, previous, newValue)
+                local backward = self.backward
+                local forward = self.forward
+                assert(not rawget(forward, newValue), "OrderedSet: Duplicate value: " .. tostring(newValue))
+                local next = forward[previous]
+                forward[previous] = newValue
+                forward[newValue] = next
+                backward[next] = newValue
+                backward[newValue] = previous
             end,
 
             pushFront = nil, -- implemented later.
 
-            -- Inserts a new value at the given position.
+            -- Removes a given value.
             --
             -- Args:
             -- * self: OrderedSet object.
-            -- * previous: The value preceding the one to delete.
+            -- * value: The value to remove.
             --
-            removeAfter = function(self,previous)
-                local entries = self.entries
-                local removedValue = entries[previous]
-                entries[previous] = entries[removedValue]
-                entries[removedValue] = nil
+            remove = function(self, value)
+                local backward = self.backward
+                local forward = self.forward
+                local previous = backward[value]
+                local next = forward[value]
+                forward[previous] = next
+                backward[next] = previous
+                forward[value] = nil
+                backward[value] = nil
             end,
 
             -- Proxy to constant.
@@ -95,10 +104,7 @@ local Impl = ErrorOnInvalidRead.new{
 -- * newValue: The new value to add.
 --
 function Impl.Metatable.__index.pushFront(self, newValue)
-    local entries = self.entries
-    assert(not rawget(entries, newValue), "OrderedSet: Duplicate value: " .. tostring(newValue))
-    entries[newValue] = entries[OrderedSet.Begin]
-    entries[OrderedSet.Begin] = newValue
+    self:insertAfter(OrderedSet.Begin, newValue)
 end
 
 -- Creates a new OrderedSet object.
@@ -106,9 +112,14 @@ end
 -- Returns: the new OrderedSet object.
 --
 function OrderedSet.new()
+    local Begin = OrderedSet.Begin
+    local End = OrderedSet.End
     local result = {
-        entries = ErrorOnInvalidRead.new{
-            [OrderedSet.Begin] = OrderedSet.End,
+        backward = ErrorOnInvalidRead.new{
+            [End] = Begin,
+        },
+        forward = ErrorOnInvalidRead.new{
+            [Begin] = End,
         },
     }
     setmetatable(result, Impl.Metatable)
