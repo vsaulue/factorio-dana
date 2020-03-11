@@ -16,6 +16,7 @@
 
 local Array = require("lua/containers/Array")
 local Couplings = require("lua/layouts/layer/Couplings")
+local CouplingScoreOptimizer = require("lua/layouts/layer/CouplingScoreOptimizer")
 local EquivalenceClasses = require("lua/layouts/layer/EquivalenceClasses")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local OrderedSet = require("lua/containers/OrderedSet")
@@ -36,7 +37,6 @@ local LayersInitialSorter = ErrorOnInvalidRead.new{
 
 -- Implementation stuff (private scope).
 local computeCouplings
-local computeCouplingScore
 local computePosition
 local createCouplings
 local parseInput
@@ -113,37 +113,6 @@ computeCouplings = function(newCouplings, higherCouplings, children)
             end
         end
     end
-end
-
--- Computes a score indicating if the order of a set "fits well" the given couplings.
---
--- The order of a set "fits well" a coupling function if pairs with a high coupling value
--- tends to be close of each other in the set.
---
--- Inspired by gravity forces: a good order minimizes the potential energy:
--- Ep = - sum(G * m1 * m2 / d(m1,m2)) = - sum(couplings(m1,m2)/d(m1,m2))
---
--- Args:
--- * order: OrderedSet object.
--- * couplings[m1,m2]: a table giving the coupling values for each pair in `order`
---
--- Returns: a score (higher is better).
---
-computeCouplingScore = function(rootOrder, couplings)
-    local result = 0
-    local forward = rootOrder.forward
-    local it1 = forward[OrderedSet.Begin]
-    while it1 ~= OrderedSet.End do
-        local it2 = forward[it1]
-        local dist = 1
-        while it2 ~= OrderedSet.End do
-            result = result + (couplings:getCoupling(it1, it2) or 0) / dist
-            dist = dist + 1
-            it2 = forward[it2]
-        end
-        it1 = forward[it1]
-    end
-    return result
 end
 
 -- Computes the position of an element.
@@ -332,26 +301,16 @@ sortLayers = function(self)
         -- 2) roots
         local roots = layerData.equivalenceClasses.roots
         if roots.count > 0 then
-            local orderAsSet = OrderedSet.newFromArray(newOrder)
+            local optimizer = CouplingScoreOptimizer.new{
+                couplings = layerData.couplings,
+                order = OrderedSet.newFromArray(newOrder)
+            }
             sortByHighestCouplingCoefficient(roots, layerData.couplings)
             for i=1,roots.count do
                 local root = roots[i]
-                local optimalScore = -math.huge
-                local optimalPos = nil
-                local it = OrderedSet.Begin
-                while it ~= OrderedSet.End do
-                    orderAsSet:insertAfter(it, root)
-                    local score = computeCouplingScore(orderAsSet, layerData.couplings)
-                    orderAsSet:remove(root)
-                    if score > optimalScore then
-                        optimalScore = score
-                        optimalPos = it
-                    end
-                    it = orderAsSet.forward[it]
-                end
-                orderAsSet:insertAfter(optimalPos, root)
+                optimizer:insertAnywhere(root)
             end
-            newOrder:loadFromOrderedSet(orderAsSet)
+            newOrder:loadFromOrderedSet(optimizer.order)
         end
         -- 3) secondPass
         local positions = ErrorOnInvalidRead.new()
