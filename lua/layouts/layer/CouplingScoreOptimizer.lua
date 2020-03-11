@@ -25,7 +25,9 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 -- * order: Order of elements (=output).
 --
 -- Methods:
--- * insertElement: Inserts a new element at any place that optimizes the coupling score.
+-- * generatePositions: Generates a map giving the position of each entry.
+-- * insertAnywhere: Inserts a new element at any place that optimizes the coupling score.
+-- * insertAround: Inserts a new element right next to an already present element.
 --
 local CouplingScoreOptimizer = ErrorOnInvalidRead.new{
     new = nil,
@@ -33,10 +35,33 @@ local CouplingScoreOptimizer = ErrorOnInvalidRead.new{
 
 -- Implementation stuff (private scope).
 local computeCouplingScore
+local insert
 
 -- Metatable of the CouplingScoreOptimizer class.
 local Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Generates a map giving the position of each entry.
+        --
+        -- Args:
+        -- * self: CouplingScoreOptimizer object.
+        --
+        -- Returns: A map indexed by entries, giving their position in self.order.
+        --
+        generatePositions = function(self)
+            local result = ErrorOnInvalidRead.new()
+            local order = self.order
+            local forward = order.forward
+            local i = 1
+            local it = forward[order.Begin]
+            local End = order.End
+            while it ~= End do
+                result[it] = i
+                it = forward[it]
+                i = i + 1
+            end
+            return result
+        end,
+
         -- Inserts a new element at any place that optimizes the coupling score.
         --
         -- Args:
@@ -44,22 +69,20 @@ local Metatable = {
         -- * newElement: Element to add.
         --
         insertAnywhere = function(self, newElement)
-            local optimalScore = -math.huge
-            local optimalPos = nil
             local order = self.order
-            local End = order.End
-            local it = order.Begin
-            while it ~= End do
-                order:insertAfter(it, newElement)
-                local score = computeCouplingScore(self)
-                order:remove(newElement)
-                if score > optimalScore then
-                    optimalScore = score
-                    optimalPos = it
-                end
-                it = order.forward[it]
-            end
-            order:insertAfter(optimalPos, newElement)
+            insert(self, order.Begin, order.End, newElement)
+        end,
+
+        -- Inserts a new element right next to an already present element.
+        --
+        -- Args:
+        -- * self: CouplingScoreOptimizer object.
+        -- * placedElement: Element already present in the optimizer.
+        -- * newElement: Element to add next to placedElement.
+        --
+        insertAround = function(self, placedElement, newElement)
+            local order = self.order
+            insert(self, order.backward[placedElement], order.forward[placedElement], newElement)
         end,
     },
 }
@@ -95,6 +118,34 @@ computeCouplingScore = function(self)
         it1 = forward[it1]
     end
     return result
+end
+
+-- Inserts a given element in a specific range.
+--
+-- The element is placed at the position in the allowed range that maximizes the coupling score.
+--
+-- Args:
+-- * self: CouplingScoreOptimizer object.
+-- * lowElem: First element of the allowed range (newElement must be inserted after it).
+-- * highElem: Last element of the allowed range (newElement must be inserted before it).
+-- * newElement: New element to insert.
+--
+insert = function(self, lowElem, highElem, newElement)
+    local optimalScore = -math.huge
+    local optimalPos = nil
+    local order = self.order
+    local it = lowElem
+    while it ~= highElem do
+        order:insertAfter(it, newElement)
+        local score = computeCouplingScore(self)
+        order:remove(newElement)
+        if score > optimalScore then
+            optimalScore = score
+            optimalPos = it
+        end
+        it = order.forward[it]
+    end
+    order:insertAfter(optimalPos, newElement)
 end
 
 -- Creates a new CouplingScoreOptimizer object.
