@@ -300,27 +300,23 @@ sortLayers = function(self)
         end
         -- 2) roots
         local roots = layerData.equivalenceClasses.roots
+        local optimizer = CouplingScoreOptimizer.new{
+            couplings = layerData.couplings,
+            order = OrderedSet.newFromArray(newOrder),
+        }
         if roots.count > 0 then
-            local optimizer = CouplingScoreOptimizer.new{
-                couplings = layerData.couplings,
-                order = OrderedSet.newFromArray(newOrder)
-            }
             sortByHighestCouplingCoefficient(roots, layerData.couplings)
             for i=1,roots.count do
                 local root = roots[i]
                 optimizer:insertAnywhere(root)
             end
-            newOrder:loadFromOrderedSet(optimizer.order)
         end
         -- 3) secondPass
-        local positions = ErrorOnInvalidRead.new()
-        for pos=1,newOrder.count do
-            positions[newOrder[pos]] = pos
-        end
         for entry,parent in pairs(layerData.secondPass) do
-            positions[entry] = positions[parent]
+            optimizer:insertAround(parent, entry)
         end
         -- Layer sort
+        local positions = optimizer:generatePositions()
         self.layers:sortLayer(layerId, positions)
     end
 end
