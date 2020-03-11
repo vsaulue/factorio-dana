@@ -31,6 +31,7 @@ local Logger = require("lua/Logger")
 --
 -- Methods:
 -- * insertAfter: inserts the given element at the specified position.
+-- * pushBack: Inserts a new value at the end of the set.
 -- * pushFront: inserts a new value at the beginning of the set.
 -- * removeAfter: deletes the element at the given position.
 --
@@ -67,6 +68,16 @@ local Impl = ErrorOnInvalidRead.new{
                 forward[newValue] = next
                 backward[next] = newValue
                 backward[newValue] = previous
+            end,
+
+            -- Inserts a new value at the end of the set.
+            --
+            -- Args:
+            -- * self: OrderedSet object.
+            -- * value: The new value to add.
+            --
+            pushBack = function(self, value)
+                self:insertAfter(self, self.backward[OrderedSet.End], newValue)
             end,
 
             pushFront = nil, -- implemented later.
