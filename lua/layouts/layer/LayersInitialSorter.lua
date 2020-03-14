@@ -300,9 +300,14 @@ sortLayers = function(self)
         end
         -- 2) roots
         local roots = layerData.equivalenceClasses.roots
+        local radiuses = ErrorOnInvalidRead.new()
+        for i=1,layer.count do
+            radiuses[layer[i]] = 1
+        end
         local optimizer = CouplingScoreOptimizer.new{
             couplings = layerData.couplings,
             order = OrderedSet.newFromArray(newOrder),
+            radiuses = radiuses,
         }
         if roots.count > 0 then
             sortByHighestCouplingCoefficient(roots, layerData.couplings)

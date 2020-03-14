@@ -22,6 +22,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 --
 -- RO Fields:
 -- * couplings: Couplings object holding the coefficients between each elements.
+-- * radiuses[elem]: Map giving the radius of each element.
 -- * order: Order of elements (=output).
 --
 -- Methods:
@@ -103,16 +104,19 @@ local Metatable = {
 computeCouplingScore = function(self)
     local order = self.order
     local couplings = self.couplings
+    local radiuses = self.radiuses
     local End = order.End
     local result = 0
     local forward = order.forward
     local it1 = forward[order.Begin]
     while it1 ~= End do
         local it2 = forward[it1]
-        local dist = 1
+        local dist = radiuses[it1]
         while it2 ~= End do
+            local radius2 = radiuses[it2]
+            dist = dist + radius2
             result = result + (couplings:getCoupling(it1, it2) or 0) / dist
-            dist = dist + 1
+            dist = dist + radius2
             it2 = forward[it2]
         end
         it1 = forward[it1]
@@ -154,12 +158,15 @@ end
 -- * object: Table to turn into a CouplingScoreOptimizer object. Must have the following fields:
 -- ** couplings
 -- ** order
+-- ** radiuses
 --
 -- Returns: `object`, turned into a CouplingScoreOptimizer object.
 --
 function CouplingScoreOptimizer.new(object)
+    local order = object.order
     assert(object.couplings, "CouplingScoreOptimizer.new: missing mandatory 'couplings' field.")
-    assert(object.order, "CouplingScoreOptimizer.new: missing mandatory 'order' field.")
+    assert(order, "CouplingScoreOptimizer.new: missing mandatory 'order' field.")
+    assert(object.radiuses, "CouplingScoreOptimizer.new: missing mandatory 'radiuses' field.")
     setmetatable(object, Metatable)
     return object
 end
