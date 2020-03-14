@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local Array = require("lua/containers/Array")
+local ClassCouplingScoreOptimizer = require("lua/layouts/layer/ClassCouplingScoreOptimizer")
 local Couplings = require("lua/layouts/layer/Couplings")
 local CouplingScoreOptimizer = require("lua/layouts/layer/CouplingScoreOptimizer")
 local EquivalenceClasses = require("lua/layouts/layer/EquivalenceClasses")
@@ -256,6 +257,7 @@ sortLayers = function(self)
         -- 1) lowChannels & firstPass
         if layerId > 1 then
             local prevLayer = entries[layerId-1]
+            local classes = layerData.equivalenceClasses.classes
             local parentPositions = ErrorOnInvalidRead.new()
             local positions = ErrorOnInvalidRead.new()
             for rank=1,prevLayer.count do
@@ -265,15 +267,20 @@ sortLayers = function(self)
             for channelIndex,lowEntries in pairs(layerData.lowChannels) do
                 parentPositions[channelIndex] = computePosition(parentPositions, lowEntries)
             end
-            for parents,classEntries in pairs(layerData.equivalenceClasses.classes) do
-                local classPosition = computePosition(parentPositions, parents)
+            local classPositions = ErrorOnInvalidRead.new()
+            local classesArray = Array.new()
+            for parents,classEntries in pairs(classes) do
+                classPositions[classEntries] = computePosition(parentPositions, parents)
+                classesArray:pushBack(classEntries)
+            end
+            classesArray:sort(classPositions)
+            ClassCouplingScoreOptimizer.run(classesArray, layerData.couplings)
+            for i=1,classesArray.count do
+                local classEntries = classesArray[i]
                 for j=1,classEntries.count do
-                    local entry = classEntries[j]
-                    positions[entry] = classPosition
-                    newOrder:pushBack(entry)
+                    newOrder:pushBack(classEntries[j])
                 end
             end
-            newOrder:sort(positions)
         end
         -- 2) roots
         local roots = layerData.equivalenceClasses.roots
