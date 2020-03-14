@@ -27,6 +27,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 --
 -- Methods:
 -- * generatePositions: Generates a map giving the position of each entry.
+-- * insert: Inserts a given element in a specific range.
 -- * insertAnywhere: Inserts a new element at any place that optimizes the coupling score.
 -- * insertAround: Inserts a new element right next to an already present element.
 --
@@ -36,7 +37,6 @@ local CouplingScoreOptimizer = ErrorOnInvalidRead.new{
 
 -- Implementation stuff (private scope).
 local computeCouplingScore
-local insert
 
 -- Metatable of the CouplingScoreOptimizer class.
 local Metatable = {
@@ -63,6 +63,34 @@ local Metatable = {
             return result
         end,
 
+        -- Inserts a given element in a specific range.
+        --
+        -- The element is placed at the position in the allowed range that maximizes the coupling score.
+        --
+        -- Args:
+        -- * self: CouplingScoreOptimizer object.
+        -- * lowElem: First element of the allowed range (newElement must be inserted after it).
+        -- * highElem: Last element of the allowed range (newElement must be inserted before it).
+        -- * newElement: New element to insert.
+        --
+        insert = function(self, lowElem, highElem, newElement)
+            local optimalScore = -math.huge
+            local optimalPos = nil
+            local order = self.order
+            local it = lowElem
+            while it ~= highElem do
+                order:insertAfter(it, newElement)
+                local score = computeCouplingScore(self)
+                order:remove(newElement)
+                if score > optimalScore then
+                    optimalScore = score
+                    optimalPos = it
+                end
+                it = order.forward[it]
+            end
+            order:insertAfter(optimalPos, newElement)
+        end,
+
         -- Inserts a new element at any place that optimizes the coupling score.
         --
         -- Args:
@@ -71,7 +99,7 @@ local Metatable = {
         --
         insertAnywhere = function(self, newElement)
             local order = self.order
-            insert(self, order.Begin, order.End, newElement)
+            self:insert(order.Begin, order.End, newElement)
         end,
 
         -- Inserts a new element right next to an already present element.
@@ -83,7 +111,7 @@ local Metatable = {
         --
         insertAround = function(self, placedElement, newElement)
             local order = self.order
-            insert(self, order.backward[placedElement], order.forward[placedElement], newElement)
+            self:insert(order.backward[placedElement], order.forward[placedElement], newElement)
         end,
     },
 }
@@ -122,34 +150,6 @@ computeCouplingScore = function(self)
         it1 = forward[it1]
     end
     return result
-end
-
--- Inserts a given element in a specific range.
---
--- The element is placed at the position in the allowed range that maximizes the coupling score.
---
--- Args:
--- * self: CouplingScoreOptimizer object.
--- * lowElem: First element of the allowed range (newElement must be inserted after it).
--- * highElem: Last element of the allowed range (newElement must be inserted before it).
--- * newElement: New element to insert.
---
-insert = function(self, lowElem, highElem, newElement)
-    local optimalScore = -math.huge
-    local optimalPos = nil
-    local order = self.order
-    local it = lowElem
-    while it ~= highElem do
-        order:insertAfter(it, newElement)
-        local score = computeCouplingScore(self)
-        order:remove(newElement)
-        if score > optimalScore then
-            optimalScore = score
-            optimalPos = it
-        end
-        it = order.forward[it]
-    end
-    order:insertAfter(optimalPos, newElement)
 end
 
 -- Creates a new CouplingScoreOptimizer object.
