@@ -40,7 +40,6 @@ local computeCouplings
 local computePosition
 local createCouplings
 local parseInput
-local sortByHighestCouplingCoefficient
 local sortLayers
 
 -- Layer sorting data.
@@ -235,28 +234,6 @@ parseInput = function(self)
     end
 end
 
--- Sorts an array of elements, by their highest coefficient in a Couplings object.
---
--- Args:
--- * elements: Array of elements to sort.
--- * couplings: Couplings object holding coefficients for the given array of elements.
---
-sortByHighestCouplingCoefficient = function(elements, couplings)
-    local rootGreatestCouplings = {}
-    local max = math.max
-    local count = elements.count
-    for i=1,count do
-        local elemI = elements[i]
-        for j=i+1,count do
-            local elemJ = elements[j]
-            local coupling = couplings:getCoupling(elemI, elemJ)
-            rootGreatestCouplings[elemI] = max(coupling, rootGreatestCouplings[elemI] or 0)
-            rootGreatestCouplings[elemJ] = max(coupling, rootGreatestCouplings[elemJ] or 0)
-        end
-    end
-    elements:sort(rootGreatestCouplings)
-end
-
 -- Run the sorting algorithm on each layers.
 --
 -- Sorting is done layer by layer, following this a multi-step pipeline:
@@ -310,11 +287,7 @@ sortLayers = function(self)
             radiuses = radiuses,
         }
         if roots.count > 0 then
-            sortByHighestCouplingCoefficient(roots, layerData.couplings)
-            for i=1,roots.count do
-                local root = roots[i]
-                optimizer:insertAnywhere(root)
-            end
+            optimizer:insertManyAnywhere(roots)
         end
         -- 3) secondPass
         for entry,parent in pairs(layerData.secondPass) do

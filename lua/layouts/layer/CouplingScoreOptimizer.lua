@@ -28,8 +28,9 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 -- Methods:
 -- * generatePositions: Generates a map giving the position of each entry.
 -- * insert: Inserts a given element in a specific range.
--- * insertAnywhere: Inserts a new element at any place that optimizes the coupling score.
 -- * insertAround: Inserts a new element right next to an already present element.
+-- * insertMany: Inserts new elements in a specific range.
+-- * insertManyAnywhere: Inserts new elements at any place that optimizes the coupling score.
 --
 local CouplingScoreOptimizer = ErrorOnInvalidRead.new{
     new = nil,
@@ -37,6 +38,7 @@ local CouplingScoreOptimizer = ErrorOnInvalidRead.new{
 
 -- Implementation stuff (private scope).
 local computeCouplingScore
+local sortByHighestCouplingCoefficient
 
 -- Metatable of the CouplingScoreOptimizer class.
 local Metatable = {
@@ -91,15 +93,39 @@ local Metatable = {
             order:insertAfter(optimalPos, newElement)
         end,
 
-        -- Inserts a new element at any place that optimizes the coupling score.
+        -- Inserts new elements in a specific range.
+        --
+        -- The elements are not inserted as a block: each one is inserted separately, in a way tha optimizes the score.
         --
         -- Args:
         -- * self: CouplingScoreOptimizer object.
-        -- * newElement: Element to add.
+        -- * lowElem: First element of the allowed range (newElement must be inserted after it).
+        -- * highElem: Last element of the allowed range (newElement must be inserted before it).
+        -- * arrayOfElements: Array object, containing the elements to insert. MODIFIED !
         --
-        insertAnywhere = function(self, newElement)
+        insertMany = function(self, lowElem, highElem, arrayOfElements)
+            sortByHighestCouplingCoefficient(arrayOfElements, self.couplings)
+            for i=1,arrayOfElements.count do
+                self:insert(lowElem, highElem, arrayOfElements[i])
+            end
+        end,
+
+        -- Inserts new elements at any place that optimizes the coupling score.
+        --
+        -- The elements are not inserted as a block: each one is inserted separately, in a way tha optimizes the score.
+        --
+        -- Args:
+        -- * self: CouplingScoreOptimizer object.
+        -- * arrayOfElements: Array object, containing the elements to insert. MODIFIED !
+        --
+        insertManyAnywhere = function(self, arrayOfElements)
             local order = self.order
-            self:insert(order.Begin, order.End, newElement)
+            local Begin = order.Begin
+            local End = order.End
+            sortByHighestCouplingCoefficient(arrayOfElements, self.couplings)
+            for i=1,arrayOfElements.count do
+                self:insert(Begin, End, arrayOfElements[i])
+            end
         end,
 
         -- Inserts a new element right next to an already present element.
@@ -150,6 +176,28 @@ computeCouplingScore = function(self)
         it1 = forward[it1]
     end
     return result
+end
+
+-- Sorts an array of elements, by their highest coefficient in a Couplings object.
+--
+-- Args:
+-- * elements: Array of elements to sort.
+-- * couplings: Couplings object holding coefficients for the given array of elements.
+--
+sortByHighestCouplingCoefficient = function(elements, couplings)
+    local rootGreatestCouplings = {}
+    local max = math.max
+    local count = elements.count
+    for i=1,count do
+        local elemI = elements[i]
+        for j=i+1,count do
+            local elemJ = elements[j]
+            local coupling = couplings:getCoupling(elemI, elemJ)
+            rootGreatestCouplings[elemI] = max(coupling, rootGreatestCouplings[elemI] or 0)
+            rootGreatestCouplings[elemJ] = max(coupling, rootGreatestCouplings[elemJ] or 0)
+        end
+    end
+    elements:sort(rootGreatestCouplings)
 end
 
 -- Creates a new CouplingScoreOptimizer object.
