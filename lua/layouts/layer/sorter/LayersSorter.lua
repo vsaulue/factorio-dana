@@ -32,7 +32,7 @@ local OrderedSet = require("lua/containers/OrderedSet")
 -- * layersSortingData[layerId]: Map of LayerSortingData (internal type), indexed by layer index.
 -- * layers: Layers object, whose layers are to be sorted.
 --
-local LayersInitialSorter = ErrorOnInvalidRead.new{
+local LayersSorter = ErrorOnInvalidRead.new{
     run = nil, -- implemented later
 }
 
@@ -136,7 +136,7 @@ end
 -- Computes coupling scores between each roots.
 --
 -- Args:
--- * self: LayersInitialSorter object.
+-- * self: LayersSorter object.
 --
 -- Returns: a 2-dim map, giving the coupling between root entries.
 --
@@ -172,7 +172,7 @@ end
 -- Parses the input Layers object into useful intermediate data.
 --
 -- Args:
--- * self: LayersInitialSorter object.
+-- * self: LayersSorter object.
 --
 parseInput = function(self)
     local channelLayers = self.channelLayers
@@ -210,7 +210,7 @@ parseInput = function(self)
             for i=1,highEntries.count do
                 local entry = highEntries[i]
                 if entry.type == "vertex" then
-                    assert(not vertexEntry, "LayersInitialSorter: channel has multiple vertex entries.")
+                    assert(not vertexEntry, "LayersSorter: channel has multiple vertex entries.")
                     vertexEntry = entry
                 end
             end
@@ -246,7 +246,7 @@ end
 -- uses the rank of entries from the previous step as positions.
 --
 -- Args:
--- * self: LayersInitialSorter object.
+-- * self: LayersSorter object.
 --
 sortLayers = function(self)
     local entries = self.layers.entries
@@ -311,7 +311,7 @@ end
 -- Args:
 -- * layersBuilder: LayersBuilder object.
 --
-function LayersInitialSorter.run(layersBuilder)
+function LayersSorter.run(layersBuilder)
     local self = ErrorOnInvalidRead.new{
         channelLayers = layersBuilder:generateChannelLayers(),
         layers = layersBuilder.layers,
@@ -323,4 +323,4 @@ function LayersInitialSorter.run(layersBuilder)
     sortLayers(self)
 end
 
-return LayersInitialSorter
+return LayersSorter

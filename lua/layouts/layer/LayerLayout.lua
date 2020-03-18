@@ -21,7 +21,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperSCC = require("lua/hypergraph/algorithms/HyperSCC")
 local LayerCoordinateGenerator = require("lua/layouts/layer/LayerCoordinateGenerator")
 local LayersBuilder = require("lua/layouts/layer/LayersBuilder")
-local LayersInitialSorter = require("lua/layouts/layer/sorter/LayersInitialSorter")
+local LayersSorter = require("lua/layouts/layer/sorter/LayersSorter")
 local Logger = require("lua/Logger")
 local HyperSrcMinDist = require("lua/hypergraph/algorithms/HyperSrcMinDist")
 local SlotsSorter = require("lua/layouts/layer/SlotsSorter")
@@ -154,7 +154,7 @@ function LayerLayout.new(graph,sourceVertices)
     Impl.assignEdgesToLayers(layersBuilder, graph)
 
     -- 2) Order vertices within their layers (crossing minimization).
-    LayersInitialSorter.run(layersBuilder)
+    LayersSorter.run(layersBuilder)
 
     -- 3) Channel layers (= connection layers between vertex/edge layers).
     local channelLayers = layersBuilder:generateChannelLayers()
