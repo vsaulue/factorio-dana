@@ -37,8 +37,9 @@ local CouplingScoreOptimizer = ErrorOnInvalidRead.new{
 }
 
 -- Implementation stuff (private scope).
-local computeCouplingScore
+local computeCouplingScoreDelta
 local sortByHighestCouplingCoefficient
+local swapAndGetDelta
 
 -- Metatable of the CouplingScoreOptimizer class.
 local Metatable = {
@@ -76,21 +77,23 @@ local Metatable = {
         -- * newElement: New element to insert.
         --
         insert = function(self, lowElem, highElem, newElement)
-            local optimalScore = -math.huge
-            local optimalPos = nil
+            local bestDelta = 0
+            local bestPos = lowElem
+            local currentDelta = 0
             local order = self.order
-            local it = lowElem
-            while it ~= highElem do
-                order:insertAfter(it, newElement)
-                local score = computeCouplingScore(self)
-                order:remove(newElement)
-                if score > optimalScore then
-                    optimalScore = score
-                    optimalPos = it
+            local forward = order.forward
+            order:insertAfter(lowElem, newElement)
+            local next = forward[newElement]
+            while next ~= highElem do
+                currentDelta = currentDelta + swapAndGetDelta(self, newElement)
+                if currentDelta > bestDelta then
+                    bestDelta = currentDelta
+                    bestPos = next
                 end
-                it = order.forward[it]
+                next = forward[newElement]
             end
-            order:insertAfter(optimalPos, newElement)
+            order:remove(newElement)
+            order:insertAfter(bestPos, newElement)
         end,
 
         -- Inserts new elements in a specific range.
@@ -142,39 +145,73 @@ local Metatable = {
     },
 }
 
--- Computes a score indicating if the order of a set "fits well" the given couplings.
+-- Helper function to compute "half" of the score delta for a swap.
+--
+-- When swaping two consecutive elements, this function computes the score delta produced by the
+-- swap with a specific subset of element (typically, either all elements before the pair, or all
+-- elements after the pair).
 --
 -- The order of a set "fits well" a coupling function if pairs with a high coupling value
--- tends to be close of each other in the set.
+-- tend to be close of each other in the set.
 --
 -- Inspired by gravity forces: a good order minimizes the potential energy:
--- Ep = - sum(G * m1 * m2 / d(m1,m2)) = - sum(couplings(m1,m2)/d(m1,m2))
+-- Ep = - sum(G * m1 * m2 / d(m1,m2)) = - sum(couplings(m1,m2) / (r(m1) + r(m2)))
+--
+-- The score is simply the opposite, and should be maximized (= higher is better):
+-- Score = + sum(couplings(m1,m2) / (r(m1) + r(m2)))
 --
 -- Args:
 -- * self: CouplingScoreOptimizer object.
+-- * nearElement: An element in the swaped pair (the closest before the swap operation).
+-- * farElement: Other element in the swaped pair (the farthest before the swap operation).
+-- * list: Structure to iterate through neighbours (see OrderedSet.forward, or backward).
+-- * endSentinel: Element/sentinel on which the delta computation should be stopped.
 --
--- Returns: a score (higher is better).
+-- Returns: The difference in coupling score, with elements between list[nearElement] and endSentinel excluded.
 --
-computeCouplingScore = function(self)
-    local order = self.order
-    local couplings = self.couplings
+computeHalfScoreDelta = function(self, nearElement, farElement, list, endSentinel)
     local radiuses = self.radiuses
-    local End = order.End
+    local couplings = self.couplings
+    local distDelta = radiuses[nearElement] + radiuses[farElement]
+
     local result = 0
-    local forward = order.forward
-    local it1 = forward[order.Begin]
-    while it1 ~= End do
-        local it2 = forward[it1]
-        local dist = radiuses[it1]
-        while it2 ~= End do
-            local radius2 = radiuses[it2]
-            dist = dist + radius2
-            result = result + (couplings:getCoupling(it1, it2) or 0) / dist
-            dist = dist + radius2
-            it2 = forward[it2]
-        end
-        it1 = forward[it1]
+    local it = list[nearElement]
+    local distFromFirst = radiuses[nearElement]
+
+    while it ~= endSentinel do
+        local itRadius = radiuses[it]
+        distFromFirst = distFromFirst + itRadius
+
+        local couplingDelta = couplings:getCoupling(it, farElement) - couplings:getCoupling(it, nearElement)
+        local distMultiplier = distDelta / ((distFromFirst + distDelta) * distFromFirst)
+        result = result + distMultiplier * couplingDelta
+
+        distFromFirst = distFromFirst + itRadius
+        it = list[it]
     end
+    return result
+end
+
+-- Swaps two items in self.order, and computes the resulting difference in coupling score.
+--
+-- Args:
+-- * self: CouplingScoreOptimizer object.
+-- * first: First element to swap (with self.order.forward[first])
+--
+-- Returns: The difference in coupling score (newScore - oldScore).
+--
+swapAndGetDelta = function(self, first)
+    local order = self.order
+    local forward = order.forward
+    local backward = order.backward
+    local second = forward[first]
+
+    local result = computeHalfScoreDelta(self, first, second, backward, order.Begin)
+    result = result + computeHalfScoreDelta(self, second, first, forward, order.End)
+
+    order:remove(first)
+    order:insertAfter(second, first)
+
     return result
 end
 
