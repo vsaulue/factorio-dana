@@ -14,8 +14,8 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local Couplings = require("lua/layouts/layer/Couplings")
-local CouplingScoreOptimizer = require("lua/layouts/layer/CouplingScoreOptimizer")
+local Couplings = require("lua/layouts/layer/sorter/Couplings")
+local CouplingScoreOptimizer = require("lua/layouts/layer/sorter/CouplingScoreOptimizer")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local OrderedSet = require("lua/containers/OrderedSet")
 

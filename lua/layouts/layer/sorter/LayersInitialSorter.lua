@@ -15,10 +15,10 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local Array = require("lua/containers/Array")
-local ClassCouplingScoreOptimizer = require("lua/layouts/layer/ClassCouplingScoreOptimizer")
-local Couplings = require("lua/layouts/layer/Couplings")
-local CouplingScoreOptimizer = require("lua/layouts/layer/CouplingScoreOptimizer")
-local EquivalenceClasses = require("lua/layouts/layer/EquivalenceClasses")
+local ClassCouplingScoreOptimizer = require("lua/layouts/layer/sorter/ClassCouplingScoreOptimizer")
+local Couplings = require("lua/layouts/layer/sorter/Couplings")
+local CouplingScoreOptimizer = require("lua/layouts/layer/sorter/CouplingScoreOptimizer")
+local EquivalenceClasses = require("lua/layouts/layer/sorter/EquivalenceClasses")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local OrderedSet = require("lua/containers/OrderedSet")
 
