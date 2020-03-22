@@ -22,7 +22,6 @@ local Queue = require("lua/containers/Queue")
 --
 -- RO fields:
 -- * dependencyGraph[lElem][gElem]: 2-dim map of stored relations.
--- * greaterThan[lElem][gElem]: 2-dim map, true if lElem < gElem. Not set otherwise.
 --
 -- Methods:
 -- * addRelation: Sets the relation order between 2 elements.
@@ -70,13 +69,8 @@ function Metatable.__index.addRelation(self, lowerElement, greaterElement)
     assert(has(self, greaterElement), "StrictPoset: Invalid element.")
     assert(has(self, lowerElement), "StrictPoset: Invalid element.")
     assert(greaterElement ~= lowerElement, "StrictPoset: attempt to make an element lower than itself.")
-    assert(not self.greaterThan[lowerElement][greaterElement], "StrictPoset: conflicting relations.")
 
     self.dependencyGraph[lowerElement][greaterElement] = true
-    for great2 in pairs(self.greaterThan[greaterElement]) do
-        self.greaterThan[lowerElement][great2] = true
-    end
-    self.greaterThan[lowerElement][greaterElement] = true
 end
 
 -- Adds a new element to the set.
@@ -88,7 +82,6 @@ end
 function Metatable.__index.insert(self, element)
     if not has(self, element) then
         self.dependencyGraph[element] = {}
-        self.greaterThan[element] = {}
     end
 end
 
@@ -141,7 +134,6 @@ end
 function StrictPoset.new()
     local result = {
         dependencyGraph = ErrorOnInvalidRead.new(),
-        greaterThan = ErrorOnInvalidRead.new(),
     }
     setmetatable(result, Metatable)
     return result
