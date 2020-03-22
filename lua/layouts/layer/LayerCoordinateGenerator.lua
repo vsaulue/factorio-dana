@@ -29,8 +29,8 @@ local Logger = require("lua/Logger")
 --   * output: placement data of this entry, returned in the LayoutCoordinates object.
 --   * inboundNodes[channelIndex]: Tree node of the given channel index for inbound slots.
 --   * outboundNodes[channelIndex]: Tree node of the given channel index for outbound slots.
---   * inboundOffsets[rank]: x-offset of the given inbound slot.
---   * outboundOffsets[rank]: x-offset of the given outbound slot.
+--   * inboundOffsets[channelIndex]: x-offset of the given inbound slot.
+--   * outboundOffsets[channelIndex]: x-offset of the given outbound slot.
 --
 -- Fields:
 -- * entryPositions[entry]: LayerEntryPosition object associated to a specific entry.
@@ -210,7 +210,7 @@ fillSlotOffsets = function(slots, output, xLength)
     local count = slots.count
     for rank=1,count do
         local channelIndex = slots[rank]
-        output[rank] = xLength * (rank - 0.5) / count
+        output[channelIndex] = xLength * (rank - 0.5) / count
     end
 end
 

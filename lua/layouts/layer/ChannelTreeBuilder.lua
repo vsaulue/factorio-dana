@@ -123,9 +123,7 @@ function Impl.nextHigh(self)
     if itHigh:next() then
         local entry = itHigh.value
         local entryPosition = self.entryPositions[entry]
-        local slots = entry.inboundSlots
-        local rank = slots[self.channelIndex]
-        self.xHigh = entryPosition.output.xMin + entryPosition.inboundOffsets[rank]
+        self.xHigh = entryPosition.output.xMin + entryPosition.inboundOffsets[self.channelIndex]
     else
         self.xHigh = nil
     end
@@ -146,9 +144,7 @@ function Impl.nextLow(self)
     if itLow:next() then
         local entry = itLow.value
         local entryPosition = self.entryPositions[entry]
-        local slots = entry.outboundSlots
-        local rank = slots[self.channelIndex]
-        self.xLow = entryPosition.output.xMin + entryPosition.outboundOffsets[rank]
+        self.xLow = entryPosition.output.xMin + entryPosition.outboundOffsets[self.channelIndex]
     else
         self.xLow = nil
     end
