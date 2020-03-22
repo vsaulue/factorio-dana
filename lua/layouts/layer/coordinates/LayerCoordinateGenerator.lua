@@ -14,7 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ChannelTreeBuilder = require("lua/layouts/layer/ChannelTreeBuilder")
+local ChannelTreeBuilder = require("lua/layouts/layer/coordinates/ChannelTreeBuilder")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
 local Logger = require("lua/Logger")
