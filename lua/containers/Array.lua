@@ -29,6 +29,8 @@ local Logger = require("lua/Logger")
 -- Methods:
 -- * loadFromOrderedSet: Replaces the content of this array with the values stored in an OrderedSet object.
 -- * pushBack: adds a new value at the end of the array.
+-- * pushBackIteratorAll: Push back all remaining values from an iterator.
+-- * pushBackIteratorOnce: Push back the current value of an iterator, and call next() once.
 -- * sort: sorts the array in place.
 --
 local Array = ErrorOnInvalidRead.new{
@@ -103,6 +105,32 @@ local Impl = ErrorOnInvalidRead.new{
                 local count = self.count + 1
                 self[count] = value
                 self.count = count
+            end,
+
+            -- Push back all remaining values from an iterator.
+            --
+            -- Args:
+            -- * self: Array object.
+            -- * iterator: Iterator holding the values to push.
+            --
+            pushBackIteratorAll = function(self, iterator)
+                local value = iterator.value
+                while value do
+                    self:pushBack(value)
+                    iterator:next()
+                    value = iterator.value
+                end
+            end,
+
+            -- Push back the current value of an iterator, and call next() once.
+            --
+            -- Args:
+            -- * self: Array object.
+            -- * iterator: Iterator holding the value to push back.
+            --
+            pushBackIteratorOnce = function(self, iterator)
+                self:pushBack(iterator.value)
+                iterator:next()
             end,
 
             -- Sorts this array in place.
