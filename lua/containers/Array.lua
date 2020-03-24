@@ -160,12 +160,10 @@ local Impl = ErrorOnInvalidRead.new{
 }
 
 function Impl.Metatable.__ipairs(self)
-    Logger.perfDebug("Array: __ipairs is deprecated. Use 'for i=1,array.count do ...' instead.")
     return Impl.iteratorNext, self, 0
 end
 
 function Impl.Metatable.__pairs(self)
-    Logger.perfDebug("Array: __pairs is deprecated. Use 'for i=1,array.count do ...' instead.")
     return Impl.iteratorNext, self, 0
 end
 
