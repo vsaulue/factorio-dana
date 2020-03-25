@@ -16,6 +16,7 @@
 
 local ChannelTreeBuilder = require("lua/layouts/layer/coordinates/ChannelTreeBuilder")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local LayerEntryPosition = require("lua/layouts/layer/coordinates/LayerEntryPosition")
 local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
 local Logger = require("lua/Logger")
 
@@ -23,14 +24,6 @@ local Logger = require("lua/Logger")
 --
 -- This class is private (not accessible from other files): it is just an intermediate
 -- used during the layout generation.
---
--- Subtypes:
--- * LayerEntryPosition: Class holding placement data of a specific entry.
---   * output: placement data of this entry, returned in the LayoutCoordinates object.
---   * inboundNodes[channelIndex]: Tree node of the given channel index for inbound slots.
---   * outboundNodes[channelIndex]: Tree node of the given channel index for outbound slots.
---   * inboundOffsets[channelIndex]: x-offset of the given inbound slot.
---   * outboundOffsets[channelIndex]: x-offset of the given outbound slot.
 --
 -- Fields:
 -- * entryPositions[entry]: LayerEntryPosition object associated to a specific entry.
@@ -47,7 +40,6 @@ local attachLinksToEntries
 local createEntryCoordinateRecords
 local computeX
 local computeYAndLinks
-local fillSlotOffsets
 local processChannelLayer
 
 -- Set the Y coordinate of tree nodes attached to entries.
@@ -86,12 +78,8 @@ createEntryCoordinateRecords = function(self)
         for rank=1,layer.count do
             local entry = layer[rank]
             local entryType = entry.type
-            local entryRecord = ErrorOnInvalidRead.new{
-                output = ErrorOnInvalidRead.new(),
-                inboundNodes = ErrorOnInvalidRead.new(),
-                inboundOffsets = ErrorOnInvalidRead.new(),
-                outboundNodes = ErrorOnInvalidRead.new(),
-                outboundOffsets = ErrorOnInvalidRead.new(),
+            local entryRecord = LayerEntryPosition.new{
+                entry = entry,
             }
             if entryType ~= "linkNode" then
                 local tableName = "vertices"
@@ -136,10 +124,7 @@ computeX = function(self)
             local xMargin = typeToMarginX[entryType]
             x = x + xMargin
             local entryRecord = self.entryPositions[entry]
-            entryRecord.output.xMin = x
-            entryRecord.output.xMax = x + xLength
-            fillSlotOffsets(entry.inboundSlots, entryRecord.inboundOffsets, xLength)
-            fillSlotOffsets(entry.outboundSlots, entryRecord.outboundOffsets, xLength)
+            entryRecord:initX(x, xLength)
             x = x + xLength + xMargin
         end
         if x > xLengthMax then
@@ -153,9 +138,7 @@ computeX = function(self)
         local layer = entries[layerId]
         local xDelta = (xLengthMax - layerXLengths[layerId]) / 2
         for rank=1,layer.count do
-            local output = self.entryPositions[layer[rank]].output
-            output.xMin = output.xMin + xDelta
-            output.xMax = output.xMax + xDelta
+            self.entryPositions[layer[rank]]:translateX(xDelta)
         end
     end
 end
@@ -197,21 +180,6 @@ computeYAndLinks = function(self)
         y = y + yLayerLength
     end
     processChannelLayer(self, entries.count + 1, y)
-end
-
--- Fill the inboundOffsets & outboundOffsets fields of a LayerEntryPosition object.
---
--- Args:
--- * slots: ReversibleArray of slots (ex: LayerEntry.inboundSlots).
--- * output: Table in which the offsets should be written.
--- * xLength: Length of the entry.
---
-fillSlotOffsets = function(slots, output, xLength)
-    local count = slots.count
-    for rank=1,count do
-        local channelIndex = slots[rank]
-        output[channelIndex] = xLength * (rank - 0.5) / count
-    end
 end
 
 -- Creates a tree links for all the channel indices of a channel layers.
