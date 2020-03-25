@@ -14,7 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ChannelTreeBuilder = require("lua/layouts/layer/coordinates/ChannelTreeBuilder")
+local ChannelRouter = require("lua/layouts/layer/coordinates/ChannelRouter")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayerEntryPosition = require("lua/layouts/layer/coordinates/LayerEntryPosition")
 local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
@@ -197,23 +197,24 @@ end
 --
 processChannelLayer = function(self, lRank, yMin)
     local channelLayer = self.layout.channelLayers[lRank]
-    local y = yMin
-    for cRank=1,channelLayer.order.count do
-        local channelIndex = channelLayer.order[cRank]
-        local channelTree = null
-        y = y + self.params.linkWidth
-        local newTree = ChannelTreeBuilder.run(channelLayer, channelIndex, self.entryPositions, y)
+    local router = ChannelRouter.new{
+        yMin = yMin,
+        channelLayer = channelLayer,
+        entryPositions = self.entryPositions,
+        linkWidth = self.params.linkWidth,
+    }
+    for channelIndex,tree in pairs(router.roots) do
         local category = "forward"
         if not channelIndex.isForward then
             category = "backward"
         end
         local treeLink = ErrorOnInvalidRead.new{
             category = category,
-            tree = newTree,
+            tree = tree,
         }
         self.result.links[treeLink] = true
     end
-    return y + self.params.linkWidth
+    return yMin + router.yLength
 end
 
 -- Computes the coordinates of each elements of a LayerLayout object.
