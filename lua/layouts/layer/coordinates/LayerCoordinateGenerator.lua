@@ -42,30 +42,6 @@ local computeX
 local computeYAndLinks
 local processChannelLayer
 
--- Set the Y coordinate of tree nodes attached to entries.
---
--- Args:
--- * self: LayerCoordinateGenerator object.
---
-attachLinksToEntries = function(self)
-    local entries = self.layout.layers.entries
-    for layerId=1,entries.count do
-        local layer = entries[layerId]
-        for rank=1,layer.count do
-            local entry = layer[rank]
-            local layerEntryPos = self.entryPositions[entry]
-            local yMin = layerEntryPos.output.yMin
-            for _,treeNode in pairs(layerEntryPos.inboundNodes) do
-                treeNode.y = yMin
-            end
-            local yMax = layerEntryPos.output.yMax
-            for _,treeNode in pairs(layerEntryPos.outboundNodes) do
-                treeNode.y = yMax
-            end
-        end
-    end
-end
-
 -- Creates empty coordinate records for each entry.
 --
 -- Args:
@@ -143,11 +119,10 @@ computeX = function(self)
     end
 end
 
--- Computes the Y coordinates of entries, and the tree links.
+-- Computes the Y coordinates of entries & nodes, and the tree links.
 --
 -- All trees will be stored in self.result.links. The nodes attached to an entry will be properly
--- added to the corresponding LayerEntryPosition objects inside self.entryPositions. The Y
--- field of these nodes are NOT set by this function.
+-- added to the corresponding LayerEntryPosition objects inside self.entryPositions.
 --
 -- Args:
 -- * self: LayerCoordinateGenerator object.
@@ -174,8 +149,7 @@ computeYAndLinks = function(self)
             local entry = layer[rank]
             local yHalfLength = typeToMinY[entry.type] / 2
             local layerEntryPos = self.entryPositions[entry]
-            layerEntryPos.output.yMin = yMiddle - yHalfLength
-            layerEntryPos.output.yMax = yMiddle + yHalfLength
+            layerEntryPos:initY(yMiddle - yHalfLength, yMiddle + yHalfLength)
         end
         y = y + yLayerLength
     end
@@ -236,7 +210,6 @@ function LayerCoordinateGenerator.run(layout, params)
     createEntryCoordinateRecords(self)
     computeX(self)
     computeYAndLinks(self)
-    attachLinksToEntries(self)
 
     return result
 end

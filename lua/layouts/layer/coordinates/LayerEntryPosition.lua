@@ -38,6 +38,7 @@ local LayerEntryPosition = ErrorOnInvalidRead.new{
 -- Implementation stuff (private scope).
 local buildNodes
 local computeSlotsX
+local setSlotsY
 local translateNodesX
 
 -- Map giving the field name for slot nodes.
@@ -75,6 +76,21 @@ local Metatable = {
             self.output.xMax = xMin + xLength
             computeSlotsX(entry.inboundSlots, self.inboundNodes, xMin, xLength)
             computeSlotsX(entry.outboundSlots, self.outboundNodes, xMin, xLength)
+        end,
+
+        -- Initializes the Y coordinates of this object.
+        --
+        -- Args:
+        -- * self: LayerEntryPosition object.
+        -- * yMin: New yMin value.
+        -- * yMax: New yMax value.
+        --
+        initY = function(self, yMin, yMax)
+            local entry = self.entry
+            self.output.yMin = yMin
+            self.output.yMax = yMax
+            setSlotsY(self.inboundNodes, yMin)
+            setSlotsY(self.outboundNodes, yMax)
         end,
 
         -- Moves this object on the X axis.
@@ -123,6 +139,18 @@ computeSlotsX = function(slots, nodes, xMin, xLength)
         local channelIndex = slots[rank]
         local node = nodes[channelIndex]
         node.x = xMin + xLength * (rank - 0.5) / count
+    end
+end
+
+-- Sets the y field of a set of link nodes.
+--
+-- Args:
+-- * nodes: Map of link nodes, indexed by channel indexes.
+-- * y: New 'y' value of the nodes.
+--
+setSlotsY = function(nodes, y)
+    for _,node in pairs(nodes) do
+        node.y = y
     end
 end
 
