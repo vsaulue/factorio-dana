@@ -26,6 +26,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 --   * outboundOffsets[channelIndex]: x-offset of the given outbound slot.
 --
 -- Methods:
+-- * getSlotAbsoluteX: Gets the absolute X coordinate of a slot.
 -- * initX: Initializes the X coordinates of this object.
 -- * translateX: Moves this object on the X axis.
 --
@@ -36,9 +37,26 @@ local LayerEntryPosition = ErrorOnInvalidRead.new{
 -- Implementation stuff (private scope).
 local fillSlotOffsets
 
+-- Map giving the field name for slot offsets.
+local offsetsFieldName = ErrorOnInvalidRead.new{
+    [true] = "inboundOffsets",
+    [false] = "outboundOffsets",
+}
+
 -- Metatable of the LayerEntryPosition class.
 local Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Gets the absolute X coordinate of a slot.
+        --
+        -- Args:
+        -- * self: LayerEntryPosition object.
+        -- * channelIndex: Channel index of the slot.
+        -- * isInbound: true for an inbound slot, false otherwise.
+        --
+        getSlotAbsoluteX = function(self, channelIndex, isInbound)
+            local offset = self[offsetsFieldName[isInbound]][channelIndex]
+            return self.output.xMin + offset
+        end,
         -- Initializes the X coordinates of this object.
         --
         -- Args:
