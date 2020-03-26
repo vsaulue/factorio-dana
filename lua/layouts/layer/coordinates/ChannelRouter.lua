@@ -15,18 +15,12 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local Array = require("lua/containers/Array")
+local ChannelBranch = require("lua/layouts/layer/coordinates/ChannelBranch")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Iterator = require("lua/containers/utils/Iterator")
 local Tree = require("lua/containers/Tree")
 
 -- Class handling the coordinate generation of a ChannelLayer.
---
--- Subtype: ChannelBranch
--- * channelIndex: Channel index of the linked trunk and slot.
--- * entryNode: Tree node attached to the entry.
--- * entryPosition: LayerEntryPosition object.
--- * isLow: True if the entry is in the lower entry layer, false otherwise.
--- * trunkNode: Tree node attached to the trunk.
 --
 -- RO Fields:
 -- * channelLayer: ChannelLayer object being mapped to coordinates.
@@ -148,21 +142,13 @@ makeBranches = function(self, entryArray, channelIndex, isLow)
     for i=1,count do
         local entry = entryArray[i]
         local entryPos = entryPositions[entry]
-        local x = entryPos:getSlotAbsoluteX(channelIndex, not isLow)
-        local entryNode = Tree.new{
-            x = x,
-        }
-        result[i] = ErrorOnInvalidRead.new{
+        local newBranch = ChannelBranch.new{
             channelIndex = channelIndex,
-            entryNode = entryNode,
             entryPosition = entryPos,
             isLow = isLow,
-            trunkNode = Tree.new{
-                x = x,
-            },
-            x = x,
         }
-        entryPos[nodesFieldName[isLow]][channelIndex] = entryNode
+        result[i] = newBranch
+        entryPos[nodesFieldName[isLow]][channelIndex] = newBranch.entryNode
     end
     result.count = count
     return result
