@@ -198,7 +198,6 @@ end
 processChannelLayer = function(self, lRank, yMin)
     local channelLayer = self.layout.channelLayers[lRank]
     local router = ChannelRouter.new{
-        yMin = yMin,
         channelLayer = channelLayer,
         entryPositions = self.entryPositions,
         linkWidth = self.params.linkWidth,
@@ -214,7 +213,7 @@ processChannelLayer = function(self, lRank, yMin)
         }
         self.result.links[treeLink] = true
     end
-    return yMin + router.yLength
+    return router:setY(yMin)
 end
 
 -- Computes the coordinates of each elements of a LayerLayout object.

@@ -29,13 +29,11 @@ local Tree = require("lua/containers/Tree")
 -- * trunkNode: Tree node attached to the trunk.
 --
 -- RO Fields:
--- * yMin: maximum "y" coordinate of objects in the last layer.
 -- * channelLayer: ChannelLayer object being mapped to coordinates.
 -- * entryPositions[entry]: Map giving the LayerEntryPosition object of a LayerEntry.
 -- * linkWidth: Width of links, including margins.
 -- * roots[channelIndex]: Map of generated Tree for each channel, useable for tree links.
 -- * trunks[channelIndex]: Map of trunks for each channel (trunk = Array of ChannelBranches).
--- * yLength: "y" length of the generated layout for this channel layer.
 --
 local ChannelRouter = ErrorOnInvalidRead.new{
     new = nil,
@@ -43,9 +41,37 @@ local ChannelRouter = ErrorOnInvalidRead.new{
 
 -- Implementation stuff (private scope).
 local buildTrees
-local computeY
 local generateTrunks
 local makeBranches
+
+-- Metatable of the ChannelRouter class.
+local Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Assigns an Y coordinate to trunk nodes.
+        --
+        -- Args:
+        -- * self: ChannelRouter object.
+        -- * yMin: Minimum Y coordinate of the channel layer.
+        --
+        -- Returns: The maximum Y coordinate of the channel layer.
+        --
+        setY = function(self, yMin)
+            local linkWidth = self.linkWidth
+            local order = self.channelLayer.order
+            local y = yMin + linkWidth / 2
+            for i=1,order.count do
+                local channelIndex = order[i]
+                local trunk = self.trunks[channelIndex]
+                for j=1,trunk.count do
+                    local branch = trunk[j]
+                    branch.trunkNode.y = y
+                end
+                y = y + linkWidth
+            end
+            return y - linkWidth / 2
+        end
+    },
+}
 
 -- Map giving the field name for slot nodes in LayerEntryPosition.
 local nodesFieldName = ErrorOnInvalidRead.new{
@@ -73,27 +99,6 @@ buildTrees = function(self)
         assert(root)
         self.roots[channelIndex] = root
     end
-end
-
--- Assigns an Y coordinate to trunk nodes.
---
--- Args:
--- * self: ChannelRouter object.
---
-computeY = function(self)
-    local linkWidth = self.linkWidth
-    local order = self.channelLayer.order
-    local y = self.yMin + linkWidth / 2
-    for i=1,order.count do
-        local channelIndex = order[i]
-        local trunk = self.trunks[channelIndex]
-        for j=1,trunk.count do
-            local branch = trunk[j]
-            branch.trunkNode.y = y
-        end
-        y = y + linkWidth
-    end
-    self.yLength = y - linkWidth / 2 - self.yMin
 end
 
 -- Parses the ChannelLayer's high/low entries, and generates trunks.
@@ -172,14 +177,12 @@ function ChannelRouter.new(object)
     assert(object.channelLayer, "ChannelRouter: missing mandatory 'channelLayer' field.")
     assert(object.entryPositions, "ChannelRouter: missing mandatory 'entryPositions' field.")
     assert(object.linkWidth, "ChannelRouter: missing mandatory 'linkWidth' field.")
-    assert(object.yMin, "ChannelRouter: missing mandatory 'yMin' field.")
 
-    ErrorOnInvalidRead.setmetatable(object)
+    setmetatable(object, Metatable)
     object.trunks = ErrorOnInvalidRead.new()
     object.roots = ErrorOnInvalidRead.new()
 
     generateTrunks(object)
-    computeY(object)
     buildTrees(object)
 
     return object
