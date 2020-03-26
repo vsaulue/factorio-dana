@@ -19,16 +19,15 @@ local Tree = require("lua/containers/Tree")
 
 -- Class holding placement data of a specific entry.
 --
+-- The X coordinate of slots are directly stored in their associated link node.
+--
 --  Fields:
 --   * output: placement data of this entry, returned in the LayoutCoordinates object.
 --   * inboundNodes[channelIndex]: Tree node of the given channel index for inbound slots.
 --   * outboundNodes[channelIndex]: Tree node of the given channel index for outbound slots.
---   * inboundOffsets[channelIndex]: x-offset of the given inbound slot.
---   * outboundOffsets[channelIndex]: x-offset of the given outbound slot.
 --
 -- Methods:
 -- * getNode: Gets the tree node associated to the given slot.
--- * getSlotAbsoluteX: Gets the absolute X coordinate of a slot.
 -- * initX: Initializes the X coordinates of this object.
 -- * translateX: Moves this object on the X axis.
 --
@@ -37,14 +36,9 @@ local LayerEntryPosition = ErrorOnInvalidRead.new{
 }
 
 -- Implementation stuff (private scope).
-local fillSlotOffsets
 local buildNodes
-
--- Map giving the field name for slot offsets.
-local offsetsFieldName = ErrorOnInvalidRead.new{
-    [true] = "inboundOffsets",
-    [false] = "outboundOffsets",
-}
+local computeSlotsX
+local translateNodesX
 
 -- Map giving the field name for slot nodes.
 local nodesFieldName = ErrorOnInvalidRead.new{
@@ -68,18 +62,6 @@ local Metatable = {
             return self[nodesFieldName[isInbound]][channelIndex]
         end,
 
-        -- Gets the absolute X coordinate of a slot.
-        --
-        -- Args:
-        -- * self: LayerEntryPosition object.
-        -- * channelIndex: Channel index of the slot.
-        -- * isInbound: true for an inbound slot, false otherwise.
-        --
-        getSlotAbsoluteX = function(self, channelIndex, isInbound)
-            local offset = self[offsetsFieldName[isInbound]][channelIndex]
-            return self.output.xMin + offset
-        end,
-
         -- Initializes the X coordinates of this object.
         --
         -- Args:
@@ -91,8 +73,8 @@ local Metatable = {
             local entry = self.entry
             self.output.xMin = xMin
             self.output.xMax = xMin + xLength
-            fillSlotOffsets(entry.inboundSlots, self.inboundOffsets, xLength)
-            fillSlotOffsets(entry.outboundSlots, self.outboundOffsets, xLength)
+            computeSlotsX(entry.inboundSlots, self.inboundNodes, xMin, xLength)
+            computeSlotsX(entry.outboundSlots, self.outboundNodes, xMin, xLength)
         end,
 
         -- Moves this object on the X axis.
@@ -105,6 +87,8 @@ local Metatable = {
             local output = self.output
             output.xMin = output.xMin + xDelta
             output.xMax = output.xMax + xDelta
+            translateNodesX(self.inboundNodes, xDelta)
+            translateNodesX(self.outboundNodes, xDelta)
         end,
     },
 }
@@ -125,18 +109,32 @@ buildNodes = function(slots)
     return result
 end
 
--- Fills the inboundOffsets & outboundOffsets fields of a LayerEntryPosition object.
+-- Fills x field of a set of link nodes.
 --
 -- Args:
 -- * slots: ReversibleArray of slots (ex: LayerEntry.inboundSlots).
--- * output: Table in which the offsets should be written.
+-- * nodes: Map of link nodes, indexed by channel indexes.
+-- * xMin: New xMin value of the entry.
 -- * xLength: Length of the entry.
 --
-fillSlotOffsets = function(slots, output, xLength)
+computeSlotsX = function(slots, nodes, xMin, xLength)
     local count = slots.count
     for rank=1,count do
         local channelIndex = slots[rank]
-        output[channelIndex] = xLength * (rank - 0.5) / count
+        local node = nodes[channelIndex]
+        node.x = xMin + xLength * (rank - 0.5) / count
+    end
+end
+
+-- Updates the x field of a set of link nodes.
+--
+-- Args:
+-- * nodes: Map of Tree nodes.
+-- * xDelta: Value to add to the x field of tree nodes.
+--
+translateNodesX = function(nodes, xDelta)
+    for _,node in pairs(nodes) do
+        node.x = node.x + xDelta
     end
 end
 

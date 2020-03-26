@@ -43,10 +43,9 @@ local ChannelBranch = ErrorOnInvalidRead.new{
 
         local isInbound = not isLow
         local entryNode = entryPos:getNode(channelIndex, isInbound)
-        local x = entryPos:getSlotAbsoluteX(channelIndex, isInbound)
+        local x = entryNode.x
         ErrorOnInvalidRead.setmetatable(object)
         object.entryNode = entryNode
-        entryNode.x = x
         object.trunkNode = Tree.new{
             x = x,
         }
