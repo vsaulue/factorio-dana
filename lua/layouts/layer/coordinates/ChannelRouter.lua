@@ -67,12 +67,6 @@ local Metatable = {
     },
 }
 
--- Map giving the field name for slot nodes in LayerEntryPosition.
-local nodesFieldName = ErrorOnInvalidRead.new{
-    [false] = "inboundNodes",
-    [true] = "outboundNodes",
-}
-
 -- Fills the roots field, and links tree nodes together to form the trees.
 --
 -- Args:
@@ -148,7 +142,6 @@ makeBranches = function(self, entryArray, channelIndex, isLow)
             isLow = isLow,
         }
         result[i] = newBranch
-        entryPos[nodesFieldName[isLow]][channelIndex] = newBranch.entryNode
     end
     result.count = count
     return result

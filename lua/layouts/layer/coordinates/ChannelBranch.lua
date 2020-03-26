@@ -40,12 +40,13 @@ local ChannelBranch = ErrorOnInvalidRead.new{
         assert(channelIndex, "ChannelBranch: missing mandatory 'channelIndex' field.")
         assert(entryPos, "ChannelBranch: missing mandatory 'entryPosition' field.")
         assert(isLow ~= nil, "ChannelBranch: missing mandatory 'isLow' field.")
-        local x = entryPos:getSlotAbsoluteX(channelIndex, not isLow)
 
+        local isInbound = not isLow
+        local entryNode = entryPos:getNode(channelIndex, isInbound)
+        local x = entryPos:getSlotAbsoluteX(channelIndex, isInbound)
         ErrorOnInvalidRead.setmetatable(object)
-        object.entryNode = Tree.new{
-            x = x,
-        }
+        object.entryNode = entryNode
+        entryNode.x = x
         object.trunkNode = Tree.new{
             x = x,
         }

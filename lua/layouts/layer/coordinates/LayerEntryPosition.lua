@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local Tree = require("lua/containers/Tree")
 
 -- Class holding placement data of a specific entry.
 --
@@ -26,6 +27,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 --   * outboundOffsets[channelIndex]: x-offset of the given outbound slot.
 --
 -- Methods:
+-- * getNode: Gets the tree node associated to the given slot.
 -- * getSlotAbsoluteX: Gets the absolute X coordinate of a slot.
 -- * initX: Initializes the X coordinates of this object.
 -- * translateX: Moves this object on the X axis.
@@ -36,6 +38,7 @@ local LayerEntryPosition = ErrorOnInvalidRead.new{
 
 -- Implementation stuff (private scope).
 local fillSlotOffsets
+local buildNodes
 
 -- Map giving the field name for slot offsets.
 local offsetsFieldName = ErrorOnInvalidRead.new{
@@ -43,9 +46,28 @@ local offsetsFieldName = ErrorOnInvalidRead.new{
     [false] = "outboundOffsets",
 }
 
+-- Map giving the field name for slot nodes.
+local nodesFieldName = ErrorOnInvalidRead.new{
+    [true] = "inboundNodes",
+    [false] = "outboundNodes",
+}
+
 -- Metatable of the LayerEntryPosition class.
 local Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Gets the tree node associated to the given slot.
+        --
+        -- Args:
+        -- * self: LayerEntryPosition object.
+        -- * channelIndex: Channel index of the slot.
+        -- * isInbound: true for an inbound slot, false otherwise.
+        --
+        -- Returns: The tree object associated to the given slot.
+        --
+        getNode = function(self, channelIndex, isInbound)
+            return self[nodesFieldName[isInbound]][channelIndex]
+        end,
+
         -- Gets the absolute X coordinate of a slot.
         --
         -- Args:
@@ -57,6 +79,7 @@ local Metatable = {
             local offset = self[offsetsFieldName[isInbound]][channelIndex]
             return self.output.xMin + offset
         end,
+
         -- Initializes the X coordinates of this object.
         --
         -- Args:
@@ -86,6 +109,22 @@ local Metatable = {
     },
 }
 
+-- Builds a map of Tree nodes corresponding to a ReversibleArray of ChannelIndex.
+--
+-- Args:
+-- * slots: ReversibleArray of ChannelIndex.
+--
+-- Returns: A map of Tree objects, indexed by channel indexes.
+--
+buildNodes = function(slots)
+    local result = ErrorOnInvalidRead.new()
+    for i=1,slots.count do
+        local channelIndex = slots[i]
+        result[channelIndex] = Tree.new()
+    end
+    return result
+end
+
 -- Fills the inboundOffsets & outboundOffsets fields of a LayerEntryPosition object.
 --
 -- Args:
@@ -109,12 +148,13 @@ end
 -- Returns: object, turned into a LayerEntryPosition object.
 --
 function LayerEntryPosition.new(object)
-    assert(object.entry, "LayerEntryPosition: missing mandatory 'entry' field.")
+    local entry = object.entry
+    assert(entry, "LayerEntryPosition: missing mandatory 'entry' field.")
 
     object.output = ErrorOnInvalidRead.new()
-    object.inboundNodes = ErrorOnInvalidRead.new()
+    object.inboundNodes = buildNodes(entry.inboundSlots)
     object.inboundOffsets = ErrorOnInvalidRead.new()
-    object.outboundNodes = ErrorOnInvalidRead.new()
+    object.outboundNodes = buildNodes(entry.outboundSlots)
     object.outboundOffsets = ErrorOnInvalidRead.new()
 
     setmetatable(object, Metatable)
