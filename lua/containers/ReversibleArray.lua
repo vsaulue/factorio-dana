@@ -30,6 +30,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 -- * (other): the index of this value.
 --
 -- Methods:
+-- * getLowHighValues: Returns the two input values, reordered to match their indices' order.
 -- * popBack: Removes and returns the last value of this ReversibleArray.
 -- * pushBack: Adds a new value at the end of this ReversibleArray.
 -- * pushBackIfNotPresent: Append a value if it's not already present, else does nothing.
@@ -65,6 +66,29 @@ local Impl = ErrorOnInvalidRead.new{
     -- Metatable of the LayerLink class.
     Metatable = {
         __index = ErrorOnInvalidRead.new{
+            -- Returns the two input values, reordered to match their indices' order.
+            --
+            -- Args:
+            -- * self: Couplings object.
+            -- * valueA: Some value.
+            -- * valueB: Another value.
+            --
+            -- Returns:
+            -- * The value with the lower index.
+            -- * The value with the greater index.
+            --
+            getLowHighValues = function(self, valueA, valueB)
+                local idA = self[valueA]
+                local idB = self[valueB]
+                local lowValue = valueB
+                local highValue = valueA
+                if idA < idB then
+                    lowValue = valueA
+                    highValue = valueB
+                end
+                return lowValue, highValue
+            end,
+
             -- Removes and returns the last value of this ReversibleArray.
             --
             -- Args:
