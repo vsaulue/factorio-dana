@@ -94,19 +94,8 @@ local Metatable = {
 -- * The element with the greater rank in self.order.
 --
 getLowHigh = function(self, elementA, elementB)
-    local idA = self.order[elementA]
-    local idB = self.order[elementB]
-    local lowElement,highElement
-    if idA < idB then
-        lowElement = elementA
-        highElement = elementB
-    elseif idA > idB then
-        lowElement = elementB
-        highElement = elementA
-    else
-        Logger.error("Couplings: Invalid coupling access (elementA == elementB).")
-    end
-    return lowElement, highElement
+    assert(elementA ~= elementB, "Couplings: Invalid coupling access (elementA == elementB).")
+    return self.order:getLowHighValues(elementA, elementB)
 end
 
 -- Creates a new Couplings object.
