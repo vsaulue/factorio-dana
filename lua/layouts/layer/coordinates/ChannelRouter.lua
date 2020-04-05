@@ -14,10 +14,14 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AntisymBivarMap = require("lua/containers/AntisymBivarMap")
 local Array = require("lua/containers/Array")
+local ArrayBinarySearch = require("lua/containers/utils/ArrayBinarySearch")
 local ChannelBranch = require("lua/layouts/layer/coordinates/ChannelBranch")
+local DirectedGraph = require("lua/graph/DirectedGraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Iterator = require("lua/containers/utils/Iterator")
+local MinimumFAS = require("lua/graph/algorithms/MinimumFAS")
 local Tree = require("lua/containers/Tree")
 
 -- Class handling the coordinate generation of a ChannelLayer.
@@ -34,6 +38,7 @@ local ChannelRouter = ErrorOnInvalidRead.new{
 }
 
 -- Implementation stuff (private scope).
+local buildOrder
 local buildTrees
 local generateTrunks
 local makeBranches
@@ -51,7 +56,7 @@ local Metatable = {
         --
         setY = function(self, yMin)
             local linkWidth = self.linkWidth
-            local order = self.channelLayer.order
+            local order = self.order
             local y = yMin + linkWidth / 2
             for i=1,order.count do
                 local channelIndex = order[i]
@@ -147,6 +152,66 @@ makeBranches = function(self, entryArray, channelIndex, isLow)
     return result
 end
 
+-- Builds the total order that will be used to assign trunks to Y-coordinates.
+--
+-- Current algorithm attempts to minimize the number of crossings.
+--
+--
+-- Args:
+-- * self: ChannelRouter object.
+--
+-- Returns: A ReversibleArray holding the Y order of the channel.
+--
+buildOrder = function(self)
+    local graph = DirectedGraph.new()
+    local crossings  = AntisymBivarMap.new()
+    local allBranches = Array.new()
+    local branchX = ErrorOnInvalidRead.new()
+    for channelIndex,trunk in pairs(self.trunks) do
+        graph:addVertexIndex(channelIndex)
+        crossings:newIndex(channelIndex)
+        for i=1,trunk.count do
+            local branch = trunk[i]
+            allBranches:pushBack(branch)
+            branchX[branch] = branch.x
+        end
+    end
+    allBranches:sort(branchX)
+    branchX = Array.new()
+    for i=1,allBranches.count do
+        branchX[i] = allBranches[i].x
+    end
+    branchX.count = allBranches.count
+    for trunkIndex,trunk in pairs(self.trunks) do
+        local lowId,highId = ArrayBinarySearch.findIndexesInRange(branchX, trunk[1].x, trunk[trunk.count].x, false, false)
+        for i=lowId,highId do
+            local branch = allBranches[i]
+            local branchIndex = branch.channelIndex
+            if branchIndex ~= trunkIndex then
+                local delta = 1
+                if branch.isLow then
+                    delta = -1
+                end
+                crossings:addToCoefficient(trunkIndex, branchIndex, delta)
+            end
+        end
+    end
+
+    local relationOrder = crossings.order
+    for i=1,relationOrder.count do
+        local cIndex1 = relationOrder[i]
+        for cIndex2,weight in pairs(crossings[cIndex1]) do
+            if weight > 0 then
+                graph:addEdge(cIndex1, cIndex2, weight)
+            else
+                graph:addEdge(cIndex2, cIndex1, -weight)
+            end
+        end
+    end
+
+    return MinimumFAS.run(graph).sequence
+end
+
 -- Creates a new ChannelRouter object.
 --
 -- Args:
@@ -162,6 +227,7 @@ function ChannelRouter.new(object)
     object.roots = ErrorOnInvalidRead.new()
 
     generateTrunks(object)
+    object.order = buildOrder(object)
     buildTrees(object)
 
     return object
