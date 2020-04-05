@@ -20,7 +20,6 @@ local ReversibleArray = require("lua/containers/ReversibleArray")
 -- Class holding the connection data between two layers in a LayersLayout object.
 --
 -- RO fields:
--- * order: ReversibleArray containing all the channel indexes in this ChannelLayer object.
 -- * highEntries[channelIndex]: ReversibleArray of entries from the upper layer connected to a channelIndex
 --   (ordered from lower to higher rank in the entry layer)
 -- * lowEntries[channelIndex]: ReversibleArray of entries from the lower layer connected to a channelIndex
@@ -43,8 +42,7 @@ local Impl = ErrorOnInvalidRead.new{
     -- * channelIndex: Index of the channel to initialize.
     --
     initChannelIndex = function(self, channelIndex)
-        if not rawget(self.order, channelIndex) then
-            self.order:pushBack(channelIndex)
+        if not rawget(self.lowEntries, channelIndex) then
             self.highEntries[channelIndex] = ReversibleArray.new()
             self.lowEntries[channelIndex] = ReversibleArray.new()
         end
@@ -66,7 +64,6 @@ local Impl = ErrorOnInvalidRead.new{
 --
 function ChannelLayer.new()
     local result = ErrorOnInvalidRead.new{
-        order = ReversibleArray.new(),
         highEntries = ErrorOnInvalidRead.new(),
         lowEntries = ErrorOnInvalidRead.new(),
     }
