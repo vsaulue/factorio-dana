@@ -26,11 +26,24 @@ local Tree = require("lua/containers/Tree")
 
 -- Class handling the coordinate generation of a ChannelLayer.
 --
+-- The terminology is taken from the electronic field:
+-- * branch: a line along the Y-axis linking an entry's slot to the main channel line (=trunk).
+-- * trunk: a line along the X-axis linking all branches having the same channel index together.
+-- * track: a set of trunks that have the same Y-coordinate.
+--
+-- As for the electronic variant, the goal of this router is to:
+-- * computes the branches & trunks
+-- * assign each trunk to a track (= a Y coordinate). Multiple trunks can share a track, as long as they don't overlap.
+--
+-- However the algorithms don't have much in common. Routers for electronics are tuned for physical & economic
+-- constraints, while this router aims at ploting a "nice looking" solution.
+--
 -- RO Fields:
 -- * channelLayer: ChannelLayer object being mapped to coordinates.
 -- * entryPositions[entry]: Map giving the LayerEntryPosition object of a LayerEntry.
 -- * linkWidth: Width of links, including margins.
 -- * roots[channelIndex]: Map of generated Tree for each channel, useable for tree links.
+-- * tracks[trackId][trunkRank]: 2-dim Array of ChannelIndex.
 -- * trunks[channelIndex]: Map of trunks for each channel (trunk = Array of ChannelBranches).
 --
 local ChannelRouter = ErrorOnInvalidRead.new{
@@ -38,6 +51,7 @@ local ChannelRouter = ErrorOnInvalidRead.new{
 }
 
 -- Implementation stuff (private scope).
+local buildTracks
 local buildOrder
 local buildTrees
 local generateTrunks
@@ -56,14 +70,18 @@ local Metatable = {
         --
         setY = function(self, yMin)
             local linkWidth = self.linkWidth
-            local order = self.order
+            local tracks = self.tracks
+            local trunks = self.trunks
             local y = yMin + linkWidth / 2
-            for i=1,order.count do
-                local channelIndex = order[i]
-                local trunk = self.trunks[channelIndex]
-                for j=1,trunk.count do
-                    local branch = trunk[j]
-                    branch.trunkNode.y = y
+            for trackId=1,tracks.count do
+                local track = tracks[trackId]
+                for trunkRank=1,track.count do
+                    local channelIndex = track[trunkRank]
+                    local trunk = trunks[channelIndex]
+                    for branchId=1,trunk.count do
+                        local branch = trunk[branchId]
+                        branch.trunkNode.y = y
+                    end
                 end
                 y = y + linkWidth
             end
@@ -71,6 +89,25 @@ local Metatable = {
         end
     },
 }
+
+-- Generates an array of tracks, filled with all the trunks of this layer.
+--
+-- Args:
+-- * self: ChannelRouter object.
+-- *
+--
+-- Returns: A 2-dim Array of channel indexes, representing the tracks.
+--
+buildTracks = function(self)
+    local result = Array.new()
+    local order = buildOrder(self)
+    for i=1,order.count do
+        local newTrack = Array.new()
+        newTrack:pushBack(order[i])
+        result:pushBack(newTrack)
+    end
+    return result
+end
 
 -- Fills the roots field, and links tree nodes together to form the trees.
 --
@@ -152,15 +189,14 @@ makeBranches = function(self, entryArray, channelIndex, isLow)
     return result
 end
 
--- Builds the total order that will be used to assign trunks to Y-coordinates.
+-- Builds the total order that will be used to assign trunks to tracks.
 --
--- Current algorithm attempts to minimize the number of crossings.
---
+-- Current algorithm attempts to minimize the number of crossings between branches <-> trunks.
 --
 -- Args:
 -- * self: ChannelRouter object.
 --
--- Returns: A ReversibleArray holding the Y order of the channel.
+-- Returns: A ReversibleArray holding the track index of the channel.
 --
 buildOrder = function(self)
     local graph = DirectedGraph.new()
@@ -227,7 +263,7 @@ function ChannelRouter.new(object)
     object.roots = ErrorOnInvalidRead.new()
 
     generateTrunks(object)
-    object.order = buildOrder(object)
+    object.tracks = buildTracks(object)
     buildTrees(object)
 
     return object
