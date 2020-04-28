@@ -14,17 +14,25 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local FactorioLoggerBackend = require("lua/logger/backends/FactorioLoggerBackend")
 local GuiElement = require("lua/gui/GuiElement")
+local Logger = require("lua/Logger")
 local Main = require("lua/Main")
 
+Logger.init(FactorioLoggerBackend)
+
 local function on_load()
+    Logger.info("on_load() started.")
     GuiElement.on_load()
     Main.on_load()
+    Logger.info("on_load() completed.")
 end
 
 local function on_init()
+    Logger.info("on_init() started.")
     GuiElement.on_init()
     Main.on_init()
+    Logger.info("on_init() completed.")
 end
 
 local function on_gui_click(event)
