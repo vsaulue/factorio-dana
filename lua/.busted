@@ -21,6 +21,7 @@ return {
         ROOT = {
             "containers/tests",
             "graph/tests",
+            "graph/algorithms/tests"
         },
     },
 }
