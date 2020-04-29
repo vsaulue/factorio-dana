@@ -80,13 +80,11 @@ Metatable = {
         -- Returns: the object removed from the top of the stack.
         --
         pop = function(self)
-            local result = self[self.topIndex]
-            if (self.topIndex > 0) then
-                self[self.topIndex] = nil
-                self.topIndex = self.topIndex - 1
-            else
-                Logger.error("Stack: pop called on an empty stack.")
-            end
+            local topIndex = self.topIndex
+            assert(self.topIndex > 0, "Stack: pop called on an empty stack.")
+            local result = self[topIndex]
+            self[topIndex] = nil
+            self.topIndex = topIndex - 1
             return result
         end,
 
