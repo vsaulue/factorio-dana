@@ -75,6 +75,24 @@ local Metatable = {
             self.vertices[index] = result
             return result
         end,
+
+        -- Removes the given edge from a graph.
+        --
+        -- Args:
+        -- * self: DirectedGraph object.
+        -- * edge: Edge to remove.
+        --
+        removeEdge = function(self, edge)
+            local vertices = self.vertices
+            local srcIndex = edge.inbound
+            local srcVertex = vertices[srcIndex]
+            local dstIndex = edge.outbound
+            local dstVertex = vertices[dstIndex]
+            assert(srcVertex.outbound[dstIndex] == edge, "DirectedGraph: invalid edge removal.")
+            assert(dstVertex.inbound[srcIndex] == edge, "DirectedGraph: invalid edge removal.")
+            srcVertex.outbound[dstIndex] = nil
+            dstVertex.inbound[srcIndex] = nil
+        end,
     },
 }
 

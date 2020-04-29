@@ -84,6 +84,37 @@ describe("DirectedGraph", function()
             end)
         end)
     end)
+
+    describe(":removeEdge()", function()
+        before_each(function()
+            graph:addVertexIndex("id1")
+            graph:addVertexIndex("id2")
+            graph:addVertexIndex("id3")
+            graph:addEdge("id1", "id2", 1)
+            graph:addEdge("id1", "id3", 2)
+            graph:addEdge("id2", "id3", 3)
+        end)
+
+        it("-- valid", function()
+            local edge = graph.vertices["id1"].outbound["id2"]
+            graph:removeEdge(edge)
+            checkGraph(graph)
+            assert.has_error(function()
+                local _ = graph.vertices["id1"].outbound["id2"]
+            end)
+        end)
+
+        it("-- invalid (edge not present)", function()
+            local edge = {
+                inbound = "id1",
+                outbount = "id3",
+                weight = 2,
+            }
+            assert.has_error(function()
+                graph:removeEdge(edge)
+            end)
+        end)
+    end)
 end)
 
 -- Asserts that a DirectedGraph object is in a consistent state.
