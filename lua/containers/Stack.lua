@@ -14,7 +14,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Logger = require("lua/Logger")
+
+local Metatable
 
 -- Container class with stack semantics.
 --
@@ -24,96 +27,92 @@ local Logger = require("lua/Logger")
 -- * topIndex: index of the item in the stack (also the number of items in the stack).
 -- * [N]: The N-th value from the bottom of the stack.
 --
--- Methods: see Impl.Metatable.__index
+-- Methods: see Metatable.__index
 --
-local Stack = {
-    new = nil, -- implemented later
-}
-
--- Container
-local Impl = {
-    Metatable = {
-        __index = {
-            -- Inserts a new element on top of the stack.
-            --
-            -- Args:
-            -- * self: Stack object.
-            -- * value: Object to add on top of the stack.
-            --
-            push = function(self, value)
-                self.topIndex = self.topIndex + 1
-                self[self.topIndex] = value
-            end,
-
-            -- Inserts two elements on top of the stack.
-            --
-            -- Args:
-            -- * self: Stack object.
-            -- * value1: First object to add.
-            -- * value2: Second object to add.
-            --
-            push2 = function(self, value1, value2)
-                local topIndex = self.topIndex + 1
-                self[topIndex] = value1
-                topIndex = topIndex + 1
-                self[topIndex] = value2
-                self.topIndex = topIndex
-            end,
-
-            -- Removes & returns the object on top of the stack.
-            --
-            -- Args:
-            -- * self: Stack object.
-            --
-            -- Returns: the object removed from the top of the stack.
-            --
-            pop = function(self)
-                local result = self[self.topIndex]
-                if (self.topIndex > 0) then
-                    self[self.topIndex] = nil
-                    self.topIndex = self.topIndex - 1
-                else
-                    Logger.error("Stack: pop called on an empty stack.")
-                end
-                return result
-            end,
-
-            -- Removes & returns the 2 objects on top of the stack.
-            --
-            -- Args:
-            -- * self: Stack object.
-            --
-            -- Returns:
-            -- * The (previousTop - 1) value.
-            -- * The (previousTop) value.
-            --
-            pop2 = function(self)
-                local topIndex = self.topIndex
-                assert(topIndex >= 2, "Stack: pop2 called on a stack with less than 2 elements")
-
-                local result2 = self[topIndex]
-                self[topIndex] = nil
-                topIndex = topIndex - 1
-                local result1 = self[topIndex]
-                self[topIndex] = nil
-
-                self.topIndex = topIndex - 1
-                return result1,result2
-            end,
+local Stack = ErrorOnInvalidRead.new{
+    -- Creates a new empty stack.
+    --
+    -- Returns: A new empty stack.
+    --
+    new = function()
+        local result = {
+            topIndex = 0,
         }
-    }
+        setmetatable(result, Metatable)
+        return result
+    end
 }
 
--- Creates a new empty stack.
---
--- Returns: A new empty stack.
---
-function Stack.new()
-    local result = {
-        topIndex = 0,
+-- Metatable of the Stack class.
+Metatable = {
+    __index = {
+        -- Inserts a new element on top of the stack.
+        --
+        -- Args:
+        -- * self: Stack object.
+        -- * value: Object to add on top of the stack.
+        --
+        push = function(self, value)
+            self.topIndex = self.topIndex + 1
+            self[self.topIndex] = value
+        end,
+
+        -- Inserts two elements on top of the stack.
+        --
+        -- Args:
+        -- * self: Stack object.
+        -- * value1: First object to add.
+        -- * value2: Second object to add.
+        --
+        push2 = function(self, value1, value2)
+            local topIndex = self.topIndex + 1
+            self[topIndex] = value1
+            topIndex = topIndex + 1
+            self[topIndex] = value2
+            self.topIndex = topIndex
+        end,
+
+        -- Removes & returns the object on top of the stack.
+        --
+        -- Args:
+        -- * self: Stack object.
+        --
+        -- Returns: the object removed from the top of the stack.
+        --
+        pop = function(self)
+            local result = self[self.topIndex]
+            if (self.topIndex > 0) then
+                self[self.topIndex] = nil
+                self.topIndex = self.topIndex - 1
+            else
+                Logger.error("Stack: pop called on an empty stack.")
+            end
+            return result
+        end,
+
+        -- Removes & returns the 2 objects on top of the stack.
+        --
+        -- Args:
+        -- * self: Stack object.
+        --
+        -- Returns:
+        -- * The (previousTop - 1) value.
+        -- * The (previousTop) value.
+        --
+        pop2 = function(self)
+            local topIndex = self.topIndex
+            assert(topIndex >= 2, "Stack: pop2 called on a stack with less than 2 elements")
+
+            local result2 = self[topIndex]
+            self[topIndex] = nil
+            topIndex = topIndex - 1
+            local result1 = self[topIndex]
+            self[topIndex] = nil
+
+            self.topIndex = topIndex - 1
+            return result1,result2
+        end,
     }
-    setmetatable(result, Impl.Metatable)
-    return result
-end
+}
 
 return Stack
