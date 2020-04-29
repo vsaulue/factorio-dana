@@ -48,11 +48,40 @@ describe("Stack", function()
         end)
     end)
 
+    describe(":pop2()", function()
+        it("-- valid", function()
+            setSampleStack(stack)
+            local value1,value2 = stack:pop2()
+            assert.are.equals(value1, 36)
+            assert.are.equals(value2, 49)
+            assert.are.equals(stack.topIndex, 5)
+        end)
+
+        it("-- less than 2 items on the stack (error)", function()
+            stack[1] = 1
+            stack.topIndex = 1
+            assert.error(function()
+                stack:pop2()
+            end)
+        end)
+    end)
+
     it(":push()", function()
         setSampleStack(stack)
         stack:push(64)
 
         local topIndex = 8
+        assert.are.equals(stack.topIndex, topIndex)
+        for i=1,topIndex do
+            assert.are.equals(stack[i], i*i)
+        end
+    end)
+
+    it(":push2()", function()
+        setSampleStack(stack)
+        stack:push2(64,81)
+
+        local topIndex = 9
         assert.are.equals(stack.topIndex, topIndex)
         for i=1,topIndex do
             assert.are.equals(stack[i], i*i)

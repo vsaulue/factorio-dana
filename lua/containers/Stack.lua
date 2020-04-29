@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -20,12 +20,11 @@ local Logger = require("lua/Logger")
 --
 -- Stored in global: no.
 --
--- Methods:
--- * push: adds a new value on top of the stack.
--- * pop: removes & return the value on top of the stack.
---
--- RO properties:
+-- RO fields:
 -- * topIndex: index of the item in the stack (also the number of items in the stack).
+-- * [N]: The N-th value from the bottom of the stack.
+--
+-- Methods: see Impl.Metatable.__index
 --
 local Stack = {
     new = nil, -- implemented later
@@ -46,6 +45,21 @@ local Impl = {
                 self[self.topIndex] = value
             end,
 
+            -- Inserts two elements on top of the stack.
+            --
+            -- Args:
+            -- * self: Stack object.
+            -- * value1: First object to add.
+            -- * value2: Second object to add.
+            --
+            push2 = function(self, value1, value2)
+                local topIndex = self.topIndex + 1
+                self[topIndex] = value1
+                topIndex = topIndex + 1
+                self[topIndex] = value2
+                self.topIndex = topIndex
+            end,
+
             -- Removes & returns the object on top of the stack.
             --
             -- Args:
@@ -62,6 +76,29 @@ local Impl = {
                     Logger.error("Stack: pop called on an empty stack.")
                 end
                 return result
+            end,
+
+            -- Removes & returns the 2 objects on top of the stack.
+            --
+            -- Args:
+            -- * self: Stack object.
+            --
+            -- Returns:
+            -- * The (previousTop - 1) value.
+            -- * The (previousTop) value.
+            --
+            pop2 = function(self)
+                local topIndex = self.topIndex
+                assert(topIndex >= 2, "Stack: pop2 called on a stack with less than 2 elements")
+
+                local result2 = self[topIndex]
+                self[topIndex] = nil
+                topIndex = topIndex - 1
+                local result1 = self[topIndex]
+                self[topIndex] = nil
+
+                self.topIndex = topIndex - 1
+                return result1,result2
             end,
         }
     }
