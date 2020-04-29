@@ -21,7 +21,7 @@ local Metatable
 
 -- Container class with stack semantics.
 --
--- Stored in global: no.
+-- This class does not support nil values.
 --
 -- RO fields:
 -- * topIndex: index of the item in the stack (also the number of items in the stack).
@@ -45,7 +45,7 @@ local Stack = ErrorOnInvalidRead.new{
 
 -- Metatable of the Stack class.
 Metatable = {
-    __index = {
+    __index = ErrorOnInvalidRead.new{
         -- Inserts a new element on top of the stack.
         --
         -- Args:
