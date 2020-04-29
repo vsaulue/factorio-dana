@@ -18,6 +18,11 @@ local Array = require("lua/containers/Array")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local ReversibleArray = require("lua/containers/ReversibleArray")
 
+local Metatable
+local removeVertex
+local runAlgorithm
+local sumWeights
+
 -- Computes an approximate solution the minimum Feedback Arc Set (FAS) problem on a DirectedGraph.
 --
 -- This algorithm runs on weighted graphs: it tries to minimize the total weight of the feedback set (not the edge count).
@@ -34,15 +39,39 @@ local ReversibleArray = require("lua/containers/ReversibleArray")
 -- Methods: see Metatable.__index
 --
 local MinimumFAS = ErrorOnInvalidRead.new{
-    run = nil,
+    -- Computes an approximate minimum FAS solution for the given weighted graph.
+    --
+    -- Args:
+    -- * graph: Graph on which the algorithm must be run (not modified).
+    --
+    -- Returns: A MinimumFAS object holding the result.
+    --
+    run = function(graph)
+        local result = {
+            graph = graph,
+            sequence = ReversibleArray.new(),
+            -- Temporary private field, holding the algorithm's intermediate values.
+            tmp = ErrorOnInvalidRead.new{
+                -- Map of indegrees, indexed by vertex indices.
+                inDegrees = ErrorOnInvalidRead.new(),
+                -- Map of outdegrees, indexed by vertex indices.
+                outDegrees = ErrorOnInvalidRead.new(),
+                -- Reversible array of vertex indexes, containing vertices that are either sources or sinks.
+                sourcesAndSinks = ReversibleArray.new(),
+                -- Number of remaining vertices to process (= number of keys in inDegrees & outDegrees).
+                remainingVertexCount = nil,
+            },
+        }
+        setmetatable(result, Metatable)
+
+        runAlgorithm(result)
+        result.tmp = nil
+
+        return result
+    end
 }
 
--- Implementation stuff (private scope).
-local removeVertex
-local runAlgorithm
-local sumWeights
-
-local Metatable = {
+Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Removes the feedback edges from the input graph.
         --
@@ -176,37 +205,6 @@ sumWeights = function(edgeMap)
         assert(weight > 0, "MinimumFAS: Negative weights are not supported.")
         result = result + weight
     end
-    return result
-end
-
--- Computes an approximate minimum FAS solution for the given weighted graph.
---
--- Args:
--- * graph: Graph on which the algorithm must be run (not modified).
---
--- Returns: A MinimumFAS object holding the result.
---
-function MinimumFAS.run(graph)
-    local result = {
-        graph = graph,
-        sequence = ReversibleArray.new(),
-        -- Temporary private field, holding the algorithm's intermediate values.
-        tmp = ErrorOnInvalidRead.new{
-            -- Map of indegrees, indexed by vertex indices.
-            inDegrees = ErrorOnInvalidRead.new(),
-            -- Map of outdegrees, indexed by vertex indices.
-            outDegrees = ErrorOnInvalidRead.new(),
-            -- Reversible array of vertex indexes, containing vertices that are either sources or sinks.
-            sourcesAndSinks = ReversibleArray.new(),
-            -- Number of remaining vertices to process (= number of keys in inDegrees & outDegrees).
-            remainingVertexCount = nil,
-        },
-    }
-    setmetatable(result, Metatable)
-
-    runAlgorithm(result)
-    result.tmp = nil
-
     return result
 end
 
