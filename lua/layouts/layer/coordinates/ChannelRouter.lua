@@ -22,6 +22,8 @@ local DirectedGraph = require("lua/graph/DirectedGraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Iterator = require("lua/containers/utils/Iterator")
 local MinimumFAS = require("lua/graph/algorithms/MinimumFAS")
+local StackAvlTree = require("lua/containers/StackAvlTree")
+local TopologicalOrderGenerator = require("lua/graph/algorithms/TopologicalOrderGenerator")
 local Tree = require("lua/containers/Tree")
 
 -- Class handling the coordinate generation of a ChannelLayer.
@@ -100,12 +102,29 @@ local Metatable = {
 --
 buildTracks = function(self)
     local result = Array.new()
-    local order = buildOrder(self)
-    for i=1,order.count do
+    local avlTree = StackAvlTree.new()
+    local trunks = self.trunks
+    local orderGenerator = TopologicalOrderGenerator.new{
+        candidateCallback = function(channelIndex)
+            local trunk = trunks[channelIndex]
+            avlTree:push(trunk[1].x, channelIndex)
+        end,
+        graph = buildOrder(self),
+    }
+
+    while avlTree.count > 0 do
         local newTrack = Array.new()
-        newTrack:pushBack(order[i])
+        local currentX,channelIndex = avlTree:popGreater(-math.huge, false)
+        repeat
+            orderGenerator:select(channelIndex)
+            newTrack:pushBack(channelIndex)
+            local trunk = trunks[channelIndex]
+            local nextX = trunk[trunk.count].x + self.linkWidth
+            currentX,channelIndex = avlTree:popGreater(nextX, false)
+        until currentX == nil
         result:pushBack(newTrack)
     end
+
     return result
 end
 
@@ -189,14 +208,14 @@ makeBranches = function(self, entryArray, channelIndex, isLow)
     return result
 end
 
--- Builds the total order that will be used to assign trunks to tracks.
+-- Builds the partial order that will be used to assign trunks to tracks.
 --
 -- Current algorithm attempts to minimize the number of crossings between branches <-> trunks.
 --
 -- Args:
 -- * self: ChannelRouter object.
 --
--- Returns: A ReversibleArray holding the track index of the channel.
+-- Returns: The order in the form of an acyclic DirectedGraph (vertex indices = channel indices)
 --
 buildOrder = function(self)
     local graph = DirectedGraph.new()
@@ -245,7 +264,8 @@ buildOrder = function(self)
         end
     end
 
-    return MinimumFAS.run(graph).sequence
+    MinimumFAS.run(graph):removeFeedbackEdges()
+    return graph
 end
 
 -- Creates a new ChannelRouter object.
