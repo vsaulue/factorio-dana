@@ -237,8 +237,9 @@ buildOrder = function(self)
         branchX[i] = allBranches[i].x
     end
     branchX.count = allBranches.count
+    local xMargin = 0.99 * self.linkWidth -- setting it to exactly linkWidth produce "false positive" collisions"
     for trunkIndex,trunk in pairs(self.trunks) do
-        local lowId,highId = ArrayBinarySearch.findIndexesInRange(branchX, trunk[1].x, trunk[trunk.count].x, false, false)
+        local lowId,highId = ArrayBinarySearch.findIndexesInRange(branchX, trunk[1].x - xMargin, trunk[trunk.count].x + xMargin, false, false)
         for i=lowId,highId do
             local branch = allBranches[i]
             local branchIndex = branch.channelIndex
