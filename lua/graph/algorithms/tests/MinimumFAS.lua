@@ -19,6 +19,7 @@ local MinimumFAS = require("lua/graph/algorithms/MinimumFAS")
 
 local checkSequence
 local makeId
+local setSampleGraphWithCycles
 
 describe("MinimumFAS", function()
     local inputGraph
@@ -46,21 +47,24 @@ describe("MinimumFAS", function()
         end)
 
         it("on a graph with a cycle", function()
-            inputGraph:addVertexIndex("source")
-            inputGraph:addVertexIndex("sink")
-            for i=1,4 do
-                inputGraph:addVertexIndex("id" .. i)
-            end
-            inputGraph:addEdge("source", "id4", 1)
-            inputGraph:addEdge("source", "id3", 1)
-            inputGraph:addEdge("id2", "sink", 1)
-            inputGraph:addEdge("id3", "sink", 1)
-            for i=1,4 do
-                inputGraph:addEdge(makeId(i), makeId(1+(i%4)), 100+i)
-            end
+            setSampleGraphWithCycles(inputGraph)
             local result = MinimumFAS.run(inputGraph)
             checkSequence(result, 101) -- Optimal solution must be found for acyclic graphs.
         end)
+    end)
+
+    it(":removeFeedbackEdges()", function()
+        setSampleGraphWithCycles(inputGraph)
+        local result = MinimumFAS.run(inputGraph)
+        result:removeFeedbackEdges()
+        local edgeCount = 0
+        for id1,v1 in pairs(inputGraph.vertices) do
+            for _ in pairs(v1.outbound) do
+                edgeCount = edgeCount + 1
+            end
+        end
+        assert.are.equals(edgeCount, 7)
+        assert.is_nil(rawget(inputGraph.vertices["id1"].outbound, "id2"))
     end)
 end)
 
@@ -99,4 +103,24 @@ end
 --
 makeId = function(id)
     return "id" .. id
+end
+
+-- Fills a DirectedGraph object with hardcoded values.
+--
+-- Args:
+-- * graph: DirectedGraph object to fill.
+--
+setSampleGraphWithCycles = function(graph)
+    graph:addVertexIndex("source")
+    graph:addVertexIndex("sink")
+    for i=1,4 do
+        graph:addVertexIndex("id" .. i)
+    end
+    graph:addEdge("source", "id4", 1)
+    graph:addEdge("source", "id3", 1)
+    graph:addEdge("id2", "sink", 1)
+    graph:addEdge("id3", "sink", 1)
+    for i=1,4 do
+        graph:addEdge(makeId(i), makeId(1+(i%4)), 100+i)
+    end
 end

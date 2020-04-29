@@ -31,6 +31,8 @@ local ReversibleArray = require("lua/containers/ReversibleArray")
 -- * graph: Input DirectedGraph.
 -- * sequence: A vertex sequence of the graph as a ReversibleArray, inducing a FAS.
 --
+-- Methods: see Metatable.__index
+--
 local MinimumFAS = ErrorOnInvalidRead.new{
     run = nil,
 }
@@ -39,6 +41,29 @@ local MinimumFAS = ErrorOnInvalidRead.new{
 local removeVertex
 local runAlgorithm
 local sumWeights
+
+local Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Removes the feedback edges from the input graph.
+        --
+        -- Args:
+        -- * self: MinimumFAS object.
+        --
+        removeFeedbackEdges = function(self)
+            local graph = self.graph
+            local vertices = self.graph.vertices
+            local order = self.sequence
+            for srcIndex,srcVertex in pairs(vertices) do
+                local srcRank = order[srcIndex]
+                for dstIndex,edge in pairs(srcVertex.outbound) do
+                    if order[dstIndex] < srcRank then
+                        graph:removeEdge(edge)
+                    end
+                end
+            end
+        end,
+    },
+}
 
 -- Removes a selected vertex from the intermediate results.
 --
@@ -162,7 +187,7 @@ end
 -- Returns: A MinimumFAS object holding the result.
 --
 function MinimumFAS.run(graph)
-    local result = ErrorOnInvalidRead.new{
+    local result = {
         graph = graph,
         sequence = ReversibleArray.new(),
         -- Temporary private field, holding the algorithm's intermediate values.
@@ -177,6 +202,7 @@ function MinimumFAS.run(graph)
             remainingVertexCount = nil,
         },
     }
+    setmetatable(result, Metatable)
 
     runAlgorithm(result)
     result.tmp = nil
