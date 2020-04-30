@@ -26,6 +26,13 @@ local StackAvlTree = require("lua/containers/StackAvlTree")
 local TopologicalOrderGenerator = require("lua/graph/algorithms/TopologicalOrderGenerator")
 local Tree = require("lua/containers/Tree")
 
+local buildTracks
+local buildOrder
+local buildTrees
+local generateTrunks
+local makeBranches
+local Metatable
+
 -- Class handling the coordinate generation of a ChannelLayer.
 --
 -- The terminology is taken from the electronic field:
@@ -49,18 +56,30 @@ local Tree = require("lua/containers/Tree")
 -- * trunks[channelIndex]: Map of trunks for each channel (trunk = Array of ChannelBranches).
 --
 local ChannelRouter = ErrorOnInvalidRead.new{
-    new = nil,
+    -- Creates a new ChannelRouter object.
+    --
+    -- Args:
+    -- * object: Table to turn into a ChannelRouter object (mandatory fields: channelLayer, entryPositions, linkWidth, yMin).
+    --
+    new = function(object)
+        assert(object.channelLayer, "ChannelRouter: missing mandatory 'channelLayer' field.")
+        assert(object.entryPositions, "ChannelRouter: missing mandatory 'entryPositions' field.")
+        assert(object.linkWidth, "ChannelRouter: missing mandatory 'linkWidth' field.")
+
+        setmetatable(object, Metatable)
+        object.trunks = ErrorOnInvalidRead.new()
+        object.roots = ErrorOnInvalidRead.new()
+
+        generateTrunks(object)
+        object.tracks = buildTracks(object)
+        buildTrees(object)
+
+        return object
+    end
 }
 
--- Implementation stuff (private scope).
-local buildTracks
-local buildOrder
-local buildTrees
-local generateTrunks
-local makeBranches
-
 -- Metatable of the ChannelRouter class.
-local Metatable = {
+Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Assigns an Y coordinate to trunk nodes.
         --
@@ -267,27 +286,6 @@ buildOrder = function(self)
 
     MinimumFAS.run(graph):removeFeedbackEdges()
     return graph
-end
-
--- Creates a new ChannelRouter object.
---
--- Args:
--- * object: Table to turn into a ChannelRouter object (mandatory fields: channelLayer, entryPositions, linkWidth, yMin).
---
-function ChannelRouter.new(object)
-    assert(object.channelLayer, "ChannelRouter: missing mandatory 'channelLayer' field.")
-    assert(object.entryPositions, "ChannelRouter: missing mandatory 'entryPositions' field.")
-    assert(object.linkWidth, "ChannelRouter: missing mandatory 'linkWidth' field.")
-
-    setmetatable(object, Metatable)
-    object.trunks = ErrorOnInvalidRead.new()
-    object.roots = ErrorOnInvalidRead.new()
-
-    generateTrunks(object)
-    object.tracks = buildTracks(object)
-    buildTrees(object)
-
-    return object
 end
 
 return ChannelRouter
