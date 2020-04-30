@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local Array = require("lua/containers/Array")
 local ChannelRouter = require("lua/layouts/layer/coordinates/ChannelRouter")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayerEntryPosition = require("lua/layouts/layer/coordinates/LayerEntryPosition")
@@ -26,6 +27,7 @@ local Logger = require("lua/logger/Logger")
 -- used during the layout generation.
 --
 -- Fields:
+-- * channelRouters[i]: ChannelRouter object corresponding to the i-th channel layer.
 -- * entryPositions[entry]: LayerEntryPosition object associated to a specific entry.
 -- * layout: Input LayerLayout instance.
 -- * params: LayoutParameters object, describing constraints for the coordinates of elements.
@@ -36,10 +38,10 @@ local LayerCoordinateGenerator = ErrorOnInvalidRead.new{
 }
 
 -- Implementation stuff (private scope).
-local attachLinksToEntries
 local createEntryCoordinateRecords
 local computeX
 local computeYAndLinks
+local initChannelRouters
 local processChannelLayer
 
 -- Creates empty coordinate records for each entry.
@@ -156,6 +158,28 @@ computeYAndLinks = function(self)
     processChannelLayer(self, entries.count + 1, y)
 end
 
+-- Initialises the LayerCoordinateGenerator.channelRouters field.
+--
+-- Creates a ChannelRouter object for each channel layer.
+--
+-- Args:
+-- * self: LayerCoordinateGenerator object.
+--
+initChannelRouters = function(self)
+    local channelLayers = self.layout.channelLayers
+    local routers = self.channelRouters
+    local count = channelLayers.count
+    for i=1,count do
+        local channelLayer = channelLayers[i]
+        routers[i] = ChannelRouter.new{
+            channelLayer = channelLayer,
+            entryPositions = self.entryPositions,
+            linkWidth = self.params.linkWidth,
+        }
+    end
+    routers.count = count
+end
+
 -- Creates a tree links for all the channel indices of a channel layers.
 --
 -- All trees will be stored in self.result.links. The nodes attached to an entry will be properly
@@ -170,12 +194,7 @@ end
 -- Returns: The "y" coordinate from which the next layer should be placed.
 --
 processChannelLayer = function(self, lRank, yMin)
-    local channelLayer = self.layout.channelLayers[lRank]
-    local router = ChannelRouter.new{
-        channelLayer = channelLayer,
-        entryPositions = self.entryPositions,
-        linkWidth = self.params.linkWidth,
-    }
+    local router = self.channelRouters[lRank]
     for channelIndex,tree in pairs(router.roots) do
         local category = "forward"
         if not channelIndex.isForward then
@@ -201,6 +220,7 @@ end
 function LayerCoordinateGenerator.run(layout, params)
     local result = LayoutCoordinates.new()
     local self = ErrorOnInvalidRead.new{
+        channelRouters = Array.new(),
         entryPositions = ErrorOnInvalidRead.new(),
         layout = layout,
         params = params,
@@ -209,6 +229,7 @@ function LayerCoordinateGenerator.run(layout, params)
 
     createEntryCoordinateRecords(self)
     computeX(self)
+    initChannelRouters(self)
     computeYAndLinks(self)
 
     return result
