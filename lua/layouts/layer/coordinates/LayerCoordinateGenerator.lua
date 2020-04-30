@@ -40,7 +40,8 @@ local LayerCoordinateGenerator = ErrorOnInvalidRead.new{
 -- Implementation stuff (private scope).
 local createEntryCoordinateRecords
 local computeX
-local computeYAndLinks
+local computeY
+local generateTreeLinks
 local initChannelRouters
 local processChannelLayer
 
@@ -121,15 +122,12 @@ computeX = function(self)
     end
 end
 
--- Computes the Y coordinates of entries & nodes, and the tree links.
---
--- All trees will be stored in self.result.links. The nodes attached to an entry will be properly
--- added to the corresponding LayerEntryPosition objects inside self.entryPositions.
+-- Computes the Y coordinates of entries & nodes.
 --
 -- Args:
 -- * self: LayerCoordinateGenerator object.
 --
-computeYAndLinks = function(self)
+computeY = function(self)
     local params = self.params
     local typeToMinY = ErrorOnInvalidRead.new{
         edge = params.edgeMinY,
@@ -142,9 +140,10 @@ computeYAndLinks = function(self)
     )
     local entries = self.layout.layers.entries
     local channelLayers = self.layout.channelLayers
+    local routers = self.channelRouters
     local y = 0
     for layerId=1,entries.count do
-        y = processChannelLayer(self, layerId, y)
+        y = routers[layerId]:setY(y)
         local layer = entries[layerId]
         local yMiddle = y + yLayerLength / 2
         for rank=1,layer.count do
@@ -155,7 +154,33 @@ computeYAndLinks = function(self)
         end
         y = y + yLayerLength
     end
-    processChannelLayer(self, entries.count + 1, y)
+    routers[entries.count + 1]:setY(y)
+end
+
+-- Creates a tree links for all the channel indices of a channel layers.
+--
+-- All trees will be stored in self.result.links. The nodes attached to an entry will be properly
+-- added to the corresponding LayerEntryPosition objects inside self.entryPositions.
+--
+-- Args:
+-- * self: LayerCoordinateGenerator object being build.
+--
+generateTreeLinks = function(self)
+    local routers = self.channelRouters
+    for lRank=1,routers.count do
+        local router = self.channelRouters[lRank]
+        for channelIndex,tree in pairs(router.roots) do
+            local category = "forward"
+            if not channelIndex.isForward then
+                category = "backward"
+            end
+            local treeLink = ErrorOnInvalidRead.new{
+                category = category,
+                tree = tree,
+            }
+            self.result.links[treeLink] = true
+        end
+    end
 end
 
 -- Initialises the LayerCoordinateGenerator.channelRouters field.
@@ -180,35 +205,6 @@ initChannelRouters = function(self)
     routers.count = count
 end
 
--- Creates a tree links for all the channel indices of a channel layers.
---
--- All trees will be stored in self.result.links. The nodes attached to an entry will be properly
--- added to the corresponding LayerEntryPosition objects inside self.entryPositions. The Y
--- field of these nodes are NOT set by this function.
---
--- Args:
--- * self: LayerCoordinateGenerator object being build.
--- * lRank: Rank of the channel layer to build.
--- * yMin: maximum "y" coordinate of objects in the last layer.
---
--- Returns: The "y" coordinate from which the next layer should be placed.
---
-processChannelLayer = function(self, lRank, yMin)
-    local router = self.channelRouters[lRank]
-    for channelIndex,tree in pairs(router.roots) do
-        local category = "forward"
-        if not channelIndex.isForward then
-            category = "backward"
-        end
-        local treeLink = ErrorOnInvalidRead.new{
-            category = category,
-            tree = tree,
-        }
-        self.result.links[treeLink] = true
-    end
-    return router:setY(yMin)
-end
-
 -- Computes the coordinates of each elements of a LayerLayout object.
 --
 -- Args:
@@ -230,7 +226,8 @@ function LayerCoordinateGenerator.run(layout, params)
     createEntryCoordinateRecords(self)
     computeX(self)
     initChannelRouters(self)
-    computeYAndLinks(self)
+    computeY(self)
+    generateTreeLinks(self)
 
     return result
 end
