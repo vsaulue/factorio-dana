@@ -15,7 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local Logger = require("lua/Logger")
+local Logger = require("lua/logger/Logger")
 local Stack = require("lua/containers/Stack")
 
 -- Forward declarations & aliases.

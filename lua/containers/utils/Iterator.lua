@@ -14,7 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local Logger = require("lua/Logger")
+local Logger = require("lua/logger/Logger")
 
 -- Class implementing a generic iterator for key/value or key-only containers.
 --

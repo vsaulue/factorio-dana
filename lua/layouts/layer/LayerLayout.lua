@@ -22,7 +22,7 @@ local HyperSCC = require("lua/hypergraph/algorithms/HyperSCC")
 local LayerCoordinateGenerator = require("lua/layouts/layer/coordinates/LayerCoordinateGenerator")
 local LayersBuilder = require("lua/layouts/layer/LayersBuilder")
 local LayersSorter = require("lua/layouts/layer/sorter/LayersSorter")
-local Logger = require("lua/Logger")
+local Logger = require("lua/logger/Logger")
 local HyperSrcMinDist = require("lua/hypergraph/algorithms/HyperSrcMinDist")
 local SlotsSorter = require("lua/layouts/layer/SlotsSorter")
 

@@ -15,7 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local GuiElement = require("lua/gui/GuiElement")
-local Logger = require("lua/Logger")
+local Logger = require("lua/logger/Logger")
 
 -- Wrapper of the LuaGui class from Factorio.
 --

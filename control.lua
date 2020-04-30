@@ -16,7 +16,7 @@
 
 local FactorioLoggerBackend = require("lua/logger/backends/FactorioLoggerBackend")
 local GuiElement = require("lua/gui/GuiElement")
-local Logger = require("lua/Logger")
+local Logger = require("lua/logger/Logger")
 local Main = require("lua/Main")
 
 Logger.init(FactorioLoggerBackend)

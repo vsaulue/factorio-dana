@@ -18,7 +18,7 @@ local ChannelRouter = require("lua/layouts/layer/coordinates/ChannelRouter")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayerEntryPosition = require("lua/layouts/layer/coordinates/LayerEntryPosition")
 local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
-local Logger = require("lua/Logger")
+local Logger = require("lua/logger/Logger")
 
 -- Helper class to compute the final coordinates of a LayerLayout object.
 --

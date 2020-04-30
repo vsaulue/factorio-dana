@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local Logger = require("lua/Logger")
+local Logger = require("lua/logger/Logger")
 
 -- Implementation of a FIFO data structure.
 --

@@ -15,7 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local Logger = require("lua/Logger")
+local Logger = require("lua/logger/Logger")
 local ReversibleArray = require("lua/containers/ReversibleArray")
 
 -- Class to hold coupling coefficients between pairs of elements in a set.
