@@ -21,10 +21,11 @@ local Tree = require("lua/containers/Tree")
 --
 -- The X coordinate of slots are directly stored in their associated link node.
 --
---  Fields:
---   * output: placement data of this entry, returned in the LayoutCoordinates object.
---   * inboundNodes[channelIndex]: Tree node of the given channel index for inbound slots.
---   * outboundNodes[channelIndex]: Tree node of the given channel index for outbound slots.
+-- RO fields:
+-- * entry: LayerEntry object whose position is held.
+-- * output: placement data of this entry, returned in the LayoutCoordinates object.
+-- * inboundNodes[channelIndex]: Tree node of the given channel index for inbound slots.
+-- * outboundNodes[channelIndex]: Tree node of the given channel index for outbound slots.
 --
 -- Methods:
 -- * getNode: Gets the tree node associated to the given slot.
