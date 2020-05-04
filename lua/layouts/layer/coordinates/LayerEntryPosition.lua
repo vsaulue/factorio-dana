@@ -179,9 +179,7 @@ function LayerEntryPosition.new(object)
 
     object.output = ErrorOnInvalidRead.new()
     object.inboundNodes = buildNodes(entry.inboundSlots)
-    object.inboundOffsets = ErrorOnInvalidRead.new()
     object.outboundNodes = buildNodes(entry.outboundSlots)
-    object.outboundOffsets = ErrorOnInvalidRead.new()
 
     setmetatable(object, Metatable)
     return object
