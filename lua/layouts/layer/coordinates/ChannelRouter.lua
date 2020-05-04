@@ -28,10 +28,10 @@ local Tree = require("lua/containers/Tree")
 
 local buildTracks
 local buildOrder
-local buildTrees
 local generateTrunks
 local makeBranches
 local Metatable
+local pushBranchIfLinkNode
 
 -- Class handling the coordinate generation of a ChannelLayer.
 --
@@ -72,7 +72,6 @@ local ChannelRouter = ErrorOnInvalidRead.new{
 
         generateTrunks(object)
         object.tracks = buildTracks(object)
-        buildTrees(object)
 
         return object
     end
@@ -81,6 +80,52 @@ local ChannelRouter = ErrorOnInvalidRead.new{
 -- Metatable of the ChannelRouter class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Builds the tree of a channel index with the given node as root.
+        --
+        -- The tree is built only in this router (this does NOT build the tree on multiple layers).
+        --
+        -- Args:
+        -- * self: ChannelRouter object.
+        -- * channelIndex: Index of the tree to build.
+        -- * rootEntryNode: Node to use as root.
+        -- * linkNodeStack: Stack object on which leaf linkNode entries will be pushed.
+        --
+        buildTree = function(self, channelIndex, rootEntryNode, linkNodeStack)
+            local trunk = self.trunks[channelIndex]
+            local prevTrunkNode = nil
+            local branchId = 1
+            local hasRootBeenFound = false
+            local count = trunk.count
+            while branchId <= count and not hasRootBeenFound do
+                local branch = trunk[branchId]
+                local entryNode = branch.entryNode
+                local trunkNode = branch.trunkNode
+                if prevTrunkNode then
+                    trunkNode:addChild(prevTrunkNode)
+                end
+                hasRootBeenFound = (entryNode == rootEntryNode)
+                if hasRootBeenFound then
+                    entryNode:addChild(trunkNode)
+                else
+                    pushBranchIfLinkNode(branch, linkNodeStack)
+                    trunkNode:addChild(entryNode)
+                end
+                prevTrunkNode = trunkNode
+                branchId = branchId + 1
+            end
+            assert(hasRootBeenFound, "ChannelRouter: buildTree() called with an invalid root.")
+            while branchId <= count do
+                local branch = trunk[branchId]
+                local entryNode = branch.entryNode
+                local trunkNode = branch.trunkNode
+                prevTrunkNode:addChild(trunkNode)
+                trunkNode:addChild(entryNode)
+                pushBranchIfLinkNode(branch, linkNodeStack)
+                prevTrunkNode = trunkNode
+                branchId = branchId + 1
+            end
+        end,
+
         -- Assigns an Y coordinate to trunk nodes.
         --
         -- Args:
@@ -145,28 +190,6 @@ buildTracks = function(self)
     end
 
     return result
-end
-
--- Fills the roots field, and links tree nodes together to form the trees.
---
--- Args:
--- * self: ChannelRouter object.
---
-buildTrees = function(self)
-    for channelIndex,trunk in pairs(self.trunks) do
-        local root = nil
-        for i=1,trunk.count do
-            local branch = trunk[i]
-            local trunkNode = branch.trunkNode
-            if root then
-                trunkNode:addChild(root)
-            end
-            trunkNode:addChild(branch.entryNode)
-            root = trunkNode
-        end
-        assert(root)
-        self.roots[channelIndex] = root
-    end
 end
 
 -- Parses the ChannelLayer's high/low entries, and generates trunks.
@@ -286,6 +309,19 @@ buildOrder = function(self)
 
     MinimumFAS.run(graph):removeFeedbackEdges()
     return graph
+end
+
+-- Pushes a node in the given stack only if the attached entry is a linkNode.
+--
+-- Args:
+-- * branch: ChannelBranch object.
+-- * linkNodeStack: Stack on which the branch should be pushed after the test.
+--
+pushBranchIfLinkNode = function(branch, linkNodeStack)
+    local entry = branch.entryPosition.entry
+    if entry.type == "linkNode" then
+        linkNodeStack:push(branch)
+    end
 end
 
 return ChannelRouter

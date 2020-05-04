@@ -20,6 +20,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayerEntryPosition = require("lua/layouts/layer/coordinates/LayerEntryPosition")
 local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
 local Logger = require("lua/logger/Logger")
+local Stack = require("lua/containers/Stack")
 
 -- Helper class to compute the final coordinates of a LayerLayout object.
 --
@@ -38,12 +39,33 @@ local LayerCoordinateGenerator = ErrorOnInvalidRead.new{
 }
 
 -- Implementation stuff (private scope).
+local addTreeLink
 local createEntryCoordinateRecords
 local computeX
 local computeY
 local generateTreeLinks
+local generateTreeLinksFromNode
 local initChannelRouters
 local processChannelLayer
+
+-- Creates and adds a tree link to the generated layout.
+--
+-- Args:
+-- * self: LayerCoordinateGenerator object being built.
+-- * rootNode: root of the tree link.
+-- * isForward: True for forward links, false for backward links.
+--
+addTreeLink = function(self, rootNode, isForward)
+    local category = "forward"
+    if not isForward then
+        category = "backward"
+    end
+    local treeLink = ErrorOnInvalidRead.new{
+        category = category,
+        tree = rootNode,
+    }
+    self.result.links[treeLink] = true
+end
 
 -- Creates empty coordinate records for each entry.
 --
@@ -159,27 +181,63 @@ end
 
 -- Creates a tree links for all the channel indices of a channel layers.
 --
--- All trees will be stored in self.result.links. The nodes attached to an entry will be properly
--- added to the corresponding LayerEntryPosition objects inside self.entryPositions.
+-- All trees will be stored in self.result.links.
 --
 -- Args:
 -- * self: LayerCoordinateGenerator object being build.
 --
 generateTreeLinks = function(self)
-    local routers = self.channelRouters
-    for lRank=1,routers.count do
-        local router = self.channelRouters[lRank]
-        for channelIndex,tree in pairs(router.roots) do
-            local category = "forward"
-            if not channelIndex.isForward then
-                category = "backward"
+    local layers = self.layout.layers.entries
+    local entryPositions = self.entryPositions
+    for layerId=1,layers.count do
+        local layer = layers[layerId]
+        for entryRank=1,layer.count do
+            local entry = layer[entryRank]
+            if entry.type == "vertex" then
+                local entryPos = entryPositions[entry]
+                generateTreeLinksFromNode(self, entryPos.inboundNodes, layerId)
+                generateTreeLinksFromNode(self, entryPos.outboundNodes, layerId + 1)
             end
-            local treeLink = ErrorOnInvalidRead.new{
-                category = category,
-                tree = tree,
-            }
-            self.result.links[treeLink] = true
         end
+    end
+end
+
+-- Generates a tree link for each tree node in a map.
+--
+-- The map must be indexed by the associated channelIndex (ex: LayerEntryPosition.inboundNodes).
+-- The generated links will have the nodes in the map as root.
+--
+-- Args:
+-- * self: LayerCoordinateGenerator object being built.
+-- * nodes: Input map of ChannelIndex -> TreeNode.
+-- * startLayerId: Index of the router associated with the input nodes.
+--
+generateTreeLinksFromNode = function(self, nodes, startLayerId)
+    local channelRouters = self.channelRouters
+    for channelIndex,rootNode in pairs(nodes) do
+        local layerId = startLayerId
+        local stack = Stack.new()
+        local nextNode = rootNode
+        while nextNode do
+            local router = channelRouters[layerId]
+            router:buildTree(channelIndex, nextNode, stack)
+            local topIndex = stack.topIndex
+            if topIndex > 0 then
+                assert(topIndex == 1, "LayerCoordinateGenerator: invalid link structure.")
+                local branch = stack:pop()
+                if branch.isLow then
+                    layerId = layerId - 1
+                    nextNode = branch.entryPosition.inboundNodes[channelIndex]
+                else
+                    layerId = layerId + 1
+                    nextNode = branch.entryPosition.outboundNodes[channelIndex]
+                end
+                branch.entryNode:addChild(nextNode)
+            else
+                nextNode = nil
+            end
+        end
+        addTreeLink(self, rootNode, channelIndex.isForward)
     end
 end
 
