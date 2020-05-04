@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayoutParameters = require("lua/layouts/LayoutParameters")
 
 -- Class used to render graphs onto a LuaSurface.
@@ -22,7 +23,7 @@ local LayoutParameters = require("lua/layouts/LayoutParameters")
 -- * surface: surface on which the graph is displayed.
 -- * rawPlayer: Lua player using this renderer.
 --
-local SimpleRenderer = {
+local SimpleRenderer = ErrorOnInvalidRead.new{
     new = nil,
 }
 
@@ -43,7 +44,7 @@ local Impl = {
 
     -- Metatable of the SimpleRenderer class.
     Metatable = {
-        __index = {
+        __index = ErrorOnInvalidRead.new{
             draw = nil, -- implemented later
         },
     },
