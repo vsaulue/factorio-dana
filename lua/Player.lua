@@ -174,7 +174,10 @@ function Impl.renderGraph(self)
         end
     end
 
-    local layout = LayerLayout.new(self.graph,rawMaterials)
+    local layout = LayerLayout.new{
+        graph = self.graph,
+        sourceVertices = rawMaterials,
+    }
     local renderer = SimpleRenderer.new({
         rawPlayer = self.rawPlayer,
         surface = self.graphSurface,

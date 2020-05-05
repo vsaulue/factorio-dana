@@ -40,19 +40,22 @@ local Metatable
 -- * channelLayers: Array of ChannelLayer objects (1st channel layer is before the 1st entry layer).
 -- * graph: input graph.
 -- * layers: Layers object holding the computed layout.
+-- * sourceVertices: subset of vertex indices, to place preferably in 1st layers.
 --
 -- Methods: See Metatable.__index.
 --
 local LayerLayout = ErrorOnInvalidRead.new{
-    -- Creates a new layer layout for the given graph.
+    -- Creates a new layer layout.
     --
     -- Args:
-    -- * graph: DirectedHypergraph to draw.
-    -- * sourceVertices: subset of vertex indices from the graph. They'll be placed preferably in first layers.
+    -- * object: Table to turn into a LayerLayout object (mandatory fields: 'graph' & 'sourceVertices')
     --
-    -- Returns: A new LayerLayout object holding the result.
+    -- Returns: The argument turned into a LayerLayout object.
     --
-    new = function(graph,sourceVertices)
+    new = function(object)
+        local graph = cLogger:assertField(object, "graph")
+        local sourceVertices = cLogger:assertField(object, "sourceVertices")
+
         local channelIndexFactory = ChannelIndexFactory.new()
         local layersBuilder = LayersBuilder.new{
             channelIndexFactory = channelIndexFactory
@@ -69,17 +72,14 @@ local LayerLayout = ErrorOnInvalidRead.new{
         local channelLayers = layersBuilder:generateChannelLayers()
 
         -- 4) Build the new LayerLayout object.
-        local result = {
-            channelLayers = channelLayers,
-            graph = graph,
-            layers = layersBuilder.layers,
-        }
-        setmetatable(result, Metatable)
+        object.channelLayers = channelLayers
+        object.layers = layersBuilder.layers
+        setmetatable(object, Metatable)
 
         -- 5) Bonus: Little things to make the result slightly less incomprehensible
-        SlotsSorter.run(result)
+        SlotsSorter.run(object)
 
-        return result
+        return object
     end
 }
 
