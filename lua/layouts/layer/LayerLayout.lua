@@ -20,43 +20,79 @@ local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperSCC = require("lua/hypergraph/algorithms/HyperSCC")
+local HyperSrcMinDist = require("lua/hypergraph/algorithms/HyperSrcMinDist")
 local LayerCoordinateGenerator = require("lua/layouts/layer/coordinates/LayerCoordinateGenerator")
 local LayersBuilder = require("lua/layouts/layer/LayersBuilder")
 local LayersSorter = require("lua/layouts/layer/sorter/LayersSorter")
-local HyperSrcMinDist = require("lua/hypergraph/algorithms/HyperSrcMinDist")
 local SlotsSorter = require("lua/layouts/layer/SlotsSorter")
 
 local cLogger = ClassLogger.new{className = "LayerLayout"}
 
+local assignEdgesToLayers
+local assignVerticesToLayers
+local Metatable
+
 -- Computes a layer layout for an hypergraph.
 --
 -- Interesting doc: http://publications.lib.chalmers.se/records/fulltext/161388.pdf
---
--- Stored in global: no.
 --
 -- RO properties:
 -- * channelLayers: Array of ChannelLayer objects (1st channel layer is before the 1st entry layer).
 -- * graph: input graph.
 -- * layers: Layers object holding the computed layout.
 --
--- Methods:
--- * computeCoordinates: Computes the coordinates according to the given parameters.
+-- Methods: See Metatable.__index.
 --
 local LayerLayout = ErrorOnInvalidRead.new{
-    new = nil,
+    -- Creates a new layer layout for the given graph.
+    --
+    -- Args:
+    -- * graph: DirectedHypergraph to draw.
+    -- * sourceVertices: subset of vertex indices from the graph. They'll be placed preferably in first layers.
+    --
+    -- Returns: A new LayerLayout object holding the result.
+    --
+    new = function(graph,sourceVertices)
+        local channelIndexFactory = ChannelIndexFactory.new()
+        local layersBuilder = LayersBuilder.new{
+            channelIndexFactory = channelIndexFactory
+        }
+
+        -- 1) Assign vertices, edges to layers & add dummy vertices.
+        assignVerticesToLayers(layersBuilder, graph, sourceVertices)
+        assignEdgesToLayers(layersBuilder, graph)
+
+        -- 2) Order vertices within their layers (crossing minimization).
+        LayersSorter.run(layersBuilder)
+
+        -- 3) Channel layers (= connection layers between vertex/edge layers).
+        local channelLayers = layersBuilder:generateChannelLayers()
+
+        -- 4) Build the new LayerLayout object.
+        local result = {
+            channelLayers = channelLayers,
+            graph = graph,
+            layers = layersBuilder.layers,
+        }
+        setmetatable(result, Metatable)
+
+        -- 5) Bonus: Little things to make the result slightly less incomprehensible
+        SlotsSorter.run(result)
+
+        return result
+    end
 }
 
--- Implementation stuff (private scope).
-local Impl = ErrorOnInvalidRead.new{
-    assignEdgesToLayers = nil, -- implemented later
-
-    assignVerticesToLayers = nil, -- implemented later
-
-    -- Metatable of the LayerLayout class.
-    Metatable = {
-        __index = ErrorOnInvalidRead.new{
-            computeCoordinates = LayerCoordinateGenerator.run,
-        },
+-- Metatable of the LayerLayout class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Computes the final X/Y coordinates according to the given parameters.
+        --
+        -- Args:
+        -- * self: LayerLayout object.
+        -- * parameters: LayoutParameter object.
+        --
+        computeCoordinates = LayerCoordinateGenerator.run,
     },
 }
 
@@ -66,7 +102,7 @@ local Impl = ErrorOnInvalidRead.new{
 -- * layersBuilder: LayersBuilder object to fill.
 -- * graph: DirectedHypergraph to draw.
 --
-function Impl.assignEdgesToLayers(layersBuilder, graph)
+assignEdgesToLayers = function(layersBuilder, graph)
     for _,edge in pairs(graph.edges) do
         local layerId = 1
         for _,vertexIndex in pairs(edge.inbound) do
@@ -87,7 +123,7 @@ end
 -- * graph: DirectedHypergraph to draw.
 -- * sourceVertices: set of vertices to place preferably in the first layers.
 --
-function Impl.assignVerticesToLayers(layersBuilder, graph, sourceVertices)
+assignVerticesToLayers = function(layersBuilder, graph, sourceVertices)
     -- 1) First layer assignment using distance from source vertices.
     local minDist = HyperSrcMinDist.run(graph, sourceVertices)
 
@@ -129,44 +165,6 @@ function Impl.assignVerticesToLayers(layersBuilder, graph, sourceVertices)
             layersBuilder:newVertex(layerId, vertexIndex)
         end
     end
-end
-
--- Creates a new layer layout for the given graph.
---
--- Args:
--- * graph: DirectedHypergraph to draw.
--- * sourceVertices: subset of vertex indices from the graph. They'll be placed preferably in first layers.
---
--- Returns: A new LayerLayout object holding the result.
---
-function LayerLayout.new(graph,sourceVertices)
-    local channelIndexFactory = ChannelIndexFactory.new()
-    local layersBuilder = LayersBuilder.new{
-        channelIndexFactory = channelIndexFactory
-    }
-
-    -- 1) Assign vertices, edges to layers & add dummy vertices.
-    Impl.assignVerticesToLayers(layersBuilder, graph, sourceVertices)
-    Impl.assignEdgesToLayers(layersBuilder, graph)
-
-    -- 2) Order vertices within their layers (crossing minimization).
-    LayersSorter.run(layersBuilder)
-
-    -- 3) Channel layers (= connection layers between vertex/edge layers).
-    local channelLayers = layersBuilder:generateChannelLayers()
-
-    -- 4) Build the new LayerLayout object.
-    local result = {
-        channelLayers = channelLayers,
-        graph = graph,
-        layers = layersBuilder.layers,
-    }
-    setmetatable(result, Impl.Metatable)
-
-    -- 5) Bonus: Little things to make the result slightly less incomprehensible
-    SlotsSorter.run(result)
-
-    return result
 end
 
 return LayerLayout
