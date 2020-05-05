@@ -14,20 +14,19 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
+local GraphApp = require("lua/apps/GraphApp")
 local Gui = require("lua/gui/Gui")
 local GuiElement = require("lua/gui/GuiElement")
-local LayerLayout = require("lua/layouts/layer/LayerLayout")
-local SimpleRenderer = require("lua/SimpleRenderer")
 
 -- Class holding data associated to a player in this mod.
 --
 -- Stored in global: yes
 --
 -- Fields:
+-- * app: Current application.
 -- * rawPlayer: Associated LuaPlayer instance.
--- * graph: DirectedHypergraph currently displayed to this player.
 -- * graphSurface: LuaSurface used to display graphs to this player.
+-- * prototypes: PrototypeDatabase object.
 --
 -- RO properties:
 -- * gui: rawPlayer.gui wrapped in a Gui object.
@@ -52,33 +51,7 @@ local Impl = {
         end,
     },
 
-    buildGraph = nil,
-
-    -- Turns an entry from a PrototypeDatabase into a DirectedHypergraph edge.
-    --
-    -- Args:
-    -- * entry: An entry from PrototypeDatabase (supported types: recipe, boiler)
-    --
-    -- Returns: the new edge.
-    --
-    makeEdge = function(entry)
-        local result = {
-            index = entry,
-            inbound = {},
-            outbound = {},
-        }
-        for _,ingredient in pairs(entry.ingredients) do
-            table.insert(result.inbound, ingredient)
-        end
-        for _,product in pairs(entry.products) do
-            table.insert(result.outbound, product)
-        end
-        return result
-    end,
-
     initGui = nil, -- implemented later
-
-    renderGraph = nil, -- implemented later
 
     -- Callbacks for the top-left button.
     StartCallbacks = {
@@ -103,15 +76,21 @@ GuiElement.newCallbacks(Impl.StartCallbacks)
 -- Creates a new Player object.
 --
 -- Args:
--- * object: table to turn into the Player object (must have a "rawPlayer" field).
+-- * object: table to turn into the Player object (required fields: graphSurface, prototypes, rawPlayer).
 --
 function Player.new(object)
     setmetatable(object, Impl.Metatable)
-    object.graph = DirectedHypergraph.new()
     object.opened = false
-    Impl.buildGraph(object)
     Impl.initGui(object)
-    Impl.renderGraph(object)
+    -- default app for now
+    local graph,sourceVertices = GraphApp.makeDefaultGraphAndSource(object.prototypes)
+    object.app = GraphApp.new{
+        graph = graph,
+        rawPlayer = object.rawPlayer,
+        sourceVertices = sourceVertices,
+        surface = object.graphSurface,
+    }
+    --
     return object
 end
 
@@ -122,21 +101,6 @@ end
 --
 function Player.setmetatable(object)
     setmetatable(object, Impl.Metatable)
-    DirectedHypergraph.setmetatable(object.graph)
-end
-
--- Initialize the "graph" field of a Player object.
---
--- Args:
--- * self: Player whose graph will be built.
---
-function Impl.buildGraph(self)
-    for _,recipe in pairs(self.prototypes.entries.recipe) do
-        self.graph:addEdge(Impl.makeEdge(recipe))
-    end
-    for _,boiler in pairs(self.prototypes.entries.boiler) do
-        self.graph:addEdge(Impl.makeEdge(boiler))
-    end
 end
 
 -- Initialize the GUI of a player.
@@ -154,35 +118,6 @@ function Impl.initGui(self)
         player = self,
         previousPosition = {0,0},
     })
-end
-
--- Renders the current graph of this player.
---
--- Args:
--- * self: Player object.
---
-function Impl.renderGraph(self)
-    local rawMaterials = {}
-    for _,resource in pairs(self.prototypes.entries.resource) do
-        for _,product in pairs(resource.products) do
-            rawMaterials[product] = true
-        end
-    end
-    for _,offshorePump in pairs(self.prototypes.entries["offshore-pump"]) do
-        for _,product in pairs(offshorePump.products) do
-            rawMaterials[product] = true
-        end
-    end
-
-    local layout = LayerLayout.new{
-        graph = self.graph,
-        sourceVertices = rawMaterials,
-    }
-    local renderer = SimpleRenderer.new{
-        layout = layout,
-        rawPlayer = self.rawPlayer,
-        surface = self.graphSurface,
-    }
 end
 
 return Player
