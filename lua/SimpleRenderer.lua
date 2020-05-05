@@ -14,13 +14,18 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayoutParameters = require("lua/layouts/LayoutParameters")
+
+local cLogger = ClassLogger.new{className = "SimpleRenderer"}
 
 local Red = {r = 1, a = 1}
 local White = {r = 1, g = 1, b = 1, a = 1}
 local DarkGrey = {r = 0.1, g = 0.1, b = 0.1, a = 1}
 local LightGrey = {r = 0.2, g = 0.2, b = 0.2, a = 1}
+
+local draw
 local DefaultLayoutParameters
 local Metatable
 local renderTree
@@ -28,8 +33,9 @@ local renderTree
 -- Class used to render graphs onto a LuaSurface.
 --
 -- RO properties:
--- * surface: surface on which the graph is displayed.
+-- * layout: Layout displayed by this renderer.
 -- * rawPlayer: Lua player using this renderer.
+-- * surface: surface on which the graph is displayed.
 --
 -- Methods: see Metatable.__index.
 --
@@ -42,7 +48,12 @@ local SimpleRenderer = ErrorOnInvalidRead.new{
     -- Returns: the argument turned into a SimpleRenderer object.
     --
     new = function(object)
-        setmetatable(object, Metatable)
+        cLogger:assertField(object, "surface")
+        cLogger:assertField(object, "rawPlayer")
+        local layout = cLogger:assertField(object, "layout")
+        object.layoutCoordinates = layout:computeCoordinates(DefaultLayoutParameters)
+        ErrorOnInvalidRead.setmetatable(object)
+        draw(object)
         return object
     end,
 }
@@ -60,62 +71,55 @@ DefaultLayoutParameters = LayoutParameters.new{
     vertexMinY = 1.6,
 }
 
-
--- Metatable of the SimpleRenderer class.
-Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Draws a graph.
-        --
-        -- Args:
-        -- * self: SimpleRenderer instance.
-        -- * layout: LayerLayout object to draw.
-        --
-        draw = function(self, layout)
-            local layoutCoordinates = layout:computeCoordinates(DefaultLayoutParameters)
-            for vertexIndex,coords in pairs(layoutCoordinates.vertices) do
-                rendering.draw_rectangle({
-                    color = LightGrey,
-                    draw_on_ground = true,
-                    filled = true,
-                    left_top = {coords.xMin, coords.yMin},
-                    players = {self.rawPlayer},
-                    right_bottom = {coords.xMax, coords.yMax},
-                    surface = self.surface,
-                })
-                rendering.draw_sprite({
-                    players = {self.rawPlayer},
-                    sprite = vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
-                    surface = self.surface,
-                    target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
-                })
-            end
-            for edgeIndex,coords in pairs(layoutCoordinates.edges) do
-                rendering.draw_rectangle({
-                    color = DarkGrey,
-                    draw_on_ground = true,
-                    filled = true,
-                    left_top = {coords.xMin, coords.yMin},
-                    players = {self.rawPlayer},
-                    right_bottom = {coords.xMax, coords.yMax},
-                    surface = self.surface,
-                })
-                rendering.draw_sprite({
-                    players = {self.rawPlayer},
-                    sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
-                    surface = self.surface,
-                    target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
-                })
-            end
-            for rendererLink in pairs(layoutCoordinates.links) do
-                local color = White
-                if rendererLink.category == "backward" then
-                    color = Red
-                end
-                renderTree(self, rendererLink.tree, color)
-            end
-        end,
-    },
-}
+-- Draws the graph.
+--
+-- Args:
+-- * self: SimpleRenderer object.
+--
+draw = function(self)
+    local layoutCoordinates = self.layoutCoordinates
+    for vertexIndex,coords in pairs(layoutCoordinates.vertices) do
+        rendering.draw_rectangle({
+            color = LightGrey,
+            draw_on_ground = true,
+            filled = true,
+            left_top = {coords.xMin, coords.yMin},
+            players = {self.rawPlayer},
+            right_bottom = {coords.xMax, coords.yMax},
+            surface = self.surface,
+        })
+        rendering.draw_sprite({
+            players = {self.rawPlayer},
+            sprite = vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
+            surface = self.surface,
+            target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
+        })
+    end
+    for edgeIndex,coords in pairs(layoutCoordinates.edges) do
+        rendering.draw_rectangle({
+            color = DarkGrey,
+            draw_on_ground = true,
+            filled = true,
+            left_top = {coords.xMin, coords.yMin},
+            players = {self.rawPlayer},
+            right_bottom = {coords.xMax, coords.yMax},
+            surface = self.surface,
+        })
+        rendering.draw_sprite({
+            players = {self.rawPlayer},
+            sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
+            surface = self.surface,
+            target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
+        })
+    end
+    for rendererLink in pairs(layoutCoordinates.links) do
+        local color = White
+        if rendererLink.category == "backward" then
+            color = Red
+        end
+        renderTree(self, rendererLink.tree, color)
+    end
+end
 
 -- Renders a tree link.
 --

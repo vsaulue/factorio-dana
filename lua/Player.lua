@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -178,11 +178,11 @@ function Impl.renderGraph(self)
         graph = self.graph,
         sourceVertices = rawMaterials,
     }
-    local renderer = SimpleRenderer.new({
+    local renderer = SimpleRenderer.new{
+        layout = layout,
         rawPlayer = self.rawPlayer,
         surface = self.graphSurface,
-    })
-    renderer:draw(layout)
+    }
 end
 
 return Player
