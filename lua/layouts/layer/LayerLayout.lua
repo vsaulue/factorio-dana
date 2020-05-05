@@ -16,15 +16,17 @@
 
 local Array = require("lua/containers/Array")
 local ChannelIndexFactory = require("lua/layouts/layer/ChannelIndexFactory")
+local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperSCC = require("lua/hypergraph/algorithms/HyperSCC")
 local LayerCoordinateGenerator = require("lua/layouts/layer/coordinates/LayerCoordinateGenerator")
 local LayersBuilder = require("lua/layouts/layer/LayersBuilder")
 local LayersSorter = require("lua/layouts/layer/sorter/LayersSorter")
-local Logger = require("lua/logger/Logger")
 local HyperSrcMinDist = require("lua/hypergraph/algorithms/HyperSrcMinDist")
 local SlotsSorter = require("lua/layouts/layer/SlotsSorter")
+
+local cLogger = ClassLogger.new{className = "LayerLayout"}
 
 -- Computes a layer layout for an hypergraph.
 --
@@ -113,24 +115,18 @@ function Impl.assignVerticesToLayers(layersBuilder, graph, sourceVertices)
     for index=#sccs.components,1,-1 do
         local scc = sccs.components[index]
         local sccVertex = sccGraph.vertices[scc]
-        if sccVertex then
-            local layerId = 2
-            for _,edge in pairs(sccVertex.inbound) do
-                for _,previousId in pairs(edge.inbound) do
-                    local previousLayerId = sccToLayer[previousId]
-                    if previousLayerId then
-                            layerId = math.max(layerId, previousLayerId + 2)
-                    else
-                        Logger.error("LayerLayout: Invalid inputs from HyperSCC (wrong topological order, or non-acyclic graph).")
-                    end
-                end
+        cLogger:assert(sccVertex, "Invalid component index")
+        local layerId = 2
+        for _,edge in pairs(sccVertex.inbound) do
+            for _,previousId in pairs(edge.inbound) do
+                local previousLayerId = sccToLayer[previousId]
+                cLogger:assert(previousLayerId, "Invalid inputs from HyperSCC (wrong topological order, or non-acyclic graph).")
+                layerId = math.max(layerId, previousLayerId + 2)
             end
-            sccToLayer[scc] = layerId
-            for vertexIndex in pairs(scc) do
-                layersBuilder:newVertex(layerId, vertexIndex)
-            end
-        else
-            Logger.error("LayerLayout: Invalid component index")
+        end
+        sccToLayer[scc] = layerId
+        for vertexIndex in pairs(scc) do
+            layersBuilder:newVertex(layerId, vertexIndex)
         end
     end
 end
