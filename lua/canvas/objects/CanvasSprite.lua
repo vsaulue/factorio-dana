@@ -32,6 +32,7 @@ local CanvasSprite = ErrorOnInvalidRead.new{
     makeFromInitData = function(initData)
         return AbstractCanvasObject.new{
             id = rendering.draw_sprite(initData),
+            type = "sprite",
         }
     end,
 }

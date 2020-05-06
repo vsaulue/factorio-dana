@@ -32,6 +32,7 @@ local CanvasLine = ErrorOnInvalidRead.new{
     makeFromInitData = function(initData)
         return AbstractCanvasObject.new{
             id = rendering.draw_line(initData),
+            type = "line",
         }
     end,
 }

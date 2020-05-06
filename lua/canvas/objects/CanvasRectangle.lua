@@ -32,6 +32,7 @@ local CanvasRectangle = ErrorOnInvalidRead.new{
     makeFromInitData = function(initData)
         return AbstractCanvasObject.new{
             id = rendering.draw_rectangle(initData),
+            type = "rectangle",
         }
     end,
 }

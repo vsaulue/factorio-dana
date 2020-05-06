@@ -28,6 +28,7 @@ local Metatable
 --
 -- RO fields:
 -- * id: ID of the wrapped object in the rendering API.
+-- * type: string encoding the type of canvas object (same value as rendering.get_type(id) ).
 --
 -- Methods: see Metatable.__index.
 --
@@ -42,6 +43,7 @@ local AbstractCanvasObject = ErrorOnInvalidRead.new{
     --
     new = function(object, metatable)
         cLogger:assertField(object, "id")
+        cLogger:assertField(object, "type")
         setmetatable(object, metatable or Metatable)
         return object
     end,

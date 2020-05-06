@@ -32,6 +32,7 @@ local CanvasCircle = ErrorOnInvalidRead.new{
     makeFromInitData = function(initData)
         return AbstractCanvasObject.new{
             id = rendering.draw_circle(initData),
+            type = "circle",
         }
     end,
 }
