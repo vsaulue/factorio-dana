@@ -44,29 +44,31 @@ local AbstractCanvasObject = ErrorOnInvalidRead.new{
         setmetatable(object, Metatable)
         return object
     end,
-}
 
--- Metatable of the AbstractCanvasObject class.
-Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Releases all API resources of this object.
-        --
-        -- Args:
-        -- * self: AbstractCanvasObject instance.
-        --
-        close = function(self)
-            apiDestroy(self.id)
-            self.id = nil
+    -- Metatable of the AbstractCanvasObject class.
+    Metatable = {
+        __index = ErrorOnInvalidRead.new{
+            -- Releases all API resources of this object.
+            --
+            -- Args:
+            -- * self: AbstractCanvasObject instance.
+            --
+            close = function(self)
+                apiDestroy(self.id)
+                self.id = nil
+            end,
+        },
+
+        __gc = function(self)
+            local id = rawget(self, "id")
+            if id then
+                cLogger.warn("object was not properly closed before garbage collection.")
+                apiDestroy(id)
+            end
         end,
     },
-
-    __gc = function(self)
-        local id = rawget(self, "id")
-        if id then
-            cLogger.warn("object was not properly closed before garbage collection.")
-            apiDestroy(id)
-        end
-    end,
 }
+
+Metatable = AbstractCanvasObject.Metatable
 
 return AbstractCanvasObject
