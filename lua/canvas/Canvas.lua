@@ -14,7 +14,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractCanvasObject = require("lua/canvas/objects/AbstractCanvasObject")
+local CanvasCircle = require("lua/canvas/objects/CanvasCircle")
+local CanvasLine = require("lua/canvas/objects/CanvasLine")
+local CanvasRectangle = require("lua/canvas/objects/CanvasRectangle")
+local CanvasSprite = require("lua/canvas/objects/CanvasSprite")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
@@ -53,18 +56,15 @@ local Canvas = ErrorOnInvalidRead.new{
 -- Args:
 -- * self: Canvas instance.
 -- * initData: Arguments passed to the rendering API (surface & players are filled by this method).
--- * drawFunction: Function from the rendering API to call to generate the API id.
+-- * class: "Class" to instanciate (the "Class" is the table returned by require).
 --
 -- Returns: The new CanvasObject.
 --
-drawWrapper = function(self, initData, drawFunction)
+drawWrapper = function(self, initData, class)
     initData.surface = self.surface
     initData.players = self.players
-    local id = drawFunction(initData)
-    local result = AbstractCanvasObject.new{
-        id = id,
-    }
-    self.objects[id] = result
+    local result = class.makeFromInitData(initData)
+    self.objects[result.id] = result
     return result
 end
 
@@ -90,7 +90,7 @@ Metatable = {
         -- * initData: Arguments passed to the rendering API (surface & players are filled by this method).
         --
         newLine = function(self, initData)
-            return drawWrapper(self, initData, rendering.draw_line)
+            return drawWrapper(self, initData, CanvasLine)
         end,
 
         -- Draws a new circle.
@@ -100,7 +100,7 @@ Metatable = {
         -- * initData: Arguments passed to the rendering API (surface & players are filled by this method).
         --
         newCircle = function(self, initData)
-            return drawWrapper(self, initData, rendering.draw_circle)
+            return drawWrapper(self, initData, CanvasCircle)
         end,
 
         -- Draws a new rectangle.
@@ -110,7 +110,7 @@ Metatable = {
         -- * initData: Arguments passed to the rendering API (surface & players are filled by this method).
         --
         newRectangle = function(self, initData)
-            return drawWrapper(self, initData, rendering.draw_rectangle)
+            return drawWrapper(self, initData, CanvasRectangle)
         end,
 
         -- Draws a new sprite.
@@ -120,7 +120,7 @@ Metatable = {
         -- * initData: Arguments passed to the rendering API (surface & players are filled by this method).
         --
         newSprite = function(self, initData)
-            return drawWrapper(self, initData, rendering.draw_sprite)
+            return drawWrapper(self, initData, CanvasSprite)
         end,
     },
 
