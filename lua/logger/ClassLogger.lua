@@ -72,6 +72,16 @@ Metatable = {
             end
             return result
         end,
+
+        -- Logs a warning message.
+        --
+        -- Args:
+        -- * self: ClassLogger object.
+        -- * message: Message to log.
+        --
+        warn = function(self, message)
+            Logger.warn(self.className .. ": " .. message)
+        end,
     }
 }
 
