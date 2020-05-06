@@ -17,7 +17,7 @@
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
-local cLogger = ClassLogger.new{className = "CanvasObject"}
+local cLogger = ClassLogger.new{className = "AbstractCanvasObject"}
 
 local apiDestroy = rendering.destroy
 local Metatable
@@ -31,13 +31,13 @@ local Metatable
 --
 -- Methods: see Metatable.__index.
 --
-local CanvasObject = ErrorOnInvalidRead.new{
-    -- Creates a new CanvasObject.
+local AbstractCanvasObject = ErrorOnInvalidRead.new{
+    -- Creates a new AbstractCanvasObject.
     --
     -- Args:
-    -- * object: Table to turn into a CanvasObject.
+    -- * object: Table to turn into a AbstractCanvasObject.
     --
-    -- Returns: The argument, turned into a CanvasObject.
+    -- Returns: The argument, turned into a AbstractCanvasObject.
     --
     new = function(object)
         cLogger:assertField(object, "id")
@@ -46,13 +46,13 @@ local CanvasObject = ErrorOnInvalidRead.new{
     end,
 }
 
--- Metatable of the CanvasObject class.
+-- Metatable of the AbstractCanvasObject class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Releases all API resources of this object.
         --
         -- Args:
-        -- * self: CanvasObject instance.
+        -- * self: AbstractCanvasObject instance.
         --
         close = function(self)
             apiDestroy(self.id)
@@ -69,4 +69,4 @@ Metatable = {
     end,
 }
 
-return CanvasObject
+return AbstractCanvasObject

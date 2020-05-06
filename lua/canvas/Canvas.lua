@@ -14,7 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local CanvasObject = require("lua/canvas/CanvasObject")
+local AbstractCanvasObject = require("lua/canvas/objects/AbstractCanvasObject")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
@@ -61,7 +61,7 @@ drawWrapper = function(self, initData, drawFunction)
     initData.surface = self.surface
     initData.players = self.players
     local id = drawFunction(initData)
-    local result = CanvasObject.new{
+    local result = AbstractCanvasObject.new{
         id = id,
     }
     self.objects[id] = result
