@@ -34,8 +34,7 @@ local renderTree
 --
 -- RO properties:
 -- * layout: Layout displayed by this renderer.
--- * rawPlayer: Lua player using this renderer.
--- * surface: surface on which the graph is displayed.
+-- * canvas: Canvas object on which the layout must be drawn.
 --
 -- Methods: see Metatable.__index.
 --
@@ -48,8 +47,7 @@ local SimpleRenderer = ErrorOnInvalidRead.new{
     -- Returns: the argument turned into a SimpleRenderer object.
     --
     new = function(object)
-        cLogger:assertField(object, "surface")
-        cLogger:assertField(object, "rawPlayer")
+        cLogger:assertField(object, "canvas")
         local layout = cLogger:assertField(object, "layout")
         object.layoutCoordinates = layout:computeCoordinates(DefaultLayoutParameters)
         ErrorOnInvalidRead.setmetatable(object)
@@ -78,39 +76,32 @@ DefaultLayoutParameters = LayoutParameters.new{
 --
 draw = function(self)
     local layoutCoordinates = self.layoutCoordinates
+    local canvas = self.canvas
     for vertexIndex,coords in pairs(layoutCoordinates.vertices) do
-        rendering.draw_rectangle({
+        canvas:newRectangle{
             color = LightGrey,
             draw_on_ground = true,
             filled = true,
             left_top = {coords.xMin, coords.yMin},
-            players = {self.rawPlayer},
             right_bottom = {coords.xMax, coords.yMax},
-            surface = self.surface,
-        })
-        rendering.draw_sprite({
-            players = {self.rawPlayer},
+        }
+        canvas:newSprite{
             sprite = vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
-            surface = self.surface,
             target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
-        })
+        }
     end
     for edgeIndex,coords in pairs(layoutCoordinates.edges) do
-        rendering.draw_rectangle({
+        canvas:newRectangle{
             color = DarkGrey,
             draw_on_ground = true,
             filled = true,
             left_top = {coords.xMin, coords.yMin},
-            players = {self.rawPlayer},
             right_bottom = {coords.xMax, coords.yMax},
-            surface = self.surface,
-        })
-        rendering.draw_sprite({
-            players = {self.rawPlayer},
+        }
+        canvas:newSprite{
             sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
-            surface = self.surface,
             target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
-        })
+        }
     end
     for rendererLink in pairs(layoutCoordinates.links) do
         local color = White
@@ -131,34 +122,31 @@ end
 -- * color: Color used to draw the link.
 --
 renderTree = function(self,tree,color)
+    local canvas = self.canvas
     local from = {tree.x, tree.y}
     local count = 0
     for subtree in pairs(tree.children) do
         count = count + 1
-        rendering.draw_line({
+        canvas:newLine{
             color = color,
             draw_on_ground = true,
             from = from,
-            players = {self.rawPlayer},
-            surface = self.surface,
             to = {subtree.x, subtree.y},
             width = 1,
-        })
+        }
         renderTree(self, subtree, color)
     end
     if rawget(tree, "parent") then
         count = count + 1
     end
     if count > 2 then
-        rendering.draw_circle({
+        canvas:newCircle{
             color = color,
             draw_on_ground = true,
             filled = true,
-            players = {self.rawPlayer},
             radius = 0.125,
-            surface = self.surface,
             target = from,
-        })
+        }
     end
 end
 

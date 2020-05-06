@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local Canvas = require("lua/canvas/Canvas")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
@@ -27,6 +28,7 @@ local makeEdge
 -- Application to display a crafting hypergraph.
 --
 -- RO fields:
+-- * canvas: Canvas object on which the graph is drawn.
 -- * graph: Displayed DirectedHypergraph.
 -- * rawPlayer: LuaPlayer object.
 -- * renderer: SimpleRenderer object displaying the graph.
@@ -51,10 +53,14 @@ local GraphApp = ErrorOnInvalidRead.new{
             graph = graph,
             sourceVertices = sourceVertices,
         }
+        local canvas = Canvas.new{
+            players = {rawPlayer},
+            surface = surface,
+        }
+        object.canvas = canvas
         object.renderer = SimpleRenderer.new{
             layout = layout,
-            rawPlayer = rawPlayer,
-            surface = surface,
+            canvas = canvas,
         }
         ErrorOnInvalidRead.setmetatable(object)
 
