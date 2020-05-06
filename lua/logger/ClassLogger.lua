@@ -67,7 +67,7 @@ Metatable = {
         --
         assertField = function(self, object, fieldName)
             local result = object[fieldName]
-            if not result then
+            if result == nil then
                 Logger.error(self.className .. ": missing mandatory '" .. fieldName .. "' field.")
             end
             return result
