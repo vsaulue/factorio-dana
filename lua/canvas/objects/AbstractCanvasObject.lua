@@ -36,12 +36,13 @@ local AbstractCanvasObject = ErrorOnInvalidRead.new{
     --
     -- Args:
     -- * object: Table to turn into a AbstractCanvasObject.
+    -- * metatable: Actual metatable to set (or nil to use the abstract one).
     --
     -- Returns: The argument, turned into a AbstractCanvasObject.
     --
-    new = function(object)
+    new = function(object, metatable)
         cLogger:assertField(object, "id")
-        setmetatable(object, Metatable)
+        setmetatable(object, metatable or Metatable)
         return object
     end,
 
