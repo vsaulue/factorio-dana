@@ -19,6 +19,7 @@ return {
         lpath = "../?.lua",
         pattern = ".*%.lua",
         ROOT = {
+            "canvas/objects/tests",
             "containers/tests",
             "graph/tests",
             "graph/algorithms/tests"
