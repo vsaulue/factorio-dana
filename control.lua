@@ -52,7 +52,7 @@ local function on_gui_click(event)
 end
 
 local function on_player_selected_area(event)
-    Dana.on_player_selected_area(event)
+    dana:on_player_selected_area(event)
 end
 
 local events = defines.events

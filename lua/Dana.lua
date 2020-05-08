@@ -21,6 +21,7 @@ local Player = require("lua/Player")
 
 local cLogger = ClassLogger.new{className = "Dana"}
 
+local Metatable
 local newSurface
 
 -- Main class of this mod.
@@ -34,6 +35,8 @@ local newSurface
 -- * graphSurface: surface used to draw graphs.
 -- * players: map of Player objects, indexed by their Factorio index.
 -- * prototypes: PrototypeDatabase wrapping all useful prototypes from Factorio.
+--
+-- Methods: See Metatable.__index.
 --
 local Dana = ErrorOnInvalidRead.new{
     -- Creates a new Dana instance.
@@ -58,7 +61,7 @@ local Dana = ErrorOnInvalidRead.new{
             })
         end
 
-        ErrorOnInvalidRead.setmetatable(object)
+        setmetatable(object, Metatable)
         return object
     end,
 
@@ -68,15 +71,30 @@ local Dana = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(self)
-        ErrorOnInvalidRead.setmetatable(object)
+        setmetatable(object, Metatable)
         PrototypeDatabase.setmetatable(object.prototypes)
         for _,player in pairs(object.players) do
             Player.setmetatable(player)
         end
     end,
+}
 
-    -- Function to call in Factorio's on_player_selected_area event.
-    on_player_selected_area = nil, -- implemented later
+-- Metatable of the dana class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Callback for Factorio's event of the same name.
+        --
+        -- Args:
+        -- * self: Dana object.
+        -- * event: Factorio event.
+        --
+        on_player_selected_area = function(self, event)
+            if event.surface.index == self.graphSurface.index then
+                local player = self.players[event.player_index]
+                player:on_selected_area(event)
+            end
+        end,
+    },
 }
 
 -- Creates a new surface.
@@ -102,14 +120,6 @@ newSurface = function(gameScript)
     result.always_day = true
     result.freeze_daytime = true
     return result
-end
-
-function Dana.on_player_selected_area(event)
-    local self = global.Dana
-    if event.surface.index == self.graphSurface.index then
-        local player = self.players[event.player_index]
-        player:on_selected_area(event)
-    end
 end
 
 return Dana
