@@ -21,6 +21,8 @@ local Player = require("lua/Player")
 
 local cLogger = ClassLogger.new{className = "Dana"}
 
+local newSurface
+
 -- Main class of this mod.
 --
 -- Singleton class.
@@ -34,7 +36,29 @@ local cLogger = ClassLogger.new{className = "Dana"}
 -- * prototypes: PrototypeDatabase wrapping all useful prototypes from Factorio.
 --
 local Dana = ErrorOnInvalidRead.new{
-    new = nil, -- implemented later
+    -- Creates a new Dana instance.
+    --
+    -- Args:
+    -- * object: Table to turn into a Dana isntance.
+    --
+    -- Returns: The new Dana object.
+    --
+    new = function(object)
+        local gameScript = cLogger:assertField(object, "gameScript")
+        local result = ErrorOnInvalidRead.new{
+            graphSurface = newSurface(gameScript),
+            players = {},
+            prototypes = PrototypeDatabase.new(gameScript),
+        }
+        for _,rawPlayer in pairs(game.players) do
+            result.players[rawPlayer.index] = Player.new({
+                graphSurface = result.graphSurface,
+                prototypes = result.prototypes,
+                rawPlayer = rawPlayer,
+            })
+        end
+        return result
+    end,
 
     -- Restores the metatable of a Dana instance, and all its owned objects.
     --
@@ -59,55 +83,28 @@ local Dana = ErrorOnInvalidRead.new{
     on_player_selected_area = nil, -- implemented later
 }
 
--- Implementation stuff (private scope).
-local Impl = {
-    -- Creates a new surface.
-    --
-    -- Args:
-    -- * gameScript: LuaGameScript object.
-    --
-    -- Returns: the new surface.
-    --
-    newSurface = function(gameScript)
-        local MapGenSettings = {
-            height = 1,
-            width = 1,
-        }
-        local namePrefix = script.mod_name
-        local result = gameScript.create_surface(namePrefix, MapGenSettings)
-        local number = 1
-        while not result do
-            result = gameScript.create_surface(namePrefix .. "_" .. number, MapGenSettings)
-            number = number + 1
-        end
-        result.set_chunk_generated_status({0, 0}, defines.chunk_generated_status.entities)
-        result.always_day = true
-        result.freeze_daytime = true
-        return result
-    end,
-}
-
--- Creates a new Dana instance.
+-- Creates a new surface.
 --
 -- Args:
--- * object: Table to turn into a Dana isntance.
+-- * gameScript: LuaGameScript object.
 --
--- Returns: The new Dana object.
+-- Returns: the new surface.
 --
-function Dana.new(object)
-    local gameScript = cLogger:assertField(object, "gameScript")
-    local result = ErrorOnInvalidRead.new{
-        graphSurface = Impl.newSurface(gameScript),
-        players = {},
-        prototypes = PrototypeDatabase.new(gameScript),
+newSurface = function(gameScript)
+    local MapGenSettings = {
+        height = 1,
+        width = 1,
     }
-    for _,rawPlayer in pairs(game.players) do
-        result.players[rawPlayer.index] = Player.new({
-            graphSurface = result.graphSurface,
-            prototypes = result.prototypes,
-            rawPlayer = rawPlayer,
-        })
+    local namePrefix = script.mod_name
+    local result = gameScript.create_surface(namePrefix, MapGenSettings)
+    local number = 1
+    while not result do
+        result = gameScript.create_surface(namePrefix .. "_" .. number, MapGenSettings)
+        number = number + 1
     end
+    result.set_chunk_generated_status({0, 0}, defines.chunk_generated_status.entities)
+    result.always_day = true
+    result.freeze_daytime = true
     return result
 end
 
