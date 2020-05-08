@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local PrototypeDatabase = require("lua/PrototypeDatabase")
 local Player = require("lua/Player")
 
@@ -28,7 +29,7 @@ local Player = require("lua/Player")
 -- * players: map of Player objects, indexed by their Factorio index.
 -- * prototypes: PrototypeDatabase wrapping all useful prototypes from Factorio.
 --
-local Main = {
+local Main = ErrorOnInvalidRead.new{
     -- Function to call in Factorio's on_load event.
     on_load = nil, -- implemented later
 
@@ -82,7 +83,7 @@ local Impl = {
 }
 
 function Impl.new(gameScript)
-    local result = {
+    local result = ErrorOnInvalidRead.new{
         graphSurface = Impl.newSurface(gameScript),
         players = {},
         prototypes = PrototypeDatabase.new(gameScript),
