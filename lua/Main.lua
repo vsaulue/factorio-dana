@@ -34,6 +34,9 @@ local Main = {
 
     -- Function to call in Factorio's on_init event.
     on_init = nil, -- implemented later
+
+    -- Function to call in Factorio's on_player_selected_area event.
+    on_player_selected_area = nil, -- implemented later
 }
 
 -- Implementation stuff (private scope).
@@ -100,6 +103,14 @@ end
 
 function Main.on_init()
     global.Main = Impl.new(game)
+end
+
+function Main.on_player_selected_area(event)
+    local self = global.Main
+    if event.surface.index == self.graphSurface.index then
+        local player = self.players[event.player_index]
+        player:on_selected_area(event)
+    end
 end
 
 return Main

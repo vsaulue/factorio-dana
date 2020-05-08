@@ -38,6 +38,10 @@ local Player = {
     setmetatable = nil, -- implemented later
 }
 
+local on_selected_area = function(self, event)
+    self.app:on_selected_area(event)
+end
+
 -- Implementation stuff (private scope).
 local Impl = {
     -- Metatable of the Player class.
@@ -46,6 +50,8 @@ local Impl = {
             local result = nil
             if fieldName == "gui" then
                 result = Gui.new({rawGui = self.rawPlayer.gui})
+            elseif fieldName == "on_selected_area" then
+                result = on_selected_area
             end
             return result
         end,
