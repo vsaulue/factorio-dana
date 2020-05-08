@@ -32,6 +32,7 @@ local Metatable
 -- RO fields:
 -- * objects[id]: Map of CanvasObject held by this Canvas, indexed by their `id` field.
 -- * players: luaArray of LuaPlayer objects, passed to the rendering API.
+-- * selectable: Set of selectable objects.
 -- * surface: LuaSurface where the objects are drawn.
 --
 local Canvas = ErrorOnInvalidRead.new{
@@ -46,6 +47,7 @@ local Canvas = ErrorOnInvalidRead.new{
         cLogger:assertField(object, "players")
         cLogger:assertField(object, "surface")
         object.objects = ErrorOnInvalidRead.new()
+        object.selectable = ErrorOnInvalidRead.new()
         setmetatable(object, Metatable)
         return object
     end,
@@ -65,6 +67,10 @@ drawWrapper = function(self, initData, class)
     initData.players = self.players
     local result = class.makeFromInitData(initData)
     self.objects[result.id] = result
+    if initData.selectable then
+        cLogger:assertField(result, "isCollidingWithAabb")
+        self.selectable[result] = true
+    end
     return result
 end
 
