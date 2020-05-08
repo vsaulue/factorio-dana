@@ -51,6 +51,16 @@ local AbstractCanvasObject = ErrorOnInvalidRead.new{
     -- Metatable of the AbstractCanvasObject class.
     Metatable = {
         __index = ErrorOnInvalidRead.new{
+            -- Tests if this objects collides with an Aabb object.
+            --
+            -- Args:
+            -- * self: AbstractCanvasObject instance.
+            -- * aabb: Aabb object to test collision with.
+            --
+            -- Return: true if the object collides with the Aabb. False otherwise.
+            --
+            isCollidingWithAabb = nil, -- abstract method: to be implemented by derived classes.
+
             -- Releases all API resources of this object.
             --
             -- Args:
