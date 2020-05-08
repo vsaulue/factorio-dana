@@ -78,26 +78,32 @@ draw = function(self)
     local layoutCoordinates = self.layoutCoordinates
     local canvas = self.canvas
     for vertexIndex,coords in pairs(layoutCoordinates.vertices) do
-        canvas:newRectangle{
+        local rectangle = canvas:newRectangle{
             color = LightGrey,
             draw_on_ground = true,
             filled = true,
             left_top = {coords.xMin, coords.yMin},
             right_bottom = {coords.xMax, coords.yMax},
+            selectable = true
         }
+        rectangle.rendererType = "vertex"
+        rectangle.rendererIndex = vertexIndex
         canvas:newSprite{
             sprite = vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
             target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
         }
     end
     for edgeIndex,coords in pairs(layoutCoordinates.edges) do
-        canvas:newRectangle{
+        local rectangle = canvas:newRectangle{
             color = DarkGrey,
             draw_on_ground = true,
             filled = true,
             left_top = {coords.xMin, coords.yMin},
             right_bottom = {coords.xMax, coords.yMax},
+            selectable = true,
         }
+        rectangle.rendererType = "edge"
+        rectangle.rendererIndex = edgeIndex
         canvas:newSprite{
             sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
             target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
@@ -127,13 +133,16 @@ renderTree = function(self,tree,color)
     local count = 0
     for subtree in pairs(tree.children) do
         count = count + 1
-        canvas:newLine{
+        local line = canvas:newLine{
             color = color,
             draw_on_ground = true,
             from = from,
             to = {subtree.x, subtree.y},
             width = 1,
+            selectable = true
         }
+        line.rendererType = "treeLinkNode"
+        line.rendererIndex = subtree
         renderTree(self, subtree, color)
     end
     if rawget(tree, "parent") then
