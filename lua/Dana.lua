@@ -75,12 +75,6 @@ local Dana = ErrorOnInvalidRead.new{
         end
     end,
 
-    -- Function to call in Factorio's on_load event.
-    on_load = nil, -- implemented later
-
-    -- Function to call in Factorio's on_init event.
-    on_init = nil, -- implemented later
-
     -- Function to call in Factorio's on_player_selected_area event.
     on_player_selected_area = nil, -- implemented later
 }
@@ -108,16 +102,6 @@ newSurface = function(gameScript)
     result.always_day = true
     result.freeze_daytime = true
     return result
-end
-
-function Dana.on_load()
-    Dana.setmetatable(global.Dana)
-end
-
-function Dana.on_init()
-    global.Dana = Dana.new{
-        gameScript = game,
-    }
 end
 
 function Dana.on_player_selected_area(event)

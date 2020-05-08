@@ -21,17 +21,29 @@ local Dana = require("lua/Dana")
 
 Logger.init(FactorioLoggerBackend)
 
+local dana
+
 local function on_load()
     Logger.info("on_load() started.")
+
     GuiElement.on_load()
-    Dana.on_load()
+
+    dana = global.Dana
+    Dana.setmetatable(dana)
+
     Logger.info("on_load() completed.")
 end
 
 local function on_init()
     Logger.info("on_init() started.")
+
     GuiElement.on_init()
-    Dana.on_init()
+
+    dana = Dana.new{
+        gameScript = game,
+    }
+    global.Dana = dana
+
     Logger.info("on_init() completed.")
 end
 
