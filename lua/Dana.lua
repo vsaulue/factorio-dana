@@ -34,6 +34,21 @@ local cLogger = ClassLogger.new{className = "Dana"}
 -- * prototypes: PrototypeDatabase wrapping all useful prototypes from Factorio.
 --
 local Dana = ErrorOnInvalidRead.new{
+    new = nil, -- implemented later
+
+    -- Restores the metatable of a Dana instance, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(self)
+        ErrorOnInvalidRead.setmetatable(object)
+        PrototypeDatabase.setmetatable(object.prototypes)
+        for _,player in pairs(object.players) do
+            Player.setmetatable(player)
+        end
+    end,
+
     -- Function to call in Factorio's on_load event.
     on_load = nil, -- implemented later
 
@@ -46,8 +61,6 @@ local Dana = ErrorOnInvalidRead.new{
 
 -- Implementation stuff (private scope).
 local Impl = {
-    new = nil, -- implemented later.
-
     -- Creates a new surface.
     --
     -- Args:
@@ -72,18 +85,6 @@ local Impl = {
         result.freeze_daytime = true
         return result
     end,
-
-    -- Restores the metatable of a Dana instance, and all its owned objects.
-    --
-    -- Args:
-    -- * object: table to modify.
-    --
-    setmetatable = function(object)
-        PrototypeDatabase.setmetatable(object.prototypes)
-        for _,player in pairs(object.players) do
-            Player.setmetatable(player)
-        end
-    end
 }
 
 -- Creates a new Dana instance.
@@ -93,7 +94,7 @@ local Impl = {
 --
 -- Returns: The new Dana object.
 --
-function Impl.new(object)
+function Dana.new(object)
     local gameScript = cLogger:assertField(object, "gameScript")
     local result = ErrorOnInvalidRead.new{
         graphSurface = Impl.newSurface(gameScript),
@@ -111,11 +112,11 @@ function Impl.new(object)
 end
 
 function Dana.on_load()
-    Impl.setmetatable(global.Dana)
+    Dana.setmetatable(global.Dana)
 end
 
 function Dana.on_init()
-    global.Dana = Impl.new{
+    global.Dana = Dana.new{
         gameScript = game,
     }
 end
