@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -14,9 +14,12 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local PrototypeDatabase = require("lua/PrototypeDatabase")
 local Player = require("lua/Player")
+
+local cLogger = ClassLogger.new{className = "Main"}
 
 -- Main class of this mod.
 --
@@ -25,6 +28,7 @@ local Player = require("lua/Player")
 -- Stored in global: yes.
 --
 -- Fields:
+-- * gameScript: LuaGameScript object from the Factorio API.
 -- * graphSurface: surface used to draw graphs.
 -- * players: map of Player objects, indexed by their Factorio index.
 -- * prototypes: PrototypeDatabase wrapping all useful prototypes from Factorio.
@@ -82,7 +86,15 @@ local Impl = {
     end
 }
 
-function Impl.new(gameScript)
+-- Creates a new Main instance.
+--
+-- Args:
+-- * object: Table to turn into a Main isntance.
+--
+-- Returns: The new Main object.
+--
+function Impl.new(object)
+    local gameScript = cLogger:assertField(object, "gameScript")
     local result = ErrorOnInvalidRead.new{
         graphSurface = Impl.newSurface(gameScript),
         players = {},
@@ -103,7 +115,9 @@ function Main.on_load()
 end
 
 function Main.on_init()
-    global.Main = Impl.new(game)
+    global.Main = Impl.new{
+        gameScript = game,
+    }
 end
 
 function Main.on_player_selected_area(event)
