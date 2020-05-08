@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local Aabb = require("lua/canvas/Aabb")
 local Canvas = require("lua/canvas/Canvas")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
@@ -24,6 +25,7 @@ local SimpleRenderer = require("lua/SimpleRenderer")
 local cLogger = ClassLogger.new{className = "GraphApp"}
 
 local makeEdge
+local Metatable
 
 -- Application to display a crafting hypergraph.
 --
@@ -62,7 +64,7 @@ local GraphApp = ErrorOnInvalidRead.new{
             layout = layout,
             canvas = canvas,
         }
-        ErrorOnInvalidRead.setmetatable(object)
+        setmetatable(object, Metatable)
 
         return object
     end,
@@ -102,6 +104,44 @@ local GraphApp = ErrorOnInvalidRead.new{
 
         return graph,sourceVertices
     end,
+}
+
+-- Metatable of the GraphApp class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Function to call when a selection-tool is used by the player owning this app.
+        --
+        -- Args:
+        -- * self: GraphApp object.
+        -- * event: Factorio event associated to the selection (from on_player_selected_area).
+        --
+        on_selected_area = function(self, event)
+            if event.item == "dana-select" then
+                local left_top = event.area.left_top
+                local right_bottom = event.area.right_bottom
+                local aabb = Aabb.new{
+                    xMin = left_top.x,
+                    xMax = right_bottom.x,
+                    yMin = left_top.y,
+                    yMax = right_bottom.y,
+                }
+                local selection = self.canvas:makeSelection(aabb)
+                -- TODO: make a proper GUI.
+                for object in pairs(selection) do
+                    local type = object.rendererType
+                    local index = object.rendererIndex
+                    local text = type .. ": "
+                    if type == "treeLinkNode" then
+                        text = text .. "{x= " .. index.x .. ", y= " .. index.y .. "}"
+                    else
+                        text = text .. index.type .. "/" .. index.rawPrototype.name
+                    end
+                    game.print(text)
+                end
+                game.print("------")
+            end
+        end,
+    },
 }
 
 -- Turns an entry from a PrototypeDatabase into a DirectedHypergraph edge.
