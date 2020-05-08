@@ -17,21 +17,21 @@
 local FactorioLoggerBackend = require("lua/logger/backends/FactorioLoggerBackend")
 local GuiElement = require("lua/gui/GuiElement")
 local Logger = require("lua/logger/Logger")
-local Main = require("lua/Main")
+local Dana = require("lua/Dana")
 
 Logger.init(FactorioLoggerBackend)
 
 local function on_load()
     Logger.info("on_load() started.")
     GuiElement.on_load()
-    Main.on_load()
+    Dana.on_load()
     Logger.info("on_load() completed.")
 end
 
 local function on_init()
     Logger.info("on_init() started.")
     GuiElement.on_init()
-    Main.on_init()
+    Dana.on_init()
     Logger.info("on_init() completed.")
 end
 
@@ -40,7 +40,7 @@ local function on_gui_click(event)
 end
 
 local function on_player_selected_area(event)
-    Main.on_player_selected_area(event)
+    Dana.on_player_selected_area(event)
 end
 
 local events = defines.events

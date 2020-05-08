@@ -19,7 +19,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local PrototypeDatabase = require("lua/PrototypeDatabase")
 local Player = require("lua/Player")
 
-local cLogger = ClassLogger.new{className = "Main"}
+local cLogger = ClassLogger.new{className = "Dana"}
 
 -- Main class of this mod.
 --
@@ -33,7 +33,7 @@ local cLogger = ClassLogger.new{className = "Main"}
 -- * players: map of Player objects, indexed by their Factorio index.
 -- * prototypes: PrototypeDatabase wrapping all useful prototypes from Factorio.
 --
-local Main = ErrorOnInvalidRead.new{
+local Dana = ErrorOnInvalidRead.new{
     -- Function to call in Factorio's on_load event.
     on_load = nil, -- implemented later
 
@@ -73,7 +73,7 @@ local Impl = {
         return result
     end,
 
-    -- Restores the metatable of a Main instance, and all its owned objects.
+    -- Restores the metatable of a Dana instance, and all its owned objects.
     --
     -- Args:
     -- * object: table to modify.
@@ -86,12 +86,12 @@ local Impl = {
     end
 }
 
--- Creates a new Main instance.
+-- Creates a new Dana instance.
 --
 -- Args:
--- * object: Table to turn into a Main isntance.
+-- * object: Table to turn into a Dana isntance.
 --
--- Returns: The new Main object.
+-- Returns: The new Dana object.
 --
 function Impl.new(object)
     local gameScript = cLogger:assertField(object, "gameScript")
@@ -110,22 +110,22 @@ function Impl.new(object)
     return result
 end
 
-function Main.on_load()
-    Impl.setmetatable(global.Main)
+function Dana.on_load()
+    Impl.setmetatable(global.Dana)
 end
 
-function Main.on_init()
-    global.Main = Impl.new{
+function Dana.on_init()
+    global.Dana = Impl.new{
         gameScript = game,
     }
 end
 
-function Main.on_player_selected_area(event)
-    local self = global.Main
+function Dana.on_player_selected_area(event)
+    local self = global.Dana
     if event.surface.index == self.graphSurface.index then
         local player = self.players[event.player_index]
         player:on_selected_area(event)
     end
 end
 
-return Main
+return Dana
