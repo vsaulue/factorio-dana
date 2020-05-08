@@ -89,6 +89,27 @@ Metatable = {
             self.objects = nil
         end,
 
+        -- Gets all the selectable objects intersecting/colliding the given Aabb.
+        --
+        -- Note: naive implementation for now. Might have to add a space partitioning data structure
+        -- at some point to keep performances reasonable on larger scenes.
+        --
+        -- args:
+        -- * self: Canvas instance.
+        -- * aabb: Aabb object.
+        --
+        -- Returns: a set containing all the selectable objects colliding with the given Aabb.
+        --
+        makeSelection = function(self, aabb)
+            local result = ErrorOnInvalidRead.new()
+            for object in pairs(self.selectable) do
+                if object:isCollidingWithAabb(aabb) then
+                    result[object] = true
+                end
+            end
+            return result
+        end,
+
         -- Draws a new line.
         --
         -- Args:
