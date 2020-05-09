@@ -45,19 +45,21 @@ local Dana = ErrorOnInvalidRead.new{
     --
     new = function(object)
         local gameScript = cLogger:assertField(object, "gameScript")
-        local result = ErrorOnInvalidRead.new{
-            graphSurface = newSurface(gameScript),
-            players = {},
-            prototypes = PrototypeDatabase.new(gameScript),
-        }
+
+        object.graphSurface = newSurface(gameScript)
+        object.prototypes = PrototypeDatabase.new(gameScript)
+
+        object.players = {}
         for _,rawPlayer in pairs(game.players) do
-            result.players[rawPlayer.index] = Player.new({
-                graphSurface = result.graphSurface,
-                prototypes = result.prototypes,
+            object.players[rawPlayer.index] = Player.new({
+                graphSurface = object.graphSurface,
+                prototypes = object.prototypes,
                 rawPlayer = rawPlayer,
             })
         end
-        return result
+
+        ErrorOnInvalidRead.setmetatable(object)
+        return object
     end,
 
     -- Restores the metatable of a Dana instance, and all its owned objects.
