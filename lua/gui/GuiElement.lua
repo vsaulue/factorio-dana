@@ -19,7 +19,7 @@ local Logger = require("lua/logger/Logger")
 
 local cLogger = ClassLogger.new{className = "GuiElement"}
 
-local Impl
+local GuiElementMap = {}
 
 -- Wrapper of the LuaGuiElement class from Factorio.
 --
@@ -43,43 +43,37 @@ local GuiElement = {
     bind = function(guiElement)
         local rawElement = cLogger:assertField(guiElement, "rawElement")
         local index = rawElement.index
-        cLogger:assert(not Impl.Map[index], "attempt to bind an object twice.")
-        Impl.Map[index] = guiElement
+        cLogger:assert(not GuiElementMap[index], "attempt to bind an object twice.")
+        GuiElementMap[index] = guiElement
     end,
 
     -- Function to call in Factorio's on_gui_click event.
-    on_gui_click = nil, -- implemented later
+    --
+    -- Args:
+    -- * event: Event object sent by Factorio.
+    --
+    on_gui_click = function(event)
+        local element = GuiElementMap[event.element.index]
+        local onClick = element.onClick
+        if onClick then
+            onClick(element, event)
+        end
+    end,
 
     -- Function to call in Factorio's on_load event.
-    on_load = nil, -- implemented later
+    --
+    on_load = function()
+        GuiElementMap = global.guiElementMap
+        for _,guiElement in pairs(GuiElementMap) do
+            setmetatable(guiElement,Impl.Metatable)
+        end
+    end,
 
     -- Function to call in Factorio's on_init event.
-    on_init = nil, -- implemented later
+    --
+    on_init = function()
+        global.guiElementMap = GuiElementMap
+    end,
 }
-
--- Implementation stuff (private scope).
-Impl = {
-    -- Map of GuiElement, indexed by the associated LuaGuiElement.index (stored in global).
-    Map = {},
-}
-
-function GuiElement.on_gui_click(event)
-    local element = Impl.Map[event.element.index]
-    local onClick = element.onClick
-    if onClick then
-        onClick(element, event)
-    end
-end
-
-function GuiElement.on_load()
-    Impl.Map = global.guiElementMap
-    for _,guiElement in pairs(Impl.Map) do
-        setmetatable(guiElement,Impl.Metatable)
-    end
-end
-
-function GuiElement.on_init()
-    global.guiElementMap = Impl.Map
-end
 
 return GuiElement
