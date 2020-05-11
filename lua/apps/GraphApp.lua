@@ -20,7 +20,7 @@ local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayerLayout = require("lua/layouts/layer/LayerLayout")
-local SimpleRenderer = require("lua/SimpleRenderer")
+local SimpleRenderer = require("lua/renderers/simple/SimpleRenderer")
 
 local cLogger = ClassLogger.new{className = "GraphApp"}
 
