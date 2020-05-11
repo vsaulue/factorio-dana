@@ -15,7 +15,6 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local GraphApp = require("lua/apps/GraphApp")
-local Gui = require("lua/gui/Gui")
 local GuiElement = require("lua/gui/GuiElement")
 local PlayerGui = require("lua/PlayerGui")
 
@@ -30,7 +29,6 @@ local PlayerGui = require("lua/PlayerGui")
 -- * prototypes: PrototypeDatabase object.
 --
 -- RO properties:
--- * gui: rawPlayer.gui wrapped in a Gui object.
 -- * opened: true if the GUI is opened.
 --
 local Player = {
@@ -49,9 +47,7 @@ local Impl = {
     Metatable = {
         __index = function(self, fieldName)
             local result = nil
-            if fieldName == "gui" then
-                result = Gui.new({rawGui = self.rawPlayer.gui})
-            elseif fieldName == "on_selected_area" then
+            if fieldName == "on_selected_area" then
                 result = on_selected_area
             end
             return result
