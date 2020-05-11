@@ -14,7 +14,12 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ClassLogger = require("lua/logger/ClassLogger")
 local Logger = require("lua/logger/Logger")
+
+local cLogger = ClassLogger.new{className = "GuiElement"}
+
+local Impl
 
 -- Wrapper of the LuaGuiElement class from Factorio.
 --
@@ -32,6 +37,19 @@ local Logger = require("lua/logger/Logger")
 -- * on_click: method to execute when on_gui_click is triggered (can be nil).
 --
 local GuiElement = {
+    -- Binds the arguement to an API LuaGuiElement.
+    --
+    -- Args:
+    -- * guiElement: GuiElement to bind (its rawElement field contains the API LuaGuiElement).
+    --
+    bind = function(guiElement)
+        local rawElement = cLogger:assertField(guiElement, "rawElement")
+        local index = rawElement.index
+        cLogger:assert(not Impl.Map[index], "attempt to bind an object twice.")
+        setmetatable(guiElement, Impl.Metatable)
+        Impl.Map[index] = guiElement
+    end,
+
     -- Function to register callbacks.
     newCallbacks = nil, -- implemented later
 
@@ -49,7 +67,7 @@ local GuiElement = {
 }
 
 -- Implementation stuff (private scope).
-local Impl = {
+Impl = {
     -- Set containing all the registered callbacks (not persistent between load/saves).
     CallbacksSet = {},
 
