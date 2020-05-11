@@ -34,12 +34,12 @@ local PlayerGui = ErrorOnInvalidRead.new{
         local player = cLogger:assertField(object, "player")
         object.callbacksIndex = StartCallbacks.index
         object.previousPosition = {0,0}
-        ErrorOnInvalidRead.setmetatable(object)
-        player.gui.left:add({
+        object.rawElement = player.rawPlayer.gui.left.add{
             type = "button",
             name = "menuButton",
             caption = "Chains",
-        }, object)
+        }
+        GuiElement.bind(object)
         return object
     end,
 }
