@@ -61,9 +61,6 @@ local GuiElement = {
 
     -- Function to call in Factorio's on_init event.
     on_init = nil, -- implemented later
-
-    -- Function to create/retrieve the wrapper of a LuaGuiElement instance.
-    wrap = nil, -- implemented later
 }
 
 -- Implementation stuff (private scope).
@@ -113,7 +110,7 @@ function GuiElement.newCallbacks(object)
 end
 
 function GuiElement.on_gui_click(event)
-    local element = GuiElement.wrap(event.element)
+    local element = Impl.Map[event.element.index]
     if element.on_click then
         element:on_click(event)
     end
@@ -128,23 +125,6 @@ end
 
 function GuiElement.on_init()
     global.guiElementMap = Impl.Map
-end
-
--- Gets the wrapper of a LuaGuiElement, or create it.
---
--- Args:
--- * rawElement: LuaGuiElement to wrap.
---
--- Returns: the unique GuiElement object wrapping the argument.
-function GuiElement.wrap(rawElement)
-    local result = nil
-    if rawElement then
-        result = Impl.Map[rawElement.index]
-        if not result then
-            result = Impl.newGuiElement({rawElement= rawElement})
-        end
-    end
-    return result
 end
 
 -- Creates a new GuiElement object, and updates the internal mapping.
