@@ -17,6 +17,7 @@
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayoutParameters = require("lua/layouts/LayoutParameters")
+local RendererSelection = require("lua/renderers/RendererSelection")
 
 local cLogger = ClassLogger.new{className = "SimpleRenderer"}
 
@@ -50,10 +51,36 @@ local SimpleRenderer = ErrorOnInvalidRead.new{
         cLogger:assertField(object, "canvas")
         local layout = cLogger:assertField(object, "layout")
         object.layoutCoordinates = layout:computeCoordinates(DefaultLayoutParameters)
-        ErrorOnInvalidRead.setmetatable(object)
+        setmetatable(object, Metatable)
         draw(object)
         return object
     end,
+}
+
+-- Metatable of the SimpleRenderer class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Turns a selction from the underlying canvas into a RendererSelection object.
+        --
+        -- Args:
+        -- * self: SimpleRenderer object.
+        -- * canvasSelection: Set of CanvasObject from the underlying canvas.
+        --
+        -- Returns: A new RendererSelection with all items from canvasSelection.
+        --
+        makeRendererSelection = function(self, canvasSelection)
+            local result = RendererSelection.new()
+            local rendererTypeToTable = ErrorOnInvalidRead.new{
+                edge = result.edges,
+                vertex = result.vertices,
+                treeLinkNode = result.links,
+            }
+            for canvasObject in pairs(canvasSelection) do
+                rendererTypeToTable[canvasObject.rendererType][canvasObject.rendererIndex] = true
+            end
+            return result
+        end,
+    }
 }
 
 -- LayoutParameters object, used by all instances of SimpleRenderer.
