@@ -18,6 +18,8 @@ local GraphApp = require("lua/apps/GraphApp")
 local GuiElement = require("lua/gui/GuiElement")
 local PlayerGui = require("lua/PlayerGui")
 
+local Metatable
+
 -- Class holding data associated to a player in this mod.
 --
 -- Stored in global: yes
@@ -32,54 +34,47 @@ local PlayerGui = require("lua/PlayerGui")
 -- * opened: true if the GUI is opened.
 --
 local Player = {
-    new = nil, -- implemented later
+    -- Creates a new Player object.
+    --
+    -- Args:
+    -- * object: table to turn into the Player object (required fields: graphSurface, prototypes, rawPlayer).
+    --
+    new = function(object)
+        setmetatable(object, Metatable)
+        object.opened = false
+        object.playerGui = PlayerGui.new{
+            player = object,
+        }
+        -- default app for now
+        local graph,sourceVertices = GraphApp.makeDefaultGraphAndSource(object.prototypes)
+        object.app = GraphApp.new{
+            graph = graph,
+            rawPlayer = object.rawPlayer,
+            sourceVertices = sourceVertices,
+            surface = object.graphSurface,
+        }
+        --
+        return object
+    end,
 
-    setmetatable = nil, -- implemented later
+    -- Restores the metatable of a Player instance, and all its owned objects.
+    --
+    -- Args:
+    -- * object: Table to modify.
+    --
+    setmetatable = function(object)
+        setmetatable(object, Metatable)
+        PlayerGui.setmetatable(object.playerGui)
+    end,
 }
 
--- Implementation stuff (private scope).
-local Impl = {
-    -- Metatable of the Player class.
-    Metatable = {
-        __index = {
-            on_selected_area = function(self, event)
-                self.app:on_selected_area(event)
-            end,
-        },
+-- Metatable of the Player class.
+Metatable = {
+    __index = {
+        on_selected_area = function(self, event)
+            self.app:on_selected_area(event)
+        end,
     },
 }
-
--- Creates a new Player object.
---
--- Args:
--- * object: table to turn into the Player object (required fields: graphSurface, prototypes, rawPlayer).
---
-function Player.new(object)
-    setmetatable(object, Impl.Metatable)
-    object.opened = false
-    object.playerGui = PlayerGui.new{
-        player = object,
-    }
-    -- default app for now
-    local graph,sourceVertices = GraphApp.makeDefaultGraphAndSource(object.prototypes)
-    object.app = GraphApp.new{
-        graph = graph,
-        rawPlayer = object.rawPlayer,
-        sourceVertices = sourceVertices,
-        surface = object.graphSurface,
-    }
-    --
-    return object
-end
-
--- Restores the metatable of a Player instance, and all its owned objects.
---
--- Args:
--- * object: Table to modify.
---
-function Player.setmetatable(object)
-    setmetatable(object, Impl.Metatable)
-    PlayerGui.setmetatable(object.playerGui)
-end
 
 return Player
