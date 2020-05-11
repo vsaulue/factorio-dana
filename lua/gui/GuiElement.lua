@@ -33,7 +33,6 @@ local Impl
 -- * callbacksIndex: index of the Callbacks object used by this object.
 --
 -- RO properties:
--- * add: Wraps rawElement.add(...)
 -- * on_click: method to execute when on_gui_click is triggered (can be nil).
 --
 local GuiElement = {
@@ -83,11 +82,6 @@ Impl = {
 
     -- Function creating a new GuiElement.
     newGuiElement = nil, -- implemented later
-
-    -- Constant values returned by Metatable.__index
-    RawIndex = {
-        add = nil, -- implemented later
-    },
 }
 
 -- Registers a new Callbacks object
@@ -140,31 +134,14 @@ function Impl.newGuiElement(object)
     return object
 end
 
--- Wraps LuaGuiElement.add()
---
--- Args:
--- * self: GuiElement instance.
--- * rawArgs: Arguments forwarded to LuaGuiElement.add(...).
--- * object: table to turn into the GuiElement.
---
--- Returns: The new GuiElement.
-function Impl.RawIndex.add(self, rawArgs, object)
-    local result = object or {}
-    local rawElement = self.rawElement.add(rawArgs)
-    result.rawElement = rawElement
-    return Impl.newGuiElement(result)
-end
-
 function Impl.Metatable.__index(self, fieldName)
-    local result = Impl.RawIndex[fieldName]
-    if not result then
-        if Impl.ForwardedCallbacks[fieldName] and self.callbacksIndex then
-            local callbacks = Impl.CallbacksSet[self.callbacksIndex]
-            if callbacks then
-                result = callbacks[fieldName]
-            else
-                Logger.error("Unknown GuiElement callbacks (index: " .. self.callbacksIndex .. ")")
-            end
+    local result = nil
+    if Impl.ForwardedCallbacks[fieldName] and self.callbacksIndex then
+        local callbacks = Impl.CallbacksSet[self.callbacksIndex]
+        if callbacks then
+            result = callbacks[fieldName]
+        else
+            Logger.error("Unknown GuiElement callbacks (index: " .. self.callbacksIndex .. ")")
         end
     end
     return result
