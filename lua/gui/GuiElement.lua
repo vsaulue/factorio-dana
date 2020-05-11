@@ -16,7 +16,6 @@
 
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local Logger = require("lua/logger/Logger")
 
 local cLogger = ClassLogger.new{className = "GuiElement"}
 
