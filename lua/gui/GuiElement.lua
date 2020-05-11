@@ -79,9 +79,6 @@ Impl = {
     Metatable = {
         __index = nil, -- implemented later
     },
-
-    -- Function creating a new GuiElement.
-    newGuiElement = nil, -- implemented later
 }
 
 -- Registers a new Callbacks object
@@ -119,19 +116,6 @@ end
 
 function GuiElement.on_init()
     global.guiElementMap = Impl.Map
-end
-
--- Creates a new GuiElement object, and updates the internal mapping.
---
--- Args:
--- * object: table to turn into the GuiElement.
---
--- Returns: A new GuiElement wrapping the argument.
---
-function Impl.newGuiElement(object)
-    setmetatable(object, Impl.Metatable)
-    Impl.Map[object.rawElement.index] = object
-    return object
 end
 
 function Impl.Metatable.__index(self, fieldName)
