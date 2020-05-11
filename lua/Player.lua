@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GraphApp = require("lua/apps/GraphApp")
 local GuiElement = require("lua/gui/GuiElement")
 local PlayerGui = require("lua/PlayerGui")
@@ -33,7 +34,7 @@ local Metatable
 -- RO properties:
 -- * opened: true if the GUI is opened.
 --
-local Player = {
+local Player = ErrorOnInvalidRead.new{
     -- Creates a new Player object.
     --
     -- Args:
@@ -70,7 +71,7 @@ local Player = {
 
 -- Metatable of the Player class.
 Metatable = {
-    __index = {
+    __index = ErrorOnInvalidRead.new{
         on_selected_area = function(self, event)
             self.app:on_selected_area(event)
         end,
