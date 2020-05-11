@@ -37,21 +37,15 @@ local Player = {
     setmetatable = nil, -- implemented later
 }
 
-local on_selected_area = function(self, event)
-    self.app:on_selected_area(event)
-end
-
 -- Implementation stuff (private scope).
 local Impl = {
     -- Metatable of the Player class.
     Metatable = {
-        __index = function(self, fieldName)
-            local result = nil
-            if fieldName == "on_selected_area" then
-                result = on_selected_area
-            end
-            return result
-        end,
+        __index = {
+            on_selected_area = function(self, event)
+                self.app:on_selected_area(event)
+            end,
+        },
     },
 }
 
