@@ -125,18 +125,20 @@ Metatable = {
                     yMin = left_top.y,
                     yMax = right_bottom.y,
                 }
-                local selection = self.canvas:makeSelection(aabb)
+                local canvasSelection = self.canvas:makeSelection(aabb)
+                local rendererSelection = self.renderer:makeRendererSelection(canvasSelection)
                 -- TODO: make a proper GUI.
-                for object in pairs(selection) do
-                    local type = object.rendererType
-                    local index = object.rendererIndex
-                    local text = type .. ": "
-                    if type == "treeLinkNode" then
-                        text = text .. "{x= " .. index.x .. ", y= " .. index.y .. "}"
-                    else
-                        text = text .. index.type .. "/" .. index.rawPrototype.name
-                    end
-                    game.print(text)
+                game.print("Items & fluids:")
+                for vertexIndex in pairs(rendererSelection.vertices) do
+                    game.print("- " .. vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name)
+                end
+                game.print("Transformations:")
+                for edgeIndex in pairs(rendererSelection.edges) do
+                    game.print("- " .. edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name)
+                end
+                game.print("Links:")
+                for treeLinkNode in pairs(rendererSelection.links) do
+                    game.print("- { x= " .. treeLinkNode.x .. ", y= " ..treeLinkNode.y .. "}")
                 end
                 game.print("------")
             end
