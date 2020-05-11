@@ -17,6 +17,7 @@
 local GraphApp = require("lua/apps/GraphApp")
 local Gui = require("lua/gui/Gui")
 local GuiElement = require("lua/gui/GuiElement")
+local PlayerGui = require("lua/PlayerGui")
 
 -- Class holding data associated to a player in this mod.
 --
@@ -56,28 +57,7 @@ local Impl = {
             return result
         end,
     },
-
-    initGui = nil, -- implemented later
-
-    -- Callbacks for the top-left button.
-    StartCallbacks = {
-        index = "startButton",
-        on_click = function(self, event)
-            local player = self.player
-            local targetPosition = self.previousPosition
-            self.previousPosition = player.rawPlayer.position
-            if player.opened then
-                player.rawPlayer.teleport(targetPosition, self.previousSurface)
-            else
-                self.previousSurface = player.rawPlayer.surface
-                player.rawPlayer.teleport(targetPosition, player.graphSurface)
-            end
-            player.opened = not player.opened
-        end,
-    },
 }
-
-GuiElement.newCallbacks(Impl.StartCallbacks)
 
 -- Creates a new Player object.
 --
@@ -87,7 +67,9 @@ GuiElement.newCallbacks(Impl.StartCallbacks)
 function Player.new(object)
     setmetatable(object, Impl.Metatable)
     object.opened = false
-    Impl.initGui(object)
+    object.playerGui = PlayerGui.new{
+        player = object,
+    }
     -- default app for now
     local graph,sourceVertices = GraphApp.makeDefaultGraphAndSource(object.prototypes)
     object.app = GraphApp.new{
@@ -107,23 +89,6 @@ end
 --
 function Player.setmetatable(object)
     setmetatable(object, Impl.Metatable)
-end
-
--- Initialize the GUI of a player.
---
--- Args:
--- * self: Player whose GUI will be created.
---
-function Impl.initGui(self)
-    self.gui.left:add({
-        type = "button",
-        name = "menuButton",
-        caption = "Chains",
-    },{
-        callbacksIndex = Impl.StartCallbacks.index,
-        player = self,
-        previousPosition = {0,0},
-    })
 end
 
 return Player
