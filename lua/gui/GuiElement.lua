@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ClassLogger = require("lua/logger/ClassLogger")
+local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Logger = require("lua/logger/Logger")
 
 local cLogger = ClassLogger.new{className = "GuiElement"}
@@ -34,7 +35,7 @@ local GuiElementMap = {}
 -- Abstract methods:
 -- * on_click: method to execute when on_gui_click is triggered (can be nil).
 --
-local GuiElement = {
+local GuiElement = ErrorOnInvalidRead.new{
     -- Binds the arguement to an API LuaGuiElement.
     --
     -- Args:
