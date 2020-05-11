@@ -20,7 +20,7 @@ local GuiElement = require("lua/gui/GuiElement")
 
 local cLogger = ClassLogger.new{className = "PlayerGui"}
 
-local StartCallbacks
+local Metatable
 
 -- GUI of a player controller (not a specific application).
 --
@@ -30,37 +30,54 @@ local StartCallbacks
 -- * previousSurface: LuaSurface on which the player was before opening this GUI.
 --
 local PlayerGui = ErrorOnInvalidRead.new{
+    -- Creates a new PlayerGui object.
+    --
+    -- Args:
+    -- * object: Table to turn into a PlayerGui object (required field: player).
+    --
+    -- Returns: The argument turned into a PlayerGui object.
+    --
     new = function(object)
         local player = cLogger:assertField(object, "player")
-        object.callbacksIndex = StartCallbacks.index
         object.previousPosition = {0,0}
         object.rawElement = player.rawPlayer.gui.left.add{
             type = "button",
             name = "menuButton",
             caption = "Chains",
         }
+        setmetatable(object, Metatable)
         GuiElement.bind(object)
         return object
+    end,
+
+    -- Restores the metatable of a Player instance, and all its owned objects.
+    --
+    -- Args:
+    -- * object: Table to modify.
+    --
+    setmetatable = function(object)
+        setmetatable(object, Metatable)
     end,
 }
 
 -- Callbacks for the top-left button.
-StartCallbacks = {
-    index = "startButton",
-    on_click = function(self, event)
-        local player = self.player
-        local targetPosition = self.previousPosition
-        self.previousPosition = player.rawPlayer.position
-        if player.opened then
-            player.rawPlayer.teleport(targetPosition, self.previousSurface)
-        else
-            self.previousSurface = player.rawPlayer.surface
-            player.rawPlayer.teleport(targetPosition, player.graphSurface)
-        end
-        player.opened = not player.opened
-    end,
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Implements GuiElement:onClick().
+        --
+        onClick = function(self, event)
+            local player = self.player
+            local targetPosition = self.previousPosition
+            self.previousPosition = player.rawPlayer.position
+            if player.opened then
+                player.rawPlayer.teleport(targetPosition, self.previousSurface)
+            else
+                self.previousSurface = player.rawPlayer.surface
+                player.rawPlayer.teleport(targetPosition, player.graphSurface)
+            end
+            player.opened = not player.opened
+        end,
+    },
 }
-
-GuiElement.newCallbacks(StartCallbacks)
 
 return PlayerGui

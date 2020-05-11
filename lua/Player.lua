@@ -85,6 +85,7 @@ end
 --
 function Player.setmetatable(object)
     setmetatable(object, Impl.Metatable)
+    PlayerGui.setmetatable(object.playerGui)
 end
 
 return Player
