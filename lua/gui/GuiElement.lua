@@ -54,9 +54,11 @@ local GuiElement = ErrorOnInvalidRead.new{
     --
     on_gui_click = function(event)
         local element = GuiElementMap[event.element.index]
-        local onClick = element.onClick
-        if onClick then
-            onClick(element, event)
+        if element then
+            local onClick = element.onClick
+            if onClick then
+                onClick(element, event)
+            end
         end
     end,
 
