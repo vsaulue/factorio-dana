@@ -15,7 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GraphApp = require("lua/apps/GraphApp")
+local GraphApp = require("lua/apps/graph/GraphApp")
 local GuiElement = require("lua/gui/GuiElement")
 local PlayerGui = require("lua/PlayerGui")
 
