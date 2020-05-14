@@ -19,6 +19,7 @@ local Canvas = require("lua/canvas/Canvas")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local GuiGraphAppSelection = require("lua/apps/GuiGraphAppSelection")
 local LayerLayout = require("lua/layouts/layer/LayerLayout")
 local SimpleRenderer = require("lua/renderers/simple/SimpleRenderer")
 
@@ -32,6 +33,7 @@ local Metatable
 -- RO fields:
 -- * canvas: Canvas object on which the graph is drawn.
 -- * graph: Displayed DirectedHypergraph.
+-- * guiSelecton: GuiGraphAppSelection object, displaying the result of selections on the graph surface.
 -- * rawPlayer: LuaPlayer object.
 -- * renderer: SimpleRenderer object displaying the graph.
 -- * sourceVertices: Set of source vertex indices used to compute the layout.
@@ -63,6 +65,9 @@ local GraphApp = ErrorOnInvalidRead.new{
         object.renderer = SimpleRenderer.new{
             layout = layout,
             canvas = canvas,
+        }
+        object.guiSelection = GuiGraphAppSelection.new{
+            rawPlayer = rawPlayer,
         }
         setmetatable(object, Metatable)
 
@@ -127,20 +132,7 @@ Metatable = {
                 }
                 local canvasSelection = self.canvas:makeSelection(aabb)
                 local rendererSelection = self.renderer:makeRendererSelection(canvasSelection)
-                -- TODO: make a proper GUI.
-                game.print("Items & fluids:")
-                for vertexIndex in pairs(rendererSelection.vertices) do
-                    game.print("- " .. vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name)
-                end
-                game.print("Transformations:")
-                for edgeIndex in pairs(rendererSelection.edges) do
-                    game.print("- " .. edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name)
-                end
-                game.print("Links:")
-                for treeLinkNode in pairs(rendererSelection.links) do
-                    game.print("- { x= " .. treeLinkNode.x .. ", y= " ..treeLinkNode.y .. "}")
-                end
-                game.print("------")
+                self.guiSelection:setSelection(rendererSelection)
             end
         end,
     },
