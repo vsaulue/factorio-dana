@@ -19,7 +19,7 @@ local Canvas = require("lua/canvas/Canvas")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GuiGraphAppSelection = require("lua/apps/graph/gui/GuiGraphAppSelection")
+local SelectionWindow = require("lua/apps/graph/gui/SelectionWindow")
 local LayerLayout = require("lua/layouts/layer/LayerLayout")
 local SimpleRenderer = require("lua/renderers/simple/SimpleRenderer")
 
@@ -33,7 +33,7 @@ local Metatable
 -- RO fields:
 -- * canvas: Canvas object on which the graph is drawn.
 -- * graph: Displayed DirectedHypergraph.
--- * guiSelecton: GuiGraphAppSelection object, displaying the result of selections on the graph surface.
+-- * guiSelecton: SelectionWindow object, displaying the result of selections on the graph surface.
 -- * rawPlayer: LuaPlayer object.
 -- * renderer: SimpleRenderer object displaying the graph.
 -- * sourceVertices: Set of source vertex indices used to compute the layout.
@@ -66,7 +66,7 @@ local GraphApp = ErrorOnInvalidRead.new{
             layout = layout,
             canvas = canvas,
         }
-        object.guiSelection = GuiGraphAppSelection.new{
+        object.guiSelection = SelectionWindow.new{
             rawPlayer = rawPlayer,
         }
         setmetatable(object, Metatable)

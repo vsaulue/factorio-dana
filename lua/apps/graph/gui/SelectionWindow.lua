@@ -18,7 +18,7 @@ local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 
-local cLogger = ClassLogger.new{className = "GuiGraphAppSelection"}
+local cLogger = ClassLogger.new{className = "graphApp/SelectionWindow"}
 
 local Categories
 local CategoriesOrder
@@ -32,13 +32,13 @@ local Metatable
 -- * noSelection: Gui flow displaying the "Empty selection" message.
 -- * rawPlayer: LuaPlayer object.
 --
-local GuiGraphAppSelection = ErrorOnInvalidRead.new{
-    -- Creates a new GuiGraphAppSelection object.
+local SelectionWindow = ErrorOnInvalidRead.new{
+    -- Creates a new SelectionWindow object.
     --
     -- Args:
-    -- * object: Table to turn into a GuiGraphAppSelection object (required field: rawPlayer).
+    -- * object: Table to turn into a SelectionWindow object (required field: rawPlayer).
     --
-    -- Returns: The argument turned into a GuiGraphAppSelection object.
+    -- Returns: The argument turned into a SelectionWindow object.
     --
     new = function(object)
         local rawPlayer = cLogger:assertField(object, "rawPlayer")
@@ -95,13 +95,13 @@ local GuiGraphAppSelection = ErrorOnInvalidRead.new{
     end
 }
 
--- Metatable of the GuiGraphAppSelection class.
+-- Metatable of the SelectionWindow class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Sets the RendererSelection object to display in this GUI.
         --
         -- Args:
-        -- * self: GuiGraphAppSelection object.
+        -- * self: SelectionWindow object.
         -- * selection: RendererSelection object to display.
         --
         setSelection = function(self, selection)
@@ -162,4 +162,4 @@ Categories = ErrorOnInvalidRead.new{
 -- Array of category names, holding the order in which they are displayed.
 CategoriesOrder = {"vertices", "edges", "links"}
 
-return GuiGraphAppSelection
+return SelectionWindow
