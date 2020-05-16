@@ -43,7 +43,7 @@ local PlayerGui = ErrorOnInvalidRead.new{
         object.rawElement = player.rawPlayer.gui.left.add{
             type = "button",
             name = "menuButton",
-            caption = "Chains",
+            caption = "Dana",
         }
         setmetatable(object, Metatable)
         GuiElement.bind(object)
