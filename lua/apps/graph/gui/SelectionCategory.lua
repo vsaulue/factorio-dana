@@ -1,4 +1,4 @@
--- This file is part of Dana.
+﻿-- This file is part of Dana.
 -- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
@@ -48,7 +48,7 @@ local SelectionCategory = ErrorOnInvalidRead.new{
         }
         result.root.add{
             type = "label",
-            caption = categoryInfo.title,
+            caption = "▼ " .. categoryInfo.title,
             name = "title",
         }
         result.root.add{
@@ -107,6 +107,13 @@ Metatable = {
         --
         setExpanded = function(self, value)
             self.root.content.visible = value
+            local titlePrefix
+            if value then
+                titlePrefix = "▼ "
+            else
+                titlePrefix = "▶ "
+            end
+            self.root.title.caption = titlePrefix .. CategoryInfos[self.infoName].title
         end,
 
         -- Shows or hides this category.
