@@ -46,7 +46,7 @@ local SelectionWindow = ErrorOnInvalidRead.new{
         local rawPlayer = cLogger:assertField(object, "rawPlayer")
         object.frame = rawPlayer.gui.screen.add{
             type = "frame",
-            caption = "Graph selection",
+            caption = {"dana.apps.graph.selectionWindow.title"},
             direction = "vertical",
         }
         object.frame.location = {0,50}

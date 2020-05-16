@@ -48,7 +48,7 @@ local SelectionCategory = ErrorOnInvalidRead.new{
         }
         result.root.add{
             type = "label",
-            caption = "▼ " .. categoryInfo.title,
+            caption = {"", "▼ ", categoryInfo.title},
             name = "title",
         }
         result.root.add{
@@ -113,7 +113,7 @@ Metatable = {
             else
                 titlePrefix = "▶ "
             end
-            self.root.title.caption = titlePrefix .. CategoryInfos[self.infoName].title
+            self.root.title.caption = {"", titlePrefix, CategoryInfos[self.infoName].title}
         end,
 
         -- Shows or hides this category.
@@ -136,7 +136,7 @@ Metatable = {
 --
 CategoryInfos = ErrorOnInvalidRead.new{
     vertices = ErrorOnInvalidRead.new{
-        title = "Intermediates:",
+        title = {"dana.apps.graph.selectionWindow.vertexCategory"},
         generateGuiElement = function(vertexIndex)
             return {
                 type = "label",
@@ -145,7 +145,7 @@ CategoryInfos = ErrorOnInvalidRead.new{
         end,
     },
     edges = ErrorOnInvalidRead.new{
-        title = "Transforms:",
+        title = {"dana.apps.graph.selectionWindow.edgeCategory"},
         generateGuiElement = function(edgeIndex)
             return {
                 type = "label",
@@ -154,7 +154,7 @@ CategoryInfos = ErrorOnInvalidRead.new{
         end,
     },
     links = ErrorOnInvalidRead.new{
-        title = "Links:",
+        title = {"dana.apps.graph.selectionWindow.linkCategory"},
         generateGuiElement = function(treeLinkNode)
             return {
                 type = "label",
