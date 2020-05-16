@@ -49,15 +49,13 @@ local SelectionWindow = ErrorOnInvalidRead.new{
         }
         object.frame.location = {0,50}
         object.frame.style.maximal_height = rawPlayer.display_resolution.height - 50
-        local scrollPane = object.frame.add{
-            type = "scroll-pane",
-            vertical_scroll_policy = "auto-and-reserve-space",
-        }
+
+        local categoryHeight = object.frame.style.maximal_height - (1+#CategoriesOrder)*20
 
         object.categories = ErrorOnInvalidRead.new()
         for _,name in ipairs(CategoriesOrder) do
             local category = Categories[name]
-            local categoryFlow = scrollPane.add{
+            local categoryFlow = object.frame.add{
                 type = "flow",
                 direction = "vertical",
                 name = name,
@@ -68,15 +66,17 @@ local SelectionWindow = ErrorOnInvalidRead.new{
                 caption = category.title,
                 name = "title",
             }
-            categoryFlow.add{
-                type = "flow",
-                direction = "vertical",
+
+            local flow = categoryFlow.add{
+                type = "scroll-pane",
+                vertical_scroll_policy = "auto-and-reserve-space",
                 name = "content",
             }
+            flow.style.maximal_height = categoryHeight
             object.categories[name] = categoryFlow
         end
 
-        object.noSelection = scrollPane.add{
+        object.noSelection = object.frame.add{
             type = "label",
             caption = "Empty selection",
         }
@@ -92,6 +92,7 @@ local SelectionWindow = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
+        ErrorOnInvalidRead.setmetatable(object.categories)
     end
 }
 
