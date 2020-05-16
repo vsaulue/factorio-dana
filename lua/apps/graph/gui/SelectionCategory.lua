@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local SelectionCategoryLabel = require("lua/apps/graph/gui/SelectionCategoryLabel")
 
 local CategoryInfos
 local Metatable
@@ -55,6 +56,11 @@ local SelectionCategory = ErrorOnInvalidRead.new{
             vertical_scroll_policy = "auto-and-reserve-space",
             name = "content",
         }
+        result.label = SelectionCategoryLabel.new{
+            category = result,
+            rawElement = result.root.title,
+            selectionWindow = selectionWindow,
+        }
         result.root.content.style.maximal_height = selectionWindow.maxCategoryHeight
 
         setmetatable(result, Metatable)
@@ -68,6 +74,7 @@ local SelectionCategory = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
+        SelectionCategoryLabel.setmetatable(object.label)
     end,
 }
 
@@ -90,6 +97,16 @@ Metatable = {
                 count = count + 1
             end
             return count
+        end,
+
+        -- Expands (or collapses) the list of elements.
+        --
+        -- Args:
+        -- * self: SelectionCategory object.
+        -- * value: True to expand the list, false to hide it.
+        --
+        setExpanded = function(self, value)
+            self.root.content.visible = value
         end,
 
         -- Shows or hides this category.

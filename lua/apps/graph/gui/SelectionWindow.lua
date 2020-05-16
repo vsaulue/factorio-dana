@@ -51,7 +51,7 @@ local SelectionWindow = ErrorOnInvalidRead.new{
         }
         object.frame.location = {0,50}
         object.frame.style.maximal_height = rawPlayer.display_resolution.height - 50
-        object.maxCategoryHeight = object.frame.style.maximal_height - (1+#CategoriesOrder)*20
+        object.maxCategoryHeight = object.frame.style.maximal_height - (1+#CategoriesOrder)*32
 
         local categoryHeight = object.frame.style.maximal_height - (1+#CategoriesOrder)*20
 
@@ -83,6 +83,18 @@ local SelectionWindow = ErrorOnInvalidRead.new{
 -- Metatable of the SelectionWindow class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Expands the element list of a given category, and collapses the others.
+        --
+        -- Args:
+        -- * self: SelectionWindow object.
+        -- * categoryToExpand: SelectionCategory to expand.
+        --
+        expandCategory = function(self, categoryToExpand)
+            for _,category in pairs(self.categories) do
+                category:setExpanded(category == categoryToExpand)
+            end
+        end,
+
         -- Sets the RendererSelection object to display in this GUI.
         --
         -- Args:
@@ -94,6 +106,7 @@ Metatable = {
             for name,category in pairs(self.categories) do
                     local count = category:setElements(selection[name])
                     self.categories[name]:setVisible(count > 0)
+                    self.categories[name]:setExpanded(count > 0 and total == 0)
                     total = total + count
             end
             self.noSelection.visible = (total == 0)
