@@ -189,11 +189,13 @@ VertexTypeIcon = ErrorOnInvalidRead.new{
         type = "sprite",
         name = "typeIcon",
         sprite = "dana-fluid-icon",
+        tooltip = {"dana.apps.graph.selectionWindow.fluidType"},
     },
     item = {
         type = "sprite",
         name = "typeIcon",
         sprite = "dana-item-icon",
+        tooltip = {"dana.apps.graph.selectionWindow.itemType"},
     },
 }
 
