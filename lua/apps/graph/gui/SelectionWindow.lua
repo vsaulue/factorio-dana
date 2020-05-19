@@ -62,7 +62,7 @@ local SelectionWindow = ErrorOnInvalidRead.new{
 
         object.noSelection = object.frame.add{
             type = "label",
-            caption = "Empty selection",
+            caption = {"dana.apps.graph.selectionWindow.emptyCategory"},
         }
 
         setmetatable(object, Metatable)
