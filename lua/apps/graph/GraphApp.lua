@@ -114,6 +114,24 @@ local GraphApp = ErrorOnInvalidRead.new{
 -- Metatable of the GraphApp class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Hides all GUI elements of this application.
+        --
+        -- Args:
+        -- * self: GraphApp object.
+        --
+        hide = function(self)
+            self.guiSelection.frame.visible = false
+        end,
+
+        -- Shows all GUI elements of this application.
+        --
+        -- Args:
+        -- * self: GraphApp object.
+        --
+        show = function(self)
+            self.guiSelection.frame.visible = true
+        end,
+
         -- Function to call when a selection-tool is used by the player owning this app.
         --
         -- Args:

@@ -57,6 +57,7 @@ local Player = ErrorOnInvalidRead.new{
             sourceVertices = sourceVertices,
             surface = object.graphSurface,
         }
+        object.app:hide()
         --
         return object
     end,
@@ -97,6 +98,7 @@ Metatable = {
                 self.previousPosition = self.rawPlayer.position
                 self.previousSurface = self.rawPlayer.surface
                 self.rawPlayer.teleport(targetPosition, self.graphSurface)
+                self.app:show()
             end
         end,
 
@@ -111,6 +113,7 @@ Metatable = {
                 local targetPosition = self.previousPosition
                 self.previousPosition = self.rawPlayer.position
                 self.rawPlayer.teleport(targetPosition, self.previousSurface)
+                self.app:hide()
             end
         end,
 
