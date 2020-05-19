@@ -26,8 +26,6 @@ local Metatable
 --
 -- RO field:
 -- * player: Player object attached to this GUI.
--- * previousPosition: Position of the player on the previous surface.
--- * previousSurface: LuaSurface on which the player was before opening this GUI.
 --
 local PlayerGui = ErrorOnInvalidRead.new{
     -- Creates a new PlayerGui object.
@@ -39,7 +37,6 @@ local PlayerGui = ErrorOnInvalidRead.new{
     --
     new = function(object)
         local player = cLogger:assertField(object, "player")
-        object.previousPosition = {0,0}
         object.rawElement = player.rawPlayer.gui.left.add{
             type = "button",
             name = "menuButton",
@@ -66,16 +63,7 @@ Metatable = {
         -- Implements GuiElement:onClick().
         --
         onClick = function(self, event)
-            local player = self.player
-            local targetPosition = self.previousPosition
-            self.previousPosition = player.rawPlayer.position
-            if player.opened then
-                player.rawPlayer.teleport(targetPosition, self.previousSurface)
-            else
-                self.previousSurface = player.rawPlayer.surface
-                player.rawPlayer.teleport(targetPosition, player.graphSurface)
-            end
-            player.opened = not player.opened
+            self.player:toggleOpened()
         end,
     },
 }

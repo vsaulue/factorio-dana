@@ -29,6 +29,8 @@ local Metatable
 -- * app: Current application.
 -- * rawPlayer: Associated LuaPlayer instance.
 -- * graphSurface: LuaSurface used to display graphs to this player.
+-- * previousPosition: Position of the player on the previous surface.
+-- * previousSurface: LuaSurface on which the player was before opening this GUI.
 -- * prototypes: PrototypeDatabase object.
 --
 -- RO properties:
@@ -43,6 +45,7 @@ local Player = ErrorOnInvalidRead.new{
     new = function(object)
         setmetatable(object, Metatable)
         object.opened = false
+        object.previousPosition = {0,0}
         object.playerGui = PlayerGui.new{
             player = object,
         }
@@ -74,6 +77,48 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         on_selected_area = function(self, event)
             self.app:on_selected_area(event)
+        end,
+
+        -- Shows the current app, and moves the player to the drawing surface.
+        --
+        -- Args:
+        -- * self: Player object.
+        --
+        show = function(self)
+            if not self.opened then
+                self.opened = true
+                local targetPosition = self.previousPosition
+                self.previousPosition = self.rawPlayer.position
+                self.previousSurface = self.rawPlayer.surface
+                self.rawPlayer.teleport(targetPosition, self.graphSurface)
+            end
+        end,
+
+        -- Hides the current app, and moves the player back to the last known surface.
+        --
+        -- Args:
+        -- * self: Player object.
+        --
+        hide = function(self)
+            if self.opened then
+                self.opened = false
+                local targetPosition = self.previousPosition
+                self.previousPosition = self.rawPlayer.position
+                self.rawPlayer.teleport(targetPosition, self.previousSurface)
+            end
+        end,
+
+        -- Switches the "opened" state of this player GUI.
+        --
+        -- Args:
+        -- * self: Player object.
+        --
+        toggleOpened = function(self)
+            if self.opened then
+                self:hide()
+            else
+                self:show()
+            end
         end,
     },
 }
