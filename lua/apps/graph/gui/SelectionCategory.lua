@@ -19,6 +19,7 @@ local SelectionCategoryLabel = require("lua/apps/graph/gui/SelectionCategoryLabe
 
 local CategoryInfos
 local Metatable
+local VertexTypeIcon
 
 -- Class holding the data of a category in a GUI selection window.
 --
@@ -138,12 +139,28 @@ CategoryInfos = ErrorOnInvalidRead.new{
     vertices = ErrorOnInvalidRead.new{
         title = {"dana.apps.graph.selectionWindow.vertexCategory"},
         generateGuiElement = function(parent, vertexIndex)
-            return parent.add{
+            local flow = parent.add{
+                type = "flow",
+                direction = "horizontal",
+            }
+
+            flow.add(VertexTypeIcon[vertexIndex.type])
+            flow.typeIcon.style.minimal_width = 32
+
+            flow.add{
+                type = "sprite",
+                name = "vertexIcon",
+                sprite = vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
+            }
+            flow.vertexIcon.style.minimal_width = 32
+
+            flow.add{
                 type = "label",
-                caption = "- " .. vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
+                caption = vertexIndex.rawPrototype.localised_name,
             }
         end,
     },
+
     edges = ErrorOnInvalidRead.new{
         title = {"dana.apps.graph.selectionWindow.edgeCategory"},
         generateGuiElement = function(parent, edgeIndex)
@@ -153,6 +170,7 @@ CategoryInfos = ErrorOnInvalidRead.new{
             }
         end,
     },
+
     links = ErrorOnInvalidRead.new{
         title = {"dana.apps.graph.selectionWindow.linkCategory"},
         generateGuiElement = function(parent, treeLinkNode)
@@ -161,6 +179,21 @@ CategoryInfos = ErrorOnInvalidRead.new{
                 caption = "- { x= " .. treeLinkNode.x .. ", y= " ..treeLinkNode.y .. "}",
             }
         end,
+    },
+}
+
+-- Map[vertexIndex.type]: LuaGuiElement construction info for a sprite representing the type of a vertex.
+--
+VertexTypeIcon = ErrorOnInvalidRead.new{
+    fluid = {
+        type = "sprite",
+        name = "typeIcon",
+        sprite = "dana-fluid-icon",
+    },
+    item = {
+        type = "sprite",
+        name = "typeIcon",
+        sprite = "dana-item-icon",
     },
 }
 

@@ -52,5 +52,17 @@ data:extend{
             scale = 0.5,
             size = 32,
         },
-    }
+    },{
+        type = "sprite",
+        name = "dana-fluid-icon",
+        filename = "__dana__/graphics/fluid-symbol.png",
+        width = 32,
+        height = 32,
+    },{
+        type = "sprite",
+        name = "dana-item-icon",
+        filename = "__dana__/graphics/item-symbol.png",
+        width = 32,
+        height = 32,
+    },
 }
