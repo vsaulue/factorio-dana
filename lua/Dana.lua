@@ -91,7 +91,7 @@ Metatable = {
         on_player_selected_area = function(self, event)
             if event.surface.index == self.graphSurface.index then
                 local player = self.players[event.player_index]
-                player:on_selected_area(event)
+                player:onSelectedArea(event)
             end
         end,
     },

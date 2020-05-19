@@ -75,8 +75,14 @@ local Player = ErrorOnInvalidRead.new{
 -- Metatable of the Player class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
-        on_selected_area = function(self, event)
-            self.app:on_selected_area(event)
+        -- Function to call when Factorio's on_player_selected_area is triggered for this player.
+        --
+        -- Args:
+        -- * self: Player object.
+        -- * event: Factorio event.
+        --
+        onSelectedArea = function(self, event)
+            self.app:onSelectedArea(event)
         end,
 
         -- Shows the current app, and moves the player to the drawing surface.

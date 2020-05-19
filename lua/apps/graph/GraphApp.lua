@@ -120,7 +120,7 @@ Metatable = {
         -- * self: GraphApp object.
         -- * event: Factorio event associated to the selection (from on_player_selected_area).
         --
-        on_selected_area = function(self, event)
+        onSelectedArea = function(self, event)
             if event.item == "dana-select" then
                 local left_top = event.area.left_top
                 local right_bottom = event.area.right_bottom
