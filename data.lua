@@ -14,45 +14,43 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-selectionTool = {
-    type = "selection-tool",
-    name = "dana-select",
-    alt_selection_color = {
-        r = 0,
-        g = 0.5,
-        b = 0,
-    },
-    selection_color = {
-        r = 0,
-        g = 0.5,
-        b = 0,
-    },
-    alt_selection_mode = {"nothing"},
-    selection_mode = {"nothing"},
-    selection_cursor_box_type = "copy",
-    alt_selection_cursor_box_type = "copy",
-    flags = {"not-stackable"},
-    stack_size = 1,
-    icon = "__base__/graphics/icons/blueprint.png",
-    icon_mipmaps = 4,
-    icon_size = 64,
-}
-
-shortcut = {
-    type = "shortcut",
-    name = "dana-select-shortcut",
-    action = "create-blueprint-item",
-    item_to_create = "dana-select",
-    icon = {
-        filename = "__base__/graphics/icons/shortcut-toolbar/mip/new-blueprint-x32-white.png",
-        flags = {
-            "gui-icon",
+data:extend{
+    {
+        type = "selection-tool",
+        name = "dana-select",
+        alt_selection_color = {
+            r = 0,
+            g = 0.5,
+            b = 0,
         },
-        mipmap_count = 2,
-        priority = "extra-high-no-scale",
-        scale = 0.5,
-        size = 32,
-    },
+        selection_color = {
+            r = 0,
+            g = 0.5,
+            b = 0,
+        },
+        alt_selection_mode = {"nothing"},
+        selection_mode = {"nothing"},
+        selection_cursor_box_type = "copy",
+        alt_selection_cursor_box_type = "copy",
+        flags = {"not-stackable"},
+        stack_size = 1,
+        icon = "__base__/graphics/icons/blueprint.png",
+        icon_mipmaps = 4,
+        icon_size = 64,
+    },{
+        type = "shortcut",
+        name = "dana-select-shortcut",
+        action = "create-blueprint-item",
+        item_to_create = "dana-select",
+        icon = {
+            filename = "__base__/graphics/icons/shortcut-toolbar/mip/new-blueprint-x32-white.png",
+            flags = {
+                "gui-icon",
+            },
+            mipmap_count = 2,
+            priority = "extra-high-no-scale",
+            scale = 0.5,
+            size = 32,
+        },
+    }
 }
-
-data:extend({selectionTool, shortcut})
