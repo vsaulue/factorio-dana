@@ -93,7 +93,7 @@ Metatable = {
             local count = 0
             content.clear()
             for element in pairs(setOfElements) do
-                content.add(generateGuiElement(element))
+                generateGuiElement(content, element)
                 count = count + 1
             end
             return count
@@ -137,8 +137,8 @@ Metatable = {
 CategoryInfos = ErrorOnInvalidRead.new{
     vertices = ErrorOnInvalidRead.new{
         title = {"dana.apps.graph.selectionWindow.vertexCategory"},
-        generateGuiElement = function(vertexIndex)
-            return {
+        generateGuiElement = function(parent, vertexIndex)
+            return parent.add{
                 type = "label",
                 caption = "- " .. vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
             }
@@ -146,8 +146,8 @@ CategoryInfos = ErrorOnInvalidRead.new{
     },
     edges = ErrorOnInvalidRead.new{
         title = {"dana.apps.graph.selectionWindow.edgeCategory"},
-        generateGuiElement = function(edgeIndex)
-            return {
+        generateGuiElement = function(parent, edgeIndex)
+            return parent.add{
                 type = "label",
                 caption = "- " .. edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
             }
@@ -155,8 +155,8 @@ CategoryInfos = ErrorOnInvalidRead.new{
     },
     links = ErrorOnInvalidRead.new{
         title = {"dana.apps.graph.selectionWindow.linkCategory"},
-        generateGuiElement = function(treeLinkNode)
-            return {
+        generateGuiElement = function(parent, treeLinkNode)
+            return parent.add{
                 type = "label",
                 caption = "- { x= " .. treeLinkNode.x .. ", y= " ..treeLinkNode.y .. "}",
             }
