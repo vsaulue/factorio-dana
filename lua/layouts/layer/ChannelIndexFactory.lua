@@ -15,16 +15,12 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local LayerChannelIndex = require("lua/layouts/layer/LayerChannelIndex")
 
--- Factory for ChannelIndex objects.
+-- Factory for LayerChannelIndex objects.
 --
--- A ChannelIndex object is a 2 field table:
--- * isForward: true if the link is going from lower to higher index layer, false otherwise.
--- * isFromVertexToEdge: true if the link is going from a vertex to an edge, false otherwise.
--- * vertexIndex: Unique identifier of a vertex in an hypergraph.
---
--- This implementation does memoization, and ensure the same ChannelIndex is always returned for
--- the same vertexIndex/isForward couple. This enables fast comparison and map lookup.
+-- This implementation does memoization, and ensure the same LayerChannelIndex is always returned for
+-- the same field values. This enables fast comparison and map lookup.
 --
 -- RO fields:
 -- * cache[isForward,isFromVertexToEdge,vertexId]: 3-levels deep table caching already generated ChannelIndex objects.
@@ -48,12 +44,13 @@ local Metatable = {
         -- * self: ChannelIndexFactory object.
         -- * vertexIndex: vertexIndex value of the channel index.
         -- * isForward: isForward value of the channel index.
+        -- * isFromVertexToEdge: isFromVertexToEdge value of the channel index.
         --
         -- Returns: A ChannelObject instance with the specified vertexIndex/isForward values.
         get = function(self, vertexIndex, isForward, isFromVertexToEdge)
             local result = self.cache[isForward][isFromVertexToEdge][vertexIndex]
             if not result then
-                result = ErrorOnInvalidRead.new{
+                result = LayerChannelIndex.new{
                     isForward = isForward,
                     isFromVertexToEdge = isFromVertexToEdge,
                     vertexIndex = vertexIndex,
