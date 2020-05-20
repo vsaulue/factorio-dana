@@ -17,6 +17,8 @@
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayerChannelIndex = require("lua/layouts/layer/LayerChannelIndex")
 
+local Metatable
+
 -- Factory for LayerChannelIndex objects.
 --
 -- This implementation does memoization, and ensure the same LayerChannelIndex is always returned for
@@ -29,11 +31,30 @@ local LayerChannelIndex = require("lua/layouts/layer/LayerChannelIndex")
 -- * get: Gets (or create) the ChannelIndex object associated with the arguments.
 --
 local ChannelIndexFactory = ErrorOnInvalidRead.new{
-    new = nil, -- implemented later
+    -- Creates a new ChannelIndexFactory.
+    --
+    -- Returns: A new ChannelIndexFactory object.
+    --
+    new = function()
+        local result = {
+            cache = ErrorOnInvalidRead.new{
+                [true] = ErrorOnInvalidRead.new{
+                    [true] = {},
+                    [false] = {},
+                },
+                [false] = ErrorOnInvalidRead.new{
+                    [true] = {},
+                    [false] = {},
+                },
+            },
+        }
+        setmetatable(result, Metatable)
+        return result
+    end,
 }
 
 -- Metatable of the ChannelIndexFactory class (private scope).
-local Metatable = {
+Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Gets (or create) the ChannelIndex object associated with the arguments.
         --
@@ -61,26 +82,5 @@ local Metatable = {
         end,
     },
 }
-
--- Creates a new ChannelIndexFactory.
---
--- Returns: A new ChannelIndexFactory object.
---
-function ChannelIndexFactory.new()
-    local result = {
-        cache = ErrorOnInvalidRead.new{
-            [true] = ErrorOnInvalidRead.new{
-                [true] = {},
-                [false] = {},
-            },
-            [false] = ErrorOnInvalidRead.new{
-                [true] = {},
-                [false] = {},
-            },
-        },
-    }
-    setmetatable(result, Metatable)
-    return result
-end
 
 return ChannelIndexFactory
