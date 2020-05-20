@@ -18,6 +18,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local SelectionCategoryLabel = require("lua/apps/graph/gui/SelectionCategoryLabel")
 
 local CategoryInfos
+local EdgeTypeIcon
 local Metatable
 local VertexTypeIcon
 
@@ -164,9 +165,24 @@ CategoryInfos = ErrorOnInvalidRead.new{
     edges = ErrorOnInvalidRead.new{
         title = {"dana.apps.graph.selectionWindow.edgeCategory"},
         generateGuiElement = function(parent, edgeIndex)
-            return parent.add{
+            local flow = parent.add{
+                type = "flow",
+                direction = "horizontal",
+            }
+
+            flow.add(EdgeTypeIcon[edgeIndex.type])
+            flow.typeIcon.style.minimal_width = 32
+
+            flow.add{
+                type = "sprite",
+                name = "edgeIcon",
+                sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
+            }
+            flow.edgeIcon.style.minimal_width = 32
+
+            flow.add{
                 type = "label",
-                caption = "- " .. edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
+                caption = edgeIndex.rawPrototype.localised_name,
             }
         end,
     },
@@ -179,6 +195,23 @@ CategoryInfos = ErrorOnInvalidRead.new{
                 caption = "- { x= " .. treeLinkNode.x .. ", y= " ..treeLinkNode.y .. "}",
             }
         end,
+    },
+}
+
+-- Map[edgeIndex.type]: LuaGuiElement construction info for a sprite representing the type of a edge.
+--
+EdgeTypeIcon = ErrorOnInvalidRead.new{
+    entity = {
+        type = "sprite",
+        name = "typeIcon",
+        sprite = "dana-boiler-icon",
+        tooltip = {"dana.apps.graph.selectionWindow.boilerType"},
+    },
+    recipe = {
+        type = "sprite",
+        name = "typeIcon",
+        sprite = "dana-recipe-icon",
+        tooltip = {"dana.apps.graph.selectionWindow.recipeType"},
     },
 }
 

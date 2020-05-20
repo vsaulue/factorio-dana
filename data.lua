@@ -54,6 +54,12 @@ data:extend{
         },
     },{
         type = "sprite",
+        name = "dana-boiler-icon",
+        filename = "__dana__/graphics/boiler-symbol.png",
+        width = 32,
+        height = 32,
+    },{
+        type = "sprite",
         name = "dana-fluid-icon",
         filename = "__dana__/graphics/fluid-symbol.png",
         width = 32,
@@ -62,6 +68,12 @@ data:extend{
         type = "sprite",
         name = "dana-item-icon",
         filename = "__dana__/graphics/item-symbol.png",
+        width = 32,
+        height = 32,
+    },{
+        type = "sprite",
+        name = "dana-recipe-icon",
+        filename = "__dana__/graphics/recipe-symbol.png",
         width = 32,
         height = 32,
     },
