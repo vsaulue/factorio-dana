@@ -31,13 +31,15 @@ local Metatable
 local Tree = ErrorOnInvalidRead.new{
     -- Creates a new Tree object.
     --
-    -- Returns: A new tree node.
+    -- Args:
+    -- * object: Table to turn into a Tree object (or null for a new object).
+    --
+    -- Returns: The argument turned into a Tree object, or a new Tree object.
     --
     new = function(object)
         local result = object or {}
-        result.children = result.children or {}
+        result.children = ErrorOnInvalidRead.new()
         setmetatable(result, Metatable)
-        ErrorOnInvalidRead.setmetatable(result.children)
         return result
     end,
 }
