@@ -16,6 +16,8 @@
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
+local Metatable
+
 -- Class for representing tree data structures.
 --
 -- This is just a simple tree. No sorting, no balancing.
@@ -24,17 +26,31 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 -- * children: the set of children trees of this tree.
 -- * parent: Parent node in the tree.
 --
+-- Methods: see Metatable.__index.
 --
--- Methods:
--- * addChild: adds a new child to this node.
---
-local Tree = {
-    new = nil, -- implemented later
+local Tree = ErrorOnInvalidRead.new{
+    -- Creates a new Tree object.
+    --
+    -- Returns: A new tree node.
+    --
+    new = function(object)
+        local result = object or {}
+        result.children = result.children or {}
+        setmetatable(result, Metatable)
+        ErrorOnInvalidRead.setmetatable(result.children)
+        return result
+    end,
 }
 
 -- Metatable of the Tree class.
-local Metatable = {
+Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Adds a new child to this node.
+        --
+        -- Args:
+        -- * self: Tree object (new parent).
+        -- * newChild: Tree object to add as self's child.
+        --
         addChild = function(self, newChild)
             local previousParent = rawget(newChild, "parent")
             if previousParent then
@@ -45,17 +61,5 @@ local Metatable = {
         end,
     },
 }
-
--- Creates a new Tree object.
---
--- Returns: A new tree node.
---
-function Tree.new(object)
-    local result = object or {}
-    result.children = result.children or {}
-    setmetatable(result, Metatable)
-    ErrorOnInvalidRead.setmetatable(result.children)
-    return result
-end
 
 return Tree
