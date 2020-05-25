@@ -61,6 +61,21 @@ Metatable = {
             newChild.parent = self
             self.children[newChild] = true
         end,
+
+        -- Runs a function on each node of the tree.
+        --
+        -- The callback will be called exactly once per node. The order is implementation defined.
+        --
+        -- Args:
+        -- * self: Tree object.
+        -- * callback: function to call on each node.
+        --
+        forEachNode = function(self, callback)
+            callback(self)
+            for child in pairs(self.children) do
+                forEachNode(child, callback)
+            end
+        end,
     },
 }
 

@@ -16,6 +16,8 @@
 
 local Tree = require("lua/containers/Tree")
 
+local makeTree
+
 describe("Tree", function()
     local tree
 
@@ -50,4 +52,38 @@ describe("Tree", function()
             end)
         end)
     end)
+
+    it(":forEachNode()", function()
+        local nodeSet = {}
+        nodeSet[tree] = true
+        tree:addChild(makeTree(3, 3, nodeSet))
+
+        local count = 0
+        tree:forEachNode(function(node)
+            assert.is_true(nodeSet[node])
+            nodeSet[node] = nil
+            count = count + 1
+        end)
+        assert.are.equals(count, 14)
+    end)
 end)
+
+-- Creates a new tree.
+--
+-- Args:
+-- * height: Height of the generated tree.
+-- * childCount: Number of children per non-terminal node.
+-- * nodeSet: Set to fill with the generated nodes.
+--
+-- Returns: The root of the generated tree.
+--
+makeTree = function(height, childCount, nodeSet)
+    local result = Tree.new()
+    nodeSet[result] = true
+    if height > 1 then
+        for i=1,childCount do
+            result:addChild(makeTree(height-1, childCount, nodeSet))
+        end
+    end
+    return result
+end
