@@ -14,7 +14,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+
+local cLogger = ClassLogger.new{className = "Tree"}
 
 local Metatable
 
@@ -54,10 +57,7 @@ Metatable = {
         -- * newChild: Tree object to add as self's child.
         --
         addChild = function(self, newChild)
-            local previousParent = rawget(newChild, "parent")
-            if previousParent then
-                previousParent.children[newChild] = nil
-            end
+            cLogger:assert(not rawget(newChild, "parent"), "attempt to insert a subtree in 2 different trees.")
             newChild.parent = self
             self.children[newChild] = true
         end,
