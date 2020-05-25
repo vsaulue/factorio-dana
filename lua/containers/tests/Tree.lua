@@ -34,6 +34,21 @@ describe("Tree", function()
         assert.is_nil(rawget(tree, "parent"))
     end)
 
+    it("setmetatable()", function()
+        local tree2 = {
+            children = {},
+        }
+        local child = {
+            parent = tree2,
+            children = {},
+        }
+        tree2.children[child] = true
+
+        Tree.setmetatable(tree2)
+        assert.is_not_nil(getmetatable(child))
+        assert.is_not_nil(getmetatable(child.children))
+    end)
+
     describe(":addChild()", function()
         it("new node", function()
             local child = Tree.new()

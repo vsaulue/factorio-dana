@@ -19,6 +19,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "Tree"}
 
+local forEachNode
 local Metatable
 
 -- Class for representing tree data structures.
@@ -44,6 +45,18 @@ local Tree = ErrorOnInvalidRead.new{
         result.children = ErrorOnInvalidRead.new()
         setmetatable(result, Metatable)
         return result
+    end,
+
+    -- Restores the metatable of a Tree object, and all its owned objects.
+    --
+    -- Args:
+    -- * object: Table to modify.
+    --
+    setmetatable = function(object)
+        forEachNode(object, function(node)
+            setmetatable(node, Metatable)
+            ErrorOnInvalidRead.setmetatable(node.children)
+        end)
     end,
 }
 
@@ -78,5 +91,7 @@ Metatable = {
         end,
     },
 }
+
+forEachNode = Metatable.__index.forEachNode
 
 return Tree
