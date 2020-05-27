@@ -15,7 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local Tree = require("lua/containers/Tree")
+local TreeLinkNode = require("lua/layouts/TreeLinkNode")
 
 -- Class representing a branch of a trunk in a Channel routing algorithm.
 --
@@ -46,7 +46,7 @@ local ChannelBranch = ErrorOnInvalidRead.new{
         local x = entryNode.x
         ErrorOnInvalidRead.setmetatable(object)
         object.entryNode = entryNode
-        object.trunkNode = Tree.new{
+        object.trunkNode = TreeLinkNode.new{
             x = x,
         }
         object.x = x

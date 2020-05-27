@@ -19,6 +19,7 @@ local ChannelRouter = require("lua/layouts/layer/coordinates/ChannelRouter")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayerEntryPosition = require("lua/layouts/layer/coordinates/LayerEntryPosition")
 local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
+local TreeLink = require("lua/layouts/TreeLink")
 local Logger = require("lua/logger/Logger")
 local Stack = require("lua/containers/Stack")
 
@@ -60,7 +61,7 @@ addTreeLink = function(self, rootNode, isForward)
     if not isForward then
         category = "backward"
     end
-    local treeLink = ErrorOnInvalidRead.new{
+    local treeLink = TreeLink.new{
         category = category,
         tree = rootNode,
     }

@@ -15,7 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local Tree = require("lua/containers/Tree")
+local TreeLinkNode = require("lua/layouts/TreeLinkNode")
 
 -- Class holding placement data of a specific entry.
 --
@@ -121,7 +121,7 @@ buildNodes = function(slots)
     local result = ErrorOnInvalidRead.new()
     for i=1,slots.count do
         local channelIndex = slots[i]
-        result[channelIndex] = Tree.new()
+        result[channelIndex] = TreeLinkNode.new()
     end
     return result
 end
