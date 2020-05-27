@@ -17,6 +17,12 @@
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local TreeLinkNode = require("lua/layouts/TreeLinkNode")
 
+local buildNodes
+local computeSlotsX
+local nodesFieldName
+local setSlotsY
+local translateNodesX
+
 -- Class holding placement data of a specific entry.
 --
 -- The X coordinate of slots are directly stored in their associated link node.
@@ -33,23 +39,28 @@ local TreeLinkNode = require("lua/layouts/TreeLinkNode")
 -- * translateX: Moves this object on the X axis.
 --
 local LayerEntryPosition = ErrorOnInvalidRead.new{
-    new = nil,
-}
+    -- Turns a table into a LayerEntryPosition object.
+    --
+    -- Args:
+    -- * object: The table to turn into a LayerEntryPosition object. Must have an entry field.
+    --
+    -- Returns: object, turned into a LayerEntryPosition object.
+    --
+    new = function(object)
+        local entry = object.entry
+        assert(entry, "LayerEntryPosition: missing mandatory 'entry' field.")
 
--- Implementation stuff (private scope).
-local buildNodes
-local computeSlotsX
-local setSlotsY
-local translateNodesX
+        object.output = ErrorOnInvalidRead.new()
+        object.inboundNodes = buildNodes(entry.inboundSlots)
+        object.outboundNodes = buildNodes(entry.outboundSlots)
 
--- Map giving the field name for slot nodes.
-local nodesFieldName = ErrorOnInvalidRead.new{
-    [true] = "inboundNodes",
-    [false] = "outboundNodes",
+        setmetatable(object, Metatable)
+        return object
+    end,
 }
 
 -- Metatable of the LayerEntryPosition class.
-local Metatable = {
+Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Gets the tree node associated to the given slot.
         --
@@ -155,6 +166,12 @@ setSlotsY = function(nodes, y)
     end
 end
 
+-- Map giving the field name for slot nodes.
+nodesFieldName = ErrorOnInvalidRead.new{
+    [true] = "inboundNodes",
+    [false] = "outboundNodes",
+}
+
 -- Updates the x field of a set of link nodes.
 --
 -- Args:
@@ -165,25 +182,6 @@ translateNodesX = function(nodes, xDelta)
     for _,node in pairs(nodes) do
         node.x = node.x + xDelta
     end
-end
-
--- Turns a table into a LayerEntryPosition object.
---
--- Args:
--- * object: The table to turn into a LayerEntryPosition object. Must have an entry field.
---
--- Returns: object, turned into a LayerEntryPosition object.
---
-function LayerEntryPosition.new(object)
-    local entry = object.entry
-    assert(entry, "LayerEntryPosition: missing mandatory 'entry' field.")
-
-    object.output = ErrorOnInvalidRead.new()
-    object.inboundNodes = buildNodes(entry.inboundSlots)
-    object.outboundNodes = buildNodes(entry.outboundSlots)
-
-    setmetatable(object, Metatable)
-    return object
 end
 
 return LayerEntryPosition
