@@ -24,7 +24,6 @@ local Iterator = require("lua/containers/utils/Iterator")
 local MinimumFAS = require("lua/graph/algorithms/MinimumFAS")
 local StackAvlTree = require("lua/containers/StackAvlTree")
 local TopologicalOrderGenerator = require("lua/graph/algorithms/TopologicalOrderGenerator")
-local Tree = require("lua/containers/Tree")
 
 local buildTracks
 local buildOrder
