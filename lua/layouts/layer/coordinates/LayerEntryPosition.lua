@@ -14,8 +14,11 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local TreeLinkNode = require("lua/layouts/TreeLinkNode")
+
+local cLogger = ClassLogger.new{className = "LayerEntryPosition"}
 
 local buildNodes
 local computeSlotsX
@@ -47,8 +50,7 @@ local LayerEntryPosition = ErrorOnInvalidRead.new{
     -- Returns: object, turned into a LayerEntryPosition object.
     --
     new = function(object)
-        local entry = object.entry
-        assert(entry, "LayerEntryPosition: missing mandatory 'entry' field.")
+        local entry = cLogger:assertField(object, "entry")
 
         object.output = ErrorOnInvalidRead.new()
         object.inboundNodes = buildNodes(entry.inboundSlots)
