@@ -104,7 +104,7 @@ Metatable = {
         setSelection = function(self, selection)
             local total = 0
             for name,category in pairs(self.categories) do
-                    local count = category:setElements(selection[name])
+                    local count = category:setElements(selection)
                     self.categories[name]:setVisible(count > 0)
                     self.categories[name]:setExpanded(count > 0 and total == 0)
                     total = total + count

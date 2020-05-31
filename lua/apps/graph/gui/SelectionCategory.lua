@@ -87,18 +87,11 @@ Metatable = {
         --
         -- Args:
         -- * self: SelectionCategory object.
-        -- * setOfElements: New elements to display.
+        -- * rendererSelection: RendererSelection containing the new items to display.
         --
-        setElements = function(self, setOfElements)
-            local content = self.root.content
-            local generateGuiElement = CategoryInfos[self.infoName].generateGuiElement
-            local count = 0
-            content.clear()
-            for element in pairs(setOfElements) do
-                generateGuiElement(content, element)
-                count = count + 1
-            end
-            return count
+        setElements = function(self, rendererSelection)
+            self.root.content.clear()
+            return CategoryInfos[self.infoName].generateGuiElements(self, rendererSelection)
         end,
 
         -- Expands (or collapses) the list of elements.
@@ -134,66 +127,84 @@ Metatable = {
 --
 -- Fields:
 -- * title: Header line displayed in the GUI.
--- * generateGuiElement: function called to generate a LuaGuiElement from an item in a RendererSelection.
+-- * generateGuiElement: function called to generate LuaGuiElement objects for a new selection.
 --
 CategoryInfos = ErrorOnInvalidRead.new{
     vertices = ErrorOnInvalidRead.new{
         title = {"dana.apps.graph.selectionWindow.vertexCategory"},
-        generateGuiElement = function(parent, vertexIndex)
-            local flow = parent.add{
-                type = "flow",
-                direction = "horizontal",
-            }
+        generateGuiElements = function(self, rendererSelection)
+            local parent = self.root.content
+            local count = 0
+            for vertexIndex in pairs(rendererSelection.vertices) do
+                local flow = parent.add{
+                    type = "flow",
+                    direction = "horizontal",
+                }
 
-            flow.add(VertexTypeIcon[vertexIndex.type])
-            flow.typeIcon.style.minimal_width = 32
+                flow.add(VertexTypeIcon[vertexIndex.type])
+                flow.typeIcon.style.minimal_width = 32
 
-            flow.add{
-                type = "sprite",
-                name = "vertexIcon",
-                sprite = vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
-            }
-            flow.vertexIcon.style.minimal_width = 32
+                flow.add{
+                    type = "sprite",
+                    name = "vertexIcon",
+                    sprite = vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
+                }
+                flow.vertexIcon.style.minimal_width = 32
 
-            flow.add{
-                type = "label",
-                caption = vertexIndex.rawPrototype.localised_name,
-            }
+                flow.add{
+                    type = "label",
+                    caption = vertexIndex.rawPrototype.localised_name,
+                }
+                count = count + 1
+            end
+            return count
         end,
     },
 
     edges = ErrorOnInvalidRead.new{
         title = {"dana.apps.graph.selectionWindow.edgeCategory"},
-        generateGuiElement = function(parent, edgeIndex)
-            local flow = parent.add{
-                type = "flow",
-                direction = "horizontal",
-            }
+        generateGuiElements = function(self, rendererSelection)
+            local parent = self.root.content
+            local count = 0
+            for edgeIndex in pairs(rendererSelection.edges) do
+                local flow = parent.add{
+                    type = "flow",
+                    direction = "horizontal",
+                }
 
-            flow.add(EdgeTypeIcon[edgeIndex.type])
-            flow.typeIcon.style.minimal_width = 32
+                flow.add(EdgeTypeIcon[edgeIndex.type])
+                flow.typeIcon.style.minimal_width = 32
 
-            flow.add{
-                type = "sprite",
-                name = "edgeIcon",
-                sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
-            }
-            flow.edgeIcon.style.minimal_width = 32
+                flow.add{
+                    type = "sprite",
+                    name = "edgeIcon",
+                    sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
+                }
+                flow.edgeIcon.style.minimal_width = 32
 
-            flow.add{
-                type = "label",
-                caption = edgeIndex.rawPrototype.localised_name,
-            }
+                flow.add{
+                    type = "label",
+                    caption = edgeIndex.rawPrototype.localised_name,
+                }
+                count = count + 1
+            end
+            return count
         end,
     },
 
     links = ErrorOnInvalidRead.new{
         title = {"dana.apps.graph.selectionWindow.linkCategory"},
-        generateGuiElement = function(parent, treeLinkNode)
-            return parent.add{
-                type = "label",
-                caption = "- { x= " .. treeLinkNode.x .. ", y= " ..treeLinkNode.y .. "}",
-            }
+        generateGuiElements = function(self, rendererSelection)
+            local parent = self.root.content
+            local count = 0
+            for treeLinkNode in pairs(rendererSelection.links) do
+                parent.add{
+                    type = "label",
+                    caption = "- { x= " .. treeLinkNode.x .. ", y= " ..treeLinkNode.y .. "}",
+                }
+                count = count + 1
+            end
+            return count
         end,
     },
 }
