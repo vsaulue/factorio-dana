@@ -19,6 +19,8 @@ local SelectionCategoryLabel = require("lua/apps/graph/gui/SelectionCategoryLabe
 
 local CategoryInfos
 local EdgeTypeIcon
+local LinkArrowColor
+local LinkArrowLabel
 local Metatable
 local VertexTypeIcon
 
@@ -196,15 +198,43 @@ CategoryInfos = ErrorOnInvalidRead.new{
         title = {"dana.apps.graph.selectionWindow.linkCategory"},
         generateGuiElements = function(self, rendererSelection)
             local parent = self.root.content
-            local count = 0
-            for treeLinkNode in pairs(rendererSelection.links) do
-                parent.add{
-                    type = "label",
-                    caption = "- { x= " .. treeLinkNode.x .. ", y= " ..treeLinkNode.y .. "}",
+            local result = 0
+            for channelIndex,edgeIndices in pairs(rendererSelection:makeAggregatedLinkSelection()) do
+                local flow = parent.add{
+                    type = "flow",
+                    direction = "horizontal",
                 }
-                count = count + 1
+
+                flow.add{
+                    type = "sprite",
+                    sprite = channelIndex.vertexIndex.type .. "/" .. channelIndex.vertexIndex.rawPrototype.name,
+                    tooltip = channelIndex.vertexIndex.rawPrototype.localised_name,
+                }
+
+                local arrowLabel = flow.add(LinkArrowLabel[channelIndex.isFromVertexToEdge])
+                arrowLabel.style.font_color = LinkArrowColor[channelIndex.isFromVertexToEdge]
+
+                local count = 0
+                for leaf in pairs(edgeIndices) do
+                    count = count + 1
+                end
+                if count <= 5 then
+                    for edgeIndex in pairs(edgeIndices) do
+                        flow.add{
+                            type = "sprite",
+                            sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
+                            tooltip = edgeIndex.rawPrototype.localised_name,
+                        }
+                    end
+                else
+                    flow.add{
+                        type = "label",
+                        caption = {"dana.apps.graph.selectionWindow.n-transforms", count},
+                    }
+                end
+                result = result + 1
             end
-            return count
+            return result
         end,
     },
 }
@@ -223,6 +253,26 @@ EdgeTypeIcon = ErrorOnInvalidRead.new{
         name = "typeIcon",
         sprite = "dana-recipe-icon",
         tooltip = {"dana.apps.graph.selectionWindow.recipeType"},
+    },
+}
+
+-- Map[isFromVertexToEdge]: Map giving the color of the arrow for link selection.
+LinkArrowColor = ErrorOnInvalidRead.new{
+    [true] = {r = 1, g = 0.6, b = 0.6, a = 1},
+    [false] = {r = 0.6, g = 1, b = 0.6, a = 1},
+}
+
+-- Map[isFromVertexToEdge]: LuaGuiElement construction info of the arrow for link selection.
+LinkArrowLabel = ErrorOnInvalidRead.new{
+    [true] = {
+        type = "label",
+        caption = "⟶",
+        tooltip = {"dana.apps.graph.selectionWindow.ingredientLink"},
+    },
+    [false] = {
+        type = "label",
+        caption = "⟵",
+        tooltip = {"dana.apps.graph.selectionWindow.productLink"},
     },
 }
 
