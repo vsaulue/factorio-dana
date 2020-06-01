@@ -66,7 +66,7 @@ local Dana = ErrorOnInvalidRead.new{
     -- Args:
     -- * object: table to modify.
     --
-    setmetatable = function(self)
+    setmetatable = function(object)
         setmetatable(object, Metatable)
         PrototypeDatabase.setmetatable(object.prototypes)
         for _,player in pairs(object.players) do
