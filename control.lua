@@ -39,9 +39,7 @@ local function on_init()
 
     GuiElement.on_init()
 
-    dana = Dana.new{
-        gameScript = game,
-    }
+    dana = Dana.new()
     global.Dana = dana
 
     Logger.info("on_init() completed.")

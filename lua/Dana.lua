@@ -14,12 +14,9 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local PrototypeDatabase = require("lua/PrototypeDatabase")
 local Player = require("lua/Player")
-
-local cLogger = ClassLogger.new{className = "Dana"}
 
 local Metatable
 local newSurface
@@ -31,7 +28,6 @@ local newSurface
 -- Stored in global: yes.
 --
 -- Fields:
--- * gameScript: LuaGameScript object from the Factorio API.
 -- * graphSurface: surface used to draw graphs.
 -- * players: map of Player objects, indexed by their Factorio index.
 -- * prototypes: PrototypeDatabase wrapping all useful prototypes from Factorio.
@@ -46,23 +42,23 @@ local Dana = ErrorOnInvalidRead.new{
     --
     -- Returns: The new Dana object.
     --
-    new = function(object)
-        local gameScript = cLogger:assertField(object, "gameScript")
+    new = function()
+        local result = {
+            graphSurface = newSurface(game),
+            players = {},
+            prototypes = PrototypeDatabase.new(game),
+        }
 
-        object.graphSurface = newSurface(gameScript)
-        object.prototypes = PrototypeDatabase.new(gameScript)
-
-        object.players = {}
         for _,rawPlayer in pairs(game.players) do
-            object.players[rawPlayer.index] = Player.new({
-                graphSurface = object.graphSurface,
-                prototypes = object.prototypes,
+            result.players[rawPlayer.index] = Player.new({
+                graphSurface = result.graphSurface,
+                prototypes = result.prototypes,
                 rawPlayer = rawPlayer,
             })
         end
 
-        setmetatable(object, Metatable)
-        return object
+        setmetatable(result, Metatable)
+        return result
     end,
 
     -- Restores the metatable of a Dana instance, and all its owned objects.
