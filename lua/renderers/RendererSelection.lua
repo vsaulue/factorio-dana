@@ -14,7 +14,11 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AggregatedLinkSelection = require("lua/renderers/AggregatedLinkSelection")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local Tree = require("lua/containers/Tree")
+
+local Metatable
 
 -- Class holding the results of a selection request from a renderer object.
 --
@@ -29,12 +33,46 @@ local RendererSelection = ErrorOnInvalidRead.new{
     -- Returns: the new RendererSelection object.
     --
     new = function()
-        return ErrorOnInvalidRead.new{
+        local result = {
             edges = ErrorOnInvalidRead.new(),
             links = ErrorOnInvalidRead.new(),
             vertices = ErrorOnInvalidRead.new(),
         }
+        setmetatable(result, Metatable)
+        return result
     end,
+}
+
+-- Metatable of the RendererSelection class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Represents the links field as an AggregatedLinkSelection object.
+        --
+        -- Args:
+        -- * self: RendererSelection object.
+        --
+        -- Returns: An AggregatedLinkSelection object, representing the selected links.
+        --
+        makeAggregatedLinkSelection = function(self)
+            local nodeSets = {}
+            for node in pairs(self.links) do
+                local channelIndex = node:getRoot().channelIndex
+                local map = nodeSets[channelIndex] or ErrorOnInvalidRead.new()
+                map[node] = true
+                nodeSets[channelIndex] = map
+            end
+            local result = AggregatedLinkSelection.new()
+            for channelIndex,nodes in pairs(nodeSets) do
+                local leaves = Tree.getLeavesOfSet(nodes)
+                local edgeIndices = ErrorOnInvalidRead.new()
+                for leaf in pairs(leaves) do
+                    edgeIndices[leaf.edgeIndex] = true
+                end
+                result[channelIndex] = edgeIndices
+            end
+            return result
+        end
+    },
 }
 
 return RendererSelection
