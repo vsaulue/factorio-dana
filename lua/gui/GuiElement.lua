@@ -66,9 +66,6 @@ local GuiElement = ErrorOnInvalidRead.new{
     --
     on_load = function()
         GuiElementMap = global.guiElementMap
-        for _,guiElement in pairs(GuiElementMap) do
-            setmetatable(guiElement,Impl.Metatable)
-        end
     end,
 
     -- Function to call in Factorio's on_init event.
