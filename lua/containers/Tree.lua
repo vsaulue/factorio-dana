@@ -75,6 +75,23 @@ Metatable = {
             self.children[newChild] = true
         end,
 
+        -- Gets the root node of this tree.
+        --
+        -- Args:
+        -- * self: Tree object.
+        --
+        -- returns: The root node owning self.
+        --
+        getRoot = function(self)
+            local result = self
+            local next = rawget(self, "parent")
+            while next do
+                result = next
+                next = rawget(next, "parent")
+            end
+            return result
+        end,
+
         -- Runs a function on each node of the tree.
         --
         -- The callback will be called exactly once per node. The order is implementation defined.

@@ -68,6 +68,15 @@ describe("Tree", function()
         end)
     end)
 
+    it(":getRoot()", function()
+        local child1 = Tree.new()
+        local child2 = Tree.new()
+        tree:addChild(child1)
+        child1:addChild(child2)
+
+        assert.are.equals(tree, child2:getRoot())
+    end)
+
     it(":forEachNode()", function()
         local nodeSet = {}
         nodeSet[tree] = true
