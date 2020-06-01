@@ -16,6 +16,7 @@
 
 local Tree = require("lua/containers/Tree")
 
+local hasParent
 local makeTree
 
 describe("Tree", function()
@@ -47,6 +48,40 @@ describe("Tree", function()
         Tree.setmetatable(tree2)
         assert.is_not_nil(getmetatable(child))
         assert.is_not_nil(getmetatable(child.children))
+    end)
+
+    it("getLeavesOfSet()", function()
+        local child1 = Tree.new()
+        local child2 = Tree.new()
+        tree:addChild(child1)
+        tree:addChild(child2)
+        child2:addChild(makeTree(4,2,{}))
+
+        local child1a = Tree.new()
+        child1a:addChild(makeTree(1,7,{}))
+
+        local child1b = Tree.new()
+        child1b:addChild(makeTree(5,1,{}))
+
+        child1:addChild(child1a)
+        child1:addChild(child1b)
+
+        local result = Tree.getLeavesOfSet{
+            [child1b] = true,
+            [child2] = true,
+        }
+
+        local leaveCount = 0
+        for leaf in pairs(result) do
+            assert.is_true(hasParent(leaf, child1b) or hasParent(leaf, child2))
+            local c = 0
+            for _ in pairs(leaf.children) do
+                c = c + 1
+            end
+            assert.are.equals(c, 0)
+            leaveCount = leaveCount + 1
+        end
+        assert.are.equals(leaveCount, 9)
     end)
 
     describe(":addChild()", function()
@@ -91,6 +126,22 @@ describe("Tree", function()
         assert.are.equals(count, 14)
     end)
 end)
+
+-- Tests if a node has a given ancestor.
+--
+-- Args:
+-- * child: A Tree node.
+-- * parent: Another Tree node.
+--
+-- Returns: True if parent is an ancestor of child. False otherwise.
+--
+hasParent = function(child, parent)
+    local current = rawget(child, "parent")
+    while current and current ~= parent do
+        current = rawget(current, "parent")
+    end
+    return current == parent
+end
 
 -- Creates a new tree.
 --

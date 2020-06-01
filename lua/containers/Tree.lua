@@ -19,6 +19,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "Tree"}
 
+local getLeavesOfSetImpl
 local forEachNode
 local Metatable
 
@@ -33,6 +34,22 @@ local Metatable
 -- Methods: see Metatable.__index.
 --
 local Tree = ErrorOnInvalidRead.new{
+    -- Computes all the leaf nodes of a given set of nodes.
+    --
+    -- Args:
+    -- * setofNodes: Set of nodes.
+    --
+    -- Returns: a set containing all the leaf nodes from the argument.
+    --
+    getLeavesOfSet = function(setOfNodes)
+        local visitedSet = {}
+        local resultSet = ErrorOnInvalidRead.new()
+        for node in pairs(setOfNodes) do
+            getLeavesOfSetImpl(node, visitedSet, resultSet)
+        end
+        return resultSet
+    end,
+
     -- Creates a new Tree object.
     --
     -- Args:
@@ -110,5 +127,26 @@ Metatable = {
 }
 
 forEachNode = Metatable.__index.forEachNode
+
+-- Computes the set of leaf nodes from a specific node.
+--
+-- Args:
+-- * node: Starting node.
+-- * visitedSet: Set of already nodes already visited by this function.
+-- * resultSet: Set of leaves.
+--
+getLeavesOfSetImpl = function(node, visitedSet, resultSet)
+    if not visitedSet[node] then
+        local count = 0
+        visitedSet[node] = true
+        for child in pairs(node.children) do
+            getLeavesOfSetImpl(child, visitedSet, resultSet)
+            count = count + 1
+        end
+        if count == 0 then
+            resultSet[node] = true
+        end
+    end
+end
 
 return Tree
