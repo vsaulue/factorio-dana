@@ -53,8 +53,8 @@ local LayerEntryPosition = ErrorOnInvalidRead.new{
         local entry = cLogger:assertField(object, "entry")
 
         object.output = ErrorOnInvalidRead.new()
-        object.inboundNodes = buildNodes(entry.inboundSlots)
-        object.outboundNodes = buildNodes(entry.outboundSlots)
+        object.inboundNodes = buildNodes(entry.inboundSlots, entry)
+        object.outboundNodes = buildNodes(entry.outboundSlots, entry)
 
         setmetatable(object, Metatable)
         return object
@@ -127,14 +127,22 @@ Metatable = {
 --
 -- Args:
 -- * slots: ReversibleArray of ChannelIndex.
+-- * entry: LayerEntry object owning the slots.
 --
 -- Returns: A map of Tree objects, indexed by channel indexes.
 --
-buildNodes = function(slots)
+buildNodes = function(slots, entry)
     local result = ErrorOnInvalidRead.new()
+    local type = entry.type
     for i=1,slots.count do
         local channelIndex = slots[i]
-        result[channelIndex] = TreeLinkNode.new()
+        local linkNode = TreeLinkNode.new()
+        if type == "vertex" then
+            linkNode.channelIndex = channelIndex
+        elseif type == "edge" then
+            linkNode.edgeIndex = entry.index
+        end
+        result[channelIndex] = linkNode
     end
     return result
 end

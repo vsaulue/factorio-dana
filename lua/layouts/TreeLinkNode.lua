@@ -22,7 +22,10 @@ local Tree = require("lua/containers/Tree")
 -- RO Fields:
 -- * x: X coordinate of this node.
 -- * y: Y coordinate of this node.
+-- * channelIndex (optional): ChannelIndex object of this link. Field present only at the root of the tree.
+-- * edgeIndex (optional): Index of the edge of this node. Field present only at the leaves of the tree.
 -- + inherited from Tree.
+--
 --
 local TreeLinkNode = ErrorOnInvalidRead.new{
     new = Tree.new,
