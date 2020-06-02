@@ -15,7 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local PrototypeDatabase = require("lua/PrototypeDatabase")
+local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local Player = require("lua/Player")
 
 local Metatable
