@@ -26,7 +26,6 @@ local White = {r = 1, g = 1, b = 1, a = 1}
 local DarkGrey = {r = 0.1, g = 0.1, b = 0.1, a = 1}
 local LightGrey = {r = 0.2, g = 0.2, b = 0.2, a = 1}
 
-local draw
 local DefaultLayoutParameters
 local Metatable
 local renderTree
@@ -34,7 +33,7 @@ local renderTree
 -- Class used to render graphs onto a LuaSurface.
 --
 -- RO properties:
--- * layout: Layout displayed by this renderer.
+-- * layoutCoordinates: LayoutCoordinates object being rendered.
 -- * canvas: Canvas object on which the layout must be drawn.
 --
 -- Methods: see Metatable.__index.
@@ -49,10 +48,8 @@ local SimpleRenderer = ErrorOnInvalidRead.new{
     --
     new = function(object)
         cLogger:assertField(object, "canvas")
-        local layout = cLogger:assertField(object, "layout")
-        object.layoutCoordinates = layout:computeCoordinates(DefaultLayoutParameters)
+        object.layoutCoordinates = nil
         setmetatable(object, Metatable)
-        draw(object)
         return object
     end,
 }
@@ -80,6 +77,59 @@ Metatable = {
             end
             return result
         end,
+
+        -- Draws the given layout.
+        --
+        -- NOTE: This does NOT clear any layout previously drawn !
+        --
+        -- Args:
+        -- * self: SimpleRenderer object.
+        -- * layout: Layout to draw.
+        --
+        drawLayout = function(self, layout)
+            local layoutCoordinates = layout:computeCoordinates(DefaultLayoutParameters)
+            self.layoutCoordinates = layoutCoordinates
+            local canvas = self.canvas
+            for vertexIndex,coords in pairs(layoutCoordinates.vertices) do
+                local rectangle = canvas:newRectangle{
+                    color = LightGrey,
+                    draw_on_ground = true,
+                    filled = true,
+                    left_top = {coords.xMin, coords.yMin},
+                    right_bottom = {coords.xMax, coords.yMax},
+                    selectable = true
+                }
+                rectangle.rendererType = "vertex"
+                rectangle.rendererIndex = vertexIndex
+                canvas:newSprite{
+                    sprite = vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
+                    target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
+                }
+            end
+            for edgeIndex,coords in pairs(layoutCoordinates.edges) do
+                local rectangle = canvas:newRectangle{
+                    color = DarkGrey,
+                    draw_on_ground = true,
+                    filled = true,
+                    left_top = {coords.xMin, coords.yMin},
+                    right_bottom = {coords.xMax, coords.yMax},
+                    selectable = true,
+                }
+                rectangle.rendererType = "edge"
+                rectangle.rendererIndex = edgeIndex
+                canvas:newSprite{
+                    sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
+                    target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
+                }
+            end
+            for rendererLink in pairs(layoutCoordinates.links) do
+                local color = White
+                if rendererLink.category == "backward" then
+                    color = Red
+                end
+                renderTree(self, rendererLink.tree, color)
+            end
+        end,
     }
 }
 
@@ -95,55 +145,6 @@ DefaultLayoutParameters = LayoutParameters.new{
     vertexMinX = 1.6,
     vertexMinY = 1.6,
 }
-
--- Draws the graph.
---
--- Args:
--- * self: SimpleRenderer object.
---
-draw = function(self)
-    local layoutCoordinates = self.layoutCoordinates
-    local canvas = self.canvas
-    for vertexIndex,coords in pairs(layoutCoordinates.vertices) do
-        local rectangle = canvas:newRectangle{
-            color = LightGrey,
-            draw_on_ground = true,
-            filled = true,
-            left_top = {coords.xMin, coords.yMin},
-            right_bottom = {coords.xMax, coords.yMax},
-            selectable = true
-        }
-        rectangle.rendererType = "vertex"
-        rectangle.rendererIndex = vertexIndex
-        canvas:newSprite{
-            sprite = vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
-            target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
-        }
-    end
-    for edgeIndex,coords in pairs(layoutCoordinates.edges) do
-        local rectangle = canvas:newRectangle{
-            color = DarkGrey,
-            draw_on_ground = true,
-            filled = true,
-            left_top = {coords.xMin, coords.yMin},
-            right_bottom = {coords.xMax, coords.yMax},
-            selectable = true,
-        }
-        rectangle.rendererType = "edge"
-        rectangle.rendererIndex = edgeIndex
-        canvas:newSprite{
-            sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
-            target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
-        }
-    end
-    for rendererLink in pairs(layoutCoordinates.links) do
-        local color = White
-        if rendererLink.category == "backward" then
-            color = Red
-        end
-        renderTree(self, rendererLink.tree, color)
-    end
-end
 
 -- Renders a tree link.
 --

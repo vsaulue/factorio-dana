@@ -63,9 +63,9 @@ local GraphApp = ErrorOnInvalidRead.new{
         }
         object.canvas = canvas
         object.renderer = SimpleRenderer.new{
-            layout = layout,
             canvas = canvas,
         }
+        object.renderer:drawLayout(layout)
         object.guiSelection = SelectionWindow.new{
             rawPlayer = rawPlayer,
         }
