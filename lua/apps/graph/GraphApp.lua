@@ -111,6 +111,20 @@ local GraphApp = ErrorOnInvalidRead.new{
 
         return graph,sourceVertices
     end,
+
+    -- Restores the metatable of a GraphApp object, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        Canvas.setmetatable(object.canvas)
+        DirectedHypergraph.setmetatable(object.graph)
+        SelectionWindow.setmetatable(object.guiSelection)
+        SimpleRenderer.setmetatable(object.renderer)
+        ErrorOnInvalidRead.setmetatable(object.sourceVertices)
+        setmetatable(object, Metatable)
+    end,
 }
 
 -- Unique name for this application.
