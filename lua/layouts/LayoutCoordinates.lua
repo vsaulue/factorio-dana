@@ -21,33 +21,25 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 -- Subtypes:
 -- * Edge: placement data for an hyperedge { xMin=..., xMax=..., yMin=..., yMax=...}
 -- * Vertex: placement data for a vertex { xMin=..., xMax=..., yMin=..., yMax=...}
--- * TreeLink a table with two fields:
---     * category: a string ("forward" or "backward")
---     * tree: a Tree object where:
---         * each node has the fields "x" and "y" (coordinates of this node).
---         * the root & leaves also have "type" and "index" entry, indicating which edge/vertex from the hypergraph
---           is connected at this point.
 --
 -- Fields:
 -- * edges: map of Edge objects, indexed by their indices from the input hypergraph.
 -- * links: set of TreeLink objects.
 -- * vertices: map of Vertex objects, indexed by their indices from the input hypergraph.
 --
-local LayoutCoordinates = {
-    new = nil, -- implemented later
+local LayoutCoordinates = ErrorOnInvalidRead.new{
+    -- Creates a new LayoutCoordinates object.
+    --
+    -- Returns: The new coordinates object.
+    --
+    new = function()
+        local result = ErrorOnInvalidRead.new{
+            edges = ErrorOnInvalidRead.new(),
+            links = ErrorOnInvalidRead.new(),
+            vertices = ErrorOnInvalidRead.new(),
+        }
+        return result
+    end,
 }
-
--- Creates a new LayoutCoordinates object.
---
--- Returns: The new coordinates object.
---
-function LayoutCoordinates.new()
-    local result = ErrorOnInvalidRead.new{
-        edges = ErrorOnInvalidRead.new(),
-        links = ErrorOnInvalidRead.new(),
-        vertices = ErrorOnInvalidRead.new(),
-    }
-    return result
-end
 
 return LayoutCoordinates
