@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local Aabb = require("lua/canvas/Aabb")
+local AbstractApp = require("lua/apps/AbstractApp")
 local Canvas = require("lua/canvas/Canvas")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
@@ -25,6 +26,7 @@ local SimpleRenderer = require("lua/renderers/simple/SimpleRenderer")
 
 local cLogger = ClassLogger.new{className = "GraphApp"}
 
+local AppName
 local makeEdge
 local Metatable
 
@@ -33,7 +35,7 @@ local Metatable
 -- RO fields:
 -- * canvas: Canvas object on which the graph is drawn.
 -- * graph: Displayed DirectedHypergraph.
--- * guiSelecton: SelectionWindow object, displaying the result of selections on the graph surface.
+-- * guiSelection: SelectionWindow object, displaying the result of selections on the graph surface.
 -- * rawPlayer: LuaPlayer object.
 -- * renderer: SimpleRenderer object displaying the graph.
 -- * sourceVertices: Set of source vertex indices used to compute the layout.
@@ -52,6 +54,7 @@ local GraphApp = ErrorOnInvalidRead.new{
         local rawPlayer = cLogger:assertField(object, "rawPlayer")
         local sourceVertices = cLogger:assertField(object, "sourceVertices")
         local surface = cLogger:assertField(object, "surface")
+        object.appName = AppName
 
         local layout = LayerLayout.new{
             graph = graph,
@@ -69,9 +72,8 @@ local GraphApp = ErrorOnInvalidRead.new{
         object.guiSelection = SelectionWindow.new{
             rawPlayer = rawPlayer,
         }
-        setmetatable(object, Metatable)
 
-        return object
+        return AbstractApp.new(object, Metatable)
     end,
 
     -- Creates a default graph & source set from a PrototypeDatabase.
@@ -110,6 +112,9 @@ local GraphApp = ErrorOnInvalidRead.new{
         return graph,sourceVertices
     end,
 }
+
+-- Unique name for this application.
+AppName = "graph"
 
 -- Metatable of the GraphApp class.
 Metatable = {
@@ -178,4 +183,5 @@ makeEdge = function(entry)
     return result
 end
 
+AbstractApp.Factory:registerClass(AppName, GraphApp)
 return GraphApp
