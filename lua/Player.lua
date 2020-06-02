@@ -30,6 +30,8 @@ local Metatable
 -- * app: Current application.
 -- * rawPlayer: Associated LuaPlayer instance.
 -- * graphSurface: LuaSurface used to display graphs to this player.
+-- * previousCharacter: Character of the player before opening the GUI.
+-- * previousControllerType: Controller of the player before opening the GUI.
 -- * previousPosition: Position of the player on the previous surface.
 -- * previousSurface: LuaSurface on which the player was before opening this GUI.
 -- * prototypes: PrototypeDatabase object.
@@ -97,8 +99,13 @@ Metatable = {
             if not self.opened then
                 self.opened = true
                 local targetPosition = self.previousPosition
+                self.previousControllerType = self.rawPlayer.controller_type
+                if self.previousControllerType == defines.controllers.character then
+                    self.previousCharacter = self.rawPlayer.character
+                end
                 self.previousPosition = self.rawPlayer.position
                 self.previousSurface = self.rawPlayer.surface
+                self.rawPlayer.set_controller{type = defines.controllers.god}
                 self.rawPlayer.teleport(targetPosition, self.graphSurface)
                 self.app:show()
             end
@@ -115,6 +122,17 @@ Metatable = {
                 local targetPosition = self.previousPosition
                 self.previousPosition = self.rawPlayer.position
                 self.rawPlayer.teleport(targetPosition, self.previousSurface)
+                local newController = {
+                    type = self.previousControllerType,
+                }
+                if newController.type == defines.controllers.character then
+                    if self.previousCharacter.valid then
+                        newController.character = self.previousCharacter
+                    else
+                        newController.type = defines.controllers.ghost
+                    end
+                end
+                self.rawPlayer.set_controller(newController)
                 self.app:hide()
             end
         end,
