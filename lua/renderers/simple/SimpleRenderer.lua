@@ -16,6 +16,7 @@
 
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
 local LayoutParameters = require("lua/layouts/LayoutParameters")
 local RendererSelection = require("lua/renderers/RendererSelection")
 
@@ -51,6 +52,16 @@ local SimpleRenderer = ErrorOnInvalidRead.new{
         object.layoutCoordinates = nil
         setmetatable(object, Metatable)
         return object
+    end,
+
+    -- Restores the metatable of a CanvasRectangle instance, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        setmetatable(object, Metatable)
+        LayoutCoordinates.setmetatable(object.layoutCoordinates)
     end,
 }
 
