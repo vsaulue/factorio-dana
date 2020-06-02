@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local TreeLink = require("lua/layouts/TreeLink")
 
 -- Holds the data of a layout for a renderer.
 --
@@ -39,6 +40,30 @@ local LayoutCoordinates = ErrorOnInvalidRead.new{
             vertices = ErrorOnInvalidRead.new(),
         }
         return result
+    end,
+
+    -- Restores the metatable of a LayoutCoordinates instance, and all its owned objects.
+    --
+    -- Args:
+    -- * object: Table to modify.
+    --
+    setmetatable = function(object)
+        ErrorOnInvalidRead.setmetatable(object)
+
+        ErrorOnInvalidRead.setmetatable(object.edges)
+        for _,edgeData in pairs(object.edges) do
+            ErrorOnInvalidRead.setmetatable(edgeData)
+        end
+
+        ErrorOnInvalidRead.setmetatable(object.vertices)
+        for _,vertexData in pairs(object.vertices) do
+            ErrorOnInvalidRead.setmetatable(vertexData)
+        end
+
+        ErrorOnInvalidRead.setmetatable(object.links)
+        for treeLink in pairs(object.links) do
+            TreeLink.setmetatable(treeLink)
+        end
     end,
 }
 
