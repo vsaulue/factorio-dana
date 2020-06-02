@@ -77,6 +77,9 @@ local SelectionWindow = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         setmetatable(object, Metatable)
         ErrorOnInvalidRead.setmetatable(object.categories)
+        for _,category in pairs(object.categories) do
+            SelectionCategory.setmetatable(category)
+        end
     end
 }
 
