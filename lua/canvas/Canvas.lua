@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractCanvasObject = require("lua/canvas/objects/AbstractCanvasObject")
 local CanvasCircle = require("lua/canvas/objects/CanvasCircle")
 local CanvasLine = require("lua/canvas/objects/CanvasLine")
 local CanvasRectangle = require("lua/canvas/objects/CanvasRectangle")
@@ -50,6 +51,20 @@ local Canvas = ErrorOnInvalidRead.new{
         object.selectable = ErrorOnInvalidRead.new()
         setmetatable(object, Metatable)
         return object
+    end,
+
+    -- Restores the metatable of a Canvas instance, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        ErrorOnInvalidRead.setmetatable(object.objects)
+        for _,canvasObject in pairs(object.objects) do
+            AbstractCanvasObject.Factory:restoreMetatable(canvasObject)
+        end
+        ErrorOnInvalidRead.setmetatable(object.selectable)
+        setmetatable(object, Metatable)
     end,
 }
 
