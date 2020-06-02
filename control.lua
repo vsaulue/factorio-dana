@@ -49,6 +49,10 @@ local function on_gui_click(event)
     GuiElement.on_gui_click(event)
 end
 
+local function on_player_created(event)
+    dana:on_player_created(event)
+end
+
 local function on_player_selected_area(event)
     dana:on_player_selected_area(event)
 end
@@ -58,4 +62,5 @@ local events = defines.events
 script.on_load(on_load)
 script.on_init(on_init)
 script.on_event(events.on_gui_click, on_gui_click)
+script.on_event(events.on_player_created, on_player_created)
 script.on_event(events.on_player_selected_area, on_player_selected_area)

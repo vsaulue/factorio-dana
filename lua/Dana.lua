@@ -84,6 +84,21 @@ Metatable = {
         -- * self: Dana object.
         -- * event: Factorio event.
         --
+        on_player_created = function(self, event)
+            local playerIndex = event.player_index
+            self.players[playerIndex] = Player.new{
+                graphSurface = self.graphSurface,
+                prototypes = self.prototypes,
+                rawPlayer = game.players[playerIndex],
+            }
+        end,
+
+        -- Callback for Factorio's event of the same name.
+        --
+        -- Args:
+        -- * self: Dana object.
+        -- * event: Factorio event.
+        --
         on_player_selected_area = function(self, event)
             if event.surface.index == self.graphSurface.index then
                 local player = self.players[event.player_index]
