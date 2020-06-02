@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractFactory = require("lua/AbstractFactory")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
@@ -33,6 +34,13 @@ local Metatable
 -- Methods: see Metatable.__index.
 --
 local AbstractCanvasObject = ErrorOnInvalidRead.new{
+    -- Factory instance able to restore metatables of AbstractCanvasObject instances.
+    Factory = AbstractFactory.new{
+        getClassNameOfObject = function(object)
+            return object.type
+        end,
+    },
+
     -- Creates a new AbstractCanvasObject.
     --
     -- Args:
@@ -80,6 +88,15 @@ local AbstractCanvasObject = ErrorOnInvalidRead.new{
             end
         end,
     },
+
+    -- Restores the metatable of an AbstractCanvasObject instance, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        setmetatable(object, Metatable)
+    end,
 }
 
 Metatable = AbstractCanvasObject.Metatable

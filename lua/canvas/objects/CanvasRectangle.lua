@@ -39,6 +39,15 @@ local CanvasRectangle = ErrorOnInvalidRead.new{
             type = "rectangle",
         }, Metatable)
     end,
+
+    -- Restores the metatable of a CanvasRectangle instance, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        setmetatable(object, Metatable)
+    end,
 }
 
 -- Metatable of the CanvasRectangle class.
@@ -52,9 +61,10 @@ Metatable = {
             local rbPos = rendering.get_right_bottom(id).position
             return ltPos.x <= aabb.xMax and ltPos.y <= aabb.yMax and rbPos.x >= aabb.xMin and rbPos.y >= aabb.yMin
         end,
-	},
+    },
 }
 setmetatable(Metatable, { __index = BaseMetatable})
 setmetatable(Metatable.__index, { __index = BaseMetatable.__index})
 
+AbstractCanvasObject.Factory:registerClass("rectangle", CanvasRectangle)
 return CanvasRectangle

@@ -35,6 +35,10 @@ local CanvasSprite = ErrorOnInvalidRead.new{
             type = "sprite",
         }
     end,
+
+    -- Restores the metatable of a CanvasSprite instance, and all its owned objects.
+    setmetatable = AbstractCanvasObject.setmetatable,
 }
 
+AbstractCanvasObject.Factory:registerClass("sprite", CanvasSprite)
 return CanvasSprite

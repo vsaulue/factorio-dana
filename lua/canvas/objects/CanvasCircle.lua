@@ -35,6 +35,10 @@ local CanvasCircle = ErrorOnInvalidRead.new{
             type = "circle",
         }
     end,
+
+    -- Restores the metatable of a CanvasCircle instance, and all its owned objects.
+    setmetatable = AbstractCanvasObject.setmetatable,
 }
 
+AbstractCanvasObject.Factory:registerClass("circle", CanvasCircle)
 return CanvasCircle

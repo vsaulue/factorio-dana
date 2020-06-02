@@ -41,6 +41,15 @@ local CanvasLine = ErrorOnInvalidRead.new{
             type = "line",
         }, Metatable)
     end,
+
+    -- Restores the metatable of a CanvasLine instance, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        setmetatable(object, Metatable)
+    end,
 }
 
 -- Metatable of the CanvasLine class.
@@ -112,4 +121,5 @@ signOfScalarProduct = function(x1, y1, x2, y2)
     return result
 end
 
+AbstractCanvasObject.Factory:registerClass("line", CanvasLine)
 return CanvasLine
