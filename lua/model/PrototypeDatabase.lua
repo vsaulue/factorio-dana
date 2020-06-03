@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local IntermediatesDatabase = require("lua/model/IntermediatesDatabase")
 local Logger = require("lua/logger/Logger")
 
 local Metatable
@@ -29,10 +30,10 @@ local Metatable
 --
 -- RO properties:
 -- * entries: 2-dim table of all the prototypes wrapper (1st index: type, 2nd index: name).
+-- * intermediates: IntermediatesDatabase object.
 --
 -- Methods:
 -- * rebuild: drops the current content of the database, and rebuild it from scratch.
--- * getEntry: gets the wrapper of a prototype.
 --
 local PrototypeDatabase = ErrorOnInvalidRead.new{
     -- Creates a new PrototypeDatabase object.
@@ -43,7 +44,9 @@ local PrototypeDatabase = ErrorOnInvalidRead.new{
     -- Returns: A PrototypeDatabase object, populated from the argument.
     --
     new = function(gameScript)
-        local result = {}
+        local result = {
+            intermediates = IntermediatesDatabase.new(),
+        }
         setmetatable(result, Metatable)
         result:rebuild(gameScript)
         return result
@@ -56,6 +59,7 @@ local PrototypeDatabase = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
+        IntermediatesDatabase.setmetatable(object.intermediates)
     end,
 }
 
@@ -70,26 +74,13 @@ Metatable = {
         -- * gameScript: game object holding the new prototypes.
         --
         rebuild = function(self, gameScript)
+            self.intermediates:rebuild(gameScript)
             self.entries = {
                 boiler = {},
-                fluid = {},
-                item = {},
                 ["offshore-pump"] = {},
                 recipe = {},
                 resource = {},
             }
-            for _,item in pairs(gameScript.item_prototypes) do
-                self.entries.item[item.name] = {
-                    type = "item",
-                    rawPrototype = item,
-                }
-            end
-            for _,fluid in pairs(gameScript.fluid_prototypes) do
-                self.entries.fluid[fluid.name] = {
-                    type = "fluid",
-                    rawPrototype = fluid,
-                }
-            end
             for _,entity in pairs(gameScript.entity_prototypes) do
                 if entity.type == "resource" then
                     local mineable_props = entity.mineable_properties
@@ -101,11 +92,11 @@ Metatable = {
                             products = {},
                         }
                         for index,product in pairs(mineable_props.products) do
-                            newResource.products[index] = self:getEntry(product)
+                            newResource.products[index] = self.intermediates:getIngredientOrProduct(product)
                         end
                         local fluidName = mineable_props.required_fluid
                         if fluidName then
-                            newResource.ingredients[1] = self.entries.fluid[fluidName]
+                            newResource.ingredients[1] = self.intermediates.fluid[fluidName]
                         end
                         self.entries.resource[entity.name] = newResource
                     end
@@ -114,7 +105,7 @@ Metatable = {
                         type = "entity",
                         rawPrototype = entity,
                         ingredients = {},
-                        products = {self.entries.fluid[entity.fluid.name]},
+                        products = {self.intermediates.fluid[entity.fluid.name]},
                     }
                     self.entries["offshore-pump"][entity.name] = newOffshorePump
                 elseif entity.type == "boiler" then
@@ -122,7 +113,7 @@ Metatable = {
                     local outputs = {}
                     for _,fluidbox in pairs(entity.fluidbox_prototypes) do
                         if fluidbox.filter then
-                            local fluid = self.entries.fluid[fluidbox.filter.name]
+                            local fluid = self.intermediates.fluid[fluidbox.filter.name]
                             local boxType = fluidbox.production_type
                             if boxType == "output" then
                                 table.insert(outputs, fluid)
@@ -153,27 +144,13 @@ Metatable = {
                     products = {},
                 }
                 for index,product in pairs(recipe.products) do
-                    newRecipe.products[index] = self:getEntry(product)
+                    newRecipe.products[index] = self.intermediates:getIngredientOrProduct(product)
                 end
                 for index,ingredient in pairs(recipe.ingredients) do
-                    newRecipe.ingredients[index] = self:getEntry(ingredient)
+                    newRecipe.ingredients[index] = self.intermediates:getIngredientOrProduct(ingredient)
                 end
                 self.entries.recipe[recipe.name] = newRecipe
             end
-        end,
-
-        getEntry = function(self,prototypeInfo)
-            local typeTable = self.entries[prototypeInfo.type]
-            local result = nil
-            if typeTable then
-                result = typeTable[prototypeInfo.name]
-                if not result then
-                    Logger.error("PrototypeDatabase: unknown entry {type= ".. prototypeInfo.type .. ",name= " .. prototypeInfo.name .. "}")
-                end
-            else
-                Logger.error("PrototypeDatabase: unsupported type: " .. prototypeInfo.type)
-            end
-            return result
         end,
     },
 }
