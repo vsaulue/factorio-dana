@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Logger = require("lua/logger/Logger")
 
 local Metatable
@@ -33,7 +34,7 @@ local Metatable
 -- * rebuild: drops the current content of the database, and rebuild it from scratch.
 -- * getEntry: gets the wrapper of a prototype.
 --
-local PrototypeDatabase = {
+local PrototypeDatabase = ErrorOnInvalidRead.new{
     -- Creates a new PrototypeDatabase object.
     --
     -- Args:
@@ -61,7 +62,7 @@ local PrototypeDatabase = {
 
 -- Metatable of the PrototypeDatabase class.
 Metatable = {
-    __index = {
+    __index = ErrorOnInvalidRead.new{
         -- Resets the content of the database.
         --
         -- Args:
