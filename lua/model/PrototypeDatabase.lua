@@ -16,6 +16,8 @@
 
 local Logger = require("lua/logger/Logger")
 
+local Metatable
+
 -- Object holding prototypes wrapper for this mod.
 --
 -- Two goals:
@@ -32,157 +34,147 @@ local Logger = require("lua/logger/Logger")
 -- * getEntry: gets the wrapper of a prototype.
 --
 local PrototypeDatabase = {
-    new = nil, -- implemented later
-    setmetatable = nil, -- implemented later
+    -- Creates a new PrototypeDatabase object.
+    --
+    -- Args:
+    -- * gameScript: LuaGameScript object containing the initial prototypes.
+    --
+    -- Returns: A PrototypeDatabase object, populated from the argument.
+    --
+    new = function(gameScript)
+        local result = {}
+        setmetatable(result, Metatable)
+        result:rebuild(gameScript)
+        return result
+    end,
+
+    -- Restores the metatable of a PrototypeDatabase object, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        setmetatable(object, Metatable)
+    end,
 }
 
--- Implementation stuff (private scope).
-local Impl = {
-    -- Metatable of the PrototypeDatabase class.
-    Metatable = {
-        __index = {
-            rebuild = nil, -- implemented later
 
-            getEntry = function(self,prototypeInfo)
-                local typeTable = self.entries[prototypeInfo.type]
-                local result = nil
-                if typeTable then
-                    result = typeTable[prototypeInfo.name]
-                    if not result then
-                        Logger.error("PrototypeDatabase: unknown entry {type= ".. prototypeInfo.type .. ",name= " .. prototypeInfo.name .. "}")
-                    end
-                else
-                    Logger.error("PrototypeDatabase: unsupported type: " .. prototypeInfo.type)
-                end
-                return result
+-- Metatable of the PrototypeDatabase class.
+Metatable = {
+    __index = {
+        -- Resets the content of the database.
+        --
+        -- Args:
+        -- * self: PrototypeDatabase object.
+        -- * gameScript: game object holding the new prototypes.
+        --
+        rebuild = function(self, gameScript)
+            self.entries = {
+                boiler = {},
+                fluid = {},
+                item = {},
+                ["offshore-pump"] = {},
+                recipe = {},
+                resource = {},
+            }
+            for _,item in pairs(gameScript.item_prototypes) do
+                self.entries.item[item.name] = {
+                    type = "item",
+                    rawPrototype = item,
+                }
             end
-        },
-    },
-}
-
--- Resets the content of the database.
---
--- Args:
--- * self: PrototypeDatabase object.
--- * gameScript: game object holding the new prototypes.
---
-function Impl.Metatable.__index.rebuild(self,gameScript)
-    self.entries = {
-        boiler = {},
-        fluid = {},
-        item = {},
-        ["offshore-pump"] = {},
-        recipe = {},
-        resource = {},
-    }
-    for _,item in pairs(gameScript.item_prototypes) do
-        self.entries.item[item.name] = {
-            type = "item",
-            rawPrototype = item,
-        }
-    end
-    for _,fluid in pairs(gameScript.fluid_prototypes) do
-        self.entries.fluid[fluid.name] = {
-            type = "fluid",
-            rawPrototype = fluid,
-        }
-    end
-    for _,entity in pairs(gameScript.entity_prototypes) do
-        if entity.type == "resource" then
-            local mineable_props = entity.mineable_properties
-            if mineable_props.minable then
-                local newResource = {
-                    type = "entity",
-                    rawPrototype = entity,
+            for _,fluid in pairs(gameScript.fluid_prototypes) do
+                self.entries.fluid[fluid.name] = {
+                    type = "fluid",
+                    rawPrototype = fluid,
+                }
+            end
+            for _,entity in pairs(gameScript.entity_prototypes) do
+                if entity.type == "resource" then
+                    local mineable_props = entity.mineable_properties
+                    if mineable_props.minable then
+                        local newResource = {
+                            type = "entity",
+                            rawPrototype = entity,
+                            ingredients = {},
+                            products = {},
+                        }
+                        for index,product in pairs(mineable_props.products) do
+                            newResource.products[index] = self:getEntry(product)
+                        end
+                        local fluidName = mineable_props.required_fluid
+                        if fluidName then
+                            newResource.ingredients[1] = self.entries.fluid[fluidName]
+                        end
+                        self.entries.resource[entity.name] = newResource
+                    end
+                elseif entity.type == "offshore-pump" then
+                    local newOffshorePump = {
+                        type = "entity",
+                        rawPrototype = entity,
+                        ingredients = {},
+                        products = {self.entries.fluid[entity.fluid.name]},
+                    }
+                    self.entries["offshore-pump"][entity.name] = newOffshorePump
+                elseif entity.type == "boiler" then
+                    local inputs = {}
+                    local outputs = {}
+                    for _,fluidbox in pairs(entity.fluidbox_prototypes) do
+                        if fluidbox.filter then
+                            local fluid = self.entries.fluid[fluidbox.filter.name]
+                            local boxType = fluidbox.production_type
+                            if boxType == "output" then
+                                table.insert(outputs, fluid)
+                            elseif boxType == "input-output" or boxType == "input" then
+                                table.insert(inputs, fluid)
+                            end
+                        end
+                    end
+                    if inputs[1] and outputs[1] then
+                        if #inputs == 1 and #outputs == 1 then
+                            self.entries.boiler[entity.name] = {
+                                type = "entity",
+                                rawPrototype = entity,
+                                ingredients = inputs,
+                                products = outputs,
+                            }
+                        else
+                            Logger.warn("Boiler prototype '" .. entity.name .. "' ignored (multiple inputs or outputs).")
+                        end
+                    end
+                end
+            end
+            for _,recipe in pairs(gameScript.recipe_prototypes) do
+                local newRecipe = {
+                    type = "recipe",
+                    rawPrototype = recipe,
                     ingredients = {},
                     products = {},
                 }
-                for index,product in pairs(mineable_props.products) do
-                    newResource.products[index] = self:getEntry(product)
+                for index,product in pairs(recipe.products) do
+                    newRecipe.products[index] = self:getEntry(product)
                 end
-                local fluidName = mineable_props.required_fluid
-                if fluidName then
-                    newResource.ingredients[1] = self.entries.fluid[fluidName]
+                for index,ingredient in pairs(recipe.ingredients) do
+                    newRecipe.ingredients[index] = self:getEntry(ingredient)
                 end
-                self.entries.resource[entity.name] = newResource
+                self.entries.recipe[recipe.name] = newRecipe
             end
-        elseif entity.type == "offshore-pump" then
-            local newOffshorePump = {
-                type = "entity",
-                rawPrototype = entity,
-                ingredients = {},
-                products = {self.entries.fluid[entity.fluid.name]},
-            }
-            self.entries["offshore-pump"][entity.name] = newOffshorePump
-        elseif entity.type == "boiler" then
-            local inputs = {}
-            local outputs = {}
-            for _,fluidbox in pairs(entity.fluidbox_prototypes) do
-                if fluidbox.filter then
-                    local fluid = self.entries.fluid[fluidbox.filter.name]
-                    local boxType = fluidbox.production_type
-                    if boxType == "output" then
-                        table.insert(outputs, fluid)
-                    elseif boxType == "input-output" or boxType == "input" then
-                        table.insert(inputs, fluid)
-                    end
+        end,
+
+        getEntry = function(self,prototypeInfo)
+            local typeTable = self.entries[prototypeInfo.type]
+            local result = nil
+            if typeTable then
+                result = typeTable[prototypeInfo.name]
+                if not result then
+                    Logger.error("PrototypeDatabase: unknown entry {type= ".. prototypeInfo.type .. ",name= " .. prototypeInfo.name .. "}")
                 end
+            else
+                Logger.error("PrototypeDatabase: unsupported type: " .. prototypeInfo.type)
             end
-            if inputs[1] and outputs[1] then
-                if #inputs == 1 and #outputs == 1 then
-                    self.entries.boiler[entity.name] = {
-                        type = "entity",
-                        rawPrototype = entity,
-                        ingredients = inputs,
-                        products = outputs,
-                    }
-                else
-                    Logger.warn("Boiler prototype '" .. entity.name .. "' ignored (multiple inputs or outputs).")
-                end
-            end
-        end
-    end
-    for _,recipe in pairs(gameScript.recipe_prototypes) do
-        local newRecipe = {
-            type = "recipe",
-            rawPrototype = recipe,
-            ingredients = {},
-            products = {},
-        }
-        for index,product in pairs(recipe.products) do
-            newRecipe.products[index] = self:getEntry(product)
-        end
-        for index,ingredient in pairs(recipe.ingredients) do
-            newRecipe.ingredients[index] = self:getEntry(ingredient)
-        end
-        self.entries.recipe[recipe.name] = newRecipe
-    end
-end
-
--- Creates a new PrototypeDatabase object.
---
--- Args:
--- * gameScript: LuaGameScript object containing the initial prototypes.
---
--- Returns: A PrototypeDatabase object, populated from the argument.
---
-function PrototypeDatabase.new(gameScript)
-    local result = {}
-    setmetatable(result, Impl.Metatable)
-    result:rebuild(gameScript)
-    return result
-end
-
--- Assigns the metatable of PrototypeDatabase class to the argument.
---
--- Intended to restore metatable of objects in the global table.
---
--- Args:
--- * object: Table to modify.
---
-function PrototypeDatabase.setmetatable(object)
-    setmetatable(object, Impl.Metatable)
-end
-
+            return result
+        end,
+    },
+}
 
 return PrototypeDatabase
