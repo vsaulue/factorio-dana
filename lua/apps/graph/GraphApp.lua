@@ -90,21 +90,21 @@ local GraphApp = ErrorOnInvalidRead.new{
     makeDefaultGraphAndSource = function(prototypes)
         local graph = DirectedHypergraph.new()
 
-        for _,recipe in pairs(prototypes.entries.recipe) do
+        for _,recipe in pairs(prototypes.transforms.recipe) do
             graph:addEdge(makeEdge(recipe))
         end
-        for _,boiler in pairs(prototypes.entries.boiler) do
+        for _,boiler in pairs(prototypes.transforms.boiler) do
             graph:addEdge(makeEdge(boiler))
         end
 
         local sourceVertices = ErrorOnInvalidRead.new()
-        for _,resource in pairs(prototypes.entries.resource) do
-            for _,product in pairs(resource.products) do
+        for _,resource in pairs(prototypes.transforms.resource) do
+            for product in pairs(resource.products) do
                 sourceVertices[product] = true
             end
         end
-        for _,offshorePump in pairs(prototypes.entries["offshore-pump"]) do
-            for _,product in pairs(offshorePump.products) do
+        for _,offshorePump in pairs(prototypes.transforms.offshorePump) do
+            for product in pairs(offshorePump.products) do
                 sourceVertices[product] = true
             end
         end
@@ -188,10 +188,10 @@ makeEdge = function(entry)
         inbound = {},
         outbound = {},
     }
-    for _,ingredient in pairs(entry.ingredients) do
+    for ingredient in pairs(entry.ingredients) do
         table.insert(result.inbound, ingredient)
     end
-    for _,product in pairs(entry.products) do
+    for product in pairs(entry.products) do
         table.insert(result.outbound, product)
     end
     return result

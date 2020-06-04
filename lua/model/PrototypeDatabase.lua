@@ -17,6 +17,7 @@
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local IntermediatesDatabase = require("lua/model/IntermediatesDatabase")
 local Logger = require("lua/logger/Logger")
+local TransformsDatabase = require("lua/model/TransformsDatabase")
 
 local Metatable
 
@@ -26,11 +27,9 @@ local Metatable
 -- * Associate a unique Lua object for each LuaPrototype (making them usable as table keys).
 -- * Attach any useful data for the mod.
 --
--- Stored in global: yes.
---
 -- RO properties:
--- * entries: 2-dim table of all the prototypes wrapper (1st index: type, 2nd index: name).
--- * intermediates: IntermediatesDatabase object.
+-- * intermediates: IntermediatesDatabase golding all the Intermediate objects.
+-- * transforms: TransformsDatabase holding all the AbstractTransform objects.
 --
 -- Methods:
 -- * rebuild: drops the current content of the database, and rebuild it from scratch.
@@ -44,8 +43,12 @@ local PrototypeDatabase = ErrorOnInvalidRead.new{
     -- Returns: A PrototypeDatabase object, populated from the argument.
     --
     new = function(gameScript)
+        local intermediates = IntermediatesDatabase.new()
         local result = {
-            intermediates = IntermediatesDatabase.new(),
+            intermediates = intermediates,
+            transforms = TransformsDatabase.new{
+                intermediates = intermediates,
+            },
         }
         setmetatable(result, Metatable)
         result:rebuild(gameScript)
@@ -60,6 +63,7 @@ local PrototypeDatabase = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         setmetatable(object, Metatable)
         IntermediatesDatabase.setmetatable(object.intermediates)
+        TransformsDatabase.setmetatable(object.transforms)
     end,
 }
 
@@ -75,82 +79,7 @@ Metatable = {
         --
         rebuild = function(self, gameScript)
             self.intermediates:rebuild(gameScript)
-            self.entries = {
-                boiler = {},
-                ["offshore-pump"] = {},
-                recipe = {},
-                resource = {},
-            }
-            for _,entity in pairs(gameScript.entity_prototypes) do
-                if entity.type == "resource" then
-                    local mineable_props = entity.mineable_properties
-                    if mineable_props.minable then
-                        local newResource = {
-                            type = "entity",
-                            rawPrototype = entity,
-                            ingredients = {},
-                            products = {},
-                        }
-                        for index,product in pairs(mineable_props.products) do
-                            newResource.products[index] = self.intermediates:getIngredientOrProduct(product)
-                        end
-                        local fluidName = mineable_props.required_fluid
-                        if fluidName then
-                            newResource.ingredients[1] = self.intermediates.fluid[fluidName]
-                        end
-                        self.entries.resource[entity.name] = newResource
-                    end
-                elseif entity.type == "offshore-pump" then
-                    local newOffshorePump = {
-                        type = "entity",
-                        rawPrototype = entity,
-                        ingredients = {},
-                        products = {self.intermediates.fluid[entity.fluid.name]},
-                    }
-                    self.entries["offshore-pump"][entity.name] = newOffshorePump
-                elseif entity.type == "boiler" then
-                    local inputs = {}
-                    local outputs = {}
-                    for _,fluidbox in pairs(entity.fluidbox_prototypes) do
-                        if fluidbox.filter then
-                            local fluid = self.intermediates.fluid[fluidbox.filter.name]
-                            local boxType = fluidbox.production_type
-                            if boxType == "output" then
-                                table.insert(outputs, fluid)
-                            elseif boxType == "input-output" or boxType == "input" then
-                                table.insert(inputs, fluid)
-                            end
-                        end
-                    end
-                    if inputs[1] and outputs[1] then
-                        if #inputs == 1 and #outputs == 1 then
-                            self.entries.boiler[entity.name] = {
-                                type = "entity",
-                                rawPrototype = entity,
-                                ingredients = inputs,
-                                products = outputs,
-                            }
-                        else
-                            Logger.warn("Boiler prototype '" .. entity.name .. "' ignored (multiple inputs or outputs).")
-                        end
-                    end
-                end
-            end
-            for _,recipe in pairs(gameScript.recipe_prototypes) do
-                local newRecipe = {
-                    type = "recipe",
-                    rawPrototype = recipe,
-                    ingredients = {},
-                    products = {},
-                }
-                for index,product in pairs(recipe.products) do
-                    newRecipe.products[index] = self.intermediates:getIngredientOrProduct(product)
-                end
-                for index,ingredient in pairs(recipe.ingredients) do
-                    newRecipe.ingredients[index] = self.intermediates:getIngredientOrProduct(ingredient)
-                end
-                self.entries.recipe[recipe.name] = newRecipe
-            end
+            self.transforms:rebuild(gameScript)
         end,
     },
 }
