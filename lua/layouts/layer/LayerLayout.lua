@@ -18,6 +18,7 @@ local Array = require("lua/containers/Array")
 local ChannelIndexFactory = require("lua/layouts/layer/ChannelIndexFactory")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
+local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperSCC = require("lua/hypergraph/algorithms/HyperSCC")
 local HyperSrcMinDist = require("lua/hypergraph/algorithms/HyperSrcMinDist")
@@ -131,10 +132,9 @@ assignVerticesToLayers = function(layersBuilder, graph, sourceVertices)
     local depGraph = DirectedHypergraph.new()
     for _,edge in pairs(graph.edges) do
         local edgeDist = minDist.edgeDist[edge.index] or math.huge
-        local newEdge = {
+        local newEdge = DirectedHypergraphEdge.new{
             index = edge.index,
             inbound = edge.inbound,
-            outbound = {},
         }
         for index,vertexIndex in pairs(edge.outbound) do
             local vertexDist = minDist.vertexDist[vertexIndex] or math.huge

@@ -19,6 +19,7 @@ local AbstractApp = require("lua/apps/AbstractApp")
 local Canvas = require("lua/canvas/Canvas")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
+local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local SelectionWindow = require("lua/apps/graph/gui/SelectionWindow")
 local LayerLayout = require("lua/layouts/layer/LayerLayout")
@@ -183,10 +184,8 @@ Metatable = {
 -- Returns: the new edge.
 --
 makeEdge = function(entry)
-    local result = {
+    local result = DirectedHypergraphEdge.new{
         index = entry,
-        inbound = {},
-        outbound = {},
     }
     for ingredient in pairs(entry.ingredients) do
         table.insert(result.inbound, ingredient)

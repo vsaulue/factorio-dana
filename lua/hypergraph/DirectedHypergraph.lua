@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ClassLogger = require("lua/logger/ClassLogger")
+local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "DirectedHypergraph"}
@@ -29,12 +30,6 @@ local Metatable
 --
 -- Visual example: https://i.stack.imgur.com/pWMW5.png
 --
--- An Edge is a Lua table with the following syntax: {
---     index = "uniqueEdgeId",
---     inbound = {vertexId4, vertexId7},
---     outbound = {vertexId0},
--- }
---
 -- A Vertex is a Lua table with the following syntax: {
 --     index = "uniqueVertexId",
 --     inbound = {edge1, edge2},      -- edge1.outbound contains "uniqueVertexId"
@@ -42,7 +37,7 @@ local Metatable
 -- }
 --
 -- Fields:
--- * edges: map[edgeIndex] -> Edge.
+-- * edges: map[edgeIndex] -> DirectedHypergraphEdge.
 -- * vertices: map[vertexIndex] -> Vertex.
 --
 -- Methods: see Metatable.__index
@@ -69,7 +64,11 @@ local DirectedHypergraph = ErrorOnInvalidRead.new{
     -- * object: Table to modify.
     setmetatable = function(object)
         setmetatable(object, Metatable)
+
         ErrorOnInvalidRead.setmetatable(object.edges)
+        for _,edge in pairs(object.edges) do
+            DirectedHypergraphEdge.setmetatable(edge)
+        end
 
         ErrorOnInvalidRead.setmetatable(object.vertices)
         for _,vertex in pairs(object.vertices) do

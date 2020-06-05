@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
+local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Stack = require("lua/containers/Stack")
 
@@ -81,10 +82,8 @@ Metatable = {
                 result:addVertexIndex(component)
             end
             for _,edge in pairs(self.graph.edges) do
-                local newEdge = {
+                local newEdge = DirectedHypergraphEdge.new{
                     index = edge.index,
-                    inbound = {},
-                    outbound = {},
                 }
                 local alreadyPlaced = {}
                 for _,vertexIndex in pairs(edge.inbound) do
