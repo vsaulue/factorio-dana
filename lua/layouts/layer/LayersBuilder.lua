@@ -19,46 +19,147 @@ local ChannelLayer = require("lua/layouts/layer/ChannelLayer")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Layers = require("lua/layouts/layer/Layers")
 
+local initLinkNodes
+local link
+local Metatable
+local newEntry
+local newHorizontalLink
+local newLinkNode
+local newVerticalLink
+local newVerticalLink2
+
 -- Class wraping a Layers object, adding useful intermediates for layer sorting algorithms.
 --
 -- RO fields:
 -- * layers: Layer object being built.
 -- * linkNodes[channelIndex,layerIndex]: map giving the vertex/linkNode entry for the specified channel in the specified layer.
 --
--- Methods:
--- * generateChannelLayers: Generates the channel layers for this layer layout.
--- * newEdge: Adds a new hyperedge from the input hypergraph to a Layers object.
--- * newVertex: Adds a new vertex from the input hypergraph to a Layers object.
+-- Methods: see Metatable.__index.
 --
 local LayersBuilder = ErrorOnInvalidRead.new{
-    new = nil, -- implemented later
+    -- Creates a new LayersBuilder object.
+    --
+    -- Args:
+    -- * object: Table to turn into a LayersBuilder object (must have a channelIndexFactory field).
+    --
+    -- Returns: The new LayersBuilder object.
+    --
+    new = function(object)
+        assert(not object.layers, "LayersBuilder: 'layers' field in constructor forbidden.")
+        assert(object.channelIndexFactory, "LayersBuilder: missing mandatory 'channelIndexFactory' field in constructor.")
+
+        object.layers = Layers.new()
+        object.linkNodes = ErrorOnInvalidRead.new()
+
+        setmetatable(object, Metatable)
+
+        return object
+    end,
 }
 
-local Impl = ErrorOnInvalidRead.new{
-    initLinkNodes = nil, -- implemented later
+-- Metatable of the LayersBuilder class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Generates the channel layers for this layer layout.
+        --
+        -- N+1 channel layers are generated (N being the number of entry layers). The first channel
+        -- layer returned by this function is placed before the first entry layer. The last channel
+        -- layer of the returned array is placed after the last entry layer.
+        --
+        -- Args:
+        -- * self: LayersBuilder object.
+        --
+        -- Returns: An array containing the generated channel layers.
+        --
+        generateChannelLayers = function(self)
+            local entries = self.layers.entries
+            local result = Array.new()
 
-    link = nil, -- implemented later
+            -- 1) Create N+1 channel layers.
+            local count = entries.count + 1
+            for i=1,count do
+                result[i] = ChannelLayer.new()
+            end
+            result.count = count
 
-    -- Metatable of the LayersBuilder class.
-    Metatable = {
-        __index = ErrorOnInvalidRead.new{
-            generateChannelLayers = nil, -- implemented later
+            -- 2) Fill them.
+            for i=1,entries.count do
+                local layer = entries[i]
+                local lowChannelLayer = result[i]
+                local highChannelLayer = result[i+1]
+                for j=1,layer.count do
+                    local entry = layer[j]
+                    local inboundSlots = entry.inboundSlots
+                    for i=1,inboundSlots.count do
+                        lowChannelLayer:appendHighEntry(inboundSlots[i], entry)
+                    end
+                    local outboundSlots = entry.outboundSlots
+                    for i=1,outboundSlots.count do
+                        highChannelLayer:appendLowEntry(outboundSlots[i], entry)
+                    end
+                end
+            end
 
-            newEdge = nil, -- implemented later
+            return result
+        end,
 
-            newVertex = nil, -- implemented later
-        },
+        -- Adds a new hyperedge from the input hypergraph to a Layers object.
+        --
+        -- This function will create a new entry of type "edge" into the Layers object, and links
+        -- between the vertices and this entry. It will also add intermediate "linkNode" entries to
+        -- ensure no link crosses multiple layers.
+        --
+        -- It will try to reuse "linkNode" entries: in a given layer, there is at most 2 "linkNode" entries
+        -- for each vertexIndex: one for forward links, one for backward links.
+        --
+        -- Args:
+        -- * self: LayersBuilder object.
+        -- * layerIndex: Index of the layer in which the vertex will be inserted.
+        -- * edge: Edge from the input hypergraph to add.
+        --
+        newEdge = function(self, layerIndex, edge)
+            local edgeEntry = {
+                type = "edge",
+                index = edge.index,
+            }
+            newEntry(self, layerIndex, edgeEntry)
+
+            for vertexIndex in pairs(edge.inbound) do
+                local vertexEntry = self.layers:getEntry("vertex",vertexIndex)
+                link(self, edgeEntry, vertexEntry, true)
+            end
+
+            for vertexIndex in pairs(edge.outbound) do
+                local vertexEntry = self.layers:getEntry("vertex",vertexIndex)
+                link(self, edgeEntry, vertexEntry, false)
+            end
+        end,
+
+        -- Adds a new vertex from the input hypergraph to a Layers object.
+        --
+        -- Args:
+        -- * self: LayersBuilder object.
+        -- * layerIndex: Index of the layer in which the vertex will be inserted.
+        -- * vertexIndex: Index of the vertex from the hypergraph.
+        --
+        newVertex = function(self, layerIndex, vertexIndex)
+            local newEntry = newEntry(self, layerIndex, {
+                type = "vertex",
+                index = vertexIndex,
+            })
+
+            initLinkNodes(self, vertexIndex, true, false, {
+                [layerIndex] = newEntry,
+            })
+            initLinkNodes(self, vertexIndex, true, true, {
+                [layerIndex] = newEntry,
+            })
+            initLinkNodes(self, vertexIndex, false, false)
+
+            -- Current layer assignation never produce backward & 'vertex -> edge' links.
+            -- initLinkNodes(self, vertexIndex, false, true)
+        end,
     },
-
-    newEntry = nil, -- implemented later
-
-    newHorizontalLink = nil, -- implemented later
-
-    newLinkNode = nil, -- implemented later
-
-    newVerticalLink = nil, -- implemented later
-
-    newVerticalLink2 = nil, -- implemented later
 }
 
 -- Adds a new set in the `linkNodes` field for the specified channel index.
@@ -70,7 +171,7 @@ local Impl = ErrorOnInvalidRead.new{
 -- * isFromVertexToEdge: Value of the isFromVertexToEdge field of the ChannelIndex.
 -- * value: Set to add in `self.linkNodes` (or nil for an empty set).
 --
-function Impl.initLinkNodes(self, vertexIndex, isForward, isFromVertexToEdge, value)
+initLinkNodes = function(self, vertexIndex, isForward, isFromVertexToEdge, value)
     local channelIndex = self.channelIndexFactory:get(vertexIndex, isForward, isFromVertexToEdge)
     self.linkNodes[channelIndex] = value or {}
 end
@@ -83,17 +184,17 @@ end
 -- * vertexEntry: Entry of the vertex to link.
 -- * isFromVertexToEdge: true if the link goes from the vertex to the edge, false for the other way.
 --
-function Impl.link(self, edgeEntry, vertexEntry, isFromVertexToEdge)
+link = function(self, edgeEntry, vertexEntry, isFromVertexToEdge)
     local edgeLayerId = self.layers:getPos(edgeEntry)[1]
     local vertexLayerId = self.layers:getPos(vertexEntry)[1]
 
     local isForward = false
     local step = -1
-    local newVerticalLink = Impl.newVerticalLink
+    local newVerticalLink = newVerticalLink
     if edgeLayerId < vertexLayerId then
         step = 1
         isForward = not isFromVertexToEdge
-        newVerticalLink = Impl.newVerticalLink2
+        newVerticalLink = newVerticalLink2
     elseif edgeLayerId > vertexLayerId then
         isForward = isFromVertexToEdge
     end
@@ -106,15 +207,15 @@ function Impl.link(self, edgeEntry, vertexEntry, isFromVertexToEdge)
     if not isForward then
         local linkNode = linkNodes[vertexLayerId]
         if not linkNode then
-            linkNode = Impl.newLinkNode(self, vertexLayerId, channelIndex)
+            linkNode = newLinkNode(self, vertexLayerId, channelIndex)
         end
-        Impl.newHorizontalLink(self, linkNode, vertexEntry, channelIndex, not isFromVertexToEdge)
+        newHorizontalLink(self, linkNode, vertexEntry, channelIndex, not isFromVertexToEdge)
 
         linkNode = linkNodes[edgeLayerId]
         if not linkNode then
-            linkNode = Impl.newLinkNode(self, edgeLayerId, channelIndex)
+            linkNode = newLinkNode(self, edgeLayerId, channelIndex)
         end
-        Impl.newHorizontalLink(self, linkNode, edgeEntry, channelIndex, isFromVertexToEdge)
+        newHorizontalLink(self, linkNode, edgeEntry, channelIndex, isFromVertexToEdge)
         previousEntry = linkNode
     end
 
@@ -127,112 +228,12 @@ function Impl.link(self, edgeEntry, vertexEntry, isFromVertexToEdge)
             newVerticalLink(self, linkNode, previousEntry, channelIndex)
             connected = true
         else
-            linkNode = Impl.newLinkNode(self, i, channelIndex)
+            linkNode = newLinkNode(self, i, channelIndex)
             i = i + step
             newVerticalLink(self, linkNode, previousEntry, channelIndex)
             previousEntry = linkNode
         end
     end
-end
-
--- Generates the channel layers for this layer layout.
---
--- N+1 channel layers are generated (N being the number of entry layers). The first channel
--- layer returned by this function is placed before the first entry layer. The last channel
--- layer of the returned array is placed after the last entry layer.
---
--- Args:
--- * self: LayersBuilder object.
---
--- Returns: An array containing the generated channel layers.
---
-function Impl.Metatable.__index.generateChannelLayers(self)
-    local entries = self.layers.entries
-    local result = Array.new()
-
-    -- 1) Create N+1 channel layers.
-    local count = entries.count + 1
-    for i=1,count do
-        result[i] = ChannelLayer.new()
-    end
-    result.count = count
-
-    -- 2) Fill them.
-    for i=1,entries.count do
-        local layer = entries[i]
-        local lowChannelLayer = result[i]
-        local highChannelLayer = result[i+1]
-        for j=1,layer.count do
-            local entry = layer[j]
-            local inboundSlots = entry.inboundSlots
-            for i=1,inboundSlots.count do
-                lowChannelLayer:appendHighEntry(inboundSlots[i], entry)
-            end
-            local outboundSlots = entry.outboundSlots
-            for i=1,outboundSlots.count do
-                highChannelLayer:appendLowEntry(outboundSlots[i], entry)
-            end
-        end
-    end
-
-    return result
-end
-
--- Adds a new hyperedge from the input hypergraph to a Layers object.
---
--- This function will create a new entry of type "edge" into the Layers object, and links
--- between the vertices and this entry. It will also add intermediate "linkNode" entries to
--- ensure no link crosses multiple layers.
---
--- It will try to reuse "linkNode" entries: in a given layer, there is at most 2 "linkNode" entries
--- for each vertexIndex: one for forward links, one for backward links.
---
--- Args:
--- * self: LayersBuilder object.
--- * layerIndex: Index of the layer in which the vertex will be inserted.
--- * edge: Edge from the input hypergraph to add.
---
-function Impl.Metatable.__index.newEdge(self, layerIndex, edge)
-    local edgeEntry = {
-        type = "edge",
-        index = edge.index,
-    }
-    Impl.newEntry(self, layerIndex, edgeEntry)
-
-    for vertexIndex in pairs(edge.inbound) do
-        local vertexEntry = self.layers:getEntry("vertex",vertexIndex)
-        Impl.link(self, edgeEntry, vertexEntry, true)
-    end
-
-    for vertexIndex in pairs(edge.outbound) do
-        local vertexEntry = self.layers:getEntry("vertex",vertexIndex)
-        Impl.link(self, edgeEntry, vertexEntry, false)
-    end
-end
-
--- Adds a new vertex from the input hypergraph to a Layers object.
---
--- Args:
--- * self: LayersBuilder object.
--- * layerIndex: Index of the layer in which the vertex will be inserted.
--- * vertexIndex: Index of the vertex from the hypergraph.
---
-function Impl.Metatable.__index.newVertex(self, layerIndex, vertexIndex)
-    local newEntry = Impl.newEntry(self, layerIndex, {
-        type = "vertex",
-        index = vertexIndex,
-    })
-
-    Impl.initLinkNodes(self, vertexIndex, true, false, {
-        [layerIndex] = newEntry,
-    })
-    Impl.initLinkNodes(self, vertexIndex, true, true, {
-        [layerIndex] = newEntry,
-    })
-    Impl.initLinkNodes(self, vertexIndex, false, false)
-
-    -- Current layer assignation never produce backward & 'vertex -> edge' links.
-    -- Impl.initLinkNodes(self, vertexIndex, false, true)
 end
 
 -- Adds a new entry to this layout.
@@ -244,7 +245,7 @@ end
 --
 -- Returns: newEntry.
 --
-function Impl.newEntry(self, layerIndex, newEntry)
+newEntry = function(self, layerIndex, newEntry)
     self.layers:newEntry(layerIndex, newEntry)
     return newEntry
 end
@@ -258,7 +259,7 @@ end
 -- * channelIndex: ChannelIndex of this link.
 -- * isLow: True to make the connection in the lower channel layer, false for the upper channel layer.
 --
-function Impl.newHorizontalLink(self, entryA, entryB, channelIndex, isLow)
+newHorizontalLink = function(self, entryA, entryB, channelIndex, isLow)
     assert(self.layers:getPos(entryA)[1] == self.layers:getPos(entryA)[1], "LayerLayout: invalid link creation.")
 
     local slotTableName = "outboundSlots"
@@ -279,10 +280,10 @@ end
 --
 -- Returns: The new linkNode entry.
 --
-function Impl.newLinkNode(self, layerId, channelIndex)
+newLinkNode = function(self, layerId, channelIndex)
     local linkNodes = self.linkNodes[channelIndex]
     assert(not linkNodes[layerId], "LayersBuilder: attempt to override a linkNode entry.")
-    local result = Impl.newEntry(self, layerId, {
+    local result = newEntry(self, layerId, {
         type = "linkNode",
         index = {},
     })
@@ -298,7 +299,7 @@ end
 -- * highEntry: Entry with the greatest layerId to connect.
 -- * channelIndex: ChannelIndex of this link.
 --
-function Impl.newVerticalLink(self, lowEntry, highEntry, channelIndex)
+newVerticalLink = function(self, lowEntry, highEntry, channelIndex)
     local reverse = self.layers.reverse
     assert(reverse[lowEntry.type][lowEntry.index][1] == reverse[highEntry.type][highEntry.index][1] - 1, "LayerLayout: invalid link creation.")
     lowEntry.outboundSlots:pushBackIfNotPresent(channelIndex)
@@ -313,27 +314,8 @@ end
 -- * lowEntry: Entry with the lowest layerId to connect.
 -- * channelIndex: ChannelIndex of this link.
 --
-function Impl.newVerticalLink2(self, highEntry, lowEntry, channelIndex)
-    Impl.newVerticalLink(self, lowEntry, highEntry, channelIndex)
-end
-
--- Creates a new LayersBuilder object.
---
--- Args:
--- * object: Table to turn into a LayersBuilder object (must have a channelIndexFactory field).
---
--- Returns: The new LayersBuilder object.
---
-function LayersBuilder.new(object)
-    assert(not object.layers, "LayersBuilder: 'layers' field in constructor forbidden.")
-    assert(object.channelIndexFactory, "LayersBuilder: missing mandatory 'channelIndexFactory' field in constructor.")
-
-    object.layers = Layers.new()
-    object.linkNodes = ErrorOnInvalidRead.new()
-
-    setmetatable(object, Impl.Metatable)
-
-    return object
+newVerticalLink2 = function(self, highEntry, lowEntry, channelIndex)
+    newVerticalLink(self, lowEntry, highEntry, channelIndex)
 end
 
 return LayersBuilder
