@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ClassLogger = require("lua/logger/ClassLogger")
+local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "DirectedHypergraph"}
 
@@ -46,15 +47,15 @@ local Metatable
 --
 -- Methods: see Metatable.__index
 --
-local DirectedHypergraph = {
+local DirectedHypergraph = ErrorOnInvalidRead.new{
     -- Creates a new DirectedHypergraph object.
     --
     -- Returns: A new empty hypergraph.
     --
     new = function()
         local result = {
-            edges = {},
-            vertices = {},
+            edges = ErrorOnInvalidRead.new(),
+            vertices = ErrorOnInvalidRead.new(),
         }
         setmetatable(result, Metatable)
         return result
@@ -68,12 +69,18 @@ local DirectedHypergraph = {
     -- * object: Table to modify.
     setmetatable = function(object)
         setmetatable(object, Metatable)
+        ErrorOnInvalidRead.setmetatable(object.edges)
+
+        ErrorOnInvalidRead.setmetatable(object.vertices)
+        for _,vertex in pairs(object.vertices) do
+            ErrorOnInvalidRead.setmetatable(vertex)
+        end
     end,
 }
 
 -- Metatable of the DirectedHypergraph class.
 Metatable = {
-    __index = {
+    __index = ErrorOnInvalidRead.new{
         -- Adds a new edge to an hypergraph
         --
         -- Args:
@@ -82,7 +89,7 @@ Metatable = {
         --
         addEdge = function(self, newEdge)
             local index = newEdge.index
-            if not self.edges[index] then
+            if not rawget(self.edges, index) then
                 self.edges[index] = newEdge
                 if newEdge.inbound then
                     for _,vertexIndex in pairs(newEdge.inbound) do
@@ -122,9 +129,9 @@ Metatable = {
 -- Returns: The Vertex object of the given index.
 --
 initVertex = function(self,vertexIndex)
-    local result = self.vertices[vertexIndex]
+    local result = rawget(self.vertices, vertexIndex)
     if not result then
-        result = {
+        result = ErrorOnInvalidRead.new{
             index = vertexIndex,
             inbound = {},
             outbound = {},
