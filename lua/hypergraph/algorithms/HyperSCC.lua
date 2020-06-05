@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local Array = require("lua/containers/Array")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
@@ -26,7 +27,7 @@ local runAlgorithm
 -- Computes the Strongly Connected Components (SCC) of a DirectedHypergraph.
 --
 -- RO properties:
--- * components: sets of SCCs, stored in a reverse topological order. A SCC is a map: vertexIndex -> vertex.
+-- * components: Array of SCCs, stored in a reverse topological order. A SCC is a map: vertexIndex -> vertex.
 --
 -- Methods:
 -- * makeComponentsDAH: creates a direct acyclic graph (DAH) of the components.
@@ -46,7 +47,7 @@ local HyperSCC = ErrorOnInvalidRead.new{
             -- Intermediate results
             tmp = ErrorOnInvalidRead.new(),
             -- Result
-            components = {},
+            components = Array.new(),
         }
         runAlgorithm(result)
         result.tmp = nil
@@ -174,7 +175,7 @@ getSCC = function(self, vertex)
             self.tmp.vtags[v.index].onStack = false
             newComponent[v.index] = v
         until v.index == vertex.index
-        table.insert(self.components, newComponent)
+        self.components:pushBack(newComponent)
     end
     return tags
 end
