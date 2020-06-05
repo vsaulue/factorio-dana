@@ -45,13 +45,13 @@ local DummyIndex = "dummy"
 -- * slotsName: Name of the field in LayerEntry of the slots to sort.
 --
 local SlotSorterParser = ErrorOnInvalidRead.new{
-    -- Parser configuration for outboundSlots.
-    OutboundSlots = ErrorOnInvalidRead.new{
+    -- Parser configuration for highSlots.
+    HighSlots = ErrorOnInvalidRead.new{
         channelLayerOffset = 1,
         otherLayerOffset = 1,
         nearEntriesName = "lowEntries",
         farEntriesName = "highEntries",
-        slotsName = "outboundSlots",
+        slotsName = "highSlots",
     },
 
     -- Parser configuration for lowSlots.
@@ -153,7 +153,7 @@ end
 function SlotsSorter.run(layerLayout)
     for lRank=1,layerLayout.layers.entries.count do
         sortSlotsSide(layerLayout, lRank, SlotSorterParser.LowSlots)
-        sortSlotsSide(layerLayout, lRank, SlotSorterParser.OutboundSlots)
+        sortSlotsSide(layerLayout, lRank, SlotSorterParser.HighSlots)
     end
 end
 

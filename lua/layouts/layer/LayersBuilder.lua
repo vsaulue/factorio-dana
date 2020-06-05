@@ -93,9 +93,9 @@ Metatable = {
                     for i=1,lowSlots.count do
                         lowChannelLayer:appendHighEntry(lowSlots[i], entry)
                     end
-                    local outboundSlots = entry.outboundSlots
-                    for i=1,outboundSlots.count do
-                        highChannelLayer:appendLowEntry(outboundSlots[i], entry)
+                    local highSlots = entry.highSlots
+                    for i=1,highSlots.count do
+                        highChannelLayer:appendLowEntry(highSlots[i], entry)
                     end
                 end
             end
@@ -262,7 +262,7 @@ end
 newHorizontalLink = function(self, entryA, entryB, channelIndex, isLow)
     assert(self.layers:getPos(entryA)[1] == self.layers:getPos(entryA)[1], "LayerLayout: invalid link creation.")
 
-    local slotTableName = "outboundSlots"
+    local slotTableName = "highSlots"
     if isLow then
         slotTableName = "lowSlots"
     end
@@ -302,7 +302,7 @@ end
 newVerticalLink = function(self, lowEntry, highEntry, channelIndex)
     local reverse = self.layers.reverse
     assert(reverse[lowEntry.type][lowEntry.index][1] == reverse[highEntry.type][highEntry.index][1] - 1, "LayerLayout: invalid link creation.")
-    lowEntry.outboundSlots:pushBackIfNotPresent(channelIndex)
+    lowEntry.highSlots:pushBackIfNotPresent(channelIndex)
     highEntry.lowSlots:pushBackIfNotPresent(channelIndex)
 end
 

@@ -28,7 +28,7 @@ local ValidTypes
 -- * type: must be either "edge", "linkNode", or "vertex".
 -- * index: an identifier.
 -- * lowSlots: ReversibleArray containing the set of low ChannelIndex objects.
--- * outboundSlots: ReversibleArray containing the set of outbound ChannelIndex objects.
+-- * highSlots: ReversibleArray containing the set of high ChannelIndex objects.
 --
 -- Additional fields for "linkNode" type:
 -- * isForward: true if the link of this entry are going from lower to higher layer indices.
@@ -46,7 +46,7 @@ local LayerEntry = ErrorOnInvalidRead.new{
         local type = cLogger:assertField(object, "type")
         cLogger:assert(ValidTypes[type], "invalid type.")
         object.lowSlots = ReversibleArray.new()
-        object.outboundSlots = ReversibleArray.new()
+        object.highSlots = ReversibleArray.new()
         ErrorOnInvalidRead.setmetatable(object)
         return object
     end,

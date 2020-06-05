@@ -54,7 +54,7 @@ local LayerEntryPosition = ErrorOnInvalidRead.new{
 
         object.output = ErrorOnInvalidRead.new()
         object.inboundNodes = buildNodes(entry.lowSlots, entry)
-        object.outboundNodes = buildNodes(entry.outboundSlots, entry)
+        object.outboundNodes = buildNodes(entry.highSlots, entry)
 
         setmetatable(object, Metatable)
         return object
@@ -89,7 +89,7 @@ Metatable = {
             self.output.xMin = xMin
             self.output.xMax = xMin + xLength
             computeSlotsX(entry.lowSlots, self.inboundNodes, xMin, xLength)
-            computeSlotsX(entry.outboundSlots, self.outboundNodes, xMin, xLength)
+            computeSlotsX(entry.highSlots, self.outboundNodes, xMin, xLength)
         end,
 
         -- Initializes the Y coordinates of this object.
