@@ -33,7 +33,7 @@ local translateNodesX
 -- RO fields:
 -- * entry: LayerEntry object whose position is held.
 -- * output: placement data of this entry, returned in the LayoutCoordinates object.
--- * inboundNodes[channelIndex]: Tree node of the given channel index for inbound slots.
+-- * lowNodes[channelIndex]: Tree node of the given channel index for low slots.
 -- * outboundNodes[channelIndex]: Tree node of the given channel index for outbound slots.
 --
 -- Methods:
@@ -53,7 +53,7 @@ local LayerEntryPosition = ErrorOnInvalidRead.new{
         local entry = cLogger:assertField(object, "entry")
 
         object.output = ErrorOnInvalidRead.new()
-        object.inboundNodes = buildNodes(entry.lowSlots, entry)
+        object.lowNodes = buildNodes(entry.lowSlots, entry)
         object.outboundNodes = buildNodes(entry.highSlots, entry)
 
         setmetatable(object, Metatable)
@@ -88,7 +88,7 @@ Metatable = {
             local entry = self.entry
             self.output.xMin = xMin
             self.output.xMax = xMin + xLength
-            computeSlotsX(entry.lowSlots, self.inboundNodes, xMin, xLength)
+            computeSlotsX(entry.lowSlots, self.lowNodes, xMin, xLength)
             computeSlotsX(entry.highSlots, self.outboundNodes, xMin, xLength)
         end,
 
@@ -103,7 +103,7 @@ Metatable = {
             local entry = self.entry
             self.output.yMin = yMin
             self.output.yMax = yMax
-            setSlotsY(self.inboundNodes, yMin)
+            setSlotsY(self.lowNodes, yMin)
             setSlotsY(self.outboundNodes, yMax)
         end,
 
@@ -117,7 +117,7 @@ Metatable = {
             local output = self.output
             output.xMin = output.xMin + xDelta
             output.xMax = output.xMax + xDelta
-            translateNodesX(self.inboundNodes, xDelta)
+            translateNodesX(self.lowNodes, xDelta)
             translateNodesX(self.outboundNodes, xDelta)
         end,
     },
@@ -178,7 +178,7 @@ end
 
 -- Map giving the field name for slot nodes.
 nodesFieldName = ErrorOnInvalidRead.new{
-    [true] = "inboundNodes",
+    [true] = "lowNodes",
     [false] = "outboundNodes",
 }
 

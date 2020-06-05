@@ -196,7 +196,7 @@ generateTreeLinks = function(self)
             local entry = layer[entryRank]
             if entry.type == "vertex" then
                 local entryPos = entryPositions[entry]
-                generateTreeLinksFromNode(self, entryPos.inboundNodes, layerId)
+                generateTreeLinksFromNode(self, entryPos.lowNodes, layerId)
                 generateTreeLinksFromNode(self, entryPos.outboundNodes, layerId + 1)
             end
         end
@@ -205,7 +205,7 @@ end
 
 -- Generates a tree link for each tree node in a map.
 --
--- The map must be indexed by the associated channelIndex (ex: LayerEntryPosition.inboundNodes).
+-- The map must be indexed by the associated channelIndex (ex: LayerEntryPosition.lowNodes).
 -- The generated links will have the nodes in the map as root.
 --
 -- Args:
@@ -228,7 +228,7 @@ generateTreeLinksFromNode = function(self, nodes, startLayerId)
                 local branch = stack:pop()
                 if branch.isLow then
                     layerId = layerId - 1
-                    nextNode = branch.entryPosition.inboundNodes[channelIndex]
+                    nextNode = branch.entryPosition.lowNodes[channelIndex]
                 else
                     layerId = layerId + 1
                     nextNode = branch.entryPosition.outboundNodes[channelIndex]
