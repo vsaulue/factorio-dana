@@ -14,8 +14,13 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local ReversibleArray = require("lua/containers/ReversibleArray")
+
+local cLogger = ClassLogger.new{className = "LayerEntry"}
+
+local ValidTypes
 
 -- Class for representing an entry (node) in a Layers object.
 --
@@ -28,32 +33,30 @@ local ReversibleArray = require("lua/containers/ReversibleArray")
 -- Additional fields for "linkNode" type:
 -- * isForward: true if the link of this entry are going from lower to higher layer indices.
 --
-local LayerEntry = {
-    new = nil,
+local LayerEntry = ErrorOnInvalidRead.new{
+    -- Creates a new LayerEntry object.
+    --
+    -- Args:
+    -- * object: Table to turn into a LayerEntry (must have index & type fields).
+    --
+    -- Returns: The `object` argument, turned into a LayerEntry object.
+    --
+    new = function(object)
+        cLogger:assertField(object, "index")
+        local type = cLogger:assertField(object, "type")
+        cLogger:assert(ValidTypes[type], "invalid type.")
+        object.inboundSlots = ReversibleArray.new()
+        object.outboundSlots = ReversibleArray.new()
+        ErrorOnInvalidRead.setmetatable(object)
+        return object
+    end,
 }
 
-local Impl = {
-    ValidTypes = {
-        edge = true,
-        linkNode = true,
-        vertex = true,
-    }
+-- Set of valid values for the "type" field.
+ValidTypes = {
+    edge = true,
+    linkNode = true,
+    vertex = true,
 }
-
--- Creates a new LayerEntry object.
---
--- Args:
--- * object: Table to turn into a LayerEntry (must have index & type fields).
---
--- Returns: The `object` argument, turned into a LayerEntry object.
---
-function LayerEntry.new(object)
-    assert(Impl.ValidTypes[object.type], "LayerEntry: invalid type.")
-    assert(object.index, "LayerEntry: invalid index.")
-    object.inboundSlots = ReversibleArray.new()
-    object.outboundSlots = ReversibleArray.new()
-    ErrorOnInvalidRead.setmetatable(object)
-    return object
-end
 
 return LayerEntry
