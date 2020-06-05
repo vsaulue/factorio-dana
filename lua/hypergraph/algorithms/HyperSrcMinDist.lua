@@ -14,7 +14,6 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local Logger = require("lua/logger/Logger")
 local Queue = require("lua/containers/Queue")
 
 -- DirectedHypergraph algorithm: computes the minimal distance of all vertices from a given subset.
