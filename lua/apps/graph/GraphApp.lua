@@ -184,16 +184,11 @@ Metatable = {
 -- Returns: the new edge.
 --
 makeEdge = function(entry)
-    local result = DirectedHypergraphEdge.new{
+    return DirectedHypergraphEdge.new{
         index = entry,
+        inbound = entry.ingredients,
+        outbound = entry.products,
     }
-    for ingredient in pairs(entry.ingredients) do
-        result.inbound[ingredient] = true
-    end
-    for product in pairs(entry.products) do
-        result.outbound[product] = true
-    end
-    return result
 end
 
 AbstractApp.Factory:registerClass(AppName, GraphApp)
