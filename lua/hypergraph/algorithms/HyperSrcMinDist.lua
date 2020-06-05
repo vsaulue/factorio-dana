@@ -39,68 +39,66 @@ local Queue = require("lua/containers/Queue")
 -- * edgeDist: map of distances from the source subset, indexed by edge index.
 --
 local HyperSourceShortestDistance = {
-    run = nil,
-}
+    -- Runs the algorithm on the given inputs.
+    --
+    -- Args:
+    -- * graph: DirectedHypergraph object on which the algorithm is run.
+    -- * sourceSet: subset of vertex indices from graph, from which distances will be computed.
+    --
+    -- Returns: A HyperSourceShortestDistance object holding the result.
+    --
+    run = function(graph,sourceSet)
+        local result = {
+            vertexDist = {},
+            edgeDist = {},
+        }
 
--- Runs the algorithm on the given inputs.
---
--- Args:
--- * graph: DirectedHypergraph object on which the algorithm is run.
--- * sourceSet: subset of vertex indices from graph, from which distances will be computed.
---
--- Returns: A HyperSourceShortestDistance object holding the result.
---
-function HyperSourceShortestDistance.run(graph,sourceSet)
-    local result = {
-        vertexDist = {},
-        edgeDist = {},
-    }
+        -- Intermediates
+        local edgeQueue = Queue.new()
+        local edgeTags = {}
 
-    -- Intermediates
-    local edgeQueue = Queue.new()
-    local edgeTags = {}
-
-    -- Init
-    for index in pairs(sourceSet) do
-        result.vertexDist[index] = 0
-    end
-    for _,edge in pairs(graph.edges) do
-        local unknowns = 0
-        for _,vertexIndex in pairs(edge.inbound) do
-            if not result.vertexDist[vertexIndex] then
-                unknowns = unknowns + 1
+        -- Init
+        for index in pairs(sourceSet) do
+            result.vertexDist[index] = 0
+        end
+        for _,edge in pairs(graph.edges) do
+            local unknowns = 0
+            for _,vertexIndex in pairs(edge.inbound) do
+                if not result.vertexDist[vertexIndex] then
+                    unknowns = unknowns + 1
+                end
+            end
+            edgeTags[edge.index] = {
+                unknowns = unknowns,
+            }
+            if unknowns == 0 then
+                edgeQueue:enqueue(edge)
+                result.edgeDist[edge.index] = 0
             end
         end
-        edgeTags[edge.index] = {
-            unknowns = unknowns,
-        }
-        if unknowns == 0 then
-            edgeQueue:enqueue(edge)
-            result.edgeDist[edge.index] = 0
-        end
-    end
 
-    -- Main loop
-    while edgeQueue.count > 0 do
-        local edge = edgeQueue:dequeue()
-        local dist = 1 + result.edgeDist[edge.index]
-        for _,vertexIndex in pairs(edge.outbound) do
-            if not result.vertexDist[vertexIndex] then
-                result.vertexDist[vertexIndex] = dist
-                local vertex = graph.vertices[vertexIndex]
-                for _,nextEdge in pairs(vertex.outbound) do
-                    local nextIndex = nextEdge.index
-                    edgeTags[nextIndex].unknowns = edgeTags[nextIndex].unknowns - 1
-                    if edgeTags[nextIndex].unknowns == 0 then
-                        result.edgeDist[nextIndex] = dist
-                        edgeQueue:enqueue(nextEdge)
+        -- Main loop
+        while edgeQueue.count > 0 do
+            local edge = edgeQueue:dequeue()
+            local dist = 1 + result.edgeDist[edge.index]
+            for _,vertexIndex in pairs(edge.outbound) do
+                if not result.vertexDist[vertexIndex] then
+                    result.vertexDist[vertexIndex] = dist
+                    local vertex = graph.vertices[vertexIndex]
+                    for _,nextEdge in pairs(vertex.outbound) do
+                        local nextIndex = nextEdge.index
+                        edgeTags[nextIndex].unknowns = edgeTags[nextIndex].unknowns - 1
+                        if edgeTags[nextIndex].unknowns == 0 then
+                            result.edgeDist[nextIndex] = dist
+                            edgeQueue:enqueue(nextEdge)
+                        end
                     end
                 end
             end
         end
-    end
 
-    return result
-end
+        return result
+    end,
+}
 
 return HyperSourceShortestDistance
