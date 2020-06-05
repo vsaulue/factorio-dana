@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
+local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Stack = require("lua/containers/Stack")
 
 local getSCC
@@ -29,7 +30,7 @@ local runAlgorithm
 -- Methods:
 -- * makeComponentsDAH: creates a direct acyclic graph (DAH) of the components.
 --
-local HyperSCC = {
+local HyperSCC = ErrorOnInvalidRead.new{
     -- Computes the strongly connected components of a DirectedHypergraph object.
     --
     -- Args:
@@ -42,7 +43,7 @@ local HyperSCC = {
             -- Input graph
             graph = directedHypergraph,
             -- Intermediate results
-            tmp = {},
+            tmp = ErrorOnInvalidRead.new(),
             -- Result
             components = {},
         }
@@ -55,7 +56,7 @@ local HyperSCC = {
 
 -- Metatable of the HyperSCC class.
 Metatable = {
-    __index = {
+    __index = ErrorOnInvalidRead.new{
         -- Generates a direct acyclic graph (DAH) of the components.
         --
         -- In normal graphs, an edge is either a cross-edge (so part of a cycle), or inside a SCC (not part of a
@@ -143,7 +144,7 @@ end
 -- Returns: the tags
 --
 getSCC = function(self, vertex)
-    local tags = {
+    local tags = ErrorOnInvalidRead.new{
         order = self.tmp.count,
         lowlink = self.tmp.count,
         onStack = true,
