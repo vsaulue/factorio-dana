@@ -17,6 +17,9 @@
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local ReversibleArray = require("lua/containers/ReversibleArray")
 
+local initChannelIndex
+local Metatable
+
 -- Class holding the connection data between two layers in a LayersLayout object.
 --
 -- RO fields:
@@ -25,78 +28,68 @@ local ReversibleArray = require("lua/containers/ReversibleArray")
 -- * lowEntries[channelIndex]: ReversibleArray of entries from the lower layer connected to a channelIndex
 --   (ordered from lower to higher rank in the entry layer)
 --
--- Methods:
--- * appendHighEntry: Adds an entry from the higher layer to the given channel.
--- * appendLowEntry: Adds an entry from the lower layer to the given channel.
+-- Methods: see Metatable.__index.
 --
 local ChannelLayer = ErrorOnInvalidRead.new{
-    new = nil, -- implemented later
+    -- Creates a new empty ChannelLayer object.
+    --
+    -- Returns: the new ChannelLayer object.
+    --
+    new = function()
+        local result = ErrorOnInvalidRead.new{
+            highEntries = ErrorOnInvalidRead.new(),
+            lowEntries = ErrorOnInvalidRead.new(),
+        }
+        setmetatable(result, Metatable)
+        return result
+    end,
 }
 
--- Implementation stuff (private scope).
-local Impl = ErrorOnInvalidRead.new{
-    -- Initializes a channel (or does nothing if the channel already exists).
-    --
-    -- Args:
-    -- * self: ChannelLayer object.
-    -- * channelIndex: Index of the channel to initialize.
-    --
-    initChannelIndex = function(self, channelIndex)
-        if not rawget(self.lowEntries, channelIndex) then
-            self.highEntries[channelIndex] = ReversibleArray.new()
-            self.lowEntries[channelIndex] = ReversibleArray.new()
-        end
-    end,
 
-    -- Metatatble of the ChannelLayer class.
-    Metatable = {
-        __index = ErrorOnInvalidRead.new{
-            appendHighEntry = nil, -- implemented later
+-- Initializes a channel (or does nothing if the channel already exists).
+--
+-- Args:
+-- * self: ChannelLayer object.
+-- * channelIndex: Index of the channel to initialize.
+--
+initChannelIndex = function(self, channelIndex)
+    if not rawget(self.lowEntries, channelIndex) then
+        self.highEntries[channelIndex] = ReversibleArray.new()
+        self.lowEntries[channelIndex] = ReversibleArray.new()
+    end
+end
 
-            appendLowEntry = nil, -- implemented later
-        },
+-- Metatatble of the ChannelLayer class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Adds an entry from the higher layer to the given channel.
+        --
+        -- Automatically creates the appropriate channel if it doesn't exist yet.
+        --
+        -- Args:
+        -- * self: ChannelLayer object.
+        -- * channelIndex: Index of the channel to initialize.
+        -- * highEntry: Entry of the next layer to append to this channel's connections
+        --
+        appendHighEntry = function(self, channelIndex, highEntry)
+            initChannelIndex(self, channelIndex)
+            self.highEntries[channelIndex]:pushBackIfNotPresent(highEntry)
+        end,
+
+        -- Adds an entry from the lower layer to the given channel.
+        --
+        -- Automatically creates the appropriate channel if it doesn't exist yet.
+        --
+        -- Args:
+        -- * self: ChannelLayer object.
+        -- * channelIndex: Index of the channel to initialize.
+        -- * lowEntry: Entry of the previous layer to append to this channel's connections
+        --
+        appendLowEntry = function(self, channelIndex, lowEntry)
+            initChannelIndex(self, channelIndex)
+            self.lowEntries[channelIndex]:pushBackIfNotPresent(lowEntry)
+        end,
     },
 }
-
--- Creates a new empty ChannelLayer object.
---
--- Returns: the new ChannelLayer object.
---
-function ChannelLayer.new()
-    local result = ErrorOnInvalidRead.new{
-        highEntries = ErrorOnInvalidRead.new(),
-        lowEntries = ErrorOnInvalidRead.new(),
-    }
-    setmetatable(result, Impl.Metatable)
-    return result
-end
-
--- Adds an entry from the higher layer to the given channel.
---
--- Automatically creates the appropriate channel if it doesn't exist yet.
---
--- Args:
--- * self: ChannelLayer object.
--- * channelIndex: Index of the channel to initialize.
--- * highEntry: Entry of the next layer to append to this channel's connections
---
-function Impl.Metatable.__index.appendHighEntry(self, channelIndex, highEntry)
-    Impl.initChannelIndex(self, channelIndex)
-    self.highEntries[channelIndex]:pushBackIfNotPresent(highEntry)
-end
-
--- Adds an entry from the lower layer to the given channel.
---
--- Automatically creates the appropriate channel if it doesn't exist yet.
---
--- Args:
--- * self: ChannelLayer object.
--- * channelIndex: Index of the channel to initialize.
--- * lowEntry: Entry of the previous layer to append to this channel's connections
---
-function Impl.Metatable.__index.appendLowEntry(self, channelIndex, lowEntry)
-    Impl.initChannelIndex(self, channelIndex)
-    self.lowEntries[channelIndex]:pushBackIfNotPresent(lowEntry)
-end
 
 return ChannelLayer
