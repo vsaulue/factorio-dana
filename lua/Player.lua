@@ -28,13 +28,13 @@ local Metatable
 --
 -- Fields:
 -- * app: Current application.
+-- * force: Force this player belongs to.
 -- * rawPlayer: Associated LuaPlayer instance.
 -- * graphSurface: LuaSurface used to display graphs to this player.
 -- * previousCharacter: Character of the player before opening the GUI.
 -- * previousControllerType: Controller of the player before opening the GUI.
 -- * previousPosition: Position of the player on the previous surface.
 -- * previousSurface: LuaSurface on which the player was before opening this GUI.
--- * prototypes: PrototypeDatabase object.
 --
 -- RO properties:
 -- * opened: true if the GUI is opened.
@@ -43,7 +43,7 @@ local Player = ErrorOnInvalidRead.new{
     -- Creates a new Player object.
     --
     -- Args:
-    -- * object: table to turn into the Player object (required fields: graphSurface, prototypes, rawPlayer).
+    -- * object: table to turn into the Player object (required fields: force, graphSurface, rawPlayer).
     --
     new = function(object)
         setmetatable(object, Metatable)
@@ -53,7 +53,7 @@ local Player = ErrorOnInvalidRead.new{
             player = object,
         }
         -- default app for now
-        local graph,sourceVertices = GraphApp.makeDefaultGraphAndSource(object.prototypes)
+        local graph,sourceVertices = GraphApp.makeDefaultGraphAndSource(object.force.prototypes)
         object.app = GraphApp.new{
             graph = graph,
             rawPlayer = object.rawPlayer,

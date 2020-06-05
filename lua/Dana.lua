@@ -61,8 +61,8 @@ local Dana = ErrorOnInvalidRead.new{
 
         for _,rawPlayer in pairs(game.players) do
             result.players[rawPlayer.index] = Player.new({
+                force = result.forces[rawPlayer.force.index],
                 graphSurface = result.graphSurface,
-                prototypes = result.prototypes,
                 rawPlayer = rawPlayer,
             })
         end
@@ -116,10 +116,11 @@ Metatable = {
         --
         on_player_created = function(self, event)
             local playerIndex = event.player_index
+            local rawPlayer = game.players[playerIndex]
             self.players[playerIndex] = Player.new{
+                force = self.forces[rawPlayer.force.index],
                 graphSurface = self.graphSurface,
-                prototypes = self.prototypes,
-                rawPlayer = game.players[playerIndex],
+                rawPlayer = rawPlayer,
             }
         end,
 
