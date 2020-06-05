@@ -82,29 +82,29 @@ local GraphApp = ErrorOnInvalidRead.new{
     -- The graph will contain all recipes, and the source set will contain all natural resources.
     --
     -- Args:
-    -- * prototypes: The PrototypeDatabase object.
+    -- * force: Force of the player.
     --
     -- Returns:
     -- * A DirectedHypergraph containing all the recipes.
     -- * A set of vertex indices of the graph, correspongint to all the resources.
     --
-    makeDefaultGraphAndSource = function(prototypes)
+    makeDefaultGraphAndSource = function(force)
         local graph = DirectedHypergraph.new()
 
-        for _,recipe in pairs(prototypes.transforms.recipe) do
-            graph:addEdge(makeEdge(recipe))
+        for _,forceRecipe in pairs(force.recipes) do
+            graph:addEdge(makeEdge(forceRecipe.recipeTransform))
         end
-        for _,boiler in pairs(prototypes.transforms.boiler) do
+        for _,boiler in pairs(force.prototypes.transforms.boiler) do
             graph:addEdge(makeEdge(boiler))
         end
 
         local sourceVertices = ErrorOnInvalidRead.new()
-        for _,resource in pairs(prototypes.transforms.resource) do
+        for _,resource in pairs(force.prototypes.transforms.resource) do
             for product in pairs(resource.products) do
                 sourceVertices[product] = true
             end
         end
-        for _,offshorePump in pairs(prototypes.transforms.offshorePump) do
+        for _,offshorePump in pairs(force.prototypes.transforms.offshorePump) do
             for product in pairs(offshorePump.products) do
                 sourceVertices[product] = true
             end
