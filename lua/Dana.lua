@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local Force = require("lua/model/Force")
 local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local Player = require("lua/Player")
 
@@ -28,6 +29,7 @@ local newSurface
 -- Stored in global: yes.
 --
 -- Fields:
+-- * forces[forceIndex]: Map of Force objects, indexed by the index of the wrapped LuaForce.
 -- * graphSurface: surface used to draw graphs.
 -- * players: map of Player objects, indexed by their Factorio index.
 -- * prototypes: PrototypeDatabase wrapping all useful prototypes from Factorio.
@@ -44,10 +46,18 @@ local Dana = ErrorOnInvalidRead.new{
     --
     new = function()
         local result = {
+            forces = ErrorOnInvalidRead.new(),
             graphSurface = newSurface(game),
             players = {},
             prototypes = PrototypeDatabase.new(game),
         }
+
+        for _,rawForce in pairs(game.forces) do
+            result.forces[rawForce.index] = Force.new{
+                prototypes = result.prototypes,
+                rawForce = rawForce,
+            }
+        end
 
         for _,rawPlayer in pairs(game.players) do
             result.players[rawPlayer.index] = Player.new({
@@ -69,6 +79,12 @@ local Dana = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         setmetatable(object, Metatable)
         PrototypeDatabase.setmetatable(object.prototypes)
+
+        ErrorOnInvalidRead.setmetatable(object.forces)
+        for _,force in pairs(object.forces) do
+            Force.setmetatable(force)
+        end
+
         for _,player in pairs(object.players) do
             Player.setmetatable(player)
         end
@@ -78,6 +94,20 @@ local Dana = ErrorOnInvalidRead.new{
 -- Metatable of the dana class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Callback for Factorio's event of the same name.
+        --
+        -- Args:
+        -- * self: Dana object.
+        -- * event: Factorio event.
+        --
+        on_force_created = function(self, event)
+            local rawForce = event.force
+            self.forces[rawForce.index] = Force.new{
+                prototypes = self.prototypes,
+                rawForce = rawForce,
+            }
+        end,
+
         -- Callback for Factorio's event of the same name.
         --
         -- Args:

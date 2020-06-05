@@ -62,5 +62,10 @@ local events = defines.events
 script.on_load(on_load)
 script.on_init(on_init)
 script.on_event(events.on_gui_click, on_gui_click)
+
+script.on_event(events.on_force_created, function(event)
+    dana:on_force_created(event)
+end)
+
 script.on_event(events.on_player_created, on_player_created)
 script.on_event(events.on_player_selected_area, on_player_selected_area)
