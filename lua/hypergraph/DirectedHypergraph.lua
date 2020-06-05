@@ -16,6 +16,7 @@
 
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
+local DirectedHypergraphVertex = require("lua/hypergraph/DirectedHypergraphVertex")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "DirectedHypergraph"}
@@ -30,15 +31,9 @@ local Metatable
 --
 -- Visual example: https://i.stack.imgur.com/pWMW5.png
 --
--- A Vertex is a Lua table with the following syntax: {
---     index = "uniqueVertexId",
---     inbound = {edge1, edge2},      -- edge1.outbound contains "uniqueVertexId"
---     outbound = {edge2, edge5},     -- edge5.inbound contains "uniqueVertexId"
--- }
---
 -- Fields:
 -- * edges: map[edgeIndex] -> DirectedHypergraphEdge.
--- * vertices: map[vertexIndex] -> Vertex.
+-- * vertices: map[vertexIndex] -> DirectedHypergraphVertex.
 --
 -- Methods: see Metatable.__index
 --
@@ -72,7 +67,7 @@ local DirectedHypergraph = ErrorOnInvalidRead.new{
 
         ErrorOnInvalidRead.setmetatable(object.vertices)
         for _,vertex in pairs(object.vertices) do
-            ErrorOnInvalidRead.setmetatable(vertex)
+            DirectedHypergraphVertex.setmetatable(vertex)
         end
     end,
 }
@@ -130,10 +125,8 @@ Metatable = {
 initVertex = function(self,vertexIndex)
     local result = rawget(self.vertices, vertexIndex)
     if not result then
-        result = ErrorOnInvalidRead.new{
+        result = DirectedHypergraphVertex.new{
             index = vertexIndex,
-            inbound = {},
-            outbound = {},
         }
         self.vertices[vertexIndex] = result
     end
