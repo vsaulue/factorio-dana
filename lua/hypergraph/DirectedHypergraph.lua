@@ -16,6 +16,9 @@
 
 local Logger = require("lua/logger/Logger")
 
+local initVertex
+local Metatable
+
 -- Class implementing a directed hypergraph.
 --
 -- The directed hypergraph is a generalization of the hypergraph, where an edge has 2 sets of vertices
@@ -35,111 +38,98 @@ local Logger = require("lua/logger/Logger")
 --     outbound = {edge2, edge5},     -- edge5.inbound contains "uniqueVertexId"
 -- }
 --
--- Stored in global: yes.
---
 -- Fields:
 -- * edges: map[edgeIndex] -> Edge.
 -- * vertices: map[vertexIndex] -> Vertex.
 --
--- Methods:
--- * addEdge: adds a new edge to the hypergraph.
--- * addVertexIndex: adds a single vertex to the hypergraph.
+-- Methods: see Metatable.__index
 --
 local DirectedHypergraph = {
-    new = nil, -- implemented later
+    -- Creates a new DirectedHypergraph object.
+    --
+    -- Returns: A new empty hypergraph.
+    --
+    new = function()
+        local result = {
+            edges = {},
+            vertices = {},
+        }
+        setmetatable(result, Metatable)
+        return result
+    end,
 
-    setmetatable = nil, -- implemented later
-}
-
-local Impl = {
-    -- Metatable of the DirectedHypergraph class.
-    Metatable = {
-        __index = {
-            addEdge = nil, -- implemented later
-            addVertexIndex = nil, -- implemented later
-        },
-    },
-
-    -- Gets (or creates if needed) the vertex with the specified index.
+    -- Assigns the metatable of DirectedHypergraph class to the argument.
+    --
+    -- Intended to restore metatable of objects in the global table.
     --
     -- Args:
-    -- * self: The Hypergraph object.
-    -- * vertexIndex: index of the vertex to get (or create).
-    --
-    -- Returns: The Vertex object of the given index.
-    --
-    initVertex = function(self,vertexIndex)
-        local result = self.vertices[vertexIndex]
-        if not result then
-            result = {
-                index = vertexIndex,
-                inbound = {},
-                outbound = {},
-            }
-            self.vertices[vertexIndex] = result
-        end
-        return result
-    end
+    -- * object: Table to modify.
+    setmetatable = function(object)
+        setmetatable(object, Metatable)
+    end,
 }
 
--- Creates a new DirectedHypergraph object.
---
--- Returns: A new empty hypergraph.
---
-function DirectedHypergraph.new()
-    local result = {
-        edges = {},
-        vertices = {},
-    }
-    setmetatable(result, Impl.Metatable)
-    return result
-end
+-- Metatable of the DirectedHypergraph class.
+Metatable = {
+    __index = {
+        -- Adds a new edge to an hypergraph
+        --
+        -- Args:
+        -- * self: Hypergraph object.
+        -- * newEdge: new edge (must have an "index" field).
+        --
+        addEdge = function(self, newEdge)
+            local index = newEdge.index
+            if not self.edges[index] then
+                self.edges[index] = newEdge
+                if newEdge.inbound then
+                    for _,vertexIndex in pairs(newEdge.inbound) do
+                        local vertex = initVertex(self,vertexIndex)
+                        vertex.outbound[index] = newEdge
+                    end
+                end
+                if newEdge.outbound then
+                    for _,vertexIndex in pairs(newEdge.outbound) do
+                        local vertex = initVertex(self,vertexIndex)
+                        vertex.inbound[index] = newEdge
+                    end
+                end
+            else
+                Logger.error("Duplicate edge index in Hypergraph (index: " .. index .. ").")
+            end
+        end,
 
--- Assigns the metatable of DirectedHypergraph class to the argument.
---
--- Intended to restore metatable of objects in the global table.
+        -- Adds a new vertex to the graph.
+        --
+        -- Args:
+        -- * self: Hypergraph object.
+        -- * vertexIndex: index of the new vertex.
+        --
+        addVertexIndex = function(self, vertexIndex)
+            initVertex(self, vertexIndex)
+        end,
+    },
+}
+
+-- Gets (or creates if needed) the vertex with the specified index.
 --
 -- Args:
--- * object: Table to modify.
-function DirectedHypergraph.setmetatable(object)
-    setmetatable(object, Impl.Metatable)
-end
-
--- Adds a new edge to an hypergraph
+-- * self: The Hypergraph object.
+-- * vertexIndex: index of the vertex to get (or create).
 --
--- Args:
--- * self: Hypergraph object.
--- * newEdge: new edge (must have an "index" field).
+-- Returns: The Vertex object of the given index.
 --
-function Impl.Metatable.__index.addEdge(self, newEdge)
-    local index = newEdge.index
-    if not self.edges[index] then
-        self.edges[index] = newEdge
-        if newEdge.inbound then
-            for _,vertexIndex in pairs(newEdge.inbound) do
-                local vertex = Impl.initVertex(self,vertexIndex)
-                vertex.outbound[index] = newEdge
-            end
-        end
-        if newEdge.outbound then
-            for _,vertexIndex in pairs(newEdge.outbound) do
-                local vertex = Impl.initVertex(self,vertexIndex)
-                vertex.inbound[index] = newEdge
-            end
-        end
-    else
-        Logger.error("Duplicate edge index in Hypergraph (index: " .. index .. ").")
+initVertex = function(self,vertexIndex)
+    local result = self.vertices[vertexIndex]
+    if not result then
+        result = {
+            index = vertexIndex,
+            inbound = {},
+            outbound = {},
+        }
+        self.vertices[vertexIndex] = result
     end
-end
-
--- Adds a new vertex to the graph.
---
--- Args:
--- * self: Hypergraph object.
--- * vertexIndex: index of the new vertex.
---
-function Impl.Metatable.__index.addVertexIndex(self, vertexIndex)
-    Impl.initVertex(self, vertexIndex)
+    return result
 end
 
 return DirectedHypergraph
