@@ -34,7 +34,7 @@ local translateNodesX
 -- * entry: LayerEntry object whose position is held.
 -- * output: placement data of this entry, returned in the LayoutCoordinates object.
 -- * lowNodes[channelIndex]: Tree node of the given channel index for low slots.
--- * outboundNodes[channelIndex]: Tree node of the given channel index for outbound slots.
+-- * highNodes[channelIndex]: Tree node of the given channel index for outbound slots.
 --
 -- Methods:
 -- * getNode: Gets the tree node associated to the given slot.
@@ -54,7 +54,7 @@ local LayerEntryPosition = ErrorOnInvalidRead.new{
 
         object.output = ErrorOnInvalidRead.new()
         object.lowNodes = buildNodes(entry.lowSlots, entry)
-        object.outboundNodes = buildNodes(entry.highSlots, entry)
+        object.highNodes = buildNodes(entry.highSlots, entry)
 
         setmetatable(object, Metatable)
         return object
@@ -89,7 +89,7 @@ Metatable = {
             self.output.xMin = xMin
             self.output.xMax = xMin + xLength
             computeSlotsX(entry.lowSlots, self.lowNodes, xMin, xLength)
-            computeSlotsX(entry.highSlots, self.outboundNodes, xMin, xLength)
+            computeSlotsX(entry.highSlots, self.highNodes, xMin, xLength)
         end,
 
         -- Initializes the Y coordinates of this object.
@@ -104,7 +104,7 @@ Metatable = {
             self.output.yMin = yMin
             self.output.yMax = yMax
             setSlotsY(self.lowNodes, yMin)
-            setSlotsY(self.outboundNodes, yMax)
+            setSlotsY(self.highNodes, yMax)
         end,
 
         -- Moves this object on the X axis.
@@ -118,7 +118,7 @@ Metatable = {
             output.xMin = output.xMin + xDelta
             output.xMax = output.xMax + xDelta
             translateNodesX(self.lowNodes, xDelta)
-            translateNodesX(self.outboundNodes, xDelta)
+            translateNodesX(self.highNodes, xDelta)
         end,
     },
 }
@@ -179,7 +179,7 @@ end
 -- Map giving the field name for slot nodes.
 nodesFieldName = ErrorOnInvalidRead.new{
     [true] = "lowNodes",
-    [false] = "outboundNodes",
+    [false] = "highNodes",
 }
 
 -- Updates the x field of a set of link nodes.

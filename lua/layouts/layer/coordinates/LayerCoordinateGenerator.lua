@@ -197,7 +197,7 @@ generateTreeLinks = function(self)
             if entry.type == "vertex" then
                 local entryPos = entryPositions[entry]
                 generateTreeLinksFromNode(self, entryPos.lowNodes, layerId)
-                generateTreeLinksFromNode(self, entryPos.outboundNodes, layerId + 1)
+                generateTreeLinksFromNode(self, entryPos.highNodes, layerId + 1)
             end
         end
     end
@@ -231,7 +231,7 @@ generateTreeLinksFromNode = function(self, nodes, startLayerId)
                     nextNode = branch.entryPosition.lowNodes[channelIndex]
                 else
                     layerId = layerId + 1
-                    nextNode = branch.entryPosition.outboundNodes[channelIndex]
+                    nextNode = branch.entryPosition.highNodes[channelIndex]
                 end
                 branch.entryNode:addChild(nextNode)
             else
