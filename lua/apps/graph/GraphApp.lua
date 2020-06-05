@@ -188,10 +188,10 @@ makeEdge = function(entry)
         index = entry,
     }
     for ingredient in pairs(entry.ingredients) do
-        table.insert(result.inbound, ingredient)
+        result.inbound[ingredient] = true
     end
     for product in pairs(entry.products) do
-        table.insert(result.outbound, product)
+        result.outbound[product] = true
     end
     return result
 end

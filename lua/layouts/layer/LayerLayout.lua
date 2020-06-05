@@ -106,7 +106,7 @@ Metatable = {
 assignEdgesToLayers = function(layersBuilder, graph)
     for _,edge in pairs(graph.edges) do
         local layerId = 1
-        for _,vertexIndex in pairs(edge.inbound) do
+        for vertexIndex in pairs(edge.inbound) do
             layerId = math.max(layerId, 1 + layersBuilder.layers.reverse.vertex[vertexIndex][1])
         end
         layersBuilder:newEdge(layerId, edge)
@@ -136,10 +136,10 @@ assignVerticesToLayers = function(layersBuilder, graph, sourceVertices)
             index = edge.index,
             inbound = edge.inbound,
         }
-        for index,vertexIndex in pairs(edge.outbound) do
+        for vertexIndex in pairs(edge.outbound) do
             local vertexDist = minDist.vertexDist[vertexIndex] or math.huge
             if vertexDist >= edgeDist then
-                table.insert(newEdge.outbound,vertexIndex)
+                newEdge.outbound[vertexIndex] = true
             end
         end
         depGraph:addEdge(newEdge)
@@ -154,7 +154,7 @@ assignVerticesToLayers = function(layersBuilder, graph, sourceVertices)
         cLogger:assert(sccVertex, "Invalid component index")
         local layerId = 2
         for _,edge in pairs(sccVertex.inbound) do
-            for _,previousId in pairs(edge.inbound) do
+            for previousId in pairs(edge.inbound) do
                 local previousLayerId = sccToLayer[previousId]
                 cLogger:assert(previousLayerId, "Invalid inputs from HyperSCC (wrong topological order, or non-acyclic graph).")
                 layerId = math.max(layerId, previousLayerId + 2)

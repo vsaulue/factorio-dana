@@ -86,21 +86,23 @@ Metatable = {
                     index = edge.index,
                 }
                 local alreadyPlaced = {}
-                for _,vertexIndex in pairs(edge.inbound) do
+                for vertexIndex in pairs(edge.inbound) do
                     local component = vertexToComponent[vertexIndex]
                     if not alreadyPlaced[component] then
                         alreadyPlaced[component] = true
-                        table.insert(newEdge.inbound, component)
+                        newEdge.inbound[component] = true
                     end
                 end
-                for _,vertexIndex in pairs(edge.outbound) do
+                local outboundCount = 0
+                for vertexIndex in pairs(edge.outbound) do
                     local component = vertexToComponent[vertexIndex]
                     if not alreadyPlaced[component] then
                         alreadyPlaced[component] = true
-                        table.insert(newEdge.outbound, component)
+                        newEdge.outbound[component] = true
                     end
+                    outboundCount = outboundCount + 1
                 end
-                if #newEdge.outbound > 0 then
+                if outboundCount > 0 then
                     result:addEdge(newEdge)
                 end
             end
@@ -153,7 +155,7 @@ getSCC = function(self, vertex)
     self.tmp.vstack:push(vertex)
 
     for _,edge in pairs(vertex.outbound) do
-        for _,neighbourIndex in pairs(edge.outbound) do
+        for neighbourIndex in pairs(edge.outbound) do
             local ntags = self.tmp.vtags[neighbourIndex]
             if not ntags then
                 local neighbour = self.graph.vertices[neighbourIndex]

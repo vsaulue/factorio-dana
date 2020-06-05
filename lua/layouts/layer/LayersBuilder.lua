@@ -199,12 +199,12 @@ function Impl.Metatable.__index.newEdge(self, layerIndex, edge)
     }
     Impl.newEntry(self, layerIndex, edgeEntry)
 
-    for _,vertexIndex in pairs(edge.inbound) do
+    for vertexIndex in pairs(edge.inbound) do
         local vertexEntry = self.layers:getEntry("vertex",vertexIndex)
         Impl.link(self, edgeEntry, vertexEntry, true)
     end
 
-    for _,vertexIndex in pairs(edge.outbound) do
+    for vertexIndex in pairs(edge.outbound) do
         local vertexEntry = self.layers:getEntry("vertex",vertexIndex)
         Impl.link(self, edgeEntry, vertexEntry, false)
     end

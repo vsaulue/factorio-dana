@@ -63,7 +63,7 @@ local HyperSourceShortestDistance = ErrorOnInvalidRead.new{
         end
         for _,edge in pairs(graph.edges) do
             local unknowns = 0
-            for _,vertexIndex in pairs(edge.inbound) do
+            for vertexIndex in pairs(edge.inbound) do
                 if not result.vertexDist[vertexIndex] then
                     unknowns = unknowns + 1
                 end
@@ -81,7 +81,7 @@ local HyperSourceShortestDistance = ErrorOnInvalidRead.new{
         while edgeQueue.count > 0 do
             local edge = edgeQueue:dequeue()
             local dist = 1 + result.edgeDist[edge.index]
-            for _,vertexIndex in pairs(edge.outbound) do
+            for vertexIndex in pairs(edge.outbound) do
                 if not result.vertexDist[vertexIndex] then
                     result.vertexDist[vertexIndex] = dist
                     local vertex = graph.vertices[vertexIndex]

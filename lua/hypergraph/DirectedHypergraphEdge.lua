@@ -23,8 +23,8 @@ local cLogger = ClassLogger.new{className = "DirectedHypergraphEdge"}
 --
 -- Fields:
 -- * index: string or table value acting as a unique identifier in a given graph.
--- * inbound: array of vertex indices, representing inputs of this edge
--- * outbound: array of vertex indices, representing outputs of this edge
+-- * inbound: set of vertex indices, representing inputs of this edge
+-- * outbound: set of vertex indices, representing outputs of this edge
 --
 local DirectedHypergraphEdge = ErrorOnInvalidRead.new{
     -- Creates a new DirectedHypergraphEdge object.

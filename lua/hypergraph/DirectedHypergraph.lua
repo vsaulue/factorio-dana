@@ -86,13 +86,13 @@ Metatable = {
             if not rawget(self.edges, index) then
                 self.edges[index] = newEdge
                 if newEdge.inbound then
-                    for _,vertexIndex in pairs(newEdge.inbound) do
+                    for vertexIndex in pairs(newEdge.inbound) do
                         local vertex = initVertex(self,vertexIndex)
                         vertex.outbound[index] = newEdge
                     end
                 end
                 if newEdge.outbound then
-                    for _,vertexIndex in pairs(newEdge.outbound) do
+                    for vertexIndex in pairs(newEdge.outbound) do
                         local vertex = initVertex(self,vertexIndex)
                         vertex.inbound[index] = newEdge
                     end
