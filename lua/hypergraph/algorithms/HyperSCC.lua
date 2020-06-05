@@ -17,9 +17,11 @@
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local Stack = require("lua/containers/Stack")
 
+local getSCC
+local Metatable
+local runAlgorithm
+
 -- Computes the Strongly Connected Components (SCC) of a DirectedHypergraph.
---
--- Stored in global: no.
 --
 -- RO properties:
 -- * components: sets of SCCs, stored in a reverse topological order. A SCC is a map: vertexIndex -> vertex.
@@ -28,93 +30,84 @@ local Stack = require("lua/containers/Stack")
 -- * makeComponentsDAH: creates a direct acyclic graph (DAH) of the components.
 --
 local HyperSCC = {
-    run = nil, -- implemented later
-}
-
--- Implementation stuff (private scope).
-local Impl = {
-    -- Metatable of the HyperSCC class.
-    Metatable = {
-        __index = {
-            -- Generates a direct acyclic graph (DAH) of the components.
-            --
-            -- In normal graphs, an edge is either a cross-edge (so part of a cycle), or inside a SCC (not part of a
-            -- cycle). This is not the case for hypergraphs: cross-edges can be part of cycles.  To make an
-            -- acyclic graph, they have to be simplified:
-            --
-            -- For every cross edge, outbound components that are also inbound components are removed from the
-            -- outbound set.
-            --
-            -- Args:
-            -- * self: HyperSCC object.
-            --
-            -- Returns: the DAH graph.
-            --
-            makeComponentsDAH = function(self)
-                local result = DirectedHypergraph.new()
-                local vertexToComponent = {}
-                for _,component in pairs(self.components) do
-                    for index,_ in pairs(component) do
-                        vertexToComponent[index] = component
-                    end
-                    result:addVertexIndex(component)
-                end
-                for _,edge in pairs(self.graph.edges) do
-                    local newEdge = {
-                        index = edge.index,
-                        inbound = {},
-                        outbound = {},
-                    }
-                    local alreadyPlaced = {}
-                    for _,vertexIndex in pairs(edge.inbound) do
-                        local component = vertexToComponent[vertexIndex]
-                        if not alreadyPlaced[component] then
-                            alreadyPlaced[component] = true
-                            table.insert(newEdge.inbound, component)
-                        end
-                    end
-                    for _,vertexIndex in pairs(edge.outbound) do
-                        local component = vertexToComponent[vertexIndex]
-                        if not alreadyPlaced[component] then
-                            alreadyPlaced[component] = true
-                            table.insert(newEdge.outbound, component)
-                        end
-                    end
-                    if #newEdge.outbound > 0 then
-                        result:addEdge(newEdge)
-                    end
-                end
-                return result
-            end
+    -- Computes the strongly connected components of a DirectedHypergraph object.
+    --
+    -- Args:
+    -- * directedHypergraph: the DirectedHypergraph object.
+    --
+    -- Returns: An HyperSCC object, holding the results of the algorithm for the argument.
+    --
+    run = function(directedHypergraph)
+        local result = {
+            -- Input graph
+            graph = directedHypergraph,
+            -- Intermediate results
+            tmp = {},
+            -- Result
+            components = {},
         }
-    },
-
-    runAlgorithm = nil, -- implemented later
-
-    getSCC = nil, -- implemented later
+        runAlgorithm(result)
+        result.tmp = nil
+        setmetatable(result, Metatable)
+        return result
+    end,
 }
 
--- Computes the strongly connected components of a DirectedHypergraph object.
---
--- Args:
--- * directedHypergraph: the DirectedHypergraph object.
---
--- Returns: An HyperSCC object, holding the results of the algorithm for the argument.
---
-function HyperSCC.run(directedHypergraph)
-    local result = {
-        -- Input graph
-        graph = directedHypergraph,
-        -- Intermediate results
-        tmp = {},
-        -- Result
-        components = {},
-    }
-    Impl.runAlgorithm(result)
-    result.tmp = nil
-    setmetatable(result, Impl.Metatable)
-    return result
-end
+-- Metatable of the HyperSCC class.
+Metatable = {
+    __index = {
+        -- Generates a direct acyclic graph (DAH) of the components.
+        --
+        -- In normal graphs, an edge is either a cross-edge (so part of a cycle), or inside a SCC (not part of a
+        -- cycle). This is not the case for hypergraphs: cross-edges can be part of cycles.  To make an
+        -- acyclic graph, they have to be simplified:
+        --
+        -- For every cross edge, outbound components that are also inbound components are removed from the
+        -- outbound set.
+        --
+        -- Args:
+        -- * self: HyperSCC object.
+        --
+        -- Returns: the DAH graph.
+        --
+        makeComponentsDAH = function(self)
+            local result = DirectedHypergraph.new()
+            local vertexToComponent = {}
+            for _,component in pairs(self.components) do
+                for index,_ in pairs(component) do
+                    vertexToComponent[index] = component
+                end
+                result:addVertexIndex(component)
+            end
+            for _,edge in pairs(self.graph.edges) do
+                local newEdge = {
+                    index = edge.index,
+                    inbound = {},
+                    outbound = {},
+                }
+                local alreadyPlaced = {}
+                for _,vertexIndex in pairs(edge.inbound) do
+                    local component = vertexToComponent[vertexIndex]
+                    if not alreadyPlaced[component] then
+                        alreadyPlaced[component] = true
+                        table.insert(newEdge.inbound, component)
+                    end
+                end
+                for _,vertexIndex in pairs(edge.outbound) do
+                    local component = vertexToComponent[vertexIndex]
+                    if not alreadyPlaced[component] then
+                        alreadyPlaced[component] = true
+                        table.insert(newEdge.outbound, component)
+                    end
+                end
+                if #newEdge.outbound > 0 then
+                    result:addEdge(newEdge)
+                end
+            end
+            return result
+        end
+    },
+}
 
 -- Runs Tarjan's strongly connected components algorithm.
 --
@@ -123,7 +116,7 @@ end
 -- Args:
 -- * self: HyperSCC object running this algorithm.
 --
-function Impl.runAlgorithm(self)
+runAlgorithm = function(self)
     -- Number of vertices already explored.
     self.tmp.count = 0
     -- Stack of vertices used by the algorithm.
@@ -132,7 +125,7 @@ function Impl.runAlgorithm(self)
     self.tmp.vtags = {}
     for _,vertex in pairs(self.graph.vertices) do
         if not self.tmp.vtags[vertex.index] then
-            Impl.getSCC(self, vertex)
+            getSCC(self, vertex)
         end
     end
 end
@@ -149,7 +142,7 @@ end
 --
 -- Returns: the tags
 --
-function Impl.getSCC(self, vertex)
+getSCC = function(self, vertex)
     local tags = {
         order = self.tmp.count,
         lowlink = self.tmp.count,
@@ -164,7 +157,7 @@ function Impl.getSCC(self, vertex)
             local ntags = self.tmp.vtags[neighbourIndex]
             if not ntags then
                 local neighbour = self.graph.vertices[neighbourIndex]
-                ntags = Impl.getSCC(self, neighbour)
+                ntags = getSCC(self, neighbour)
                 tags.lowlink = math.min(tags.lowlink, ntags.lowlink)
             elseif ntags.onStack then
                 tags.lowlink = math.min(tags.lowlink, ntags.order)
