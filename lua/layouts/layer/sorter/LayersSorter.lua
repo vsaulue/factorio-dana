@@ -158,7 +158,7 @@ createCouplings = function(self)
             local order = prevCouplings.order
             for i=1,order.count do
                 local entry = order[i]
-                children[entry] = entry.inboundSlots
+                children[entry] = entry.lowSlots
             end
             computeCouplings(channelCouplings, prevCouplings, children)
         end

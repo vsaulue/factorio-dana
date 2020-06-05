@@ -89,9 +89,9 @@ Metatable = {
                 local highChannelLayer = result[i+1]
                 for j=1,layer.count do
                     local entry = layer[j]
-                    local inboundSlots = entry.inboundSlots
-                    for i=1,inboundSlots.count do
-                        lowChannelLayer:appendHighEntry(inboundSlots[i], entry)
+                    local lowSlots = entry.lowSlots
+                    for i=1,lowSlots.count do
+                        lowChannelLayer:appendHighEntry(lowSlots[i], entry)
                     end
                     local outboundSlots = entry.outboundSlots
                     for i=1,outboundSlots.count do
@@ -264,7 +264,7 @@ newHorizontalLink = function(self, entryA, entryB, channelIndex, isLow)
 
     local slotTableName = "outboundSlots"
     if isLow then
-        slotTableName = "inboundSlots"
+        slotTableName = "lowSlots"
     end
 
     entryA[slotTableName]:pushBackIfNotPresent(channelIndex)
@@ -303,7 +303,7 @@ newVerticalLink = function(self, lowEntry, highEntry, channelIndex)
     local reverse = self.layers.reverse
     assert(reverse[lowEntry.type][lowEntry.index][1] == reverse[highEntry.type][highEntry.index][1] - 1, "LayerLayout: invalid link creation.")
     lowEntry.outboundSlots:pushBackIfNotPresent(channelIndex)
-    highEntry.inboundSlots:pushBackIfNotPresent(channelIndex)
+    highEntry.lowSlots:pushBackIfNotPresent(channelIndex)
 end
 
 -- Connects two entries from different layers through the specified channel index.

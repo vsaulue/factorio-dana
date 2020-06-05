@@ -53,7 +53,7 @@ local LayerEntryPosition = ErrorOnInvalidRead.new{
         local entry = cLogger:assertField(object, "entry")
 
         object.output = ErrorOnInvalidRead.new()
-        object.inboundNodes = buildNodes(entry.inboundSlots, entry)
+        object.inboundNodes = buildNodes(entry.lowSlots, entry)
         object.outboundNodes = buildNodes(entry.outboundSlots, entry)
 
         setmetatable(object, Metatable)
@@ -88,7 +88,7 @@ Metatable = {
             local entry = self.entry
             self.output.xMin = xMin
             self.output.xMax = xMin + xLength
-            computeSlotsX(entry.inboundSlots, self.inboundNodes, xMin, xLength)
+            computeSlotsX(entry.lowSlots, self.inboundNodes, xMin, xLength)
             computeSlotsX(entry.outboundSlots, self.outboundNodes, xMin, xLength)
         end,
 
@@ -150,7 +150,7 @@ end
 -- Fills x field of a set of link nodes.
 --
 -- Args:
--- * slots: ReversibleArray of slots (ex: LayerEntry.inboundSlots).
+-- * slots: ReversibleArray of slots (ex: LayerEntry.lowSlots).
 -- * nodes: Map of link nodes, indexed by channel indexes.
 -- * xMin: New xMin value of the entry.
 -- * xLength: Length of the entry.
