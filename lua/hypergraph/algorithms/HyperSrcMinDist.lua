@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Queue = require("lua/containers/Queue")
 
 -- DirectedHypergraph algorithm: computes the minimal distance of all vertices from a given subset.
@@ -37,7 +38,7 @@ local Queue = require("lua/containers/Queue")
 -- * vertexDist: map of distances from the source subset, indexed by vertex index.
 -- * edgeDist: map of distances from the source subset, indexed by edge index.
 --
-local HyperSourceShortestDistance = {
+local HyperSourceShortestDistance = ErrorOnInvalidRead.new{
     -- Runs the algorithm on the given inputs.
     --
     -- Args:
@@ -47,7 +48,7 @@ local HyperSourceShortestDistance = {
     -- Returns: A HyperSourceShortestDistance object holding the result.
     --
     run = function(graph,sourceSet)
-        local result = {
+        local result = ErrorOnInvalidRead.new{
             vertexDist = {},
             edgeDist = {},
         }
