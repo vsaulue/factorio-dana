@@ -14,7 +14,9 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local Logger = require("lua/logger/Logger")
+local ClassLogger = require("lua/logger/ClassLogger")
+
+local cLogger = ClassLogger.new{className = "DirectedHypergraph"}
 
 local initVertex
 local Metatable
@@ -95,7 +97,7 @@ Metatable = {
                     end
                 end
             else
-                Logger.error("Duplicate edge index in Hypergraph (index: " .. index .. ").")
+                cLogger:error("Duplicate edge index in Hypergraph (index: " .. index .. ").")
             end
         end,
 
