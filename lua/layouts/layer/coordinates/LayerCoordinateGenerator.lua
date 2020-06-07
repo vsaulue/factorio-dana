@@ -18,6 +18,7 @@ local Array = require("lua/containers/Array")
 local ChannelRouter = require("lua/layouts/layer/coordinates/ChannelRouter")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayerEntryPosition = require("lua/layouts/layer/coordinates/LayerEntryPosition")
+local LayerXPass = require("lua/layouts/layer/coordinates/LayerXPass")
 local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
 local TreeLink = require("lua/layouts/TreeLink")
 local Logger = require("lua/logger/Logger")
@@ -42,7 +43,6 @@ local LayerCoordinateGenerator = ErrorOnInvalidRead.new{
 -- Implementation stuff (private scope).
 local addTreeLink
 local createEntryCoordinateRecords
-local computeX
 local computeY
 local generateTreeLinks
 local generateTreeLinksFromNode
@@ -91,56 +91,6 @@ createEntryCoordinateRecords = function(self)
                 self.result[tableName][entry.index] = entryRecord.output
             end
             self.entryPositions[entry] = entryRecord
-        end
-    end
-end
-
--- Computes the X coordinate of all entries.
---
--- Args:
--- * self: LayerCoordinateGenerator object.
---
-computeX = function(self)
-    local params = self.params
-    local typeToMinX = ErrorOnInvalidRead.new{
-        edge = params.edgeMinX,
-        linkNode = params.linkWidth,
-        vertex = params.vertexMinX,
-    }
-    local typeToMarginX = ErrorOnInvalidRead.new{
-        edge = params.edgeMarginX,
-        linkNode = 0,
-        vertex = params.vertexMarginX,
-    }
-    local entries = self.layout.layers.entries
-    local xLengthMax = - math.huge
-    local layerXLengths = ErrorOnInvalidRead.new()
-    for layerId=1,entries.count do
-        local layer = entries[layerId]
-        local x = 0
-        for rank=1,layer.count do
-            local entry = layer[rank]
-            local entryType = entry.type
-            local maxSlotsCount = math.max(entry.lowSlots.count, entry.highSlots.count)
-            local xLength = math.max(typeToMinX[entryType], params.linkWidth * maxSlotsCount)
-            local xMargin = typeToMarginX[entryType]
-            x = x + xMargin
-            local entryRecord = self.entryPositions[entry]
-            entryRecord:initX(x, xLength)
-            x = x + xLength + xMargin
-        end
-        if x > xLengthMax then
-            xLengthMax = x
-        end
-        layerXLengths[layerId] = x
-    end
-
-    -- Center
-    for layerId=1,entries.count do
-        local layer = entries[layerId]
-        local xDelta = (xLengthMax - layerXLengths[layerId]) / 2
-        for rank=1,layer.count do
-            self.entryPositions[layer[rank]]:translateX(xDelta)
         end
     end
 end
@@ -283,7 +233,7 @@ function LayerCoordinateGenerator.run(layout, params)
     }
 
     createEntryCoordinateRecords(self)
-    computeX(self)
+    LayerXPass.run(self)
     initChannelRouters(self)
     computeY(self)
     generateTreeLinks(self)
