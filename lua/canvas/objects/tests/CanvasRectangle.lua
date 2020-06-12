@@ -39,6 +39,12 @@ describe("CanvasRectangle", function()
         object = nil
     end)
 
+    it("setmetatable", function()
+        local dummyRectangle = {}
+        CanvasRectangle.setmetatable(dummyRectangle)
+        assert.is_not_nil(dummyRectangle.isCollidingWithAabb)
+    end)
+
     it(":close()", function()
         local id = object.id
         object:close()
