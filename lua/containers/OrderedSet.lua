@@ -76,8 +76,8 @@ local Impl = ErrorOnInvalidRead.new{
             -- * self: OrderedSet object.
             -- * value: The new value to add.
             --
-            pushBack = function(self, value)
-                self:insertAfter(self, self.backward[OrderedSet.End], newValue)
+            pushBack = function(self, newValue)
+                self:insertAfter(self.backward[OrderedSet.End], newValue)
             end,
 
             -- Inserts a new value at the beginning of the set.
