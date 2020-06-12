@@ -39,6 +39,12 @@ describe("CanvasLine", function()
         object = nil
     end)
 
+    it("setmetatable()", function()
+        local dummyCanvasLine = {}
+        CanvasLine.setmetatable(dummyCanvasLine)
+        assert.is_not_nil(dummyCanvasLine.isCollidingWithAabb)
+    end)
+
     it(":close()", function()
         local id = object.id
         object:close()
