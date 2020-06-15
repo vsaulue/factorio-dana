@@ -64,9 +64,7 @@ local Player = ErrorOnInvalidRead.new{
         object.app = GraphApp.new{
             appResources = object.appResources,
             graph = graph,
-            rawPlayer = object.rawPlayer,
             sourceVertices = sourceVertices,
-            surface = object.graphSurface,
         }
         object.app:hide()
         --
