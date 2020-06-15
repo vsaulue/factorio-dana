@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractApp = require("lua/apps/AbstractApp")
+local AppResources = require("lua/apps/AppResources")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GraphApp = require("lua/apps/graph/GraphApp")
 local GuiElement = require("lua/gui/GuiElement")
@@ -28,6 +29,7 @@ local Metatable
 --
 -- Fields:
 -- * app: Current application.
+-- * appResources: AppResources object used by all the applications of this player.
 -- * force: Force this player belongs to.
 -- * rawPlayer: Associated LuaPlayer instance.
 -- * graphSurface: LuaSurface used to display graphs to this player.
@@ -52,6 +54,11 @@ local Player = ErrorOnInvalidRead.new{
         object.playerGui = PlayerGui.new{
             player = object,
         }
+        object.appResources = AppResources.new{
+            rawPlayer = object.rawPlayer,
+            surface = object.graphSurface,
+            force = object.force,
+        }
         -- default app for now
         local graph,sourceVertices = GraphApp.makeDefaultGraphAndSource(object.force)
         object.app = GraphApp.new{
@@ -72,6 +79,7 @@ local Player = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
+        AppResources.setmetatable(object.appResources)
         PlayerGui.setmetatable(object.playerGui)
         AbstractApp.Factory:restoreMetatable(object.app)
     end,
