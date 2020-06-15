@@ -62,6 +62,7 @@ local Player = ErrorOnInvalidRead.new{
         -- default app for now
         local graph,sourceVertices = GraphApp.makeDefaultGraphAndSource(object.force)
         object.app = GraphApp.new{
+            appResources = object.appResources,
             graph = graph,
             rawPlayer = object.rawPlayer,
             sourceVertices = sourceVertices,
