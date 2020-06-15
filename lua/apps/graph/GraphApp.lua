@@ -37,10 +37,9 @@ local Metatable
 -- * canvas: Canvas object on which the graph is drawn.
 -- * graph: Displayed DirectedHypergraph.
 -- * guiSelection: SelectionWindow object, displaying the result of selections on the graph surface.
--- * rawPlayer: LuaPlayer object.
 -- * renderer: SimpleRenderer object displaying the graph.
 -- * sourceVertices: Set of source vertex indices used to compute the layout.
--- * surface: LuaSurface where the graph is drawn.
+-- + inherited from AbstractApp.
 --
 local GraphApp = ErrorOnInvalidRead.new{
     -- Creates a new GraphApp object.
@@ -52,18 +51,19 @@ local GraphApp = ErrorOnInvalidRead.new{
     --
     new = function(object)
         local graph = cLogger:assertField(object, "graph")
-        local rawPlayer = cLogger:assertField(object, "rawPlayer")
         local sourceVertices = cLogger:assertField(object, "sourceVertices")
-        local surface = cLogger:assertField(object, "surface")
         object.appName = AppName
 
+        AbstractApp.new(object, Metatable)
+
+        local rawPlayer = object.appResources.rawPlayer
         local layout = LayerLayout.new{
             graph = graph,
             sourceVertices = sourceVertices,
         }
         local canvas = Canvas.new{
             players = {rawPlayer},
-            surface = surface,
+            surface = object.appResources.surface,
         }
         object.canvas = canvas
         object.renderer = SimpleRenderer.new{
@@ -74,7 +74,7 @@ local GraphApp = ErrorOnInvalidRead.new{
             rawPlayer = rawPlayer,
         }
 
-        return AbstractApp.new(object, Metatable)
+        return object
     end,
 
     -- Creates a default graph & source set from a PrototypeDatabase.
