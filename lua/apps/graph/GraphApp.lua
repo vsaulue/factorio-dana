@@ -133,31 +133,18 @@ AppName = "graph"
 
 -- Metatable of the GraphApp class.
 Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Hides all GUI elements of this application.
-        --
-        -- Args:
-        -- * self: GraphApp object.
-        --
+    __index = {
+        -- Overrides AbstractApp:hide().
         hide = function(self)
             self.guiSelection.frame.visible = false
         end,
 
-        -- Shows all GUI elements of this application.
-        --
-        -- Args:
-        -- * self: GraphApp object.
-        --
+        -- Overrides AbstractApp:show().
         show = function(self)
             self.guiSelection.frame.visible = true
         end,
 
-        -- Function to call when a selection-tool is used by the player owning this app.
-        --
-        -- Args:
-        -- * self: GraphApp object.
-        -- * event: Factorio event associated to the selection (from on_player_selected_area).
-        --
+        -- Overrides AbstractApp:onSelectedArea().
         onSelectedArea = function(self, event)
             if event.item == "dana-select" then
                 local left_top = event.area.left_top
@@ -175,6 +162,7 @@ Metatable = {
         end,
     },
 }
+setmetatable(Metatable.__index, AbstractApp.Metatable.__index)
 
 -- Turns an entry from a PrototypeDatabase into a DirectedHypergraph edge.
 --

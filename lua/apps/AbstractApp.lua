@@ -20,6 +20,8 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "AbstractApp"}
 
+local Metatable
+
 -- Class representing an application.
 --
 -- RO Fields:
@@ -33,6 +35,33 @@ local AbstractApp = ErrorOnInvalidRead.new{
         end,
     },
 
+    -- Metatable of the AbstractApp class.
+    Metatable = {
+        __index = ErrorOnInvalidRead.new{
+            -- Hides all GUI elements of this application.
+            --
+            -- Args:
+            -- * self: AbstractApp object.
+            --
+            hide = function(self) end,
+
+            -- Function to call when a selection-tool is used by the player owning this app.
+            --
+            -- Args:
+            -- * self: AbstractApp object.
+            -- * event: Factorio event associated to the selection (from on_player_selected_area).
+            --
+            onSelectedArea = function(self, event) end,
+
+            -- Shows all GUI elements of this application.
+            --
+            -- Args:
+            -- * self: AbstractApp object.
+            --
+            show = function(self) end,
+        },
+    },
+
     -- Creates a new AbstractApp object.
     --
     -- Args:
@@ -43,9 +72,11 @@ local AbstractApp = ErrorOnInvalidRead.new{
     --
     new = function(object, metatable)
         cLogger:assertField(object, "appName")
-        setmetatable(object, metatable)
+        setmetatable(object, metatable or Metatable)
         return object
     end,
 }
+
+Metatable = AbstractApp.Metatable
 
 return AbstractApp
