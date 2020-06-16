@@ -86,6 +86,16 @@ local SelectionWindow = ErrorOnInvalidRead.new{
 -- Metatable of the SelectionWindow class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Releases all API resources of this object.
+        --
+        -- Args:
+        -- * self: SelectionWindow object.
+        --
+        close = function(self)
+            GuiElement.destroy(self.frame)
+            self.frame = nil
+        end,
+
         -- Expands the element list of a given category, and collapses the others.
         --
         -- Args:

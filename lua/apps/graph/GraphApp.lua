@@ -134,6 +134,12 @@ AppName = "graph"
 -- Metatable of the GraphApp class.
 Metatable = {
     __index = {
+        -- Overrides AbstractApp:close().
+        close = function(self)
+            self.canvas:close()
+            self.guiSelection:close()
+        end,
+
         -- Overrides AbstractApp:hide().
         hide = function(self)
             self.guiSelection.frame.visible = false

@@ -39,6 +39,13 @@ local AbstractApp = ErrorOnInvalidRead.new{
     -- Metatable of the AbstractApp class.
     Metatable = {
         __index = ErrorOnInvalidRead.new{
+            -- Releases all API resources of this object.
+            --
+            -- Args:
+            -- * self: AbstractApp object.
+            --
+            close = function(self) end,
+
             -- Hides all GUI elements of this application.
             --
             -- Args:
