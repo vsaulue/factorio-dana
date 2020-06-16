@@ -20,6 +20,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local cLogger = ClassLogger.new{className = "GuiElement"}
 
 local GuiElementMap = {}
+local recursiveUnbind
 
 -- Wrapper of the LuaGuiElement class from Factorio.
 --
@@ -45,6 +46,16 @@ local GuiElement = ErrorOnInvalidRead.new{
         local index = rawElement.index
         cLogger:assert(not GuiElementMap[index], "attempt to bind an object twice.")
         GuiElementMap[index] = guiElement
+    end,
+
+    -- Destroy a LuaGuiElement, and unbinds all GuiElement objects associated to it or its children.
+    --
+    -- Args:
+    -- * rawElement: LuaGuiElement (Factorio object) to destroy.
+    --
+    destroy = function(rawElement)
+        recursiveUnbind(rawElement)
+        rawElement.destroy()
     end,
 
     -- Function to call in Factorio's on_gui_click event.
@@ -74,5 +85,17 @@ local GuiElement = ErrorOnInvalidRead.new{
         global.guiElementMap = GuiElementMap
     end,
 }
+
+-- Unbinds the GuiElement associated to the argument, or any of its children.
+--
+-- Args:
+-- * rawElement: Parent of the LuaGuiElement hierarchy to unbind.
+--
+recursiveUnbind = function(rawElement)
+    GuiElementMap[rawElement.index] = nil
+    for _,rawChild in ipairs(rawElement.children) do
+        recursiveUnbind(rawChild)
+    end
+end
 
 return GuiElement
