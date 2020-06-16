@@ -56,14 +56,14 @@ local GraphApp = ErrorOnInvalidRead.new{
 
         AbstractApp.new(object, Metatable)
 
-        local rawPlayer = object.appResources.rawPlayer
+        local rawPlayer = object.appController.appResources.rawPlayer
         local layout = LayerLayout.new{
             graph = graph,
             sourceVertices = sourceVertices,
         }
         local canvas = Canvas.new{
             players = {rawPlayer},
-            surface = object.appResources.surface,
+            surface = object.appController.appResources.surface,
         }
         object.canvas = canvas
         object.renderer = SimpleRenderer.new{

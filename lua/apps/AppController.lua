@@ -42,7 +42,7 @@ local AppController = ErrorOnInvalidRead.new{
 
         local graph,sourceVertices = GraphApp.makeDefaultGraphAndSource(appResources.force)
         object.app = GraphApp.new{
-            appResources = appResources,
+            appController = object,
             graph = graph,
             sourceVertices = sourceVertices,
         }

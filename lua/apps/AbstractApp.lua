@@ -26,7 +26,7 @@ local Metatable
 --
 -- RO Fields:
 -- * appName: String indicating the type of application.
--- * appResources: AppResources object this application will use.
+-- * appController: AppController object running this application
 --
 local AbstractApp = ErrorOnInvalidRead.new{
     -- Factory instance able to restore metatables of AbstractApp objects.
@@ -80,7 +80,7 @@ local AbstractApp = ErrorOnInvalidRead.new{
     --
     new = function(object, metatable)
         cLogger:assertField(object, "appName")
-        cLogger:assertField(object, "appResources")
+        cLogger:assertField(object, "appController")
         setmetatable(object, metatable or Metatable)
         return object
     end,
