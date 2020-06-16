@@ -14,7 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractApp = require("lua/apps/AbstractApp")
+local AppController = require("lua/apps/AppController")
 local AppResources = require("lua/apps/AppResources")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GraphApp = require("lua/apps/graph/GraphApp")
@@ -28,8 +28,7 @@ local Metatable
 -- Stored in global: yes
 --
 -- Fields:
--- * app: Current application.
--- * appResources: AppResources object used by all the applications of this player.
+-- * appController: AppController object of this player.
 -- * force: Force this player belongs to.
 -- * rawPlayer: Associated LuaPlayer instance.
 -- * graphSurface: LuaSurface used to display graphs to this player.
@@ -54,20 +53,13 @@ local Player = ErrorOnInvalidRead.new{
         object.playerGui = PlayerGui.new{
             player = object,
         }
-        object.appResources = AppResources.new{
-            rawPlayer = object.rawPlayer,
-            surface = object.graphSurface,
-            force = object.force,
+        object.appController = AppController.new{
+            appResources = AppResources.new{
+                rawPlayer = object.rawPlayer,
+                surface = object.graphSurface,
+                force = object.force,
+            },
         }
-        -- default app for now
-        local graph,sourceVertices = GraphApp.makeDefaultGraphAndSource(object.force)
-        object.app = GraphApp.new{
-            appResources = object.appResources,
-            graph = graph,
-            sourceVertices = sourceVertices,
-        }
-        object.app:hide()
-        --
         return object
     end,
 
@@ -78,9 +70,8 @@ local Player = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
-        AppResources.setmetatable(object.appResources)
         PlayerGui.setmetatable(object.playerGui)
-        AbstractApp.Factory:restoreMetatable(object.app)
+        AppController.setmetatable(object.appController)
     end,
 }
 
@@ -94,7 +85,7 @@ Metatable = {
         -- * event: Factorio event.
         --
         onSelectedArea = function(self, event)
-            self.app:onSelectedArea(event)
+            self.appController.app:onSelectedArea(event)
         end,
 
         -- Shows the current app, and moves the player to the drawing surface.
@@ -114,7 +105,7 @@ Metatable = {
                 self.previousSurface = self.rawPlayer.surface
                 self.rawPlayer.set_controller{type = defines.controllers.god}
                 self.rawPlayer.teleport(targetPosition, self.graphSurface)
-                self.app:show()
+                self.appController.app:show()
             end
         end,
 
@@ -140,7 +131,7 @@ Metatable = {
                     end
                 end
                 self.rawPlayer.set_controller(newController)
-                self.app:hide()
+                self.appController.app:hide()
             end
         end,
 
