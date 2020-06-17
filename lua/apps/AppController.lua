@@ -18,7 +18,7 @@ local AbstractApp = require("lua/apps/AbstractApp")
 local AppResources = require("lua/apps/AppResources")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GraphApp = require("lua/apps/graph/GraphApp")
+local QueryApp = require("lua/apps/query/QueryApp")
 
 local cLogger = ClassLogger.new{className = "AppController"}
 
@@ -42,11 +42,8 @@ local AppController = ErrorOnInvalidRead.new{
         local appResources = cLogger:assertField(object, "appResources")
         setmetatable(object, Metatable)
 
-        local graph,sourceVertices = GraphApp.makeDefaultGraphAndSource(appResources.force)
-        object.app = GraphApp.new{
+        object.app = QueryApp.new{
             appController = object,
-            graph = graph,
-            sourceVertices = sourceVertices,
         }
         object.app:hide()
 
