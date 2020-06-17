@@ -31,6 +31,8 @@ local Metatable
 local AbstractApp = ErrorOnInvalidRead.new{
     -- Factory instance able to restore metatables of AbstractApp objects.
     Factory = AbstractFactory.new{
+        enableMake = true,
+
         getClassNameOfObject = function(object)
             return object.appName
         end,
