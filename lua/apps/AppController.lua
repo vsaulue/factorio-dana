@@ -22,6 +22,8 @@ local GraphApp = require("lua/apps/graph/GraphApp")
 
 local cLogger = ClassLogger.new{className = "AppController"}
 
+local Metatable
+
 -- Class booting & switching applications for a Player.
 --
 -- RO Fields:
@@ -38,7 +40,7 @@ local AppController = ErrorOnInvalidRead.new{
     --
     new = function(object)
         local appResources = cLogger:assertField(object, "appResources")
-        ErrorOnInvalidRead.setmetatable(object)
+        setmetatable(object, Metatable)
 
         local graph,sourceVertices = GraphApp.makeDefaultGraphAndSource(appResources.force)
         object.app = GraphApp.new{
@@ -57,10 +59,28 @@ local AppController = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        ErrorOnInvalidRead.setmetatable(object)
+        setmetatable(object, Metatable)
         AbstractApp.Factory:restoreMetatable(object.app)
         AppResources.setmetatable(object.appResources)
     end,
+}
+
+-- Metatable of the AppController class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Creates a new application, and runs it in place of the current one.
+        --
+        -- Args:
+        -- * self: AppController object.
+        -- * newApp: table used to build the new application.
+        --
+        makeAndSwitchApp = function(self, newApp)
+            self.app:close()
+            newApp.appController = self
+            self.app = AbstractApp.Factory:make(newApp)
+            self.app:show()
+        end,
+    }
 }
 
 return AppController
