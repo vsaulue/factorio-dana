@@ -17,11 +17,18 @@
 local AbstractApp = require("lua/apps/AbstractApp")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local FullGraphButton = require("lua/apps/query/gui/FullGraphButton")
+local Query = require("lua/model/query/Query")
 
 local AppName
 local Metatable
 
 -- Application to build crafting hypergraphs from a Force's database.
+--
+-- Inherits from AbstractApp.
+--
+-- RO Fields:
+-- * fullGraphButton: FullGraphButton object owned by this application.
+-- * query: Query object being built and run.
 --
 local QueryApp = ErrorOnInvalidRead.new{
     -- Creates a new QueryApp object.
@@ -33,11 +40,12 @@ local QueryApp = ErrorOnInvalidRead.new{
     --
     new = function(object)
         object.appName = AppName
+        object.query = Query.new()
 
         AbstractApp.new(object, Metatable)
 
         object.fullGraphButton = FullGraphButton.new{
-            appController = object.appController,
+            app = object,
         }
 
         return object
@@ -51,6 +59,7 @@ local QueryApp = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         setmetatable(object, Metatable)
         FullGraphButton.setmetatable(object.fullGraphButton)
+        Query.setmetatable(object.query)
     end,
 }
 

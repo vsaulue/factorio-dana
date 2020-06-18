@@ -16,7 +16,6 @@
 
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GraphApp = require("lua/apps/graph/GraphApp")
 local GuiElement = require("lua/gui/GuiElement")
 
 local cLogger = ClassLogger.new{className = "queryApp/FullGraphButton"}
@@ -26,7 +25,7 @@ local Metatable
 -- Button to display the full recipe graph.
 --
 -- RO Fields:
--- * appController: AppController of the application owning this object.
+-- * app: QueryApp owning this button.
 --
 local FullGraphButton = ErrorOnInvalidRead.new{
 	-- Creates a new FullGraphButton object.
@@ -37,10 +36,10 @@ local FullGraphButton = ErrorOnInvalidRead.new{
 	-- Returns: The argument turned into a FullGraphButton object.
 	--
 	new = function(object)
-		local controller = cLogger:assertField(object, "appController")
+		local app = cLogger:assertField(object, "app")
 		setmetatable(object, Metatable)
 
-		local rawPlayer = controller.appResources.rawPlayer
+		local rawPlayer = app.appController.appResources.rawPlayer
 		object.rawElement = rawPlayer.gui.center.add{
 			type = "button",
 			caption = "Full graph",
@@ -74,8 +73,10 @@ Metatable = {
 
 		-- Implements GuiElement:onClick().
 		onClick = function(self, event)
-			local graph,sourceVertices = GraphApp.makeDefaultGraphAndSource(self.appController.appResources.force)
-			self.appController:makeAndSwitchApp{
+			local query = self.app.query
+			local force = self.app.appController.appResources.force
+			local graph,sourceVertices = query:execute(force)
+			self.app.appController:makeAndSwitchApp{
 				appName = "graph",
 				graph = graph,
 				sourceVertices = sourceVertices,
