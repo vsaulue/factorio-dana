@@ -19,7 +19,6 @@ local AbstractApp = require("lua/apps/AbstractApp")
 local Canvas = require("lua/canvas/Canvas")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
-local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local SelectionWindow = require("lua/apps/graph/gui/SelectionWindow")
 local LayerLayout = require("lua/layouts/layer/LayerLayout")
@@ -75,42 +74,6 @@ local GraphApp = ErrorOnInvalidRead.new{
         }
 
         return object
-    end,
-
-    -- Creates a default graph & source set from a PrototypeDatabase.
-    --
-    -- The graph will contain all recipes, and the source set will contain all natural resources.
-    --
-    -- Args:
-    -- * force: Force of the player.
-    --
-    -- Returns:
-    -- * A DirectedHypergraph containing all the recipes.
-    -- * A set of vertex indices of the graph, correspongint to all the resources.
-    --
-    makeDefaultGraphAndSource = function(force)
-        local graph = DirectedHypergraph.new()
-
-        for _,forceRecipe in pairs(force.recipes) do
-            graph:addEdge(makeEdge(forceRecipe.recipeTransform))
-        end
-        for _,boiler in pairs(force.prototypes.transforms.boiler) do
-            graph:addEdge(makeEdge(boiler))
-        end
-
-        local sourceVertices = ErrorOnInvalidRead.new()
-        for _,resource in pairs(force.prototypes.transforms.resource) do
-            for product in pairs(resource.products) do
-                sourceVertices[product] = true
-            end
-        end
-        for _,offshorePump in pairs(force.prototypes.transforms.offshorePump) do
-            for product in pairs(offshorePump.products) do
-                sourceVertices[product] = true
-            end
-        end
-
-        return graph,sourceVertices
     end,
 
     -- Restores the metatable of a GraphApp object, and all its owned objects.
@@ -169,21 +132,6 @@ Metatable = {
     },
 }
 setmetatable(Metatable.__index, AbstractApp.Metatable.__index)
-
--- Turns an entry from a PrototypeDatabase into a DirectedHypergraph edge.
---
--- Args:
--- * entry: An entry from PrototypeDatabase (supported types: recipe, boiler)
---
--- Returns: the new edge.
---
-makeEdge = function(entry)
-    return DirectedHypergraphEdge.new{
-        index = entry,
-        inbound = entry.ingredients,
-        outbound = entry.products,
-    }
-end
 
 AbstractApp.Factory:registerClass(AppName, GraphApp)
 return GraphApp
