@@ -37,20 +37,20 @@ local Metatable
 -- * graph: Displayed DirectedHypergraph.
 -- * guiSelection: SelectionWindow object, displaying the result of selections on the graph surface.
 -- * renderer: SimpleRenderer object displaying the graph.
--- * sourceVertices: Set of source vertex indices used to compute the layout.
+-- * vertexDists[vertexIndex] -> int: suggested partial order of vertices.
 -- + inherited from AbstractApp.
 --
 local GraphApp = ErrorOnInvalidRead.new{
     -- Creates a new GraphApp object.
     --
     -- Args:
-    -- * object: Table to turn into a GraphApp object (required fields: graph, rawPlayer, sourceVertices, surface).
+    -- * object: Table to turn into a GraphApp object (required fields: graph, rawPlayer, vertexDists, surface).
     --
     -- Returns: The argument turned into a GraphApp object.
     --
     new = function(object)
         local graph = cLogger:assertField(object, "graph")
-        local sourceVertices = cLogger:assertField(object, "sourceVertices")
+        local vertexDists = cLogger:assertField(object, "vertexDists")
         object.appName = AppName
 
         AbstractApp.new(object, Metatable)
@@ -58,7 +58,7 @@ local GraphApp = ErrorOnInvalidRead.new{
         local rawPlayer = object.appController.appResources.rawPlayer
         local layout = LayerLayout.new{
             graph = graph,
-            sourceVertices = sourceVertices,
+            vertexDists = vertexDists,
         }
         local canvas = Canvas.new{
             players = {rawPlayer},
@@ -86,7 +86,6 @@ local GraphApp = ErrorOnInvalidRead.new{
         DirectedHypergraph.setmetatable(object.graph)
         SelectionWindow.setmetatable(object.guiSelection)
         SimpleRenderer.setmetatable(object.renderer)
-        ErrorOnInvalidRead.setmetatable(object.sourceVertices)
         setmetatable(object, Metatable)
     end,
 }

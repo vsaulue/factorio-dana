@@ -75,11 +75,11 @@ Metatable = {
 		onClick = function(self, event)
 			local query = self.app.query
 			local force = self.app.appController.appResources.force
-			local graph,sourceVertices = query:execute(force)
+			local graph,vertexDists = query:execute(force)
 			self.app.appController:makeAndSwitchApp{
 				appName = "graph",
 				graph = graph,
-				sourceVertices = sourceVertices,
+				vertexDists = vertexDists,
 			}
 		end,
 	}

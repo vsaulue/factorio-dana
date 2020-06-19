@@ -21,7 +21,6 @@ local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperSCC = require("lua/hypergraph/algorithms/HyperSCC")
-local HyperSrcMinDist = require("lua/hypergraph/algorithms/HyperSrcMinDist")
 local LayerCoordinateGenerator = require("lua/layouts/layer/coordinates/LayerCoordinateGenerator")
 local LayersBuilder = require("lua/layouts/layer/LayersBuilder")
 local LayersSorter = require("lua/layouts/layer/sorter/LayersSorter")
@@ -41,7 +40,7 @@ local Metatable
 -- * channelLayers: Array of ChannelLayer objects (1st channel layer is before the 1st entry layer).
 -- * graph: input graph.
 -- * layers: Layers object holding the computed layout.
--- * sourceVertices: subset of vertex indices, to place preferably in 1st layers.
+-- * vertexDists[vertexIndex] -> int: suggested partial order of vertices.
 --
 -- Methods: See Metatable.__index.
 --
@@ -49,13 +48,13 @@ local LayerLayout = ErrorOnInvalidRead.new{
     -- Creates a new layer layout.
     --
     -- Args:
-    -- * object: Table to turn into a LayerLayout object (mandatory fields: 'graph' & 'sourceVertices')
+    -- * object: Table to turn into a LayerLayout object (mandatory fields: 'graph' & 'vertexDists')
     --
     -- Returns: The argument turned into a LayerLayout object.
     --
     new = function(object)
         local graph = cLogger:assertField(object, "graph")
-        local sourceVertices = cLogger:assertField(object, "sourceVertices")
+        local vertexDists = cLogger:assertField(object, "vertexDists")
 
         local channelIndexFactory = ChannelIndexFactory.new()
         local layersBuilder = LayersBuilder.new{
@@ -63,7 +62,7 @@ local LayerLayout = ErrorOnInvalidRead.new{
         }
 
         -- 1) Assign vertices, edges to layers & add dummy vertices.
-        assignVerticesToLayers(layersBuilder, graph, sourceVertices)
+        assignVerticesToLayers(layersBuilder, graph, vertexDists)
         assignEdgesToLayers(layersBuilder, graph)
 
         -- 2) Order vertices within their layers (crossing minimization).
@@ -122,22 +121,23 @@ end
 -- Args:
 -- * layersBuilder: LayersBuilder object to fill.
 -- * graph: DirectedHypergraph to draw.
--- * sourceVertices: set of vertices to place preferably in the first layers.
+-- * vertexDists[vertexIndex] -> int: suggested partial order of vertices.
 --
-assignVerticesToLayers = function(layersBuilder, graph, sourceVertices)
+assignVerticesToLayers = function(layersBuilder, graph, vertexDists)
     -- 1) First layer assignment using distance from source vertices.
-    local minDist = HyperSrcMinDist.run(graph, sourceVertices)
-
-    -- 2) Refine layering using topological order of SCCs.
     local depGraph = DirectedHypergraph.new()
     for _,edge in pairs(graph.edges) do
-        local edgeDist = minDist.edgeDist[edge.index] or math.huge
         local newEdge = DirectedHypergraphEdge.new{
             index = edge.index,
             inbound = edge.inbound,
         }
+        local edgeDist = 0
+        for vertexIndex in pairs(edge.inbound) do
+            local vertexDist = vertexDists[vertexIndex] or math.huge
+            edgeDist = math.max(edgeDist, vertexDist)
+        end
         for vertexIndex in pairs(edge.outbound) do
-            local vertexDist = minDist.vertexDist[vertexIndex] or math.huge
+            local vertexDist = vertexDists[vertexIndex] or math.huge
             if vertexDist >= edgeDist then
                 newEdge.outbound[vertexIndex] = true
             end
@@ -145,6 +145,7 @@ assignVerticesToLayers = function(layersBuilder, graph, sourceVertices)
         depGraph:addEdge(newEdge)
     end
 
+    -- 2) Refine with SCCs.
     local sccs = HyperSCC.run(depGraph)
     local sccGraph = sccs:makeComponentsDAH()
     local sccToLayer = {}

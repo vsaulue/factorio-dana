@@ -64,7 +64,7 @@ Metatable = {
         --
         -- Returns:
         -- * A DirectedHypergraph object holding the selected transforms & intermediates.
-        -- * A Set of vertex indices from the graph, containing "source" intermediates. Those intermediates are the
+        -- * A map[vertexIndex] -> int. This is a suggested partial order of vertices. Those intermediates are the
         --   closest to the raw resources gathered, and can be used by the layout to display transform cycles in a
         --   way that'll (hopefully) make sense to the viewer.
         --
@@ -75,15 +75,7 @@ Metatable = {
             -- TODO: add filter step here to generate a subgraph.
             local resultGraph = fullGraph
 
-            -- NOTE: temporary step (layout should be able to work with dists).
-            local sourceVertices = ErrorOnInvalidRead.new()
-            for vertexIndex,dist in pairs(vertexDists) do
-                if dist == 0 then
-                    sourceVertices[vertexIndex] = true
-                end
-            end
-
-            return resultGraph,sourceVertices
+            return resultGraph,vertexDists
         end,
     },
 }
