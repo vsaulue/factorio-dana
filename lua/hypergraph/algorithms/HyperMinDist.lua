@@ -90,7 +90,7 @@ run = function(graph, vertexSet, parser)
 
     -- Intermediates
     local edgeQueue = Queue.new()
-    local edgeTags = {}
+    local edgeUnknowns = {}
 
     -- Init
     for index in pairs(vertexSet) do
@@ -103,9 +103,7 @@ run = function(graph, vertexSet, parser)
                 unknowns = unknowns + 1
             end
         end
-        edgeTags[edge.index] = {
-            unknowns = unknowns,
-        }
+        edgeUnknowns[edge.index] = unknowns
         if unknowns == 0 then
             edgeQueue:enqueue(edge)
             edgeDist[edge.index] = 0
@@ -122,8 +120,8 @@ run = function(graph, vertexSet, parser)
                 local vertex = graph.vertices[vertexIndex]
                 for _,nextEdge in pairs(vertex[destField]) do
                     local nextIndex = nextEdge.index
-                    edgeTags[nextIndex].unknowns = edgeTags[nextIndex].unknowns - 1
-                    if edgeTags[nextIndex].unknowns == 0 then
+                    edgeUnknowns[nextIndex] = edgeUnknowns[nextIndex] - 1
+                    if edgeUnknowns[nextIndex] == 0 then
                         edgeDist[nextIndex] = dist
                         edgeQueue:enqueue(nextEdge)
                     end
