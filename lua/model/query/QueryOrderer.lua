@@ -76,7 +76,7 @@ Metatable = {
                 end
             end
 
-            return HyperSrcMinDist.run(graph, sourceSet).vertexDist
+            return HyperSrcMinDist.run(graph, sourceSet)
         end,
     },
 }

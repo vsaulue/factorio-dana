@@ -37,7 +37,7 @@ describe("HyperSrcMinDist", function()
 
         local result = HyperSrcMinDist.run(graph, {a = true, c = true})
 
-        assertMapsAreEquals(result.vertexDist, {
+        assertMapsAreEquals(result, {
             a = 0,
             c = 0,
             d = 1,
@@ -47,15 +47,6 @@ describe("HyperSrcMinDist", function()
             f2 = 2,
             f3 = 3,
             f4 = 4,
-        })
-        assertMapsAreEquals(result.edgeDist, {
-            ["-> z"] = 0,
-            ["a -> d"] = 0,
-            ["c -> f1"] = 0,
-            ["d -> ef1"] = 1,
-            ["f1 -> f2"] = 1,
-            ["f2 -> f3"] = 2,
-            ["f3 -> f4"] = 3,
         })
     end)
 end)
