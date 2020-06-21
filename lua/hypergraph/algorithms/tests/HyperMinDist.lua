@@ -16,12 +16,12 @@
 
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
-local HyperSrcMinDist = require("lua/hypergraph/algorithms/HyperSrcMinDist")
+local HyperMinDist = require("lua/hypergraph/algorithms/HyperMinDist")
 
 local assertMapsAreEquals
 local setSampleGraph
 
-describe("HyperSrcMinDist", function()
+describe("HyperMinDist", function()
     local graph
 
     before_each(function()
@@ -35,7 +35,7 @@ describe("HyperSrcMinDist", function()
     it(".fromSource()", function()
         setSampleGraph(graph)
 
-        local result = HyperSrcMinDist.fromSource(graph, {a = true, c = true})
+        local result = HyperMinDist.fromSource(graph, {a = true, c = true})
 
         assertMapsAreEquals(result, {
             a = 0,

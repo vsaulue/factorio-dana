@@ -35,7 +35,7 @@ local run
 -- an edge `e` can be crossed to reach a vertex in `e.outbound` only if ALL vertices from
 -- `e.inbound` have already been reached.
 --
-local HyperSourceShortestDistance = ErrorOnInvalidRead.new{
+local HyperMinDist = ErrorOnInvalidRead.new{
     -- Computes the distances from a set of source vertices.
     --
     -- This function does forward parsing: edges are crossed from inbound to outbound vertices.
@@ -135,4 +135,4 @@ run = function(graph, vertexSet, parser)
     return vertexDist
 end
 
-return HyperSourceShortestDistance
+return HyperMinDist

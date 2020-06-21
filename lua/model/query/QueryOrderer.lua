@@ -15,7 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local HyperSrcMinDist = require("lua/hypergraph/algorithms/HyperSrcMinDist")
+local HyperMinDist = require("lua/hypergraph/algorithms/HyperMinDist")
 
 local Metatable
 
@@ -76,7 +76,7 @@ Metatable = {
                 end
             end
 
-            return HyperSrcMinDist.fromSource(graph, sourceSet)
+            return HyperMinDist.fromSource(graph, sourceSet)
         end,
     },
 }
