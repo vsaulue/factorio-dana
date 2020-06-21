@@ -17,6 +17,9 @@
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Queue = require("lua/containers/Queue")
 
+local Parsers
+local run
+
 -- DirectedHypergraph algorithm: computes the minimal distance of all vertices from a given subset.
 --
 -- Given:
@@ -33,7 +36,10 @@ local Queue = require("lua/containers/Queue")
 -- `e.inbound` have already been reached.
 --
 local HyperSourceShortestDistance = ErrorOnInvalidRead.new{
-    -- Runs the algorithm on the given inputs.
+    -- Computes the distances from a set of source vertices.
+    --
+    -- This function does forward parsing: edges are crossed from inbound to outbound vertices.
+    -- It computes the vertices that can be reached from the input set.
     --
     -- Args:
     -- * graph: DirectedHypergraph object on which the algorithm is run.
@@ -41,56 +47,92 @@ local HyperSourceShortestDistance = ErrorOnInvalidRead.new{
     --
     -- Returns: A map[vertexIndex] -> distance. Unreachable vertices are not set.
     --
-    run = function(graph,sourceSet)
-        local vertexDist = {}
-        local edgeDist = {}
+    fromSource = function(graph,sourceSet)
+        return run(graph, sourceSet, Parsers.fromSource)
+    end,
+}
 
-        -- Intermediates
-        local edgeQueue = Queue.new()
-        local edgeTags = {}
+-- Instances of parsers used to go through the graph.
+--
+-- Fields:
+-- * srcField: source field name in DirectedHypergraph Edge & Vertex.
+-- * destField: destination field name in DirectedHypergraph Edge & Vertex.
+--
+Parsers = ErrorOnInvalidRead.new{
+    -- Parser for forward traversal.
+    fromSource = ErrorOnInvalidRead.new{
+        srcField = "inbound",
+        destField = "outbound",
+    },
 
-        -- Init
-        for index in pairs(sourceSet) do
-            vertexDist[index] = 0
-        end
-        for _,edge in pairs(graph.edges) do
-            local unknowns = 0
-            for vertexIndex in pairs(edge.inbound) do
-                if not vertexDist[vertexIndex] then
-                    unknowns = unknowns + 1
-                end
+    -- Parser for backward traversal.
+    toDest = ErrorOnInvalidRead.new{
+        srcField = "outbound",
+        destField = "inbound",
+    },
+}
+
+-- Computes the distances from a set of source vertices.
+--
+-- Args:
+-- * graph: DirectedHypergraph object on which the algorithm is run.
+-- * sourceSet: subset of vertex indices from graph, from which distances will be computed.
+-- * parser: Parser object used to go through the graph.
+--
+-- Returns: A map[vertexIndex] -> distance. Unreachable vertices are not set.
+--
+run = function(graph, vertexSet, parser)
+    local srcField = parser.srcField
+    local destField = parser.destField
+
+    local vertexDist = {}
+    local edgeDist = {}
+
+    -- Intermediates
+    local edgeQueue = Queue.new()
+    local edgeTags = {}
+
+    -- Init
+    for index in pairs(vertexSet) do
+        vertexDist[index] = 0
+    end
+    for _,edge in pairs(graph.edges) do
+        local unknowns = 0
+        for vertexIndex in pairs(edge[srcField]) do
+            if not vertexDist[vertexIndex] then
+                unknowns = unknowns + 1
             end
-            edgeTags[edge.index] = {
-                unknowns = unknowns,
-            }
-            if unknowns == 0 then
-                edgeQueue:enqueue(edge)
-                edgeDist[edge.index] = 0
-            end
         end
+        edgeTags[edge.index] = {
+            unknowns = unknowns,
+        }
+        if unknowns == 0 then
+            edgeQueue:enqueue(edge)
+            edgeDist[edge.index] = 0
+        end
+    end
 
-        -- Main loop
-        while edgeQueue.count > 0 do
-            local edge = edgeQueue:dequeue()
-            local dist = 1 + edgeDist[edge.index]
-            for vertexIndex in pairs(edge.outbound) do
-                if not vertexDist[vertexIndex] then
-                    vertexDist[vertexIndex] = dist
-                    local vertex = graph.vertices[vertexIndex]
-                    for _,nextEdge in pairs(vertex.outbound) do
-                        local nextIndex = nextEdge.index
-                        edgeTags[nextIndex].unknowns = edgeTags[nextIndex].unknowns - 1
-                        if edgeTags[nextIndex].unknowns == 0 then
-                            edgeDist[nextIndex] = dist
-                            edgeQueue:enqueue(nextEdge)
-                        end
+    -- Main loop
+    while edgeQueue.count > 0 do
+        local edge = edgeQueue:dequeue()
+        local dist = 1 + edgeDist[edge.index]
+        for vertexIndex in pairs(edge[destField]) do
+            if not vertexDist[vertexIndex] then
+                vertexDist[vertexIndex] = dist
+                local vertex = graph.vertices[vertexIndex]
+                for _,nextEdge in pairs(vertex[destField]) do
+                    local nextIndex = nextEdge.index
+                    edgeTags[nextIndex].unknowns = edgeTags[nextIndex].unknowns - 1
+                    if edgeTags[nextIndex].unknowns == 0 then
+                        edgeDist[nextIndex] = dist
+                        edgeQueue:enqueue(nextEdge)
                     end
                 end
             end
         end
+    end
 
-        return vertexDist
-    end,
-}
+    return vertexDist
+end
 
 return HyperSourceShortestDistance

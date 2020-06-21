@@ -32,10 +32,10 @@ describe("HyperSrcMinDist", function()
         graph = nil
     end)
 
-    it(".run()", function()
+    it(".fromSource()", function()
         setSampleGraph(graph)
 
-        local result = HyperSrcMinDist.run(graph, {a = true, c = true})
+        local result = HyperSrcMinDist.fromSource(graph, {a = true, c = true})
 
         assertMapsAreEquals(result, {
             a = 0,
