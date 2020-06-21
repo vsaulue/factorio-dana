@@ -76,7 +76,7 @@ Metatable = {
                 end
             end
 
-            return HyperMinDist.fromSource(graph, sourceSet)
+            return HyperMinDist.fromSource(graph, sourceSet, false)
         end,
     },
 }

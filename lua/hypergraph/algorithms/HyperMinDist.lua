@@ -44,11 +44,13 @@ local HyperMinDist = ErrorOnInvalidRead.new{
     -- Args:
     -- * graph: DirectedHypergraph object on which the algorithm is run.
     -- * sourceSet: subset of vertex indices from graph, from which distances will be computed.
+    -- * crossOnFirstInput: True to cross an edge when the 1st inbound vertex is reached.
+    --                      False to cross only when all inbound vertices are reached.
     --
     -- Returns: A map[vertexIndex] -> distance. Unreachable vertices are not set.
     --
-    fromSource = function(graph,sourceSet)
-        return run(graph, sourceSet, Parsers.fromSource)
+    fromSource = function(graph, sourceSet, crossOnFirstInput)
+        return run(graph, sourceSet, Parsers.fromSource, crossOnFirstInput)
     end,
 }
 
@@ -76,12 +78,14 @@ Parsers = ErrorOnInvalidRead.new{
 --
 -- Args:
 -- * graph: DirectedHypergraph object on which the algorithm is run.
--- * sourceSet: subset of vertex indices from graph, from which distances will be computed.
+-- * vertexSet: subset of vertex indices from graph, from which distances will be computed.
 -- * parser: Parser object used to go through the graph.
+-- * crossOnFirstInput: True to cross an edge when the 1st inbound vertex is reached.
+--                      False to cross only when all inbound vertices are reached.
 --
 -- Returns: A map[vertexIndex] -> distance. Unreachable vertices are not set.
 --
-run = function(graph, vertexSet, parser)
+run = function(graph, vertexSet, parser, crossOnFirstInput)
     local srcField = parser.srcField
     local destField = parser.destField
 
@@ -98,16 +102,21 @@ run = function(graph, vertexSet, parser)
     end
     for _,edge in pairs(graph.edges) do
         local unknowns = 0
+        local reached = false
         for vertexIndex in pairs(edge[srcField]) do
-            if not vertexDist[vertexIndex] then
+            if vertexDist[vertexIndex] then
+                reached = true
+            else
                 unknowns = unknowns + 1
             end
         end
-        edgeUnknowns[edge.index] = unknowns
-        if unknowns == 0 then
+        if unknowns == 0 or (crossOnFirstInput and reached) then
             edgeQueue:enqueue(edge)
             edgeDist[edge.index] = 0
+        elseif crossOnFirstInput then
+            unknowns = 1
         end
+        edgeUnknowns[edge.index] = unknowns
     end
 
     -- Main loop

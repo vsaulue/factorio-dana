@@ -32,10 +32,10 @@ describe("HyperMinDist", function()
         graph = nil
     end)
 
-    it(".fromSource()", function()
+    it(".fromSource(*,*,false)", function()
         setSampleGraph(graph)
 
-        local result = HyperMinDist.fromSource(graph, {a = true, c = true})
+        local result = HyperMinDist.fromSource(graph, {a = true, c = true}, false)
 
         assertMapsAreEquals(result, {
             a = 0,
@@ -47,6 +47,22 @@ describe("HyperMinDist", function()
             f2 = 2,
             f3 = 3,
             f4 = 4,
+        })
+    end)
+
+    it(".fromSource(*,*,true)", function()
+        setSampleGraph(graph)
+
+        local result = HyperMinDist.fromSource(graph, {b = true}, true)
+
+        assertMapsAreEquals(result, {
+            b = 0,
+            z = 1,
+            c = 1,
+            f1 = 2,
+            f2 = 3,
+            f3 = 4,
+            f4 = 5,
         })
     end)
 end)
