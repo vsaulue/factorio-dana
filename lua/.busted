@@ -22,7 +22,8 @@ return {
             "canvas/objects/tests",
             "containers/tests",
             "graph/tests",
-            "graph/algorithms/tests"
+            "graph/algorithms/tests",
+            "hypergraph/algorithms/tests",
         },
     },
 }
