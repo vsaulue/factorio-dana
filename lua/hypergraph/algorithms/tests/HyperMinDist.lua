@@ -32,58 +32,56 @@ describe("HyperMinDist", function()
         graph = nil
     end)
 
-    it(".fromSource(*,*,false)", function()
-        setSampleGraph(graph)
+    describe(".fromSource", function()
+        it("(*,*,false)", function()
+            setSampleGraph(graph)
+            local result = HyperMinDist.fromSource(graph, {a = true, c = true}, false)
 
-        local result = HyperMinDist.fromSource(graph, {a = true, c = true}, false)
+            assertMapsAreEquals(result, {
+                a = 0,
+                c = 0,
+                d = 1,
+                z = 1,
+                f1 = 1,
+                e = 2,
+                f2 = 2,
+                f3 = 3,
+                f4 = 4,
+            })
+        end)
 
-        assertMapsAreEquals(result, {
-            a = 0,
-            c = 0,
-            d = 1,
-            z = 1,
-            f1 = 1,
-            e = 2,
-            f2 = 2,
-            f3 = 3,
-            f4 = 4,
-        })
-    end)
+        it("(*,*,false,2)", function()
+            setSampleGraph(graph)
+            local result = HyperMinDist.fromSource(graph, {a = true, e = true}, false, 2)
 
-    it(".fromSource(*,*,false,2)", function()
-        setSampleGraph(graph)
+            assertMapsAreEquals(result, {
+                a = 0,
+                e = 0,
+                d = 1,
+                z = 1,
+                f1 = 2,
+            })
+        end)
 
-        local result = HyperMinDist.fromSource(graph, {a = true, e = true}, false, 2)
+        it("(*,*,true)", function()
+            setSampleGraph(graph)
+            local result = HyperMinDist.fromSource(graph, {b = true}, true)
 
-        assertMapsAreEquals(result, {
-            a = 0,
-            e = 0,
-            d = 1,
-            z = 1,
-            f1 = 2,
-        })
-    end)
-
-    it(".fromSource(*,*,true)", function()
-        setSampleGraph(graph)
-
-        local result = HyperMinDist.fromSource(graph, {b = true}, true)
-
-        assertMapsAreEquals(result, {
-            b = 0,
-            z = 1,
-            c = 1,
-            f1 = 2,
-            f2 = 3,
-            f3 = 4,
-            f4 = 5,
-        })
+            assertMapsAreEquals(result, {
+                b = 0,
+                z = 1,
+                c = 1,
+                f1 = 2,
+                f2 = 3,
+                f3 = 4,
+                f4 = 5,
+            })
+        end)
     end)
 
     describe(".toDest", function()
         it("(*,*,false)", function()
             setSampleGraph(graph)
-
             local result = HyperMinDist.toDest(graph, {f3 = true, z = true}, false)
 
             assertMapsAreEquals(result, {
@@ -99,7 +97,6 @@ describe("HyperMinDist", function()
 
         it("(*,*,true)", function()
             setSampleGraph(graph)
-
             local result = HyperMinDist.toDest(graph, {f2 = true}, true)
 
             assertMapsAreEquals(result, {
