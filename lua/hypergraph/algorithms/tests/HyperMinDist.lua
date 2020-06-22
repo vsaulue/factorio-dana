@@ -50,6 +50,20 @@ describe("HyperMinDist", function()
         })
     end)
 
+    it(".fromSource(*,*,false,2)", function()
+        setSampleGraph(graph)
+
+        local result = HyperMinDist.fromSource(graph, {a = true, e = true}, false, 2)
+
+        assertMapsAreEquals(result, {
+            a = 0,
+            e = 0,
+            d = 1,
+            z = 1,
+            f1 = 2,
+        })
+    end)
+
     it(".fromSource(*,*,true)", function()
         setSampleGraph(graph)
 
@@ -95,6 +109,18 @@ describe("HyperMinDist", function()
                 d = 2,
                 a = 3,
                 b = 3,
+            })
+        end)
+
+        it("(*,*,true,2)", function()
+            setSampleGraph(graph)
+            local result = HyperMinDist.toDest(graph, {f2 = true}, true, 2)
+
+            assertMapsAreEquals(result, {
+                f2 = 0,
+                f1 = 1,
+                c = 2,
+                d = 2,
             })
         end)
     end)

@@ -14,8 +14,8 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local Array = require("lua/containers/Array")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local Queue = require("lua/containers/Queue")
 
 local Parsers
 local run
@@ -46,11 +46,12 @@ local HyperMinDist = ErrorOnInvalidRead.new{
     -- * sourceSet: subset of vertex indices from graph, from which distances will be computed.
     -- * crossOnFirstInput: True to cross an edge when the 1st inbound vertex is reached.
     --                      False to cross only when all inbound vertices are reached.
+    -- * maxDepth: Maximum depth for the lookup.
     --
     -- Returns: A map[vertexIndex] -> distance. Unreachable vertices are not set.
     --
-    fromSource = function(graph, sourceSet, crossOnFirstInput)
-        return run(graph, sourceSet, Parsers.fromSource, crossOnFirstInput)
+    fromSource = function(graph, sourceSet, crossOnFirstInput, maxDepth)
+        return run(graph, sourceSet, Parsers.fromSource, crossOnFirstInput, maxDepth)
     end,
 
     -- Computes the distances from a set of source vertices.
@@ -63,11 +64,12 @@ local HyperMinDist = ErrorOnInvalidRead.new{
     -- * destSet: subset of vertex indices from graph, from which distances will be computed.
     -- * crossOnFirstInput: True to cross an edge when the 1st inbound vertex is reached.
     --                      False to cross only when all inbound vertices are reached.
+    -- * maxDepth: Maximum depth for the lookup.
     --
     -- Returns: A map[vertexIndex] -> distance. Unreachable vertices are not set.
     --
-    toDest = function(graph, destSet, crossOnFirstInput)
-        return run(graph, destSet, Parsers.toDest, crossOnFirstInput)
+    toDest = function(graph, destSet, crossOnFirstInput, maxDepth)
+        return run(graph, destSet, Parsers.toDest, crossOnFirstInput, maxDepth)
     end,
 }
 
@@ -99,19 +101,19 @@ Parsers = ErrorOnInvalidRead.new{
 -- * parser: Parser object used to go through the graph.
 -- * crossOnFirstInput: True to cross an edge when the 1st inbound vertex is reached.
 --                      False to cross only when all inbound vertices are reached.
+-- * maxDepth: Maximum depth for the lookup.
 --
 -- Returns: A map[vertexIndex] -> distance. Unreachable vertices are not set.
 --
-run = function(graph, vertexSet, parser, crossOnFirstInput)
+run = function(graph, vertexSet, parser, crossOnFirstInput, maxDepth)
+    maxDepth = maxDepth or math.huge
     local srcField = parser.srcField
     local destField = parser.destField
 
     local vertexDist = {}
-    local edgeDist = {}
-
-    -- Intermediates
-    local edgeQueue = Queue.new()
     local edgeUnknowns = {}
+    local currentEdges = Array.new()
+    local nextEdges = Array.new()
 
     -- Init
     for index in pairs(vertexSet) do
@@ -128,8 +130,7 @@ run = function(graph, vertexSet, parser, crossOnFirstInput)
             end
         end
         if unknowns == 0 or (crossOnFirstInput and reached) then
-            edgeQueue:enqueue(edge)
-            edgeDist[edge.index] = 0
+            currentEdges:pushBack(edge)
         elseif crossOnFirstInput then
             unknowns = 1
         end
@@ -137,23 +138,31 @@ run = function(graph, vertexSet, parser, crossOnFirstInput)
     end
 
     -- Main loop
-    while edgeQueue.count > 0 do
-        local edge = edgeQueue:dequeue()
-        local dist = 1 + edgeDist[edge.index]
-        for vertexIndex in pairs(edge[destField]) do
-            if not vertexDist[vertexIndex] then
-                vertexDist[vertexIndex] = dist
-                local vertex = graph.vertices[vertexIndex]
-                for _,nextEdge in pairs(vertex[destField]) do
-                    local nextIndex = nextEdge.index
-                    edgeUnknowns[nextIndex] = edgeUnknowns[nextIndex] - 1
-                    if edgeUnknowns[nextIndex] == 0 then
-                        edgeDist[nextIndex] = dist
-                        edgeQueue:enqueue(nextEdge)
+    local depth = 1
+    while currentEdges.count > 0 and depth <= maxDepth do
+        for i=1,currentEdges.count do
+            local edge = currentEdges[i]
+            for vertexIndex in pairs(edge[destField]) do
+                if not vertexDist[vertexIndex] then
+                    vertexDist[vertexIndex] = depth
+                    local vertex = graph.vertices[vertexIndex]
+                    for _,nextEdge in pairs(vertex[destField]) do
+                        local nextIndex = nextEdge.index
+                        edgeUnknowns[nextIndex] = edgeUnknowns[nextIndex] - 1
+                        if edgeUnknowns[nextIndex] == 0 then
+                            nextEdges:pushBack(nextEdge)
+                        end
                     end
                 end
             end
         end
+
+        local tmp = nextEdges
+        nextEdges = currentEdges
+        currentEdges = tmp
+
+        nextEdges.count = 0
+        depth = depth + 1
     end
 
     return vertexDist
