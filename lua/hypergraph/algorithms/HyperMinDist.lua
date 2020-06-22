@@ -52,6 +52,23 @@ local HyperMinDist = ErrorOnInvalidRead.new{
     fromSource = function(graph, sourceSet, crossOnFirstInput)
         return run(graph, sourceSet, Parsers.fromSource, crossOnFirstInput)
     end,
+
+    -- Computes the distances from a set of source vertices.
+    --
+    -- This function does backward parsing: edges are crossed from outbound to inbound vertices.
+    -- It computes the vertices that can reach the input set.
+    --
+    -- Args:
+    -- * graph: DirectedHypergraph object on which the algorithm is run.
+    -- * destSet: subset of vertex indices from graph, from which distances will be computed.
+    -- * crossOnFirstInput: True to cross an edge when the 1st inbound vertex is reached.
+    --                      False to cross only when all inbound vertices are reached.
+    --
+    -- Returns: A map[vertexIndex] -> distance. Unreachable vertices are not set.
+    --
+    toDest = function(graph, destSet, crossOnFirstInput)
+        return run(graph, destSet, Parsers.toDest, crossOnFirstInput)
+    end,
 }
 
 -- Instances of parsers used to go through the graph.

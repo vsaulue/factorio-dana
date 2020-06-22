@@ -65,6 +65,39 @@ describe("HyperMinDist", function()
             f4 = 5,
         })
     end)
+
+    describe(".toDest", function()
+        it("(*,*,false)", function()
+            setSampleGraph(graph)
+
+            local result = HyperMinDist.toDest(graph, {f3 = true, z = true}, false)
+
+            assertMapsAreEquals(result, {
+                f3 = 0,
+                z = 0,
+                f2 = 1,
+                f1 = 2,
+                c = 3,
+                a = 4,
+                b = 4,
+            })
+        end)
+
+        it("(*,*,true)", function()
+            setSampleGraph(graph)
+
+            local result = HyperMinDist.toDest(graph, {f2 = true}, true)
+
+            assertMapsAreEquals(result, {
+                f2 = 0,
+                f1 = 1,
+                c = 2,
+                d = 2,
+                a = 3,
+                b = 3,
+            })
+        end)
+    end)
 end)
 
 -- Tests the keys & values of a map.
