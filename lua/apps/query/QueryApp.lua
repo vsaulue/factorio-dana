@@ -16,8 +16,8 @@
 
 local AbstractApp = require("lua/apps/AbstractApp")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local FullGraphButton = require("lua/apps/query/gui/FullGraphButton")
 local Query = require("lua/model/query/Query")
+local TemplateSelectWindow = require("lua/apps/query/gui/TemplateSelectWindow")
 
 local AppName
 local Metatable
@@ -27,8 +27,8 @@ local Metatable
 -- Inherits from AbstractApp.
 --
 -- RO Fields:
--- * fullGraphButton: FullGraphButton object owned by this application.
 -- * query: Query object being built and run.
+-- * templateSelectWindow: TemplateSelectWindow object of this application.
 --
 local QueryApp = ErrorOnInvalidRead.new{
     -- Creates a new QueryApp object.
@@ -44,7 +44,7 @@ local QueryApp = ErrorOnInvalidRead.new{
 
         AbstractApp.new(object, Metatable)
 
-        object.fullGraphButton = FullGraphButton.new{
+        object.templateSelectWindow = TemplateSelectWindow.new{
             app = object,
         }
 
@@ -58,7 +58,7 @@ local QueryApp = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
-        FullGraphButton.setmetatable(object.fullGraphButton)
+        TemplateSelectWindow.setmetatable(object.templateSelectWindow)
         Query.setmetatable(object.query)
     end,
 }
@@ -68,17 +68,17 @@ Metatable = {
     __index = {
         -- Implements AbstractApp:close().
         close = function(self)
-            self.fullGraphButton:close()
+            self.templateSelectWindow:close()
         end,
 
         -- Implements AbstractApp:hide().
         hide = function(self)
-            self.fullGraphButton.rawElement.visible = false
+            self.templateSelectWindow.frame.visible = false
         end,
 
         -- Implements AbstractApp:show().
         show = function(self)
-            self.fullGraphButton.rawElement.visible = true
+            self.templateSelectWindow.frame.visible = true
         end,
     },
 }
