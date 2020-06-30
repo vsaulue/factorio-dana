@@ -19,7 +19,10 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "GuiElement"}
 
+local assertClassParametersField
 local GuiElementMap = {}
+local Metatable
+local new
 local recursiveUnbind
 
 -- Wrapper of the LuaGuiElement class from Factorio.
@@ -58,6 +61,44 @@ local GuiElement = ErrorOnInvalidRead.new{
         rawElement.destroy()
     end,
 
+    -- Creates a new class inheriting from GuiElement.
+    --
+    -- Args:
+    -- * classParameters: a table with the following fields:
+    -- **  className: Name of the new class.
+    -- **  mandatoryFields: Lua array of required fields to check in the constructor.
+    -- **  __index: Table to used as the metafield of the same name.
+    --
+    -- Returns: a class table (with new/setmetatable functions).
+    --
+    newSubclass = function(classParameters)
+        local subclassName = assertClassParametersField(classParameters, "className")
+        local mandatoryFields = assertClassParametersField(classParameters, "mandatoryFields")
+        local subclassIndex = assertClassParametersField(classParameters, "__index")
+
+        local subclassMetatable = {
+            __index = subclassIndex,
+        }
+        setmetatable(subclassIndex, { __index = Metatable.__index })
+        local subclassLogger = ClassLogger.new{className = subclassName}
+
+        local result = ErrorOnInvalidRead.new{
+            -- Creates a new instance of the specified subclass.
+            new = function(object)
+                for _,fieldName in ipairs(mandatoryFields) do
+                    subclassLogger:assertField(object, fieldName)
+                end
+                return new(object, subclassMetatable)
+            end,
+
+            -- Restores the metatable of a table of the specified subclass.
+            setmetatable = function(object)
+                setmetatable(object, subclassMetatable)
+            end,
+        }
+        return result
+    end,
+
     -- Function to call in Factorio's on_gui_click event.
     --
     -- Args:
@@ -85,6 +126,55 @@ local GuiElement = ErrorOnInvalidRead.new{
         global.guiElementMap = GuiElementMap
     end,
 }
+
+-- Metatable of the GuiElement class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Callback used when Factorio's on_gui_click is called on the wrapped rawElement.
+        --
+        -- Args:
+        -- * self: GuiElement corresponding to the wrapped LuaGuiElement being clicked.
+        -- * event: Event object sent by Factorio.
+        --
+        onClick = function(self, event) end,
+    },
+}
+
+-- Checks that a field is present in a ClassParameter object.
+--
+-- Args:
+-- * classParameters: ClassParameter object to check.
+-- * fieldName: Field to look for.
+--
+-- Returns: The value of the specified field.
+--
+assertClassParametersField = function(classParameters, fieldName)
+    local result = classParameters[fieldName]
+    if not result then
+        cLogger:error("Missing mandatory class parameter '" .. fieldName .. "'.")
+    end
+    return result
+end
+
+-- Creates a new GuiElement object.
+--
+-- Args:
+-- * object: Table to turn into a GuiElement object.
+-- * metatable: Metatable to use.
+--
+-- Returns: The first argument turned into a GuiElement object.
+--
+new = function(object, metatable)
+    local rawElement = cLogger:assertField(object, "rawElement")
+    setmetatable(object, metatable)
+
+    -- Binding
+    local index = rawElement.index
+    cLogger:assert(not GuiElementMap[index], "attempt to bind an object twice.")
+    GuiElementMap[index] = object
+
+    return object
+end
 
 -- Unbinds the GuiElement associated to the argument, or any of its children.
 --
