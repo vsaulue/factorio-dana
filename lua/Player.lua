@@ -19,9 +19,9 @@ local AppResources = require("lua/apps/AppResources")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GraphApp = require("lua/apps/graph/GraphApp")
 local GuiElement = require("lua/gui/GuiElement")
-local PlayerGui = require("lua/PlayerGui")
 
 local Metatable
+local ToggleOpenButton
 
 -- Class holding data associated to a player in this mod.
 --
@@ -50,7 +50,12 @@ local Player = ErrorOnInvalidRead.new{
         setmetatable(object, Metatable)
         object.opened = false
         object.previousPosition = {0,0}
-        object.playerGui = PlayerGui.new{
+        object.playerGui = ToggleOpenButton.new{
+            rawElement = object.rawPlayer.gui.left.add{
+                type = "button",
+                name = "menuButton",
+                caption = "Dana",
+            },
             player = object,
         }
         object.appController = AppController.new{
@@ -70,7 +75,7 @@ local Player = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
-        PlayerGui.setmetatable(object.playerGui)
+        ToggleOpenButton.setmetatable(object.playerGui)
         AppController.setmetatable(object.appController)
     end,
 }
@@ -146,6 +151,23 @@ Metatable = {
             else
                 self:show()
             end
+        end,
+    },
+}
+
+-- Button callback to show/hide the application of a player.
+--
+-- Inherits from GuiElement.
+--
+-- RO field:
+-- * player: Player object attached to this GUI.
+--
+ToggleOpenButton = GuiElement.newSubclass{
+    className = "Player/ToggleOpenButton",
+    mandatoryFields = {"player"},
+    __index = {
+        onClick = function(self, event)
+            self.player:toggleOpened()
         end,
     },
 }

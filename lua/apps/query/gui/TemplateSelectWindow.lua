@@ -17,10 +17,11 @@
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
-local FullGraphButton = require("lua/apps/query/gui/FullGraphButton")
 
 local cLogger = ClassLogger.new{className = "queryApp/TemplateSelectWindow"}
 
+
+local FullGraphButton
 local Metatable
 
 -- A menu window with a button for each query template.
@@ -79,6 +80,30 @@ Metatable = {
             GuiElement.destroy(self.frame)
         end,
     }
+}
+
+-- Button to display the full recipe graph.
+--
+-- Inherits from GuiElement.
+--
+-- RO Fields:
+-- * app: QueryApp owning this button.
+--
+FullGraphButton = GuiElement.newSubclass{
+    className = "queryApp/FullGraphButton",
+    mandatoryFields = {"app"},
+    __index = {
+        onClick = function(self, event)
+            local query = self.app.query
+            local force = self.app.appController.appResources.force
+            local graph,vertexDists = query:execute(force)
+            self.app.appController:makeAndSwitchApp{
+                appName = "graph",
+                graph = graph,
+                vertexDists = vertexDists,
+            }
+        end,
+    },
 }
 
 return TemplateSelectWindow

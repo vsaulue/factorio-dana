@@ -15,13 +15,14 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local SelectionCategoryLabel = require("lua/apps/graph/gui/SelectionCategoryLabel")
+local GuiElement = require("lua/gui/GuiElement")
 
 local CategoryInfos
 local EdgeTypeIcon
 local LinkArrowColor
 local LinkArrowLabel
 local Metatable
+local SelectionCategoryLabel
 local VertexTypeIcon
 
 -- Class holding the data of a category in a GUI selection window.
@@ -274,6 +275,26 @@ LinkArrowLabel = ErrorOnInvalidRead.new{
         caption = "⟵",
         tooltip = {"dana.apps.graph.selectionWindow.productLink"},
     },
+}
+
+-- Title label of a SelectionCategory.
+--
+-- Inherits from GuiElement.
+--
+-- RO Fields:
+-- * category: SelectionCategory object owning the label
+-- * selectionWindow: selectionWindow object owning the category.
+--
+SelectionCategoryLabel = GuiElement.newSubclass{
+    className = "graphApp/SelectionCategoryLabel",
+    mandatoryFields = {"category", "selectionWindow"},
+    __index = {
+        -- Implements GuiElement.onClick().
+        --
+        onClick = function(self, event)
+            self.selectionWindow:expandCategory(self.category)
+        end,
+    }
 }
 
 -- Map[vertexIndex.type]: LuaGuiElement construction info for a sprite representing the type of a vertex.
