@@ -39,18 +39,6 @@ local recursiveUnbind
 -- * on_click: method to execute when on_gui_click is triggered (can be nil).
 --
 local GuiElement = ErrorOnInvalidRead.new{
-    -- Binds the arguement to an API LuaGuiElement.
-    --
-    -- Args:
-    -- * guiElement: GuiElement to bind (its rawElement field contains the API LuaGuiElement).
-    --
-    bind = function(guiElement)
-        local rawElement = cLogger:assertField(guiElement, "rawElement")
-        local index = rawElement.index
-        cLogger:assert(not GuiElementMap[index], "attempt to bind an object twice.")
-        GuiElementMap[index] = guiElement
-    end,
-
     -- Destroy a LuaGuiElement, and unbinds all GuiElement objects associated to it or its children.
     --
     -- Args:
