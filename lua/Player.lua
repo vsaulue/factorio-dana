@@ -36,6 +36,7 @@ local ToggleOpenButton
 -- * previousControllerType: Controller of the player before opening the GUI.
 -- * previousPosition: Position of the player on the previous surface.
 -- * previousSurface: LuaSurface on which the player was before opening this GUI.
+-- * toggleOpenButton: ToggleOpenButton object owned by this player.
 --
 -- RO properties:
 -- * opened: true if the GUI is opened.
@@ -50,7 +51,7 @@ local Player = ErrorOnInvalidRead.new{
         setmetatable(object, Metatable)
         object.opened = false
         object.previousPosition = {0,0}
-        object.playerGui = ToggleOpenButton.new{
+        object.toggleOpenButton = ToggleOpenButton.new{
             rawElement = object.rawPlayer.gui.left.add{
                 type = "button",
                 name = "menuButton",
@@ -75,7 +76,7 @@ local Player = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
-        ToggleOpenButton.setmetatable(object.playerGui)
+        ToggleOpenButton.setmetatable(object.toggleOpenButton)
         AppController.setmetatable(object.appController)
     end,
 }
