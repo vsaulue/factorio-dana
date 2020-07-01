@@ -49,7 +49,7 @@ describe("MinimumFAS", function()
         it("on a graph with a cycle", function()
             setSampleGraphWithCycles(inputGraph)
             local result = MinimumFAS.run(inputGraph)
-            checkSequence(result, 101) -- Optimal solution must be found for acyclic graphs.
+            checkSequence(result, 101)
         end)
     end)
 
@@ -121,6 +121,6 @@ setSampleGraphWithCycles = function(graph)
     graph:addEdge("id2", "sink", 1)
     graph:addEdge("id3", "sink", 1)
     for i=1,4 do
-        graph:addEdge(makeId(i), makeId(1+(i%4)), 100+i)
+        graph:addEdge(makeId(1+(i%4)), makeId(i), 100+i)
     end
 end
