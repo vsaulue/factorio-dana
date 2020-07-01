@@ -28,8 +28,6 @@ local iteratorNext
 -- * given an index N, get the N-th value of the set.
 -- * given a value, get the index of this value.
 --
--- Currently values can't be of String or Int/Float type.s
---
 -- RO fields:
 -- * count: The number of values stored.
 -- * reverse[value]: Map giving the index of a given value.
@@ -100,10 +98,7 @@ Metatable = {
         -- * value: The new value to add.
         --
         pushBack = function(self, value)
-            local valueType = type(x)
             cLogger:assert(value, "nil value is not supported.")
-            cLogger:assert(valueType ~= "number", "number values are not supported.")
-            cLogger:assert(valueType ~= "string", "string values are not supported.")
             cLogger:assert(not rawget(self.reverse, value), "duplicate values.")
 
             local count = self.count + 1
