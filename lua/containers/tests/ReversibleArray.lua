@@ -37,6 +37,21 @@ describe("ReversibleArray", function()
         assert.is_not_nil(revArray.reverse)
     end)
 
+    it("setmetatable", function()
+        local test = {
+            count = 1,
+            reverse = {
+                Hello = 1,
+            },
+            [1] = "Hello",
+        }
+
+        ReversibleArray.setmetatable(test)
+
+        assert.is_not_nil(getmetatable(test))
+        assert.is_not_nil(getmetatable(test.reverse))
+    end)
+
     it("ipairs()", function()
         testPairFunction(revArray, ipairs)
     end)

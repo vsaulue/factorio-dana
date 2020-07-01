@@ -46,6 +46,16 @@ local ReversibleArray = ErrorOnInvalidRead.new{
         setmetatable(result, Metatable)
         return result
     end,
+
+    -- Restores the metatable of a ReversibleArray object, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        setmetatable(object, Metatable)
+        ErrorOnInvalidRead.setmetatable(object.reverse)
+    end,
 }
 
 -- Metatable of the ReversibleArray class.
