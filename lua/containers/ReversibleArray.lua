@@ -14,7 +14,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+
+local cLogger = ClassLogger.new{className = "ReversibleArray"}
 
 local Metatable
 local iteratorNext
@@ -81,7 +84,7 @@ Metatable = {
         --
         popBack = function(self)
             local count = self.count
-            assert(count > 0, "ReversibleArray: attempt to popBack() an empty array.")
+            cLogger:assert(count > 0, "attempt to popBack() an empty array.")
             local result = self[count]
             self[count] = nil
             self[result] = nil
@@ -97,10 +100,10 @@ Metatable = {
         --
         pushBack = function(self, value)
             local valueType = type(x)
-            assert(value, "ReversibleArray: nil value is not supported.")
-            assert(valueType ~= "number", "ReversibleArray: number values are not supported.")
-            assert(valueType ~= "string", "ReversibleArray: string values are not supported.")
-            assert(not rawget(self, value), "ReversibleArray: duplicate values.")
+            cLogger:assert(value, "nil value is not supported.")
+            cLogger:assert(valueType ~= "number", "number values are not supported.")
+            cLogger:assert(valueType ~= "string", "string values are not supported.")
+            cLogger:assert(not rawget(self, value), "duplicate values.")
 
             local count = self.count + 1
             self.count = count
