@@ -32,8 +32,8 @@ local iteratorNext
 --
 -- RO fields:
 -- * count: The number of values stored.
--- * (int): the value of the N-th
--- * (other): the index of this value.
+-- * reverse[value]: Map giving the index of a given value.
+-- * (int): the value of the N-th element.
 --
 local ReversibleArray = ErrorOnInvalidRead.new{
     -- Creates a new empty ReversibleArray.
@@ -43,6 +43,7 @@ local ReversibleArray = ErrorOnInvalidRead.new{
     new = function()
         local result = {
             count = 0,
+            reverse = ErrorOnInvalidRead.new(),
         }
         setmetatable(result, Metatable)
         return result
@@ -64,8 +65,8 @@ Metatable = {
         -- * The value with the greater index.
         --
         getLowHighValues = function(self, valueA, valueB)
-            local idA = self[valueA]
-            local idB = self[valueB]
+            local idA = self.reverse[valueA]
+            local idB = self.reverse[valueB]
             local lowValue = valueB
             local highValue = valueA
             if idA < idB then
@@ -87,7 +88,7 @@ Metatable = {
             cLogger:assert(count > 0, "attempt to popBack() an empty array.")
             local result = self[count]
             self[count] = nil
-            self[result] = nil
+            self.reverse[result] = nil
             self.count = count - 1
             return result
         end,
@@ -103,12 +104,12 @@ Metatable = {
             cLogger:assert(value, "nil value is not supported.")
             cLogger:assert(valueType ~= "number", "number values are not supported.")
             cLogger:assert(valueType ~= "string", "string values are not supported.")
-            cLogger:assert(not rawget(self, value), "duplicate values.")
+            cLogger:assert(not rawget(self.reverse, value), "duplicate values.")
 
             local count = self.count + 1
             self.count = count
             self[count] = value
-            self[value] = count
+            self.reverse[value] = count
         end,
 
         -- Append a value if it's not already present, else does nothing.
@@ -118,7 +119,7 @@ Metatable = {
         -- * value: The value to append, if it's not already present.
         --
         pushBackIfNotPresent = function(self, value)
-            if not rawget(self, value) then
+            if not rawget(self.reverse, value) then
                 self:pushBack(value)
             end
         end,
@@ -138,7 +139,7 @@ Metatable = {
             table.sort(self, compare)
             for i=1,self.count do
                 local value = self[i]
-                self[value] = i
+                self.reverse[value] = i
             end
         end,
     },

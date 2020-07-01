@@ -81,7 +81,7 @@ Metatable = {
         removeFeedbackEdges = function(self)
             local graph = self.graph
             local vertices = self.graph.vertices
-            local order = self.sequence
+            local order = self.sequence.reverse
             for srcIndex,srcVertex in pairs(vertices) do
                 local srcRank = order[srcIndex]
                 for dstIndex,edge in pairs(srcVertex.outbound) do

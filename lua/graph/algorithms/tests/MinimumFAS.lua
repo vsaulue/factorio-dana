@@ -79,9 +79,9 @@ checkSequence = function(minimumFAS, maxRemovedWeight)
     local removedWeight = 0
     local vertexCount = 0
     for id1,v1 in pairs(graph.vertices) do
-        local rank1 = minimumFAS.sequence[id1]
+        local rank1 = minimumFAS.sequence.reverse[id1]
         for id2,edge in pairs(v1.outbound) do
-            local rank2 = minimumFAS.sequence[id2]
+            local rank2 = minimumFAS.sequence.reverse[id2]
             if rank2 < rank1 then
                 removedWeight = removedWeight + edge.weight
             end

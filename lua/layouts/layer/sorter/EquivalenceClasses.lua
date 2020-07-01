@@ -72,12 +72,12 @@ getClass = function(self, parents)
         local allParentsPresent = true
         for i=1,parents.count do
             local parent = parents[i]
-            if not rawget(self.order, parent) then
+            if not rawget(self.order.reverse, parent) then
                 allParentsPresent = false
                 self.order:pushBack(parent)
             end
         end
-        parents:sort(self.order)
+        parents:sort(self.order.reverse)
         if allParentsPresent then
             for classIndex,class in pairs(self.classes) do
                 if classIndex == parents then

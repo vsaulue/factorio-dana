@@ -121,5 +121,5 @@ end)
 -- * id: Value to look for.
 --
 checkCandidate = function(reversibleArray, id)
-    assert.is_not_nil(rawget(reversibleArray, id))
+    assert.is_not_nil(rawget(reversibleArray.reverse, id))
 end
