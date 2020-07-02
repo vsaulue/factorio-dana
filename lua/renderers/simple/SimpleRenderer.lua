@@ -113,7 +113,7 @@ Metatable = {
                 rectangle.rendererType = "vertex"
                 rectangle.rendererIndex = vertexIndex
                 canvas:newSprite{
-                    sprite = vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
+                    sprite = vertexIndex.spritePath,
                     target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
                 }
             end

@@ -26,6 +26,7 @@ local TypeToLocalisedStr
 -- RO Fields:
 -- * localisedName: A localised string of the form "[type] name".
 -- * rawPrototype: Wrapped Item/Fluid prototype from Factorio.
+-- * spritePath: Sprite path of the underlying prototype.
 -- * type: string designing the type of prototype (either "item" or "fluid").
 --
 local Intermediate = ErrorOnInvalidRead.new{
@@ -41,6 +42,7 @@ local Intermediate = ErrorOnInvalidRead.new{
         local type = cLogger:assertField(object, "type")
         ErrorOnInvalidRead.setmetatable(object)
         object.localisedName = {"dana.model.intermediate.name", TypeToLocalisedStr[type], rawPrototype.localised_name}
+        object.spritePath = type .. "/" .. rawPrototype.name
         return object
     end,
 

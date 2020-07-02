@@ -108,7 +108,7 @@ addIntermediate = function(self, intermediate)
         self.selectedIntermediates:pushBack(intermediate)
         self.selectionFlow.add{
             type = "sprite",
-            sprite = intermediate.type .. "/" .. intermediate.rawPrototype.name,
+            sprite = intermediate.spritePath,
             tooltip = intermediate.localisedName,
         }
     end

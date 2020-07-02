@@ -151,7 +151,7 @@ CategoryInfos = ErrorOnInvalidRead.new{
                 flow.add{
                     type = "sprite",
                     name = "vertexIcon",
-                    sprite = vertexIndex.type .. "/" .. vertexIndex.rawPrototype.name,
+                    sprite = vertexIndex.spritePath,
                 }
                 flow.vertexIcon.style.minimal_width = 32
 
@@ -209,7 +209,7 @@ CategoryInfos = ErrorOnInvalidRead.new{
 
                 flow.add{
                     type = "sprite",
-                    sprite = channelIndex.vertexIndex.type .. "/" .. channelIndex.vertexIndex.rawPrototype.name,
+                    sprite = channelIndex.vertexIndex.spritePath,
                     tooltip = channelIndex.vertexIndex.localisedName,
                 }
 
