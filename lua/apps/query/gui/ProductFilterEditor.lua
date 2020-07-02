@@ -17,25 +17,16 @@
 local AbstractFilterEditor = require("lua/apps/query/gui/AbstractFilterEditor")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GuiElement = require("lua/gui/GuiElement")
-local ReversibleArray = require("lua/containers/ReversibleArray")
+local IntermediateSetEditor = require("lua/apps/query/gui/IntermediateSetEditor")
 
 local cLogger = ClassLogger.new{className = "ProductFilterEditor"}
-
-local AddElemButton
-local addIntermediate
-local ElemTypeToLabelCaption
-local makeAddElemFlow
 
 -- Filter editor for the ProductQueryFilter class.
 --
 -- Inherits from AbstractFilterEditor.
 --
 -- RO Fields:
--- * addFluidButton: AddElemButton object to add fluid intermediates.
--- * addItemButton: AddElemButton object to add item intermediates.
--- * selectedIntermediates: ReversibleArray containing the selected source intermediates.
--- * selectionFlow: LuaGuiElement displaying the set of selected source intermediates.
+-- * setEditor: IntermediateSetEditor object used on the source set.
 --
 local ProductFilterEditor = ErrorOnInvalidRead.new{
     -- Creates a new ProductFilterEditor object.
@@ -51,12 +42,10 @@ local ProductFilterEditor = ErrorOnInvalidRead.new{
         if object.filter.filterType ~= "product" then
             cLogger:error("Invalid filter type: " .. object.filter.filterType)
         end
-        object.addItemButton = makeAddElemFlow(object, "item")
-        object.addFluidButton = makeAddElemFlow(object, "fluid")
-        object.selectedIntermediates = ReversibleArray.new()
-        object.selectionFlow = object.root.add{
-            type = "flow",
-            direction = "vertical",
+        object.setEditor = IntermediateSetEditor.new{
+            force = object.appResources.force,
+            output = object.filter.sourceIntermediates,
+            parent = object.root,
         }
         return object
     end,
@@ -68,102 +57,9 @@ local ProductFilterEditor = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         ErrorOnInvalidRead.setmetatable(object)
-        AddElemButton.setmetatable(object.addFluidButton)
-        AddElemButton.setmetatable(object.addItemButton)
-        ReversibleArray.setmetatable(object.selectedIntermediates)
+        IntermediateSetEditor.setmetatable(object.setEditor)
     end,
 }
-
--- Button to add an item/fluid to the set of source intermediates.
---
--- Inherits from GuiElement.
---
--- RO Fields:
--- * filterEditor: ProductFilterEditor object owning this button.
---
-AddElemButton = GuiElement.newSubclass{
-    className = "ProductFilterEditor/AddElemButton",
-    mandatoryFields = {"filterEditor"},
-    __index = {
-        onElemChanged = function(self, event)
-            local intermediates = self.filterEditor.appResources.force.prototypes.intermediates
-            local intermediate = intermediates[self.rawElement.elem_type][self.rawElement.elem_value]
-            addIntermediate(self.filterEditor, intermediate)
-            self.rawElement.elem_value = nil
-        end,
-    },
-}
-
--- Adds an intermediate to the set of source intermediates of this filter.
---
--- Args:
--- * self: ProductFilterEditor object.
--- * intermediate: Intermediate to add to the source set of the filter.
---
-addIntermediate = function(self, intermediate)
-    self.filter.sourceIntermediates[intermediate] = true
-
-    local index = rawget(self.selectedIntermediates.reverse, intermediate)
-    if not index then
-        self.selectedIntermediates:pushBack(intermediate)
-        self.selectionFlow.add{
-            type = "sprite",
-            sprite = intermediate.spritePath,
-            tooltip = intermediate.localisedName,
-        }
-    end
-end
-
--- Map[string] -> localised_string: gives the caption of the label for an AddElemButton.
-ElemTypeToLabelCaption = ErrorOnInvalidRead.new{
-    fluid = {"dana.apps.query.gui.productFilterEditor.addFluid"},
-    item = {"dana.apps.query.gui.productFilterEditor.addItem"},
-}
-
--- Adds an AddElemButton in the GUI to select a type of intermediates.
---
--- Args:
--- * self: ProductFilterEditor object.
--- * elemType: type of intermediate to select with this button (item or fluid).
---
--- Returns: The new AddElemButton object.
---
-makeAddElemFlow = function(self, elemType)
-    local elemFlow = self.root.add{
-        type = "flow",
-        direction = "horizontal",
-    }
-
-    -- Label
-    local labelFlow = elemFlow.add{
-        type = "flow",
-        direction = "vertical",
-    }
-    local pusher1 = labelFlow.add{
-        type = "empty-widget",
-        style = "draggable_space_with_no_left_margin",
-    }
-    pusher1.style.vertically_stretchable = true
-    local label = labelFlow.add{
-        type = "label",
-        caption = ElemTypeToLabelCaption[elemType],
-    }
-    label.style.vertical_align = "center"
-    local pusher2 = labelFlow.add{
-        type = "empty-widget",
-        style = "draggable_space_with_no_left_margin",
-    }
-    pusher2.style.vertically_stretchable = true
-
-    -- Elem button
-    return AddElemButton.new{
-        filterEditor = self,
-        rawElement = elemFlow.add{
-            type = "choose-elem-button",
-            elem_type = elemType,
-        }
-    }
-end,
 
 AbstractFilterEditor.Factory:registerClass("product", ProductFilterEditor)
 return ProductFilterEditor
