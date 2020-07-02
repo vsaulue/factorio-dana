@@ -16,6 +16,7 @@
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
+local Intermediate = require("lua/model/Intermediate")
 
 local CategoryInfos
 local EdgeTypeIcon
@@ -209,7 +210,7 @@ CategoryInfos = ErrorOnInvalidRead.new{
                 flow.add{
                     type = "sprite",
                     sprite = channelIndex.vertexIndex.type .. "/" .. channelIndex.vertexIndex.rawPrototype.name,
-                    tooltip = channelIndex.vertexIndex.rawPrototype.localised_name,
+                    tooltip = channelIndex.vertexIndex.localisedName,
                 }
 
                 local arrowLabel = flow.add(LinkArrowLabel[channelIndex.isFromVertexToEdge])
@@ -304,13 +305,13 @@ VertexTypeIcon = ErrorOnInvalidRead.new{
         type = "sprite",
         name = "typeIcon",
         sprite = "dana-fluid-icon",
-        tooltip = {"dana.apps.graph.selectionWindow.fluidType"},
+        tooltip = Intermediate.TypeToLocalisedStr.fluid,
     },
     item = {
         type = "sprite",
         name = "typeIcon",
         sprite = "dana-item-icon",
-        tooltip = {"dana.apps.graph.selectionWindow.itemType"},
+        tooltip = Intermediate.TypeToLocalisedStr.item,
     },
 }
 

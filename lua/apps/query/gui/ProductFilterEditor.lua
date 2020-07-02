@@ -109,7 +109,7 @@ addIntermediate = function(self, intermediate)
         self.selectionFlow.add{
             type = "sprite",
             sprite = intermediate.type .. "/" .. intermediate.rawPrototype.name,
-            tooltip = intermediate.rawPrototype.localised_name,
+            tooltip = intermediate.localisedName,
         }
     end
 end

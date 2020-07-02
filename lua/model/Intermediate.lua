@@ -19,11 +19,12 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "Intermediate"}
 
-
+local TypeToLocalisedStr
 
 -- Class representing intermediates between crafting steps.
 --
 -- RO Fields:
+-- * localisedName: A localised string of the form "[type] name".
 -- * rawPrototype: Wrapped Item/Fluid prototype from Factorio.
 -- * type: string designing the type of prototype (either "item" or "fluid").
 --
@@ -36,14 +37,23 @@ local Intermediate = ErrorOnInvalidRead.new{
     -- Returns: the argument turned into an Intermediate.
     --
     new = function(object)
-        cLogger:assertField(object, "rawPrototype")
-        cLogger:assertField(object, "type")
+        local rawPrototype = cLogger:assertField(object, "rawPrototype")
+        local type = cLogger:assertField(object, "type")
         ErrorOnInvalidRead.setmetatable(object)
+        object.localisedName = {"dana.model.intermediate.name", TypeToLocalisedStr[type], rawPrototype.localised_name}
         return object
     end,
 
     -- Restores the metatable of a Intermediate object, and all its owned objects.
     setmetatable = ErrorOnInvalidRead.setmetatable,
+
+    -- Map[type] -> localised string.
+    TypeToLocalisedStr = ErrorOnInvalidRead.new{
+        fluid = {"dana.model.intermediate.fluidType"},
+        item = {"dana.model.intermediate.itemType"},
+    },
 }
+
+TypeToLocalisedStr = Intermediate.TypeToLocalisedStr
 
 return Intermediate
