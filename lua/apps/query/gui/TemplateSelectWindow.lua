@@ -47,11 +47,20 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
         object.frame = app.appController.appResources.rawPlayer.gui.center.add{
             type = "frame",
             caption = {"dana.apps.query.templateSelectWindow.title"},
+        }
+        local innerFrame = object.frame.add{
+            type = "frame",
+            style = "inside_deep_frame",
+        }
+        innerFrame.style.padding = 4
+        local flow = innerFrame.add{
+            type = "flow",
             direction = "vertical",
         }
+        flow.style.vertical_spacing = 4
         object.fullGraphButton = FullGraphButton.new{
             app = app,
-            rawElement = object.frame.add{
+            rawElement = flow.add{
                 type = "button",
                 caption = {"dana.apps.query.templateSelectWindow.fullGraph"},
                 style = "menu_button",
@@ -61,7 +70,7 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
         for templateName,template in pairs(QueryTemplates) do
             local newButton = TemplateSelectButton.new{
                 app = app,
-                rawElement = object.frame.add{
+                rawElement = flow.add{
                     type = "button",
                     caption = template.caption,
                     style = "menu_button",
