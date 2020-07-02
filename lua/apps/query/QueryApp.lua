@@ -17,6 +17,7 @@
 local AbstractApp = require("lua/apps/AbstractApp")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Query = require("lua/model/query/Query")
+local QueryEditor = require("lua/apps/query/gui/QueryEditor")
 local TemplateSelectWindow = require("lua/apps/query/gui/TemplateSelectWindow")
 
 local AppName
@@ -27,7 +28,9 @@ local Metatable
 -- Inherits from AbstractApp.
 --
 -- RO Fields:
+-- * isTemplateSelected: boolean indicating if the TemplateSelectWindow is currently opened.
 -- * query: Query object being built and run.
+-- * queryEditor: QueryEditor object used to edit the query of this object.
 -- * templateSelectWindow: TemplateSelectWindow object of this application.
 --
 local QueryApp = ErrorOnInvalidRead.new{
@@ -44,6 +47,10 @@ local QueryApp = ErrorOnInvalidRead.new{
 
         AbstractApp.new(object, Metatable)
 
+        object.isTemplateSelected = false
+        object.queryEditor = QueryEditor.new{
+            app = object,
+        }
         object.templateSelectWindow = TemplateSelectWindow.new{
             app = object,
         }
@@ -60,6 +67,7 @@ local QueryApp = ErrorOnInvalidRead.new{
         setmetatable(object, Metatable)
         TemplateSelectWindow.setmetatable(object.templateSelectWindow)
         Query.setmetatable(object.query)
+        QueryEditor.setmetatable(object.queryEditor)
     end,
 }
 
@@ -68,17 +76,64 @@ Metatable = {
     __index = {
         -- Implements AbstractApp:close().
         close = function(self)
+            self.queryEditor:close()
             self.templateSelectWindow:close()
         end,
 
         -- Implements AbstractApp:hide().
         hide = function(self)
             self.templateSelectWindow.frame.visible = false
+            self.queryEditor.frame.visible = false
+        end,
+
+        -- Runs the query, and switch to the Graph app.
+        --
+        -- Args:
+        -- * self: QueryApp object.
+        --
+        runQueryAndDraw = function(self)
+            local query = self.query
+            local force = self.appController.appResources.force
+            local graph,vertexDists = query:execute(force)
+            self.appController:makeAndSwitchApp{
+                appName = "graph",
+                graph = graph,
+                vertexDists = vertexDists,
+            }
+        end,
+
+        -- Hides the QueryEditor window, and reopen the TemplateSelectWindow.
+        --
+        -- Args:
+        -- * self: QueryApp object.
+        --
+        returnToTemplateSelect = function(self)
+            self.isTemplateSelected = false
+            self.templateSelectWindow.frame.visible = true
+            self.queryEditor.frame.visible = false
+        end,
+
+        -- Loads a preset query, and opens the QueryEditor.
+        --
+        -- Args:
+        -- * self: QueryApp object.
+        -- * queryTemplate: QueryTemplate object, used to generate the preset query.
+        --
+        selectTemplate = function(self, queryTemplate)
+            queryTemplate.applyTemplate(self)
+
+            self.isTemplateSelected = true
+            self.templateSelectWindow.frame.visible = false
+            self.queryEditor.frame.visible = true
         end,
 
         -- Implements AbstractApp:show().
         show = function(self)
-            self.templateSelectWindow.frame.visible = true
+            if self.isTemplateSelected then
+                self.queryEditor.frame.visible = true
+            else
+                self.templateSelectWindow.frame.visible = true
+            end
         end,
     },
 }

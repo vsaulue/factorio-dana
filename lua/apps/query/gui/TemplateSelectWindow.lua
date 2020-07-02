@@ -14,15 +14,17 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AllQueryFilter = require("lua/model/query/filter/AllQueryFilter")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
+local QueryTemplates = require("lua/apps/query/QueryTemplates")
 
 local cLogger = ClassLogger.new{className = "queryApp/TemplateSelectWindow"}
 
-
 local FullGraphButton
 local Metatable
+local TemplateSelectButton
 
 -- A menu window with a button for each query template.
 --
@@ -30,6 +32,7 @@ local Metatable
 -- * app: QueryApp owning this window.
 -- * frame: Frame object from Factorio (LuaGuiElement).
 -- * fullGraphButton: FullGraphButton object.
+-- * templateButtons: Set of TemplateSelectButton owned by this window.
 --
 local TemplateSelectWindow = ErrorOnInvalidRead.new{
     -- Creates a new TemplateSelectWindow object.
@@ -51,8 +54,22 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
             rawElement = object.frame.add{
                 type = "button",
                 caption = {"dana.apps.query.templateSelectWindow.fullGraph"},
+                style = "menu_button",
             },
         }
+        object.templateButtons = ErrorOnInvalidRead.new()
+        for templateName,template in pairs(QueryTemplates) do
+            local newButton = TemplateSelectButton.new{
+                app = app,
+                rawElement = object.frame.add{
+                    type = "button",
+                    caption = template.caption,
+                    style = "menu_button",
+                },
+                templateName = templateName,
+            }
+            object.templateButtons[newButton] = true
+        end
         setmetatable(object, Metatable)
         return object
     end,
@@ -65,6 +82,11 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         setmetatable(object, Metatable)
         FullGraphButton.setmetatable(object.fullGraphButton)
+
+        ErrorOnInvalidRead.setmetatable(object.templateButtons)
+        for templateButton in pairs(object.templateButtons) do
+            TemplateSelectButton.setmetatable(templateButton)
+        end
     end,
 }
 
@@ -94,14 +116,27 @@ FullGraphButton = GuiElement.newSubclass{
     mandatoryFields = {"app"},
     __index = {
         onClick = function(self, event)
-            local query = self.app.query
-            local force = self.app.appController.appResources.force
-            local graph,vertexDists = query:execute(force)
-            self.app.appController:makeAndSwitchApp{
-                appName = "graph",
-                graph = graph,
-                vertexDists = vertexDists,
-            }
+            self.app.query.filter = AllQueryFilter.new()
+            self.app:runQueryAndDraw()
+        end,
+    },
+}
+
+-- Button to select a preset query template.
+--
+-- Inherits from GuiElement.
+--
+-- TO Fields:
+-- * app: QueryApp owining this button.
+-- * templateName: Name of the template to load from QueryTemplates.
+--
+TemplateSelectButton = GuiElement.newSubclass{
+    className = "queryApp/TemplateSelectButton",
+    mandatoryFields = {"app", "templateName"},
+    __index = {
+        onClick = function(self, event)
+            local template = QueryTemplates[self.templateName]
+            self.app:selectTemplate(template)
         end,
     },
 }
