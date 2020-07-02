@@ -244,7 +244,7 @@ CategoryInfos = ErrorOnInvalidRead.new{
 -- Map[edgeIndex.type]: LuaGuiElement construction info for a sprite representing the type of a edge.
 --
 EdgeTypeIcon = ErrorOnInvalidRead.new{
-    entity = {
+    boiler = {
         type = "sprite",
         name = "typeIcon",
         sprite = "dana-boiler-icon",

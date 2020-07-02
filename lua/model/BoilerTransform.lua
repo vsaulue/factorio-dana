@@ -62,7 +62,7 @@ local BoilerTransform = ErrorOnInvalidRead.new{
         if inputCount >= 1 and outputCount >= 1 then
             if inputCount == 1 and outputCount == 1 then
                 result = AbstractTransform.new{
-                    type = "entity",
+                    type = "boiler",
                     rawPrototype = boilerPrototype,
                     ingredients = inputs,
                     products = outputs,

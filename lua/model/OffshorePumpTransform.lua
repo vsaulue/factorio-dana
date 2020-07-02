@@ -41,7 +41,7 @@ local OffshorePumpTransform = ErrorOnInvalidRead.new{
                 [fluid] = true,
             },
             rawPrototype = offshorePumpPrototype,
-            type = "entity",
+            type = "offshore-pump",
         }
     end,
 }

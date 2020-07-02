@@ -19,6 +19,8 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "AbstractTransform"}
 
+local TypeToSpritePrefix
+
 -- Class holding the data of a transformation.
 --
 -- A transform is something (recipe, mining, electricity/heat generation...) that turns a given
@@ -43,7 +45,7 @@ local AbstractTransform = ErrorOnInvalidRead.new{
         local rawPrototype = cLogger:assertField(object, "rawPrototype")
         local type = cLogger:assertField(object, "type")
         ErrorOnInvalidRead.setmetatable(object)
-        object.spritePath = type .. "/" .. rawPrototype.name
+        object.spritePath = TypeToSpritePrefix[type] .. "/" .. rawPrototype.name
         return object
     end,
 
@@ -57,6 +59,16 @@ local AbstractTransform = ErrorOnInvalidRead.new{
         ErrorOnInvalidRead.setmetatable(object.ingredients)
         ErrorOnInvalidRead.setmetatable(object.products)
     end,
+
+    -- Map[type] -> Prefix for spritePath.
+    TypeToSpritePrefix = ErrorOnInvalidRead.new{
+        boiler = "entity",
+        recipe = "recipe",
+        resource = "entity",
+        ["offshore-pump"] = "entity",
+    },
 }
+
+TypeToSpritePrefix = AbstractTransform.TypeToSpritePrefix
 
 return AbstractTransform

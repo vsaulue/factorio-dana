@@ -51,7 +51,7 @@ local ResourceTransform = ErrorOnInvalidRead.new{
             end
 
             result = AbstractTransform.new{
-                type = "entity",
+                type = "resource",
                 rawPrototype = resourceEntityPrototype,
                 ingredients = ingredients,
                 products = products,
