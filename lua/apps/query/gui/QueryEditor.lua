@@ -53,7 +53,7 @@ local QueryEditor = ErrorOnInvalidRead.new{
         }
         local innerFrame = object.frame.add{
             type = "frame",
-            style = "inside_shallow_frame",
+            style = "inside_shallow_frame_with_padding",
             direction = "vertical",
         }
         object.filterEditorRoot = innerFrame.add{
