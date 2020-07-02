@@ -39,6 +39,18 @@ local recursiveUnbind
 -- * on_click: method to execute when on_gui_click is triggered (can be nil).
 --
 local GuiElement = ErrorOnInvalidRead.new{
+    -- Unbinds all child elements of a LuaGuiElement object, then clear all its children.
+    --
+    -- Args:
+    -- * rawElement: LuaGuiElement whose children will be deleted.
+    --
+    clear = function(rawElement)
+        for _,rawChild in ipairs(rawElement.children) do
+            recursiveUnbind(rawChild)
+        end
+        rawElement.clear()
+    end,
+
     -- Destroy a LuaGuiElement, and unbinds all GuiElement objects associated to it or its children.
     --
     -- Args:
