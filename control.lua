@@ -63,6 +63,8 @@ script.on_load(on_load)
 script.on_init(on_init)
 script.on_event(events.on_gui_click, on_gui_click)
 
+script.on_event(events.on_gui_elem_changed, GuiElement.on_gui_elem_changed)
+
 script.on_event(events.on_force_created, function(event)
     dana:on_force_created(event)
 end)

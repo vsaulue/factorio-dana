@@ -114,6 +114,18 @@ local GuiElement = ErrorOnInvalidRead.new{
         end
     end,
 
+    -- Function to call in Factorio's on_gui_elem_changed event.
+    --
+    -- Args:
+    -- * event: Event object sent by Factorio.
+    --
+    on_gui_elem_changed = function(event)
+        local element = GuiElementMap[event.element.index]
+        if element then
+            element:onElemChanged(event)
+        end
+    end,
+
     -- Function to call in Factorio's on_load event.
     --
     on_load = function()
@@ -137,6 +149,14 @@ Metatable = {
         -- * event: Event object sent by Factorio.
         --
         onClick = function(self, event) end,
+
+        -- Callback used when Factorio's on_gui_elem_changed is called on the wrapped rawElement.
+        --
+        -- Args:
+        -- * self: GuiElement corresponding to the wrapped LuaGuiElement of the event.
+        -- * event: Event object sent by Factorio.
+        --
+        onElemChanged = function(self, event) end,
     },
 }
 
