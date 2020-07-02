@@ -14,7 +14,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractQueryFilter = require("lua/model/query/filter/AbstractQueryFilter")
+local AllQueryFilter = require("lua/model/query/filter/AllQueryFilter")
 local Array = require("lua/containers/Array")
+local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local QueryOrderer = require("lua/model/query/QueryOrderer")
 local QuerySelector = require("lua/model/query/QuerySelector")
@@ -24,6 +27,7 @@ local Metatable
 -- Class used to generate customized hypergraphs from a Force database.
 --
 -- RO Fields:
+-- * filter: AbstractQueryFilter object, selecting the edges of the output graph.
 -- * orderer: QueryOrderer object, generating a partial order used by the layout.
 -- * selector: QuerySelector object, generating graph edges from the Force database.
 --
@@ -34,6 +38,7 @@ local Query = ErrorOnInvalidRead.new{
     --
     new = function()
         local result = {
+            filter = AllQueryFilter.new(),
             orderer = QueryOrderer.new(),
             selector = QuerySelector.new(),
         }
@@ -48,6 +53,7 @@ local Query = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
+        AbstractQueryFilter.Factory:restoreMetatable(object.filter)
         QueryOrderer.setmetatable(object.orderer)
         QuerySelector.setmetatable(object.selector)
     end,
@@ -72,8 +78,15 @@ Metatable = {
             local fullGraph = self.selector:makeHypergraph(force)
             local vertexDists = self.orderer:makeOrder(force, fullGraph)
 
-            -- TODO: add filter step here to generate a subgraph.
-            local resultGraph = fullGraph
+            local fullEdgeSet = {}
+            for _,edge in pairs(fullGraph.edges) do
+                fullEdgeSet[edge] = true
+            end
+            local filteredEdgeSet = self.filter:execute(fullEdgeSet)
+            local resultGraph = DirectedHypergraph.new()
+            for edge in pairs(filteredEdgeSet) do
+                resultGraph:addEdge(edge)
+            end
 
             return resultGraph,vertexDists
         end,
