@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractTransform = require("lua/model/AbstractTransform")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 local Intermediate = require("lua/model/Intermediate")
@@ -225,7 +226,7 @@ CategoryInfos = ErrorOnInvalidRead.new{
                         flow.add{
                             type = "sprite",
                             sprite = edgeIndex.spritePath,
-                            tooltip = edgeIndex.rawPrototype.localised_name,
+                            tooltip = edgeIndex.localisedName,
                         }
                     end
                 else
@@ -248,13 +249,13 @@ EdgeTypeIcon = ErrorOnInvalidRead.new{
         type = "sprite",
         name = "typeIcon",
         sprite = "dana-boiler-icon",
-        tooltip = {"dana.apps.graph.selectionWindow.boilerType"},
+        tooltip = AbstractTransform.TypeToLocalisedStr.boiler,
     },
     recipe = {
         type = "sprite",
         name = "typeIcon",
         sprite = "dana-recipe-icon",
-        tooltip = {"dana.apps.graph.selectionWindow.recipeType"},
+        tooltip = AbstractTransform.TypeToLocalisedStr.recipe,
     },
 }
 
