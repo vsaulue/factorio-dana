@@ -56,8 +56,18 @@ local IntermediateSetEditor = ErrorOnInvalidRead.new{
             type = "flow",
             direction = "vertical",
         }
-        object.addItemButton = makeAddElemFlow(object, mainFlow, "item")
-        object.addFluidButton = makeAddElemFlow(object, mainFlow, "fluid")
+        local elemButtonFlow = mainFlow.add{
+            type = "flow",
+            direction = "horizontal",
+        }
+        object.addItemButton = makeAddElemFlow(object, elemButtonFlow, "item")
+        local pusher = elemButtonFlow.add{
+            type = "empty-widget",
+            style = "draggable_space_with_no_left_margin",
+        }
+        pusher.style.minimal_width = 20
+        pusher.style.maximal_width = 20
+        object.addFluidButton = makeAddElemFlow(object, elemButtonFlow, "fluid")
         object.selectedIntermediates = ReversibleArray.new()
         object.selectionFlow = mainFlow.add{
             type = "flow",
