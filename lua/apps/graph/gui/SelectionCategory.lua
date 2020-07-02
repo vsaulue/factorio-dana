@@ -182,7 +182,7 @@ CategoryInfos = ErrorOnInvalidRead.new{
                 flow.add{
                     type = "sprite",
                     name = "edgeIcon",
-                    sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
+                    sprite = edgeIndex.spritePath,
                 }
                 flow.edgeIcon.style.minimal_width = 32
 
@@ -224,7 +224,7 @@ CategoryInfos = ErrorOnInvalidRead.new{
                     for edgeIndex in pairs(edgeIndices) do
                         flow.add{
                             type = "sprite",
-                            sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
+                            sprite = edgeIndex.spritePath,
                             tooltip = edgeIndex.rawPrototype.localised_name,
                         }
                     end

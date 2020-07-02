@@ -129,7 +129,7 @@ Metatable = {
                 rectangle.rendererType = "edge"
                 rectangle.rendererIndex = edgeIndex
                 canvas:newSprite{
-                    sprite = edgeIndex.type .. "/" .. edgeIndex.rawPrototype.name,
+                    sprite = edgeIndex.spritePath,
                     target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
                 }
             end
