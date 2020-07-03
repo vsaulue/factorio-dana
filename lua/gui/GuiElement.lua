@@ -99,6 +99,18 @@ local GuiElement = ErrorOnInvalidRead.new{
         return result
     end,
 
+    -- Function to call in Factorio's on_gui_checked_state_changed event.
+    --
+    -- Args:
+    -- * event: Event object sent by Factorio.
+    --
+    on_gui_checked_state_changed = function(event)
+        local element = GuiElementMap[event.element.index]
+        if element then
+            element:onCheckedStateChanged(event)
+        end
+    end,
+
     -- Function to call in Factorio's on_gui_click event.
     --
     -- Args:
@@ -142,6 +154,14 @@ local GuiElement = ErrorOnInvalidRead.new{
 -- Metatable of the GuiElement class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Callback used when Factorio's on_gui_checked_state_changed is called on the wrapped rawElement.
+        --
+        -- Args:
+        -- * self: GuiElement corresponding to the wrapped LuaGuiElement being clicked.
+        -- * event: Event object sent by Factorio.
+        --
+        onCheckedStateChanged = function(self, event) end,
+
         -- Callback used when Factorio's on_gui_click is called on the wrapped rawElement.
         --
         -- Args:
