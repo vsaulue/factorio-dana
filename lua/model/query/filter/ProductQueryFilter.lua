@@ -28,6 +28,7 @@ local FilterTypeName
 -- Inherits from AbstractQueryFilter.
 --
 -- Fields:
+-- * allowOtherIngredients: boolean to include transforms that use other intermediates.
 -- * sourceIntermediates: Set of Intermediate, whose products must be selected.
 --
 local ProductQueryFilter = ErrorOnInvalidRead.new{
@@ -40,6 +41,7 @@ local ProductQueryFilter = ErrorOnInvalidRead.new{
     --
     new = function(object)
         local result = object or {}
+        result.allowOtherIngredients = result.allowOtherIngredients or false
         result.sourceIntermediates = result.sourceIntermediates or {}
         result.filterType = FilterTypeName
         return AbstractQueryFilter.new(result, Metatable)
@@ -65,18 +67,10 @@ Metatable = {
                 graph:addEdge(edge)
             end
 
-            local minDists = HyperMinDist.fromSource(graph, self.sourceIntermediates, false)
+            local _,edgeDists = HyperMinDist.fromSource(graph, self.sourceIntermediates, self.allowOtherIngredients)
             local result = {}
-            for edge in pairs(edgeSet) do
-                local reached = true
-                for vertexIndex in pairs(edge.inbound) do
-                    if not minDists[vertexIndex] then
-                        reached = false
-                    end
-                end
-                if reached then
-                    result[edge] = true
-                end
+            for edgeIndex in pairs(edgeDists) do
+                result[graph.edges[edgeIndex]] = true
             end
             return result
         end,
