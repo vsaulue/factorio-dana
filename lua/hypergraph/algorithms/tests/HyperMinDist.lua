@@ -35,9 +35,9 @@ describe("HyperMinDist", function()
     describe(".fromSource", function()
         it("(*,*,false)", function()
             setSampleGraph(graph)
-            local result = HyperMinDist.fromSource(graph, {a = true, c = true}, false)
+            local vertexDist,edgeDist = HyperMinDist.fromSource(graph, {a = true, c = true}, false)
 
-            assertMapsAreEquals(result, {
+            assertMapsAreEquals(vertexDist, {
                 a = 0,
                 c = 0,
                 d = 1,
@@ -48,26 +48,40 @@ describe("HyperMinDist", function()
                 f3 = 3,
                 f4 = 4,
             })
+            assertMapsAreEquals(edgeDist, {
+                ["a -> d"] = 1,
+                ["-> z"] = 1,
+                ["c -> f1"] = 1,
+                ["d -> ef1"] = 2,
+                ["f1 -> f2"] = 2,
+                ["f2 -> f3"] = 3,
+                ["f3 -> f4"] = 4,
+            })
         end)
 
         it("(*,*,false,2)", function()
             setSampleGraph(graph)
-            local result = HyperMinDist.fromSource(graph, {a = true, e = true}, false, 2)
+            local vertexDist,edgeDist = HyperMinDist.fromSource(graph, {a = true, e = true}, false, 2)
 
-            assertMapsAreEquals(result, {
+            assertMapsAreEquals(vertexDist, {
                 a = 0,
                 e = 0,
                 d = 1,
                 z = 1,
                 f1 = 2,
             })
+            assertMapsAreEquals(edgeDist, {
+                ["a -> d"] = 1,
+                ["-> z"] = 1,
+                ["d -> ef1"] = 2,
+            })
         end)
 
         it("(*,*,true)", function()
             setSampleGraph(graph)
-            local result = HyperMinDist.fromSource(graph, {b = true}, true)
+            local vertexDist,edgeDist = HyperMinDist.fromSource(graph, {b = true}, true)
 
-            assertMapsAreEquals(result, {
+            assertMapsAreEquals(vertexDist, {
                 b = 0,
                 z = 1,
                 c = 1,
@@ -76,15 +90,23 @@ describe("HyperMinDist", function()
                 f3 = 4,
                 f4 = 5,
             })
+            assertMapsAreEquals(edgeDist, {
+                ["ab -> c"] = 1,
+                ["-> z"] = 1,
+                ["c -> f1"] = 2,
+                ["f1 -> f2"] = 3,
+                ["f2 -> f3"] = 4,
+                ["f3 -> f4"] = 5,
+            })
         end)
     end)
 
     describe(".toDest", function()
         it("(*,*,false)", function()
             setSampleGraph(graph)
-            local result = HyperMinDist.toDest(graph, {f3 = true, z = true}, false)
+            local vertexDist,edgeDist = HyperMinDist.toDest(graph, {f3 = true, z = true}, false)
 
-            assertMapsAreEquals(result, {
+            assertMapsAreEquals(vertexDist, {
                 f3 = 0,
                 z = 0,
                 f2 = 1,
@@ -93,13 +115,20 @@ describe("HyperMinDist", function()
                 a = 4,
                 b = 4,
             })
+            assertMapsAreEquals(edgeDist, {
+                ["f2 -> f3"] = 1,
+                ["-> z"] = 1,
+                ["f1 -> f2"] = 2,
+                ["c -> f1"] = 3,
+                ["ab -> c"] = 4,
+            })
         end)
 
         it("(*,*,true)", function()
             setSampleGraph(graph)
-            local result = HyperMinDist.toDest(graph, {f2 = true}, true)
+            local vertexDist,edgeDist = HyperMinDist.toDest(graph, {f2 = true}, true)
 
-            assertMapsAreEquals(result, {
+            assertMapsAreEquals(vertexDist, {
                 f2 = 0,
                 f1 = 1,
                 c = 2,
@@ -107,17 +136,29 @@ describe("HyperMinDist", function()
                 a = 3,
                 b = 3,
             })
+            assertMapsAreEquals(edgeDist, {
+                ["f1 -> f2"] = 1,
+                ["c -> f1"] = 2,
+                ["d -> ef1"] = 2,
+                ["ab -> c"] = 3,
+                ["a -> d"] = 3,
+            })
         end)
 
         it("(*,*,true,2)", function()
             setSampleGraph(graph)
-            local result = HyperMinDist.toDest(graph, {f2 = true}, true, 2)
+            local vertexDist,edgeDist = HyperMinDist.toDest(graph, {f2 = true}, true, 2)
 
-            assertMapsAreEquals(result, {
+            assertMapsAreEquals(vertexDist, {
                 f2 = 0,
                 f1 = 1,
                 c = 2,
                 d = 2,
+            })
+            assertMapsAreEquals(edgeDist, {
+                ["f1 -> f2"] = 1,
+                ["c -> f1"] = 2,
+                ["d -> ef1"] = 2,
             })
         end)
     end)

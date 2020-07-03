@@ -28,12 +28,12 @@ local run
 -- * e: an edge.
 -- this algorithm computes minimal distances as follow:
 -- * d(v) = 0 if v belongs to sourceSet
--- * d(e) =     max{d(v) | v belongs to e.inbound}
--- * d(v) = 1 + min{d(e) | v belongs to e.outbound}
+-- * d(e) = 1 + max{d(v) | v belongs to e.inbound}
+-- * d(v) = min{d(e) | v belongs to e.outbound}
 --
--- Said in another way: This algorithm computes distances in a breadth-first search, where
--- an edge `e` can be crossed to reach a vertex in `e.outbound` only if ALL vertices from
--- `e.inbound` have already been reached.
+-- Said in another way: This algorithm computes distances in a breadth-first search. An argument controls
+-- whether edges are crossed when any vertex of their input set is reached, or to wait until all vertices
+-- of the input sets are reached.
 --
 local HyperMinDist = ErrorOnInvalidRead.new{
     -- Computes the distances from a set of source vertices.
@@ -48,7 +48,9 @@ local HyperMinDist = ErrorOnInvalidRead.new{
     --                      False to cross only when all inbound vertices are reached.
     -- * maxDepth: Maximum depth for the lookup.
     --
-    -- Returns: A map[vertexIndex] -> distance. Unreachable vertices are not set.
+    -- Returns:
+    -- * A map[vertexIndex] -> distance. Unreachable vertices are not set.
+    -- * A map[edgeIndex] -> distance. Unreachable edges are not set.
     --
     fromSource = function(graph, sourceSet, crossOnFirstInput, maxDepth)
         return run(graph, sourceSet, Parsers.fromSource, crossOnFirstInput, maxDepth)
@@ -66,7 +68,9 @@ local HyperMinDist = ErrorOnInvalidRead.new{
     --                      False to cross only when all inbound vertices are reached.
     -- * maxDepth: Maximum depth for the lookup.
     --
-    -- Returns: A map[vertexIndex] -> distance. Unreachable vertices are not set.
+    -- Returns:
+    -- * A map[vertexIndex] -> distance. Unreachable vertices are not set.
+    -- * A map[edgeIndex] -> distance. Unreachable edges are not set.
     --
     toDest = function(graph, destSet, crossOnFirstInput, maxDepth)
         return run(graph, destSet, Parsers.toDest, crossOnFirstInput, maxDepth)
@@ -103,7 +107,9 @@ Parsers = ErrorOnInvalidRead.new{
 --                      False to cross only when all inbound vertices are reached.
 -- * maxDepth: Maximum depth for the lookup.
 --
--- Returns: A map[vertexIndex] -> distance. Unreachable vertices are not set.
+-- Returns:
+-- * A map[vertexIndex] -> distance. Unreachable vertices are not set.
+-- * A map[edgeIndex] -> distance. Unreachable edges are not set.
 --
 run = function(graph, vertexSet, parser, crossOnFirstInput, maxDepth)
     maxDepth = maxDepth or math.huge
@@ -111,6 +117,7 @@ run = function(graph, vertexSet, parser, crossOnFirstInput, maxDepth)
     local destField = parser.destField
 
     local vertexDist = {}
+    local edgeDist = {}
     local edgeUnknowns = {}
     local currentEdges = Array.new()
     local nextEdges = Array.new()
@@ -142,6 +149,7 @@ run = function(graph, vertexSet, parser, crossOnFirstInput, maxDepth)
     while currentEdges.count > 0 and depth <= maxDepth do
         for i=1,currentEdges.count do
             local edge = currentEdges[i]
+            edgeDist[edge.index] = depth
             for vertexIndex in pairs(edge[destField]) do
                 if not vertexDist[vertexIndex] then
                     vertexDist[vertexIndex] = depth
@@ -165,7 +173,7 @@ run = function(graph, vertexSet, parser, crossOnFirstInput, maxDepth)
         depth = depth + 1
     end
 
-    return vertexDist
+    return vertexDist,edgeDist
 end
 
 return HyperMinDist
