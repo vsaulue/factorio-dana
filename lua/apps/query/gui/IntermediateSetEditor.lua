@@ -57,11 +57,14 @@ local IntermediateSetEditor = ErrorOnInvalidRead.new{
 
         ErrorOnInvalidRead.setmetatable(object)
         object.removeButtons = ErrorOnInvalidRead.new()
+        object.selectedIntermediates = ReversibleArray.new()
 
         local mainFlow = parent.add{
             type = "flow",
             direction = "vertical",
         }
+
+        -- Elem buttons
         local elemButtonFlow = mainFlow.add{
             type = "flow",
             direction = "horizontal",
@@ -71,15 +74,16 @@ local IntermediateSetEditor = ErrorOnInvalidRead.new{
             type = "empty-widget",
             style = "draggable_space_with_no_left_margin",
         }
-        pusher.style.minimal_width = 20
-        pusher.style.maximal_width = 20
+        pusher.style.width = 20
+
         object.addFluidButton = makeAddElemFlow(object, elemButtonFlow, "fluid")
-        object.selectedIntermediates = ReversibleArray.new()
+        -- Selection flow
         object.selectionFlow = mainFlow.add{
             type = "flow",
             direction = "vertical",
         }
         object.selectionFlow.style.minimal_width = 295
+
         return object
     end,
 
