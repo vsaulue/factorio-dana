@@ -42,6 +42,11 @@ local ProductFilterEditor = ErrorOnInvalidRead.new{
         if object.filter.filterType ~= "product" then
             cLogger:error("Invalid filter type: " .. object.filter.filterType)
         end
+        object.root.add{
+            type = "label",
+            caption = {"dana.apps.query.productFilterEditor.sourceSetTitle"},
+            style = "frame_title",
+        }
         object.setEditor = IntermediateSetEditor.new{
             force = object.appResources.force,
             output = object.filter.sourceIntermediates,
