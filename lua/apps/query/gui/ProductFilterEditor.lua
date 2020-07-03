@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractFilterEditor = require("lua/apps/query/gui/AbstractFilterEditor")
+local CheckboxUpdater = require("lua/gui/CheckboxUpdater")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local IntermediateSetEditor = require("lua/apps/query/gui/IntermediateSetEditor")
@@ -26,6 +27,7 @@ local cLogger = ClassLogger.new{className = "ProductFilterEditor"}
 -- Inherits from AbstractFilterEditor.
 --
 -- RO Fields:
+-- * allowOtherCheckbox: CheckboxUpdater handling the allowOtherIngredients field.
 -- * setEditor: IntermediateSetEditor object used on the source set.
 --
 local ProductFilterEditor = ErrorOnInvalidRead.new{
@@ -52,6 +54,24 @@ local ProductFilterEditor = ErrorOnInvalidRead.new{
             output = object.filter.sourceIntermediates,
             parent = object.root,
         }
+        object.root.add{
+            type = "line",
+            direction = "horizontal",
+        }
+        object.root.add{
+            type = "label",
+            caption = {"dana.apps.query.productFilterEditor.otherOptions"},
+            style = "frame_title",
+        }
+        object.allowOtherCheckbox = CheckboxUpdater.new{
+            object = object.filter,
+            field = "allowOtherIngredients",
+            rawElement = object.root.add{
+                type = "checkbox",
+                caption = {"dana.apps.query.productFilterEditor.allowOtherIngredients"},
+                state = object.filter.allowOtherIngredients,
+            },
+        }
         return object
     end,
 
@@ -63,6 +83,7 @@ local ProductFilterEditor = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         ErrorOnInvalidRead.setmetatable(object)
         IntermediateSetEditor.setmetatable(object.setEditor)
+        CheckboxUpdater.setmetatable(object.allowOtherCheckbox)
     end,
 }
 
