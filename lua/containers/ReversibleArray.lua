@@ -129,6 +129,26 @@ Metatable = {
             end
         end,
 
+        -- Removes a given index/value pair by value.
+        --
+        -- Args:
+        -- * self: ReversibleArray object.
+        -- * removedValue: Value to remove.
+        --
+        -- Returns: The index of the removed value.
+        --
+        removeValue = function(self, removedValue)
+            local removedIndex = self.reverse[removedValue]
+            table.remove(self, removedIndex)
+            self.count = self.count - 1
+            for index=removedIndex,self.count do
+                local value = self[index]
+                self.reverse[value] = index
+            end
+            self.reverse[removedValue] = nil
+            return removedIndex
+        end,
+
         -- Sorts this reversible array in place.
         --
         -- Args:

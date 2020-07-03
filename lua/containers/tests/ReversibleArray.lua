@@ -150,6 +150,16 @@ describe("ReversibleArray", function()
         end)
     end)
 
+    it(":removeValue()", function()
+        setSampleRevArray(revArray)
+        local TestVal = "v4"
+
+        revArray:removeValue(TestVal)
+        assert.is_nil(rawget(revArray.reverse, TestVal))
+        assert.are.equals(revArray.count, 9)
+        checkRevArray(revArray)
+    end)
+
     it(":sort()", function()
         setSampleRevArray(revArray)
 
