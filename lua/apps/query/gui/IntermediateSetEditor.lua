@@ -24,6 +24,7 @@ local cLogger = ClassLogger.new{className = "IntermediateSetEditor"}
 local AddElemButton
 local addIntermediate
 local ElemTypeToLabelCaption
+local ItemsPerLine
 local makeAddElemFlow
 
 -- GUI to edit a set of Intermediate.
@@ -73,6 +74,7 @@ local IntermediateSetEditor = ErrorOnInvalidRead.new{
             type = "flow",
             direction = "vertical",
         }
+        object.selectionFlow.style.minimal_width = 288
         return object
     end,
 
@@ -121,7 +123,18 @@ addIntermediate = function(self, intermediate)
     local index = rawget(self.selectedIntermediates.reverse, intermediate)
     if not index then
         self.selectedIntermediates:pushBack(intermediate)
-        self.selectionFlow.add{
+        local count = self.selectedIntermediates.count
+        local lineFlow
+        if count % ItemsPerLine == 1 then
+            lineFlow = self.selectionFlow.add{
+                type = "flow",
+                direction = "horizontal",
+            }
+        else
+            local lineId = 1 + math.floor((count - 1) / ItemsPerLine)
+            lineFlow = self.selectionFlow.children[lineId]
+        end
+        lineFlow.add{
             type = "sprite",
             sprite = intermediate.spritePath,
             tooltip = intermediate.localisedName,
@@ -134,6 +147,9 @@ ElemTypeToLabelCaption = ErrorOnInvalidRead.new{
     fluid = {"dana.apps.query.intermediateSetEditor.addFluid"},
     item = {"dana.apps.query.intermediateSetEditor.addItem"},
 }
+
+-- Maximum number of items per line in the selectionFlow.
+ItemsPerLine = 8
 
 -- Adds an AddElemButton in the GUI to select a type of intermediates.
 --
