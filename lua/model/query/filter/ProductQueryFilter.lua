@@ -27,7 +27,7 @@ local FilterTypeName
 -- Inherits from AbstractQueryFilter.
 --
 -- Fields:
--- * allowOtherIngredients: boolean to include transforms that use other intermediates.
+-- * allowOtherIntermediates: boolean to include transforms that use other intermediates.
 -- * maxDepth (optional): Maximum depth for the breadth-first search (default: unlimited).
 -- * sourceIntermediates: Set of Intermediate, whose products must be selected.
 --
@@ -41,7 +41,7 @@ local ProductQueryFilter = ErrorOnInvalidRead.new{
     --
     new = function(object)
         local result = object or {}
-        result.allowOtherIngredients = result.allowOtherIngredients or false
+        result.allowOtherIntermediates = result.allowOtherIntermediates or false
         result.sourceIntermediates = result.sourceIntermediates or {}
         result.filterType = FilterTypeName
         return AbstractQueryFilter.new(result, Metatable)
@@ -68,7 +68,7 @@ Metatable = {
             end
 
             local maxDepth = rawget(self, "maxDepth")
-            local _,edgeDists = HyperMinDist.fromSource(graph, self.sourceIntermediates, self.allowOtherIngredients, maxDepth)
+            local _,edgeDists = HyperMinDist.fromSource(graph, self.sourceIntermediates, self.allowOtherIntermediates, maxDepth)
             local result = {}
             for edgeIndex in pairs(edgeDists) do
                 result[graph.edges[edgeIndex]] = true

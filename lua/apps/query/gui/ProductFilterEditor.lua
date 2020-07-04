@@ -32,7 +32,7 @@ local DepthField
 -- Inherits from AbstractFilterEditor.
 --
 -- RO Fields:
--- * allowOtherCheckbox: CheckboxUpdater handling the allowOtherIngredients field.
+-- * allowOtherCheckbox: CheckboxUpdater handling the allowOtherIntermediates field.
 -- * depthCheckbox: DepthCheckbox object enabling/disabling the maxDepth parameter.
 -- * depthField: DepthField object setting the maxDepth value.
 -- * setEditor: IntermediateSetEditor object used on the source set.
@@ -75,11 +75,11 @@ local ProductFilterEditor = ErrorOnInvalidRead.new{
         -- Allow other ingredients.
         object.allowOtherCheckbox = CheckboxUpdater.new{
             object = object.filter,
-            field = "allowOtherIngredients",
+            field = "allowOtherIntermediates",
             rawElement = object.root.add{
                 type = "checkbox",
-                caption = {"dana.apps.query.productFilterEditor.allowOtherIngredients"},
-                state = object.filter.allowOtherIngredients,
+                caption = {"dana.apps.query.productFilterEditor.allowOtherIntermediates"},
+                state = object.filter.allowOtherIntermediates,
             },
         }
         -- Maximum depth
