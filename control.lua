@@ -65,6 +65,7 @@ script.on_event(events.on_gui_checked_state_changed, GuiElement.on_gui_checked_s
 script.on_event(events.on_gui_click, on_gui_click)
 
 script.on_event(events.on_gui_elem_changed, GuiElement.on_gui_elem_changed)
+script.on_event(events.on_gui_text_changed, GuiElement.on_gui_text_changed)
 
 script.on_event(events.on_force_created, function(event)
     dana:on_force_created(event)
