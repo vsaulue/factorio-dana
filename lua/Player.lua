@@ -163,19 +163,6 @@ Metatable = {
                 self.appController.app:hide()
             end
         end,
-
-        -- Switches the "opened" state of this player GUI.
-        --
-        -- Args:
-        -- * self: Player object.
-        --
-        toggleOpened = function(self)
-            if self.opened then
-                self:hide()
-            else
-                self:show()
-            end
-        end,
     },
 }
 
@@ -191,7 +178,7 @@ ShowButton = GuiElement.newSubclass{
     mandatoryFields = {"player"},
     __index = {
         onClick = function(self, event)
-            self.player:toggleOpened()
+            self.player:show()
         end,
     },
 }
