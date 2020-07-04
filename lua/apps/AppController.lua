@@ -18,6 +18,9 @@ local AbstractApp = require("lua/apps/AbstractApp")
 local AppResources = require("lua/apps/AppResources")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+
+-- Require all apps here, so that AbstractApp.Factory gets properly initialized.
+local GraphApp = require("lua/apps/graph/GraphApp")
 local QueryApp = require("lua/apps/query/QueryApp")
 
 local cLogger = ClassLogger.new{className = "AppController"}
