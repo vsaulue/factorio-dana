@@ -22,7 +22,7 @@ local GuiElement = require("lua/gui/GuiElement")
 
 local Metatable
 local HideButton
-local ToggleOpenButton
+local ShowButton
 
 -- Class holding data associated to a player in this mod.
 --
@@ -39,7 +39,7 @@ local ToggleOpenButton
 -- * previousControllerType: Controller of the player before opening the GUI.
 -- * previousPosition: Position of the player on the previous surface.
 -- * previousSurface: LuaSurface on which the player was before opening this GUI.
--- * toggleOpenButton: ToggleOpenButton object owned by this player.
+-- * showButton: ShowButton object owned by this player.
 --
 -- RO properties:
 -- * opened: true if the GUI is opened.
@@ -55,7 +55,7 @@ local Player = ErrorOnInvalidRead.new{
         object.opened = false
         object.previousPosition = {0,0}
         -- Open button
-        object.toggleOpenButton = ToggleOpenButton.new{
+        object.showButton = ShowButton.new{
             rawElement = object.rawPlayer.gui.left.add{
                 type = "button",
                 name = "menuButton",
@@ -98,7 +98,7 @@ local Player = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         setmetatable(object, Metatable)
         HideButton.setmetatable(object.hideButton)
-        ToggleOpenButton.setmetatable(object.toggleOpenButton)
+        ShowButton.setmetatable(object.showButton)
         AppController.setmetatable(object.appController)
     end,
 }
@@ -180,15 +180,15 @@ Metatable = {
     },
 }
 
--- Button callback to show/hide the application of a player.
+-- Button to show the application of a player.
 --
 -- Inherits from GuiElement.
 --
 -- RO field:
 -- * player: Player object attached to this GUI.
 --
-ToggleOpenButton = GuiElement.newSubclass{
-    className = "Player/ToggleOpenButton",
+ShowButton = GuiElement.newSubclass{
+    className = "Player/ShowButton",
     mandatoryFields = {"player"},
     __index = {
         onClick = function(self, event)
