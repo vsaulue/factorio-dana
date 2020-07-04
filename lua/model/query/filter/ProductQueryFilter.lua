@@ -16,7 +16,6 @@
 
 local AbstractQueryFilter = require("lua/model/query/filter/AbstractQueryFilter")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
-local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperMinDist = require("lua/hypergraph/algorithms/HyperMinDist")
 
