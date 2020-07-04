@@ -25,6 +25,18 @@ local ReachableQueryFilter = require("lua/model/query/filter/ReachableQueryFilte
 -- * caption: Caption of the button in the TemplateSelectWindow.
 --
 local QueryTemplates = ErrorOnInvalidRead.new{
+    -- Query to see how to craft a given set of intermediates.
+    HowToMake = ErrorOnInvalidRead.new{
+        applyTemplate = function(app)
+            app.query.filter = ReachableQueryFilter.new{
+                isForward = false,
+            }
+            app.queryEditor:changeFilterEditor(ReachableFilterEditor)
+        end,
+
+        caption = {"dana.apps.query.templateSelectWindow.howToMake"},
+    },
+
     -- Query to see what can be crafted from a given set of intermediates.
     UsagesOf = ErrorOnInvalidRead.new{
         applyTemplate = function(app)
