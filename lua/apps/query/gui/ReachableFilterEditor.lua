@@ -26,6 +26,7 @@ local cLogger = ClassLogger.new{className = "ReachableFilterEditor"}
 
 local DepthCheckbox
 local DepthField
+local LocalisedStrings
 
 -- Filter editor for the ReachableQueryFilter class.
 --
@@ -51,10 +52,11 @@ local ReachableFilterEditor = ErrorOnInvalidRead.new{
         if object.filter.filterType ~= "reachable" then
             cLogger:error("Invalid filter type: " .. object.filter.filterType)
         end
+        local localisedStrings = LocalisedStrings[object.filter.isForward]
         -- Set selector.
         object.root.add{
             type = "label",
-            caption = {"dana.apps.query.productFilterEditor.sourceSetTitle"},
+            caption = localisedStrings.intermediateSetTitle,
             style = "frame_title",
         }
         object.setEditor = IntermediateSetEditor.new{
@@ -69,7 +71,7 @@ local ReachableFilterEditor = ErrorOnInvalidRead.new{
         }
         object.root.add{
             type = "label",
-            caption = {"dana.apps.query.productFilterEditor.otherOptions"},
+            caption = {"dana.apps.query.reachableFilterEditor.otherOptions"},
             style = "frame_title",
         }
         -- Allow other ingredients.
@@ -78,7 +80,7 @@ local ReachableFilterEditor = ErrorOnInvalidRead.new{
             field = "allowOtherIntermediates",
             rawElement = object.root.add{
                 type = "checkbox",
-                caption = {"dana.apps.query.productFilterEditor.allowOtherIntermediates"},
+                caption = localisedStrings.allowOtherIntermediates,
                 state = object.filter.allowOtherIntermediates,
             },
         }
@@ -91,7 +93,7 @@ local ReachableFilterEditor = ErrorOnInvalidRead.new{
             filterEditor = object,
             rawElement = GuiAlign.makeVerticallyCentered(depthFlow, {
                 type = "checkbox",
-                caption = {"dana.apps.query.productFilterEditor.maxDepth"},
+                caption = {"dana.apps.query.reachableFilterEditor.maxDepth"},
                 state = false,
             }),
         }
@@ -159,6 +161,34 @@ DepthField = GuiElement.newSubclass{
         onTextChanged = function(self, event)
             self.filterEditor.filter.maxDepth = tonumber(event.element.text)
         end,
+    },
+}
+
+-- Helper function to make localised strings for this editor.
+--
+-- Args:
+-- * suffix: string to add at the end of the common path.
+--
+-- Returns: The generated localised string.
+--
+local function makeLocalisedString(suffix)
+    return {"dana.apps.query.reachableFilterEditor." .. suffix}
+end
+
+-- Map[isForward] -> Map of localised string recots.
+--
+-- Fields (localised string record):
+-- * allowOtherIntermediates: Label for the allowOtherIntermediates option.
+-- * intermediateSetTitle: Label for the set selector title.
+--
+LocalisedStrings = ErrorOnInvalidRead.new{
+    [true] = {
+        allowOtherIntermediates = makeLocalisedString("forward.allowOtherIntermediates"),
+        intermediateSetTitle = makeLocalisedString("forward.intermediateSetTitle"),
+    },
+    [false] = {
+        allowOtherIntermediates = makeLocalisedString("backward.allowOtherIntermediates"),
+        intermediateSetTitle = makeLocalisedString("backward.intermediateSetTitle"),
     },
 }
 
