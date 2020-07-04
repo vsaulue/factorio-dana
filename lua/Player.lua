@@ -17,7 +17,6 @@
 local AppController = require("lua/apps/AppController")
 local AppResources = require("lua/apps/AppResources")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GraphApp = require("lua/apps/graph/GraphApp")
 local GuiElement = require("lua/gui/GuiElement")
 
 local Metatable
