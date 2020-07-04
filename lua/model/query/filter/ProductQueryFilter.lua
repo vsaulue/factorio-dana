@@ -29,6 +29,7 @@ local FilterTypeName
 --
 -- Fields:
 -- * allowOtherIngredients: boolean to include transforms that use other intermediates.
+-- * maxDepth (optional): Maximum depth for the breadth-first search (default: unlimited).
 -- * sourceIntermediates: Set of Intermediate, whose products must be selected.
 --
 local ProductQueryFilter = ErrorOnInvalidRead.new{
@@ -67,7 +68,8 @@ Metatable = {
                 graph:addEdge(edge)
             end
 
-            local _,edgeDists = HyperMinDist.fromSource(graph, self.sourceIntermediates, self.allowOtherIngredients)
+            local maxDepth = rawget(self, "maxDepth")
+            local _,edgeDists = HyperMinDist.fromSource(graph, self.sourceIntermediates, self.allowOtherIngredients, maxDepth)
             local result = {}
             for edgeIndex in pairs(edgeDists) do
                 result[graph.edges[edgeIndex]] = true
