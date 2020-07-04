@@ -15,21 +15,29 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractQueryFilter = require("lua/model/query/filter/AbstractQueryFilter")
+local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperMinDist = require("lua/hypergraph/algorithms/HyperMinDist")
 
+local cLogger = ClassLogger.new{className = "ReachableQueryFilter"}
+
 local Metatable
 local FilterTypeName
 
--- Filters recursively selecting the transforms consuming a given set of intermediates.
+-- Filters recursively selecting the transforms reachable from a given set of Intermediate.
+--
+-- This filter can either look for what can be produced from the set of Intermediate (forward parsing),
+-- or look for transforms producing any element in the set (backward parsing).
 --
 -- Inherits from AbstractQueryFilter.
 --
 -- Fields:
 -- * allowOtherIntermediates: boolean to include transforms that use other intermediates.
--- * maxDepth (optional): Maximum depth for the breadth-first search (default: unlimited).
 -- * intermediateSet: Set of Intermediate, whose products must be selected.
+-- * isForward: True for forward parsing (select recipes that can be produced from the set).
+--              False for backward parsing (select recipes that produces elements from the set).
+-- * maxDepth (optional): Maximum depth for the breadth-first search (default: unlimited).
 --
 local ReachableQueryFilter = ErrorOnInvalidRead.new{
     -- Creates a new ReachableQueryFilter object.
@@ -40,11 +48,11 @@ local ReachableQueryFilter = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a ReachableQueryFilter object.
     --
     new = function(object)
-        local result = object or {}
-        result.allowOtherIntermediates = result.allowOtherIntermediates or false
-        result.intermediateSet = result.intermediateSet or {}
-        result.filterType = FilterTypeName
-        return AbstractQueryFilter.new(result, Metatable)
+        cLogger:assertField(object, "isForward")
+        object.allowOtherIntermediates = object.allowOtherIntermediates or false
+        object.intermediateSet = object.intermediateSet or {}
+        object.filterType = FilterTypeName
+        return AbstractQueryFilter.new(object, Metatable)
     end,
 
     -- Restores the metatable of a ReachableQueryFilter object.
@@ -67,8 +75,15 @@ Metatable = {
                 graph:addEdge(edge)
             end
 
+            local distFunction
+            if self.isForward then
+                distFunction = HyperMinDist.fromSource
+            else
+                distFunction = HyperMinDist.toDest
+            end
+
             local maxDepth = rawget(self, "maxDepth")
-            local _,edgeDists = HyperMinDist.fromSource(graph, self.intermediateSet, self.allowOtherIntermediates, maxDepth)
+            local _,edgeDists = distFunction(graph, self.intermediateSet, self.allowOtherIntermediates, maxDepth)
             local result = {}
             for edgeIndex in pairs(edgeDists) do
                 result[graph.edges[edgeIndex]] = true

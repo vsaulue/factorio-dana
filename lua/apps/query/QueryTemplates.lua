@@ -28,7 +28,9 @@ local QueryTemplates = ErrorOnInvalidRead.new{
     -- Query to see what can be crafted from a given set of intermediates.
     UsagesOf = ErrorOnInvalidRead.new{
         applyTemplate = function(app)
-            app.query.filter = ReachableQueryFilter.new()
+            app.query.filter = ReachableQueryFilter.new{
+                isForward = true,
+            }
             app.queryEditor:changeFilterEditor(ReachableFilterEditor)
         end,
 
