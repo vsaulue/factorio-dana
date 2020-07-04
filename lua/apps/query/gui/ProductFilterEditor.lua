@@ -59,7 +59,7 @@ local ProductFilterEditor = ErrorOnInvalidRead.new{
         }
         object.setEditor = IntermediateSetEditor.new{
             force = object.appResources.force,
-            output = object.filter.sourceIntermediates,
+            output = object.filter.intermediateSet,
             parent = object.root,
         }
         ----------------
