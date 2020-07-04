@@ -133,6 +133,7 @@ Metatable = {
                 self.rawPlayer.set_controller{type = defines.controllers.god}
                 self.rawPlayer.teleport(targetPosition, self.graphSurface)
                 self.menuFrame.visible = true
+                self.showButton.rawElement.visible = false
                 self.appController.app:show()
             end
         end,
@@ -160,6 +161,7 @@ Metatable = {
                 end
                 self.rawPlayer.set_controller(newController)
                 self.menuFrame.visible = false
+                self.showButton.rawElement.visible = true
                 self.appController.app:hide()
             end
         end,
