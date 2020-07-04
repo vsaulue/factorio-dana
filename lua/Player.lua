@@ -21,6 +21,7 @@ local GraphApp = require("lua/apps/graph/GraphApp")
 local GuiElement = require("lua/gui/GuiElement")
 
 local Metatable
+local HideButton
 local ToggleOpenButton
 
 -- Class holding data associated to a player in this mod.
@@ -32,6 +33,8 @@ local ToggleOpenButton
 -- * force: Force this player belongs to.
 -- * rawPlayer: Associated LuaPlayer instance.
 -- * graphSurface: LuaSurface used to display graphs to this player.
+-- * hideButton: HideButton of this player (in menuFrame).
+-- * menuFrame: Top menu displayed when the application is opened.
 -- * previousCharacter: Character of the player before opening the GUI.
 -- * previousControllerType: Controller of the player before opening the GUI.
 -- * previousPosition: Position of the player on the previous surface.
@@ -51,6 +54,7 @@ local Player = ErrorOnInvalidRead.new{
         setmetatable(object, Metatable)
         object.opened = false
         object.previousPosition = {0,0}
+        -- Open button
         object.toggleOpenButton = ToggleOpenButton.new{
             rawElement = object.rawPlayer.gui.left.add{
                 type = "button",
@@ -59,6 +63,23 @@ local Player = ErrorOnInvalidRead.new{
             },
             player = object,
         }
+        -- Top menu
+        object.menuFrame = object.rawPlayer.gui.screen.add{
+            type = "frame",
+            direction = "horizontal",
+            visible = false,
+        }
+        object.menuFrame.location = {0,0}
+        object.menuFrame.style.maximal_height = 50
+        object.hideButton = HideButton.new{
+            rawElement = object.menuFrame.add{
+                type = "button",
+                caption = {"dana.player.leave"},
+                style = "red_back_button",
+            },
+            player = object,
+        }
+        --
         object.appController = AppController.new{
             appResources = AppResources.new{
                 rawPlayer = object.rawPlayer,
@@ -76,6 +97,7 @@ local Player = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
+        HideButton.setmetatable(object.hideButton)
         ToggleOpenButton.setmetatable(object.toggleOpenButton)
         AppController.setmetatable(object.appController)
     end,
@@ -111,6 +133,7 @@ Metatable = {
                 self.previousSurface = self.rawPlayer.surface
                 self.rawPlayer.set_controller{type = defines.controllers.god}
                 self.rawPlayer.teleport(targetPosition, self.graphSurface)
+                self.menuFrame.visible = true
                 self.appController.app:show()
             end
         end,
@@ -137,6 +160,7 @@ Metatable = {
                     end
                 end
                 self.rawPlayer.set_controller(newController)
+                self.menuFrame.visible = false
                 self.appController.app:hide()
             end
         end,
@@ -171,6 +195,23 @@ ToggleOpenButton = GuiElement.newSubclass{
             self.player:toggleOpened()
         end,
     },
+}
+
+-- Button to hide the application of a player.
+--
+-- Inherits from GuiElement.
+--
+-- RO field:
+-- * player: Player object attached to this GUI.
+--
+HideButton = GuiElement.newSubclass{
+    className = "Player/HideButton",
+    mandatoryFields = {"player"},
+    __index = {
+        onClick = function(self, event)
+            self.player:hide()
+        end,
+    }
 }
 
 return Player
