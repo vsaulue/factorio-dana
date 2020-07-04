@@ -16,6 +16,7 @@
 
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local GuiAlign = require("lua/gui/GuiAlign")
 local GuiElement = require("lua/gui/GuiElement")
 local ReversibleArray = require("lua/containers/ReversibleArray")
 
@@ -177,25 +178,10 @@ makeAddElemFlow = function(self, parent, elemType)
     }
 
     -- Label
-    local labelFlow = elemFlow.add{
-        type = "flow",
-        direction = "vertical",
-    }
-    local pusher1 = labelFlow.add{
-        type = "empty-widget",
-        style = "draggable_space_with_no_left_margin",
-    }
-    pusher1.style.vertically_stretchable = true
-    local label = labelFlow.add{
+    GuiAlign.makeVerticallyCentered(elemFlow, {
         type = "label",
         caption = ElemTypeToLabelCaption[elemType],
-    }
-    label.style.vertical_align = "center"
-    local pusher2 = labelFlow.add{
-        type = "empty-widget",
-        style = "draggable_space_with_no_left_margin",
-    }
-    pusher2.style.vertically_stretchable = true
+    })
 
     -- Elem button
     return AddElemButton.new{
