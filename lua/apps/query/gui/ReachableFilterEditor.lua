@@ -22,12 +22,12 @@ local GuiAlign = require("lua/gui/GuiAlign")
 local GuiElement = require("lua/gui/GuiElement")
 local IntermediateSetEditor = require("lua/apps/query/gui/IntermediateSetEditor")
 
-local cLogger = ClassLogger.new{className = "ProductFilterEditor"}
+local cLogger = ClassLogger.new{className = "ReachableFilterEditor"}
 
 local DepthCheckbox
 local DepthField
 
--- Filter editor for the ProductQueryFilter class.
+-- Filter editor for the ReachableQueryFilter class.
 --
 -- Inherits from AbstractFilterEditor.
 --
@@ -37,18 +37,18 @@ local DepthField
 -- * depthField: DepthField object setting the maxDepth value.
 -- * setEditor: IntermediateSetEditor object used on the source set.
 --
-local ProductFilterEditor = ErrorOnInvalidRead.new{
-    -- Creates a new ProductFilterEditor object.
+local ReachableFilterEditor = ErrorOnInvalidRead.new{
+    -- Creates a new ReachableFilterEditor object.
     --
     -- Args:
-    -- * object: Table to turn into a ProductFilterEditor object (required fields: see AbstractFilterEditor).
+    -- * object: Table to turn into a ReachableFilterEditor object (required fields: see AbstractFilterEditor).
     --
-    -- Returns: The argument turned into a ProductFilterEditor object.
+    -- Returns: The argument turned into a ReachableFilterEditor object.
     --
     new = function(object)
         AbstractFilterEditor.new(object)
         ErrorOnInvalidRead.setmetatable(object)
-        if object.filter.filterType ~= "product" then
+        if object.filter.filterType ~= "reachable" then
             cLogger:error("Invalid filter type: " .. object.filter.filterType)
         end
         -- Set selector.
@@ -109,7 +109,7 @@ local ProductFilterEditor = ErrorOnInvalidRead.new{
         return object
     end,
 
-    -- Restores the metatable of a ProductFilterEditor object, and all its owned objects.
+    -- Restores the metatable of a ReachableFilterEditor object, and all its owned objects.
     --
     -- Args:
     -- * object: table to modify.
@@ -126,10 +126,10 @@ local ProductFilterEditor = ErrorOnInvalidRead.new{
 -- Checkbox to enable the maxDepth parameter.
 --
 -- RO Fields:
--- * filterEditor: ProductFilterEditor object owning this checkbox.
+-- * filterEditor: ReachableFilterEditor object owning this checkbox.
 --
 DepthCheckbox = GuiElement.newSubclass{
-    className = "ProductFilterEditor/DepthCheckbox",
+    className = "ReachableFilterEditor/DepthCheckbox",
     mandatoryFields = {"filterEditor"},
     __index = {
         onCheckedStateChanged = function(self, event)
@@ -150,10 +150,10 @@ DepthCheckbox = GuiElement.newSubclass{
 -- Textfield to set the maxDepth value.
 --
 -- RO Fields:
--- * filterEditor; ProductFilterEditor object owning this textfield.
+-- * filterEditor; ReachableFilterEditor object owning this textfield.
 --
 DepthField = GuiElement.newSubclass{
-    className = "ProductFilterEditor/DepthField",
+    className = "ReachableFilterEditor/DepthField",
     mandatoryFields = {"filterEditor"},
     __index = {
         onTextChanged = function(self, event)
@@ -162,5 +162,5 @@ DepthField = GuiElement.newSubclass{
     },
 }
 
-AbstractFilterEditor.Factory:registerClass("product", ProductFilterEditor)
-return ProductFilterEditor
+AbstractFilterEditor.Factory:registerClass("reachable", ReachableFilterEditor)
+return ReachableFilterEditor

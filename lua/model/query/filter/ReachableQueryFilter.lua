@@ -31,13 +31,13 @@ local FilterTypeName
 -- * maxDepth (optional): Maximum depth for the breadth-first search (default: unlimited).
 -- * intermediateSet: Set of Intermediate, whose products must be selected.
 --
-local ProductQueryFilter = ErrorOnInvalidRead.new{
-    -- Creates a new ProductQueryFilter object.
+local ReachableQueryFilter = ErrorOnInvalidRead.new{
+    -- Creates a new ReachableQueryFilter object.
     --
     -- Args:
-    -- * object: Table to turn into a ProductQueryFilter object.
+    -- * object: Table to turn into a ReachableQueryFilter object.
     --
-    -- Returns: The argument turned into a ProductQueryFilter object.
+    -- Returns: The argument turned into a ReachableQueryFilter object.
     --
     new = function(object)
         local result = object or {}
@@ -47,7 +47,7 @@ local ProductQueryFilter = ErrorOnInvalidRead.new{
         return AbstractQueryFilter.new(result, Metatable)
     end,
 
-    -- Restores the metatable of a ProductQueryFilter object.
+    -- Restores the metatable of a ReachableQueryFilter object.
     --
     -- Args:
     -- * object: Table to modify.
@@ -57,7 +57,7 @@ local ProductQueryFilter = ErrorOnInvalidRead.new{
     end,
 }
 
--- Metatable of the ProductQueryFilter type.
+-- Metatable of the ReachableQueryFilter type.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AbstractQueryFilter:execute().
@@ -79,7 +79,7 @@ Metatable = {
 }
 
 -- Identifier for this subtype of AbstractQueryFilter.
-FilterTypeName = "product"
+FilterTypeName = "reachable"
 
-AbstractQueryFilter.Factory:registerClass(FilterTypeName, ProductQueryFilter)
-return ProductQueryFilter
+AbstractQueryFilter.Factory:registerClass(FilterTypeName, ReachableQueryFilter)
+return ReachableQueryFilter
