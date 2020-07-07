@@ -18,6 +18,7 @@ local AbstractApp = require("lua/apps/AbstractApp")
 local AppResources = require("lua/apps/AppResources")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local GuiElement = require("lua/gui/GuiElement")
 
 -- Require all apps here, so that AbstractApp.Factory gets properly initialized.
 local GraphApp = require("lua/apps/graph/GraphApp")
@@ -76,8 +77,10 @@ Metatable = {
         --
         makeAndSwitchApp = function(self, newApp)
             self.app:close()
+            GuiElement.clear(self.appResources.menuFlow)
             newApp.appController = self
             self.app = AbstractApp.Factory:make(newApp)
+            self.app:hide()
             self.app:show()
         end,
     }

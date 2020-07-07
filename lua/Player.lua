@@ -78,9 +78,18 @@ local Player = ErrorOnInvalidRead.new{
             },
             player = object,
         }
+        object.menuFrame.add{
+            type = "line",
+            direction = "vertical",
+        }
         --
         object.appController = AppController.new{
             appResources = AppResources.new{
+                menuFlow = object.menuFrame.add{
+                    type = "flow",
+                    direction = "horizontal",
+                    name = "appFlow",
+                },
                 rawPlayer = object.rawPlayer,
                 surface = object.graphSurface,
                 force = object.force,

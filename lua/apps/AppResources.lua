@@ -23,6 +23,7 @@ local cLogger = ClassLogger.new{className = "AppResources"}
 --
 -- RO Field:
 -- * force: Force object, corresponding to the force this player belongs to.
+-- * menuFlow: GUI Flow usable by this application in the top menu.
 -- * rawPlayer: LuaPlayer object from Factorio.
 -- * surface: LuaSurface that this application can use to draw.
 --
@@ -35,6 +36,7 @@ local AppResources = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into an AppResources object.
     new = function(object)
         cLogger:assertField(object, "force")
+        cLogger:assertField(object, "menuFlow")
         cLogger:assertField(object, "rawPlayer")
         cLogger:assertField(object, "surface")
         ErrorOnInvalidRead.setmetatable(object)
