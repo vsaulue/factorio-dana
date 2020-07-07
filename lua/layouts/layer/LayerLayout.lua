@@ -126,6 +126,9 @@ end
 assignVerticesToLayers = function(layersBuilder, graph, vertexDists)
     -- 1) First layer assignment using distance from source vertices.
     local depGraph = DirectedHypergraph.new()
+    for vertexIndex in pairs(graph.vertices) do
+        depGraph:addVertexIndex(vertexIndex)
+    end
     for _,edge in pairs(graph.edges) do
         local newEdge = DirectedHypergraphEdge.new{
             index = edge.index,
