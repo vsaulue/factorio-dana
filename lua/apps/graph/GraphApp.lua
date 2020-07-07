@@ -20,6 +20,8 @@ local Canvas = require("lua/canvas/Canvas")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local GuiAlign = require("lua/gui/GuiAlign")
+local GuiElement = require("lua/gui/GuiElement")
 local SelectionWindow = require("lua/apps/graph/gui/SelectionWindow")
 local LayerLayout = require("lua/layouts/layer/LayerLayout")
 local SimpleRenderer = require("lua/renderers/simple/SimpleRenderer")
@@ -29,6 +31,7 @@ local cLogger = ClassLogger.new{className = "GraphApp"}
 local AppName
 local makeEdge
 local Metatable
+local NewQueryButton
 
 -- Application to display a crafting hypergraph.
 --
@@ -36,6 +39,7 @@ local Metatable
 -- * canvas: Canvas object on which the graph is drawn.
 -- * graph: Displayed DirectedHypergraph.
 -- * guiSelection: SelectionWindow object, displaying the result of selections on the graph surface.
+-- * newQueryButton: NewQueryButton object (top menu button to switch to the query app).
 -- * renderer: SimpleRenderer object displaying the graph.
 -- * vertexDists[vertexIndex] -> int: suggested partial order of vertices.
 -- + inherited from AbstractApp.
@@ -72,6 +76,13 @@ local GraphApp = ErrorOnInvalidRead.new{
         object.guiSelection = SelectionWindow.new{
             rawPlayer = rawPlayer,
         }
+        object.newQueryButton = NewQueryButton.new{
+            app = object,
+            rawElement = GuiAlign.makeVerticallyCentered(object.appController.appResources.menuFlow, {
+                type = "button",
+                caption = {"dana.apps.graph.newQuery"},
+            })
+        }
 
         return object
     end,
@@ -84,6 +95,7 @@ local GraphApp = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         Canvas.setmetatable(object.canvas)
         DirectedHypergraph.setmetatable(object.graph)
+        NewQueryButton.setmetatable(object.newQueryButton)
         SelectionWindow.setmetatable(object.guiSelection)
         SimpleRenderer.setmetatable(object.renderer)
         setmetatable(object, Metatable)
@@ -131,6 +143,23 @@ Metatable = {
     },
 }
 setmetatable(Metatable.__index, AbstractApp.Metatable.__index)
+
+-- Button to switch to the query app.
+--
+-- RO Fields:
+-- * app: GraphApp owning this button.
+--
+NewQueryButton = GuiElement.newSubclass{
+    className = "GraphApp/NewQueryButton",
+    mandatoryFields = {"app"},
+    __index = {
+        onClick = function(self)
+            self.app.appController:makeAndSwitchApp{
+                appName = "query",
+            }
+        end,
+    },
+}
 
 AbstractApp.Factory:registerClass(AppName, GraphApp)
 return GraphApp
