@@ -69,6 +69,16 @@ local AppController = ErrorOnInvalidRead.new{
 -- Metatable of the AppController class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Hides the current app, and moves the player back to the last known surface.
+        --
+        -- Args:
+        -- * self: AppController object.
+        --
+        hide = function(self)
+            self.appResources.positionController:teleportBack()
+            self.app:hide()
+        end,
+
         -- Creates a new application, and runs it in place of the current one.
         --
         -- Args:
@@ -81,6 +91,16 @@ Metatable = {
             newApp.appController = self
             self.app = AbstractApp.Factory:make(newApp)
             self.app:hide()
+            self.app:show()
+        end,
+
+        -- Shows the current app, and moves the player to the drawing surface.
+        --
+        -- Args:
+        -- * self: AppController object.
+        --
+        show = function(self)
+            self.appResources.positionController:teleportToApp()
             self.app:show()
         end,
     }

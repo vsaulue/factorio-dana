@@ -119,7 +119,7 @@ Metatable = {
             self.appController.app:onSelectedArea(event)
         end,
 
-        -- Shows the current app, and moves the player to the drawing surface.
+        -- Shows Dana's GUI, and moves the player to the drawing surface.
         --
         -- Args:
         -- * self: Player object.
@@ -129,12 +129,11 @@ Metatable = {
                 self.opened = true
                 self.menuFrame.visible = true
                 self.showButton.rawElement.visible = false
-                self.appController.appResources.positionController:teleportToApp()
-                self.appController.app:show()
+                self.appController:show()
             end
         end,
 
-        -- Hides the current app, and moves the player back to the last known surface.
+        -- Hides Dana's GUI, and moves the player back to its last position/surface.
         --
         -- Args:
         -- * self: Player object.
@@ -144,8 +143,7 @@ Metatable = {
                 self.opened = false
                 self.menuFrame.visible = false
                 self.showButton.rawElement.visible = true
-                self.appController.appResources.positionController:teleportBack()
-                self.appController.app:hide()
+                self.appController:hide()
             end
         end,
     },
