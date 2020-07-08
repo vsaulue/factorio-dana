@@ -60,6 +60,23 @@ local PositionController = ErrorOnInvalidRead.new{
 -- Metatable of the PositionController class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Sets the player on the app surface.
+        --
+        -- If the GUI is opened, the player is teleported. Otherwise the position will be stored for
+        -- the next time the GUI is opened.
+        --
+        -- Args:
+        -- * self: PositionController object.
+        -- * position: Position object (see Factorio API).
+        --
+        setPosition = function(self, position)
+            if self.rawPlayer.surface == self.appSurface then
+                self.rawPlayer.teleport(position)
+            else
+                self.previousPosition = position
+            end
+        end,
+
         -- Teleports the player to the app's surface, with "god" controller type.
         --
         -- His current position/surface/controller his saved to be restored later by :teleportBack().
