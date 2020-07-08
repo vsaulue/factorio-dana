@@ -20,6 +20,8 @@ local TreeLink = require("lua/layouts/TreeLink")
 
 local cLogger = ClassLogger.new{className = "LayoutCoordinates"}
 
+local Metatable
+
 -- Holds the data of a layout for a renderer.
 --
 -- Subtypes:
@@ -42,7 +44,7 @@ local LayoutCoordinates = ErrorOnInvalidRead.new{
         object.edges = ErrorOnInvalidRead.new()
         object.links = ErrorOnInvalidRead.new()
         object.vertices = ErrorOnInvalidRead.new()
-        ErrorOnInvalidRead.setmetatable(object)
+        setmetatable(object, Metatable)
         return object
     end,
 
@@ -52,7 +54,7 @@ local LayoutCoordinates = ErrorOnInvalidRead.new{
     -- * object: Table to modify.
     --
     setmetatable = function(object)
-        ErrorOnInvalidRead.setmetatable(object)
+        setmetatable(object, Metatable)
 
         ErrorOnInvalidRead.setmetatable(object.edges)
         for _,edgeData in pairs(object.edges) do
@@ -69,6 +71,47 @@ local LayoutCoordinates = ErrorOnInvalidRead.new{
             TreeLink.setmetatable(treeLink)
         end
     end,
+}
+
+-- Metatable of the LayoutCoordinates class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Adds an edge record.
+        --
+        -- Args:
+        -- * self: LayoutCoordinates object.
+        -- * edgeIndex: Index of the edge.
+        -- * edgeData: Edge record to add.
+        --
+        addEdge = function(self, edgeIndex, edgeData)
+            local map = self.edges
+            cLogger:assert(not rawget(map, edgeIndex), "Duplicate edge index.")
+            map[edgeIndex] = edgeData
+        end,
+
+        -- Adds a tree link.
+        --
+        -- Args:
+        -- * self: LayoutCoordinates object.
+        -- * treeLink: TreeLink to add.
+        --
+        addTreeLink = function(self, treeLink)
+            self.links[treeLink] = true
+        end,
+
+        -- Adds an edge record.
+        --
+        -- Args:
+        -- * self: LayoutCoordinates object.
+        -- * vertexIndex: Index of the vertex.
+        -- * vertexData: Vertex record to add.
+        --
+        addVertex = function(self, vertexIndex, vertexData)
+            local map = self.vertices
+            cLogger:assert(not rawget(map, vertexIndex), "Duplicate vertex index.")
+            map[vertexIndex] = vertexData
+        end,
+    }
 }
 
 return LayoutCoordinates
