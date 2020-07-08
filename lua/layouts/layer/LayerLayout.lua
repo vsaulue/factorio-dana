@@ -28,8 +28,7 @@ local SlotsSorter = require("lua/layouts/layer/SlotsSorter")
 
 local cLogger = ClassLogger.new{className = "LayerLayout"}
 
-local assignEdgesToLayers
-local assignVerticesToLayers
+local assignToLayers
 local makeSubgraphEdge
 local makeSubgraphWithDists
 local Metatable
@@ -64,8 +63,7 @@ local LayerLayout = ErrorOnInvalidRead.new{
         }
 
         -- 1) Assign vertices, edges to layers & add dummy vertices.
-        assignVerticesToLayers(layersBuilder, graph, vertexDists)
-        assignEdgesToLayers(layersBuilder, graph)
+        assignToLayers(layersBuilder, graph, vertexDists)
 
         -- 2) Order vertices within their layers (crossing minimization).
         LayersSorter.run(layersBuilder)
@@ -98,23 +96,7 @@ Metatable = {
     },
 }
 
--- Assigns hyperedges to layers.
---
--- Args:
--- * layersBuilder: LayersBuilder object to fill.
--- * graph: DirectedHypergraph to draw.
---
-assignEdgesToLayers = function(layersBuilder, graph)
-    for _,edge in pairs(graph.edges) do
-        local layerId = 1
-        for vertexIndex in pairs(edge.inbound) do
-            layerId = math.max(layerId, 1 + layersBuilder.layers.reverse.vertex[vertexIndex][1])
-        end
-        layersBuilder:newEdge(layerId, edge)
-    end
-end
-
--- Splits vertices of the input graph into multiple layers.
+-- Splits vertices & edges of the input graph into multiple layers.
 --
 -- Vertices are assigned in even layers (2nd layer, 4th layer, ...). Odd layers are reserved for edges.
 --
@@ -125,7 +107,7 @@ end
 -- * graph: DirectedHypergraph to draw.
 -- * vertexOrder[vertexIndex] -> int: suggested partial order of vertices.
 --
-assignVerticesToLayers = function(layersBuilder, graph, vertexOrder)
+assignToLayers = function(layersBuilder, graph, vertexOrder)
     local order = Array.new()
 
     -- 1) Assign using the topological order of SCCs in the input graph.
@@ -163,6 +145,9 @@ assignVerticesToLayers = function(layersBuilder, graph, vertexOrder)
                 edgeToLayer[edgeIndex] = math.max(edgeToLayer[edgeIndex], 1 + layerId)
             end
         end
+    end
+    for edgeIndex,layerId in pairs(edgeToLayer) do
+        layersBuilder:newEdge(layerId, graph.edges[edgeIndex])
     end
 end
 
