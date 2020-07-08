@@ -14,8 +14,11 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local TreeLink = require("lua/layouts/TreeLink")
+
+local cLogger = ClassLogger.new{className = "LayoutCoordinates"}
 
 -- Holds the data of a layout for a renderer.
 --
@@ -23,8 +26,9 @@ local TreeLink = require("lua/layouts/TreeLink")
 -- * Edge: placement data for an hyperedge { xMin=..., xMax=..., yMin=..., yMax=...}
 -- * Vertex: placement data for a vertex { xMin=..., xMax=..., yMin=..., yMax=...}
 --
--- Fields:
+-- RO Fields:
 -- * edges: map of Edge objects, indexed by their indices from the input hypergraph.
+-- * layoutParameters: LayoutParameters used to generate these coordinates.
 -- * links: set of TreeLink objects.
 -- * vertices: map of Vertex objects, indexed by their indices from the input hypergraph.
 --
@@ -33,13 +37,13 @@ local LayoutCoordinates = ErrorOnInvalidRead.new{
     --
     -- Returns: The new coordinates object.
     --
-    new = function()
-        local result = ErrorOnInvalidRead.new{
-            edges = ErrorOnInvalidRead.new(),
-            links = ErrorOnInvalidRead.new(),
-            vertices = ErrorOnInvalidRead.new(),
-        }
-        return result
+    new = function(object)
+        cLogger:assertField(object, "layoutParameters")
+        object.edges = ErrorOnInvalidRead.new()
+        object.links = ErrorOnInvalidRead.new()
+        object.vertices = ErrorOnInvalidRead.new()
+        ErrorOnInvalidRead.setmetatable(object)
+        return object
     end,
 
     -- Restores the metatable of a LayoutCoordinates instance, and all its owned objects.

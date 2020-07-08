@@ -223,7 +223,9 @@ end
 -- Returns: a LayoutCoordinates object.
 --
 function LayerCoordinateGenerator.run(layout, params)
-    local result = LayoutCoordinates.new()
+    local result = LayoutCoordinates.new{
+        layoutParameters = params,
+    }
     local self = ErrorOnInvalidRead.new{
         channelRouters = Array.new(),
         entryPositions = ErrorOnInvalidRead.new(),
