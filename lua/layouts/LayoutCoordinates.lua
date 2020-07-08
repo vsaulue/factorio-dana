@@ -20,7 +20,11 @@ local TreeLink = require("lua/layouts/TreeLink")
 
 local cLogger = ClassLogger.new{className = "LayoutCoordinates"}
 
+local min = math.min
+local max = math.max
+
 local Metatable
+local updateAabb
 
 -- Holds the data of a layout for a renderer.
 --
@@ -33,6 +37,10 @@ local Metatable
 -- * layoutParameters: LayoutParameters used to generate these coordinates.
 -- * links: set of TreeLink objects.
 -- * vertices: map of Vertex objects, indexed by their indices from the input hypergraph.
+-- * xMax: Maximum value on the X axis (bounding box).
+-- * xMin: Minimum value on the X axis (bounding box).
+-- * yMax: Maximum value on the Y axis (bounding box).
+-- * yMin: Minimum value on the Y axis (bounding box).
 --
 local LayoutCoordinates = ErrorOnInvalidRead.new{
     -- Creates a new LayoutCoordinates object.
@@ -44,6 +52,10 @@ local LayoutCoordinates = ErrorOnInvalidRead.new{
         object.edges = ErrorOnInvalidRead.new()
         object.links = ErrorOnInvalidRead.new()
         object.vertices = ErrorOnInvalidRead.new()
+        object.xMin = math.huge
+        object.xMax = -math.huge
+        object.yMin = math.huge
+        object.yMax = -math.huge
         setmetatable(object, Metatable)
         return object
     end,
@@ -87,6 +99,7 @@ Metatable = {
             local map = self.edges
             cLogger:assert(not rawget(map, edgeIndex), "Duplicate edge index.")
             map[edgeIndex] = edgeData
+            updateAabb(self, edgeData)
         end,
 
         -- Adds a tree link.
@@ -97,6 +110,24 @@ Metatable = {
         --
         addTreeLink = function(self, treeLink)
             self.links[treeLink] = true
+            local xMin = math.huge
+            local xMax = -math.huge
+            local yMin = math.huge
+            local yMax = -math.huge
+            treeLink.tree:forEachNode(function(node)
+                xMin = min(xMin, node.x)
+                xMax = max(xMax, node.x)
+                yMin = min(yMin, node.y)
+                yMax = max(yMax, node.y)
+            end)
+
+            local halfLinkWidth = self.layoutParameters.linkWidth / 2
+            updateAabb(self, {
+                xMin = xMin - halfLinkWidth,
+                xMax = xMax + halfLinkWidth,
+                yMin = yMin - halfLinkWidth,
+                yMax = yMax + halfLinkWidth,
+            })
         end,
 
         -- Adds an edge record.
@@ -110,8 +141,22 @@ Metatable = {
             local map = self.vertices
             cLogger:assert(not rawget(map, vertexIndex), "Duplicate vertex index.")
             map[vertexIndex] = vertexData
+            updateAabb(self, vertexData)
         end,
     }
 }
+
+-- Updates the min/max values to contain the specified AABB.
+--
+-- Args:
+-- * self: LayoutCoordinates object.
+-- * aabb: AABB object to include in the layout's bounding box.
+--
+updateAabb = function(self, aabb)
+    self.xMin = min(self.xMin, aabb.xMin)
+    self.xMax = max(self.xMax, aabb.xMax)
+    self.yMin = min(self.yMin, aabb.yMin)
+    self.yMax = max(self.yMax, aabb.yMax)
+end
 
 return LayoutCoordinates
