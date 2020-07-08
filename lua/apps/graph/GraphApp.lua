@@ -84,6 +84,8 @@ local GraphApp = ErrorOnInvalidRead.new{
             })
         }
 
+        object:viewGraphCenter()
+
         return object
     end,
 
@@ -117,6 +119,21 @@ Metatable = {
         -- Overrides AbstractApp:hide().
         hide = function(self)
             self.guiSelection.frame.visible = false
+        end,
+
+        -- Moves the view to the center of the graph.
+        --
+        -- Args:
+        -- * self: GraphApp object.
+        --
+        viewGraphCenter = function(self)
+            local lc = self.renderer.layoutCoordinates
+            if lc.xMin ~= math.huge then
+                self.appController.appResources.positionController:setPosition{
+                    x = (lc.xMin + lc.xMax) / 2,
+                    y = (lc.yMin + lc.yMax) / 2,
+                }
+            end
         end,
 
         -- Overrides AbstractApp:show().
