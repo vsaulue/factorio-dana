@@ -44,6 +44,7 @@ local LayerCoordinateGenerator = ErrorOnInvalidRead.new{
 local addTreeLink
 local createEntryCoordinateRecords
 local computeY
+local fillLayoutCoordinates
 local generateTreeLinks
 local generateTreeLinksFromNode
 local initChannelRouters
@@ -83,11 +84,6 @@ createEntryCoordinateRecords = function(self)
             local entryRecord = LayerEntryPosition.new{
                 entry = entry,
             }
-            if entryType == "vertex" then
-                self.result:addVertex(entry.index, entryRecord.output)
-            elseif entryType == "edge" then
-                self.result:addEdge(entry.index, entryRecord.output)
-            end
             self.entryPositions[entry] = entryRecord
         end
     end
@@ -126,6 +122,22 @@ computeY = function(self)
         y = y + yLayerLength
     end
     routers[entries.count + 1]:setY(y)
+end
+
+-- Fills the output layout coordinates with the position records for vertices & edges.
+--
+-- Args:
+-- * self: LayerCoordinateGenerator object.
+--
+fillLayoutCoordinates = function(self)
+    for entry,entryRecord in pairs(self.entryPositions) do
+        local entryType = entry.type
+        if entryType == "vertex" then
+            self.result:addVertex(entry.index, entryRecord.output)
+        elseif entryType == "edge" then
+            self.result:addEdge(entry.index, entryRecord.output)
+        end
+    end
 end
 
 -- Creates a tree links for all the channel indices of a channel layers.
@@ -236,6 +248,7 @@ function LayerCoordinateGenerator.run(layout, params)
     LayerXPass.run(self)
     initChannelRouters(self)
     computeY(self)
+    fillLayoutCoordinates(self)
     generateTreeLinks(self)
 
     return result
