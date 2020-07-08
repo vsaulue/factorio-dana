@@ -65,7 +65,7 @@ addTreeLink = function(self, rootNode, isForward)
         category = category,
         tree = rootNode,
     }
-    self.result.links[treeLink] = true
+    self.result:addTreeLink(treeLink)
 end
 
 -- Creates empty coordinate records for each entry.
@@ -83,12 +83,10 @@ createEntryCoordinateRecords = function(self)
             local entryRecord = LayerEntryPosition.new{
                 entry = entry,
             }
-            if entryType ~= "linkNode" then
-                local tableName = "vertices"
-                if entryType == "edge" then
-                    tableName = "edges"
-                end
-                self.result[tableName][entry.index] = entryRecord.output
+            if entryType == "vertex" then
+                self.result:addVertex(entry.index, entryRecord.output)
+            elseif entryType == "edge" then
+                self.result:addEdge(entry.index, entryRecord.output)
             end
             self.entryPositions[entry] = entryRecord
         end
