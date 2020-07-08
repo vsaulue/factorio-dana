@@ -32,6 +32,7 @@ local AppName
 local makeEdge
 local Metatable
 local NewQueryButton
+local ViewGraphButton
 
 -- Application to display a crafting hypergraph.
 --
@@ -76,11 +77,20 @@ local GraphApp = ErrorOnInvalidRead.new{
         object.guiSelection = SelectionWindow.new{
             rawPlayer = rawPlayer,
         }
+
+        local menuFlow = object.appController.appResources.menuFlow
         object.newQueryButton = NewQueryButton.new{
             app = object,
-            rawElement = GuiAlign.makeVerticallyCentered(object.appController.appResources.menuFlow, {
+            rawElement = GuiAlign.makeVerticallyCentered(menuFlow, {
                 type = "button",
                 caption = {"dana.apps.graph.newQuery"},
+            })
+        }
+        object.viewGraphButton = ViewGraphButton.new{
+            app = object,
+            rawElement = GuiAlign.makeVerticallyCentered(menuFlow, {
+                type = "button",
+                caption = {"dana.apps.graph.moveToGraph"},
             })
         }
 
@@ -98,6 +108,7 @@ local GraphApp = ErrorOnInvalidRead.new{
         Canvas.setmetatable(object.canvas)
         DirectedHypergraph.setmetatable(object.graph)
         NewQueryButton.setmetatable(object.newQueryButton)
+        ViewGraphButton.setmetatable(object.viewGraphButton)
         SelectionWindow.setmetatable(object.guiSelection)
         SimpleRenderer.setmetatable(object.renderer)
         setmetatable(object, Metatable)
@@ -174,6 +185,21 @@ NewQueryButton = GuiElement.newSubclass{
             self.app.appController:makeAndSwitchApp{
                 appName = "query",
             }
+        end,
+    },
+}
+
+-- Button to move the player to the center of the graph.
+--
+-- RO Fields:
+-- * app: GraphApp owning this button.
+--
+ViewGraphButton = GuiElement.newSubclass{
+    className = "GraphApp/ViewGraphButton",
+    mandatoryFields = {"app"},
+    __index = {
+        onClick = function(self, event)
+            self.app:viewGraphCenter()
         end,
     },
 }
