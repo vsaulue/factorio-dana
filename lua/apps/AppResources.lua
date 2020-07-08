@@ -16,6 +16,7 @@
 
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local PositionController = require("lua/apps/PositionController")
 
 local cLogger = ClassLogger.new{className = "AppResources"}
 
@@ -24,6 +25,7 @@ local cLogger = ClassLogger.new{className = "AppResources"}
 -- RO Field:
 -- * force: Force object, corresponding to the force this player belongs to.
 -- * menuFlow: GUI Flow usable by this application in the top menu.
+-- * positionController: PositionController object.
 -- * rawPlayer: LuaPlayer object from Factorio.
 -- * surface: LuaSurface that this application can use to draw.
 --
@@ -37,14 +39,27 @@ local AppResources = ErrorOnInvalidRead.new{
     new = function(object)
         cLogger:assertField(object, "force")
         cLogger:assertField(object, "menuFlow")
-        cLogger:assertField(object, "rawPlayer")
-        cLogger:assertField(object, "surface")
+        local rawPlayer = cLogger:assertField(object, "rawPlayer")
+        local surface = cLogger:assertField(object, "surface")
+
+        object.positionController = PositionController.new{
+            appSurface = surface,
+            rawPlayer = rawPlayer,
+        }
+
         ErrorOnInvalidRead.setmetatable(object)
         return object
     end,
 
-    -- Restores the metatable of a GraphApp object, and all its owned objects.
-    setmetatable = ErrorOnInvalidRead.setmetatable,
+    -- Restores the metatable of an AppResources object, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        ErrorOnInvalidRead.setmetatable(object)
+        PositionController.setmetatable(object.positionController)
+    end,
 }
 
 return AppResources

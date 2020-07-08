@@ -34,10 +34,6 @@ local ShowButton
 -- * graphSurface: LuaSurface used to display graphs to this player.
 -- * hideButton: HideButton of this player (in menuFrame).
 -- * menuFrame: Top menu displayed when the application is opened.
--- * previousCharacter: Character of the player before opening the GUI.
--- * previousControllerType: Controller of the player before opening the GUI.
--- * previousPosition: Position of the player on the previous surface.
--- * previousSurface: LuaSurface on which the player was before opening this GUI.
 -- * showButton: ShowButton object owned by this player.
 --
 -- RO properties:
@@ -52,7 +48,6 @@ local Player = ErrorOnInvalidRead.new{
     new = function(object)
         setmetatable(object, Metatable)
         object.opened = false
-        object.previousPosition = {0,0}
         -- Open button
         object.showButton = ShowButton.new{
             rawElement = object.rawPlayer.gui.left.add{
@@ -132,17 +127,9 @@ Metatable = {
         show = function(self)
             if not self.opened then
                 self.opened = true
-                local targetPosition = self.previousPosition
-                self.previousControllerType = self.rawPlayer.controller_type
-                if self.previousControllerType == defines.controllers.character then
-                    self.previousCharacter = self.rawPlayer.character
-                end
-                self.previousPosition = self.rawPlayer.position
-                self.previousSurface = self.rawPlayer.surface
-                self.rawPlayer.set_controller{type = defines.controllers.god}
-                self.rawPlayer.teleport(targetPosition, self.graphSurface)
                 self.menuFrame.visible = true
                 self.showButton.rawElement.visible = false
+                self.appController.appResources.positionController:teleportToApp()
                 self.appController.app:show()
             end
         end,
@@ -155,22 +142,9 @@ Metatable = {
         hide = function(self)
             if self.opened then
                 self.opened = false
-                local targetPosition = self.previousPosition
-                self.previousPosition = self.rawPlayer.position
-                self.rawPlayer.teleport(targetPosition, self.previousSurface)
-                local newController = {
-                    type = self.previousControllerType,
-                }
-                if newController.type == defines.controllers.character then
-                    if self.previousCharacter.valid then
-                        newController.character = self.previousCharacter
-                    else
-                        newController.type = defines.controllers.ghost
-                    end
-                end
-                self.rawPlayer.set_controller(newController)
                 self.menuFrame.visible = false
                 self.showButton.rawElement.visible = true
+                self.appController.appResources.positionController:teleportBack()
                 self.appController.app:hide()
             end
         end,
