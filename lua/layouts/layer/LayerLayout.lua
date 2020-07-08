@@ -30,6 +30,8 @@ local cLogger = ClassLogger.new{className = "LayerLayout"}
 
 local assignEdgesToLayers
 local assignVerticesToLayers
+local makeSubgraphEdge
+local makeSubgraphWithDists
 local Metatable
 
 -- Computes a layer layout for an hypergraph.
@@ -121,54 +123,113 @@ end
 -- Args:
 -- * layersBuilder: LayersBuilder object to fill.
 -- * graph: DirectedHypergraph to draw.
--- * vertexDists[vertexIndex] -> int: suggested partial order of vertices.
+-- * vertexOrder[vertexIndex] -> int: suggested partial order of vertices.
 --
-assignVerticesToLayers = function(layersBuilder, graph, vertexDists)
-    -- 1) First layer assignment using distance from source vertices.
-    local depGraph = DirectedHypergraph.new()
-    for vertexIndex in pairs(graph.vertices) do
-        depGraph:addVertexIndex(vertexIndex)
-    end
-    for _,edge in pairs(graph.edges) do
-        local newEdge = DirectedHypergraphEdge.new{
-            index = edge.index,
-            inbound = edge.inbound,
-        }
-        local edgeDist = 0
-        for vertexIndex in pairs(edge.inbound) do
-            local vertexDist = vertexDists[vertexIndex] or math.huge
-            edgeDist = math.max(edgeDist, vertexDist)
+assignVerticesToLayers = function(layersBuilder, graph, vertexOrder)
+    local order = Array.new()
+
+    -- 1) Assign using the topological order of SCCs in the input graph.
+    local sccs = HyperSCC.run(graph).components
+    for index=sccs.count,1,-1 do
+        local scc = sccs[index]
+        -- 2) For each SCC sugraph, use vertexOrder to select & remove some "feedback" edges.
+        local subgraph = makeSubgraphWithDists(graph, scc, vertexOrder)
+        -- 3) Refine the ordering using the topological order on this subgraph.
+        local sccs2 = HyperSCC.run(subgraph).components
+        for index2=sccs2.count,1,-1 do
+            order:pushBack(sccs2[index2])
         end
-        for vertexIndex in pairs(edge.outbound) do
-            local vertexDist = vertexDists[vertexIndex] or math.huge
-            if vertexDist >= edgeDist then
-                newEdge.outbound[vertexIndex] = true
-            end
-        end
-        depGraph:addEdge(newEdge)
     end
 
-    -- 2) Refine with SCCs.
-    local sccs = HyperSCC.run(depGraph)
-    local sccGraph = sccs:makeComponentsDAH()
-    local sccToLayer = {}
-    for index=#sccs.components,1,-1 do
-        local scc = sccs.components[index]
-        local sccVertex = sccGraph.vertices[scc]
-        cLogger:assert(sccVertex, "Invalid component index")
+    local edgeToLayer = {}
+    for edgeIndex in pairs(graph.edges) do
+        edgeToLayer[edgeIndex] = 1
+    end
+    for index=1,order.count do
+        local scc = order[index]
         local layerId = 2
-        for _,edge in pairs(sccVertex.inbound) do
-            for previousId in pairs(edge.inbound) do
-                local previousLayerId = sccToLayer[previousId]
-                cLogger:assert(previousLayerId, "Invalid inputs from HyperSCC (wrong topological order, or non-acyclic graph).")
-                layerId = math.max(layerId, previousLayerId + 2)
+        for vertexIndex in pairs(scc) do
+            local vertex = graph.vertices[vertexIndex]
+            for edgeIndex,edge in pairs(vertex.inbound) do
+                if not rawget(edge.inbound, vertexIndex) then
+                    layerId = math.max(layerId, 1 + edgeToLayer[edgeIndex])
+                end
             end
         end
-        sccToLayer[scc] = layerId
         for vertexIndex in pairs(scc) do
+            local vertex = graph.vertices[vertexIndex]
             layersBuilder:newVertex(layerId, vertexIndex)
+            for edgeIndex in pairs(vertex.outbound) do
+                edgeToLayer[edgeIndex] = math.max(edgeToLayer[edgeIndex], 1 + layerId)
+            end
         end
     end
+end
+
+-- Makes an edge for a subgraph, respecting a given partial order on the vertices.
+--
+-- An edge E in the subgraph is modified such that: max(E.inbound) <= min(E.outbound). This is done by
+-- removing any vertex in E.outbound that would break the constraint.
+--
+-- Args:
+-- * edge: Input DirectedHypergraphEdge.
+-- * vertices: Set of vertex indices of the subgraph.
+-- * vertexOrder[vertexIndex] -> int. Suggested partial order of vertices, used to edit the edges.
+--
+-- Returns: The generated DirectedHypergraphEdge.
+--
+makeSubgraphEdge = function(edge, vertices, vertexOrder)
+    local inbound = {}
+    local outbound = {}
+    local result = DirectedHypergraphEdge.new{
+        index = edge.index,
+        inbound = inbound,
+        outbound = outbound,
+    }
+    local edgeDist = 0
+    for vertexIndex in pairs(edge.inbound) do
+        if vertices[vertexIndex] then
+            inbound[vertexIndex] = true
+            edgeDist = math.max(edgeDist, vertexOrder[vertexIndex] or math.huge)
+        end
+    end
+    for vertexIndex in pairs(edge.outbound) do
+        if vertices[vertexIndex] and (vertexOrder[vertexIndex] or math.huge) >= edgeDist then
+            outbound[vertexIndex] = true
+        end
+    end
+    return result
+end
+
+-- Makes a subgraph, editing edges that don't follow a given partial order on the vertices.
+--
+-- An edge E in the subgraph is modified such that: max(E.inbound) <= min(E.outbound). This is done by
+-- removing any vertex in E.outbound that would break the constraint.
+--
+-- Args:
+-- * graph: Input DirectedHypergraph.
+-- * vertices: Set of vertex indices of the generated subgraph.
+-- * vertexOrder[vertexIndex] -> int. Suggested partial order of vertices, used to edit the edges.
+--
+-- Returns: The generated DirectedHypergraph.
+--
+makeSubgraphWithDists = function(graph, vertices, vertexOrder)
+    local result = DirectedHypergraph.new()
+    local edges = result.edges
+    for vertexIndex,vertex in pairs(vertices) do
+        result:addVertexIndex(vertexIndex)
+        for edgeIndex,edge in pairs(vertex.inbound) do
+            if not rawget(edges, edgeIndex) then
+                result:addEdge(makeSubgraphEdge(edge, vertices, vertexOrder))
+            end
+        end
+        for edgeIndex,edge in pairs(vertex.outbound) do
+            if not rawget(edges, edgeIndex) then
+                result:addEdge(makeSubgraphEdge(edge, vertices, vertexOrder))
+            end
+        end
+    end
+    return result
 end
 
 return LayerLayout
