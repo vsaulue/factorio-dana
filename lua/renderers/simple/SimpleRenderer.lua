@@ -209,8 +209,6 @@ end
 
 -- Renders a tree link.
 --
--- TODO: non-recursive implementation
---
 -- Args:
 -- * self: SimpleRenderer object.
 -- * tree: The tree link to render.
