@@ -28,6 +28,10 @@ local LightGrey = {r = 0.2, g = 0.2, b = 0.2, a = 1}
 
 local CategoryToColor
 local DefaultLayoutParameters
+local drawLegend
+local drawLegendForRectangle
+local drawLegendTitle
+local LegendTextColor
 local Metatable
 local makeEdgeRectangleArgs
 local makeLinkLineArgs
@@ -144,11 +148,14 @@ Metatable = {
                     target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
                 }
             end
+
             for rendererLink in pairs(layoutCoordinates.links) do
                 local categoryIndex = rendererLink.categoryIndex
                 local color = CategoryToColor[categoryIndex]
                 renderTree(self, rendererLink.tree, color)
             end
+
+            drawLegend(self)
         end,
     }
 }
@@ -171,6 +178,139 @@ DefaultLayoutParameters = LayoutParameters.new{
     vertexMinX = 1.6,
     vertexMinY = 1.6,
 }
+
+-- Draws a legend at the top-left of the graph.
+--
+-- Args:
+-- * self: SimpleRenderer object.
+--
+drawLegend = function(self)
+    local LegendXLength = 20
+    local canvas = self.canvas
+    local params = DefaultLayoutParameters
+    local xMin = self.layoutCoordinates.xMin
+    if xMin == math.huge then
+        xMin = 0
+    end
+    xMin = xMin - LegendXLength - 4
+    local yMin = self.layoutCoordinates.yMin
+    if yMin == math.huge then
+        yMin = 0
+    end
+    local cursor = {
+        x = xMin + 0.5,
+        y = yMin + 0.5,
+    }
+
+    drawLegendTitle(canvas, cursor)
+
+    drawLegendForRectangle(canvas, cursor, makeVertexRectangleArgs(), params.vertexMinX, params.vertexMinY, {"dana.renderer.simple.legend.vertexText"})
+    drawLegendForRectangle(canvas, cursor, makeEdgeRectangleArgs(), params.edgeMinX, params.edgeMinY, {"dana.renderer.simple.legend.edgeText"})
+
+    cursor.y = cursor.y + 0.75
+
+    -- Links
+    local lineArgs = makeLinkLineArgs()
+    for categoryIndex,color in pairs(CategoryToColor) do
+        local text = LinkCategory.get(categoryIndex).localisedDescription
+        lineArgs.color = color
+        drawLegendForLine(canvas, cursor, lineArgs, 1.6, text)
+    end
+
+    cursor.x = xMin + LegendXLength
+    canvas:newRectangle{
+        left_top = {xMin, yMin},
+        right_bottom = cursor,
+        color = LegendTextColor,
+        filled = false,
+    }
+end
+
+-- Draws a line in the legend box, and adds a description on its right.
+--
+-- Args:
+-- * canvas: Canvas object on which element will be drawn.
+-- * cursor: A {x=,y=} table indicating where to draw. The Y field will be incremented for the next legend element.
+-- * lineArgs: Table passed to Canvas:newLine(). Must contain all fields except from/to.
+-- * length: Length of the line to draw.
+-- * localisedText: Localised string to display near the line.
+--
+drawLegendForLine = function(canvas, cursor, lineArgs, length, localisedText)
+    local xStart = cursor.x
+    -- Line
+    lineArgs.from = cursor
+    lineArgs.to = {
+        x = xStart + length,
+        y = cursor.y,
+    }
+    canvas:newLine(lineArgs)
+    -- Text
+    cursor.y = cursor.y - 0.6
+    cursor.x = xStart + length + 0.5
+    canvas:newText{
+        text = localisedText,
+        target = cursor,
+        color = LegendTextColor,
+        scale = 2,
+    }
+    -- Position for the next line
+    cursor.y = cursor.y + 2.5
+    lineArgs.to.y = cursor.y
+    cursor.x = xStart
+end
+
+-- Draws a rectangle in the legend box, and adds a description on its right.
+--
+-- Args:
+-- * canvas: Canvas object on which element will be drawn.
+-- * cursor: A {x=,y=} table indicating where to draw. The Y field will be incremented for the next legend element.
+-- * rectangleArgs: Table passed to Canvas:newLine(). Must contain all fields except left_top/right_bottom.
+-- * xLength: Width of the rectangle.
+-- * yLength: Height of the rectangle.
+-- * localisedText: Localised string to display near the rectangle.
+--
+drawLegendForRectangle = function(canvas, cursor, rectangleArgs, xLength, yLength, localisedText)
+    local xStart = cursor.x
+    -- Rectangle
+    rectangleArgs.left_top = cursor
+    rectangleArgs.right_bottom = {
+        x = xStart + xLength,
+        y = cursor.y + yLength,
+    }
+    canvas:newRectangle(rectangleArgs)
+    -- Text
+    cursor.x = xStart + xLength + 0.5
+    cursor.y = cursor.y + 0.2
+    canvas:newText{
+        text = localisedText,
+        target = cursor,
+        color = LegendTextColor,
+        scale = 2,
+    }
+    -- Position for the next line
+    cursor.y = cursor.y + 2
+    cursor.x = xStart
+end
+
+-- Draws a title for the legend box.
+--
+-- Args:
+-- * canvas: Canvas object on which element will be drawn.
+-- * cursor: A {x=,y=} table indicating where to draw. The Y field will be incremented for the next legend element.
+--
+drawLegendTitle = function(canvas, cursor)
+    canvas:newText{
+        text = {"dana.renderer.simple.legend.title"},
+        target = cursor,
+        color = LegendTextColor,
+        scale = 5,
+    }
+    -- Position for the next line
+    cursor.y = cursor.y + 4
+end
+
+-- Color of the text in the legend.
+LegendTextColor = {a=1,r=0.8,g=0.8,b=0.8}
 
 -- Makes common constructor arguments for the background rectangle of edges.
 --
