@@ -42,6 +42,7 @@ local renderTree
 --
 -- RO properties:
 -- * layoutCoordinates: LayoutCoordinates object being rendered.
+-- * legendCenter (optional): {x=,y=} table indicating the center of the legend area (nil if no legend is drawn).
 -- * canvas: Canvas object on which the layout must be drawn.
 --
 -- Methods: see Metatable.__index.
@@ -223,6 +224,11 @@ drawLegend = function(self)
         right_bottom = cursor,
         color = LegendTextColor,
         filled = false,
+    }
+
+    self.legendCenter = ErrorOnInvalidRead.new{
+        x = (xMin + cursor.x) / 2,
+        y = (yMin + cursor.y) / 2,
     }
 end
 
