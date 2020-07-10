@@ -19,6 +19,7 @@ local CanvasCircle = require("lua/canvas/objects/CanvasCircle")
 local CanvasLine = require("lua/canvas/objects/CanvasLine")
 local CanvasRectangle = require("lua/canvas/objects/CanvasRectangle")
 local CanvasSprite = require("lua/canvas/objects/CanvasSprite")
+local CanvasText = require("lua/canvas/objects/CanvasText")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
@@ -163,6 +164,16 @@ Metatable = {
         --
         newSprite = function(self, initData)
             return drawWrapper(self, initData, CanvasSprite)
+        end,
+
+        -- Draws a new text.
+        --
+        -- Args:
+        -- * self: Canvas object.
+        -- * initData: Arguments passed to the rendering API (surface & players are filled by this method).
+        --
+        newText = function(self, initData)
+            return drawWrapper(self, initData, CanvasText)
         end,
     },
 
