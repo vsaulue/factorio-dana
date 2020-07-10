@@ -23,7 +23,7 @@ local cLogger = ClassLogger.new{className = "TreeLink"}
 -- Class representing a tree shaped link in a layout.
 --
 -- RO fields:
--- * category: a string.
+-- * categoryIndex: Index of the associated LinkCategory.
 -- * tree: TreeLinkNode object which is the root of the link.
 --
 local TreeLink = ErrorOnInvalidRead.new{
@@ -35,7 +35,7 @@ local TreeLink = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a TreeLink object.
     --
     new = function(object)
-        cLogger:assertField(object, "category")
+        cLogger:assertField(object, "categoryIndex")
         cLogger:assertField(object, "tree")
         ErrorOnInvalidRead.setmetatable(object)
         return object

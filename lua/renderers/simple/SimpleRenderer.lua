@@ -18,15 +18,15 @@ local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
 local LayoutParameters = require("lua/layouts/LayoutParameters")
+local LinkCategory = require("lua/layouts/LinkCategory")
 local RendererSelection = require("lua/renderers/RendererSelection")
 
 local cLogger = ClassLogger.new{className = "SimpleRenderer"}
 
-local Red = {r = 1, a = 1}
-local White = {r = 1, g = 1, b = 1, a = 1}
 local DarkGrey = {r = 0.1, g = 0.1, b = 0.1, a = 1}
 local LightGrey = {r = 0.2, g = 0.2, b = 0.2, a = 1}
 
+local CategoryToColor
 local DefaultLayoutParameters
 local Metatable
 local makeEdgeRectangleArgs
@@ -145,14 +145,18 @@ Metatable = {
                 }
             end
             for rendererLink in pairs(layoutCoordinates.links) do
-                local color = White
-                if rendererLink.category == "backward" then
-                    color = Red
-                end
+                local categoryIndex = rendererLink.categoryIndex
+                local color = CategoryToColor[categoryIndex]
                 renderTree(self, rendererLink.tree, color)
             end
         end,
     }
+}
+
+-- Map[categoryIndex] -> Color, used to determine the color of the links.
+CategoryToColor = ErrorOnInvalidRead.new{
+    ["layer.forward"] = {r = 1, g = 1, b = 1, a = 1},
+    ["layer.backward"] = {a = 1, r = 1},
 }
 
 -- LayoutParameters object, used by all instances of SimpleRenderer.

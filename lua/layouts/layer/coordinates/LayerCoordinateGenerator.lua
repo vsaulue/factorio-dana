@@ -20,6 +20,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayerEntryPosition = require("lua/layouts/layer/coordinates/LayerEntryPosition")
 local LayerXPass = require("lua/layouts/layer/coordinates/LayerXPass")
 local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
+local LinkCategory = require("lua/layouts/LinkCategory")
 local TreeLink = require("lua/layouts/TreeLink")
 local Logger = require("lua/logger/Logger")
 local Stack = require("lua/containers/Stack")
@@ -48,6 +49,7 @@ local fillLayoutCoordinates
 local generateTreeLinks
 local generateTreeLinksFromNode
 local initChannelRouters
+local LinkCategories
 local processChannelLayer
 
 -- Creates and adds a tree link to the generated layout.
@@ -58,12 +60,8 @@ local processChannelLayer
 -- * isForward: True for forward links, false for backward links.
 --
 addTreeLink = function(self, rootNode, isForward)
-    local category = "forward"
-    if not isForward then
-        category = "backward"
-    end
     local treeLink = TreeLink.new{
-        category = category,
+        categoryIndex = LinkCategories[isForward].index,
         tree = rootNode,
     }
     self.result:addTreeLink(treeLink)
@@ -223,6 +221,18 @@ initChannelRouters = function(self)
     end
     routers.count = count
 end
+
+-- Map[isForward] -> LinkCategory: Gets the category of a link depending on channelIndex.isForward.
+LinkCategories = ErrorOnInvalidRead.new{
+    [true] = LinkCategory.make{
+        index = "layer.forward",
+        localisedDescription = {"dana.layouts.layer.linkCategories.forwardDesc"},
+    },
+    [false] = LinkCategory.make{
+        index = "layer.backward",
+        localisedDescription = {"dana.layouts.layer.linkCategories.backwardDesc"},
+    },
+}
 
 -- Computes the coordinates of each elements of a LayerLayout object.
 --
