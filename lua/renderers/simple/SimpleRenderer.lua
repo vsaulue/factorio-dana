@@ -29,6 +29,9 @@ local LightGrey = {r = 0.2, g = 0.2, b = 0.2, a = 1}
 
 local DefaultLayoutParameters
 local Metatable
+local makeEdgeRectangleArgs
+local makeLinkLineArgs
+local makeVertexRectangleArgs
 local renderTree
 
 -- Class used to render graphs onto a LuaSurface.
@@ -101,15 +104,20 @@ Metatable = {
             local layoutCoordinates = layout:computeCoordinates(DefaultLayoutParameters)
             self.layoutCoordinates = layoutCoordinates
             local canvas = self.canvas
+
+            local left_top = {}
+            local right_bottom = {}
+
+            local vertexRectangleArgs = makeVertexRectangleArgs()
+            vertexRectangleArgs.selectable = true
+            vertexRectangleArgs.left_top = left_top
+            vertexRectangleArgs.right_bottom = right_bottom
             for vertexIndex,coords in pairs(layoutCoordinates.vertices) do
-                local rectangle = canvas:newRectangle{
-                    color = LightGrey,
-                    draw_on_ground = true,
-                    filled = true,
-                    left_top = {coords.xMin, coords.yMin},
-                    right_bottom = {coords.xMax, coords.yMax},
-                    selectable = true
-                }
+                left_top.x = coords.xMin
+                left_top.y = coords.yMin
+                right_bottom.x = coords.xMax
+                right_bottom.y = coords.yMax
+                local rectangle = canvas:newRectangle(vertexRectangleArgs)
                 rectangle.rendererType = "vertex"
                 rectangle.rendererIndex = vertexIndex
                 canvas:newSprite{
@@ -117,15 +125,18 @@ Metatable = {
                     target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
                 }
             end
+
+            local edgeRectangleArgs = makeEdgeRectangleArgs()
+            edgeRectangleArgs.selectable = true
+            edgeRectangleArgs.left_top = left_top
+            edgeRectangleArgs.right_bottom = right_bottom
             for edgeIndex,coords in pairs(layoutCoordinates.edges) do
-                local rectangle = canvas:newRectangle{
-                    color = DarkGrey,
-                    draw_on_ground = true,
-                    filled = true,
-                    left_top = {coords.xMin, coords.yMin},
-                    right_bottom = {coords.xMax, coords.yMax},
-                    selectable = true,
-                }
+                left_top.x = coords.xMin
+                left_top.y = coords.yMin
+                right_bottom.x = coords.xMax
+                right_bottom.y = coords.yMax
+                local rectangle = canvas:newRectangle(edgeRectangleArgs)
+                rectangle.selectable = true
                 rectangle.rendererType = "edge"
                 rectangle.rendererIndex = edgeIndex
                 canvas:newSprite{
@@ -157,6 +168,41 @@ DefaultLayoutParameters = LayoutParameters.new{
     vertexMinY = 1.6,
 }
 
+-- Makes common constructor arguments for the background rectangle of edges.
+--
+-- Returns: A partially filled table usable in Canvas:makeRectangle().
+--
+makeEdgeRectangleArgs = function()
+    return {
+        color = DarkGrey,
+        draw_on_ground = true,
+        filled = true,
+    }
+end
+
+-- Makes common constructor arguments for the lines of links.
+--
+-- Returns: A partially filled table usable in Canvas:makeLine().
+--
+makeLinkLineArgs = function()
+    return {
+        draw_on_ground = true,
+        width = 1,
+    }
+end
+
+-- Makes common constructor arguments for the background rectangle of vertices.
+--
+-- Returns: A partially filled table usable in Canvas:makeRectangle().
+--
+makeVertexRectangleArgs = function()
+    return {
+        color = LightGrey,
+        draw_on_ground = true,
+        filled = true,
+    }
+end
+
 -- Renders a tree link.
 --
 -- TODO: non-recursive implementation
@@ -169,17 +215,18 @@ DefaultLayoutParameters = LayoutParameters.new{
 renderTree = function(self,tree,color)
     local canvas = self.canvas
     local from = {tree.x, tree.y}
+    local lineArgs = makeLinkLineArgs()
+    lineArgs.color = color
+    lineArgs.from = from
+    lineArgs.to = {}
+    lineArgs.selectable = true
+
     local count = 0
     for subtree in pairs(tree.children) do
         count = count + 1
-        local line = canvas:newLine{
-            color = color,
-            draw_on_ground = true,
-            from = from,
-            to = {subtree.x, subtree.y},
-            width = 1,
-            selectable = true
-        }
+        lineArgs.to.x = subtree.x
+        lineArgs.to.y = subtree.y
+        local line = canvas:newLine(lineArgs)
         line.rendererType = "treeLinkNode"
         line.rendererIndex = subtree
         renderTree(self, subtree, color)
