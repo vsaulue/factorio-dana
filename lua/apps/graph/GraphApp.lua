@@ -33,6 +33,7 @@ local makeEdge
 local Metatable
 local NewQueryButton
 local ViewGraphButton
+local ViewLegendButton
 
 -- Application to display a crafting hypergraph.
 --
@@ -93,6 +94,13 @@ local GraphApp = ErrorOnInvalidRead.new{
                 caption = {"dana.apps.graph.moveToGraph"},
             })
         }
+        object.viewLegendButton = ViewLegendButton.new{
+            app = object,
+            rawElement = GuiAlign.makeVerticallyCentered(menuFlow, {
+                type = "button",
+                caption = {"dana.apps.graph.moveToLegend"},
+            })
+        }
 
         object:viewGraphCenter()
 
@@ -109,6 +117,7 @@ local GraphApp = ErrorOnInvalidRead.new{
         DirectedHypergraph.setmetatable(object.graph)
         NewQueryButton.setmetatable(object.newQueryButton)
         ViewGraphButton.setmetatable(object.viewGraphButton)
+        ViewLegendButton.setmetatable(object.viewLegendButton)
         SelectionWindow.setmetatable(object.guiSelection)
         SimpleRenderer.setmetatable(object.renderer)
         setmetatable(object, Metatable)
@@ -168,6 +177,18 @@ Metatable = {
                 self.guiSelection:setSelection(rendererSelection)
             end
         end,
+
+        -- Moves the view to the legend of the graph.
+        --
+        -- Args:
+        -- * self: GraphApp object.
+        --
+        viewLegend = function(self)
+            local legendPos = rawget(self.renderer, "legendCenter")
+            if legendPos then
+                self.appController.appResources.positionController:setPosition(self.renderer.legendCenter)
+            end
+        end,
     },
 }
 setmetatable(Metatable.__index, AbstractApp.Metatable.__index)
@@ -202,6 +223,21 @@ ViewGraphButton = GuiElement.newSubclass{
             self.app:viewGraphCenter()
         end,
     },
+}
+
+-- Button to move the player to the legend of the graph.
+--
+-- RO Fields:
+-- * app: GraphApp owning this button.
+--
+ViewLegendButton = GuiElement.newSubclass{
+    className = "GraphApp/ViewLegendButton",
+    mandatoryFields = {"app"},
+    __index = {
+        onClick = function(self, event)
+            self.app:viewLegend()
+        end,
+    }
 }
 
 AbstractApp.Factory:registerClass(AppName, GraphApp)
