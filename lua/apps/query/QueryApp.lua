@@ -100,6 +100,16 @@ Metatable = {
             setTopWindowVisible(self, true)
         end,
 
+        -- Hides the current window, and shows a new one.
+        --
+        -- Args:
+        -- * self: QueryApp object.
+        --
+        pushStepWindow = function(self, newWindow)
+            setTopWindowVisible(self, false)
+            self.stepWindows:push(newWindow)
+        end,
+
         -- Runs the query, and switch to the Graph app.
         --
         -- Args:
