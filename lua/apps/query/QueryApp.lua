@@ -89,6 +89,17 @@ Metatable = {
             setTopWindowVisible(self, false)
         end,
 
+        -- Closes the top window, and shows the previous one.
+        --
+        -- Args:
+        -- * self: QueryApp object.
+        --
+        popStepWindow = function(self)
+            local window = self.stepWindows:pop()
+            window:close()
+            setTopWindowVisible(self, true)
+        end,
+
         -- Runs the query, and switch to the Graph app.
         --
         -- Args:
@@ -103,17 +114,6 @@ Metatable = {
                 graph = graph,
                 vertexDists = vertexDists,
             }
-        end,
-
-        -- Hides the QueryEditor window, and reopen the TemplateSelectWindow.
-        --
-        -- Args:
-        -- * self: QueryApp object.
-        --
-        returnToTemplateSelect = function(self)
-            local queryEditor = self.stepWindows:pop()
-            queryEditor:close()
-            setTopWindowVisible(self, true)
         end,
 
         -- Loads a preset query, and opens the QueryEditor.
