@@ -18,7 +18,6 @@ local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
 local AbstractApp = require("lua/apps/AbstractApp")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Query = require("lua/model/query/Query")
-local QueryEditor = require("lua/apps/query/gui/QueryEditor")
 local Stack = require("lua/containers/Stack")
 local TemplateSelectWindow = require("lua/apps/query/gui/TemplateSelectWindow")
 
@@ -124,21 +123,6 @@ Metatable = {
                 graph = graph,
                 vertexDists = vertexDists,
             }
-        end,
-
-        -- Loads a preset query, and opens the QueryEditor.
-        --
-        -- Args:
-        -- * self: QueryApp object.
-        -- * queryTemplate: QueryTemplate object, used to generate the preset query.
-        --
-        selectTemplate = function(self, queryTemplate)
-            queryTemplate.applyTemplate(self)
-
-            setTopWindowVisible(self, false)
-            self.stepWindows:push(QueryEditor.new{
-                app = self,
-            })
         end,
 
         -- Implements AbstractApp:show().
