@@ -19,6 +19,7 @@ local AllQueryFilter = require("lua/model/query/filter/AllQueryFilter")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
+local QueryEditor = require("lua/apps/query/gui/QueryEditor")
 local QueryTemplates = require("lua/apps/query/QueryTemplates")
 
 local cLogger = ClassLogger.new{className = "queryApp/TemplateSelectWindow"}
@@ -135,7 +136,12 @@ TemplateSelectButton = GuiElement.newSubclass{
     __index = {
         onClick = function(self, event)
             local template = QueryTemplates[self.templateName]
-            self.app:selectTemplate(template)
+            local app = self.app
+
+            template.applyTemplate(app)
+            app:pushStepWindow(QueryEditor.new{
+                app = app,
+            })
         end,
     },
 }
