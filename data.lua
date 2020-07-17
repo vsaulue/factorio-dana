@@ -32,7 +32,7 @@ data:extend{
         selection_mode = {"nothing"},
         selection_cursor_box_type = "copy",
         alt_selection_cursor_box_type = "copy",
-        flags = {"not-stackable"},
+        flags = {"not-stackable","only-in-cursor"},
         stack_size = 1,
         icon = "__base__/graphics/icons/blueprint.png",
         icon_mipmaps = 4,
