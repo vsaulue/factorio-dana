@@ -31,7 +31,8 @@ local QueryTemplates = ErrorOnInvalidRead.new{
             app.query.filter = ReachableQueryFilter.new{
                 isForward = false,
             }
-            app.queryEditor:changeFilterEditor(ReachableFilterEditor)
+            local stack = app.stepWindows
+            stack[stack.topIndex]:changeFilterEditor(ReachableFilterEditor)
         end,
 
         caption = {"dana.apps.query.templateSelectWindow.howToMake"},
@@ -43,7 +44,8 @@ local QueryTemplates = ErrorOnInvalidRead.new{
             app.query.filter = ReachableQueryFilter.new{
                 isForward = true,
             }
-            app.queryEditor:changeFilterEditor(ReachableFilterEditor)
+            local stack = app.stepWindows
+            stack[stack.topIndex]:changeFilterEditor(ReachableFilterEditor)
         end,
 
         caption = {"dana.apps.query.templateSelectWindow.usagesOf"},

@@ -14,24 +14,25 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
 local AbstractApp = require("lua/apps/AbstractApp")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Query = require("lua/model/query/Query")
 local QueryEditor = require("lua/apps/query/gui/QueryEditor")
+local Stack = require("lua/containers/Stack")
 local TemplateSelectWindow = require("lua/apps/query/gui/TemplateSelectWindow")
 
 local AppName
 local Metatable
+local setTopWindowVisible
 
 -- Application to build crafting hypergraphs from a Force's database.
 --
 -- Inherits from AbstractApp.
 --
 -- RO Fields:
--- * isTemplateSelected: boolean indicating if the TemplateSelectWindow is currently opened.
 -- * query: Query object being built and run.
--- * queryEditor: QueryEditor object used to edit the query of this object.
--- * templateSelectWindow: TemplateSelectWindow object of this application.
+-- * stepWindows: Stack of AbstractStepWindow objects (the top one is the only active).
 --
 local QueryApp = ErrorOnInvalidRead.new{
     -- Creates a new QueryApp object.
@@ -47,13 +48,10 @@ local QueryApp = ErrorOnInvalidRead.new{
 
         AbstractApp.new(object, Metatable)
 
-        object.isTemplateSelected = false
-        object.queryEditor = QueryEditor.new{
+        object.stepWindows = Stack.new()
+        object.stepWindows:push(TemplateSelectWindow.new{
             app = object,
-        }
-        object.templateSelectWindow = TemplateSelectWindow.new{
-            app = object,
-        }
+        })
 
         return object
     end,
@@ -65,9 +63,13 @@ local QueryApp = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
-        TemplateSelectWindow.setmetatable(object.templateSelectWindow)
         Query.setmetatable(object.query)
-        QueryEditor.setmetatable(object.queryEditor)
+
+        local stack = object.stepWindows
+        Stack.setmetatable(stack)
+        for index=1,stack.topIndex do
+            AbstractStepWindow.Factory:restoreMetatable(stack[index])
+        end
     end,
 }
 
@@ -76,14 +78,15 @@ Metatable = {
     __index = {
         -- Implements AbstractApp:close().
         close = function(self)
-            self.queryEditor:close()
-            self.templateSelectWindow:close()
+            local stack = self.stepWindows
+            for index=stack.topIndex,1,-1 do
+                stack[index]:close()
+            end
         end,
 
         -- Implements AbstractApp:hide().
         hide = function(self)
-            self.templateSelectWindow.frame.visible = false
-            self.queryEditor.frame.visible = false
+            setTopWindowVisible(self, false)
         end,
 
         -- Runs the query, and switch to the Graph app.
@@ -108,9 +111,9 @@ Metatable = {
         -- * self: QueryApp object.
         --
         returnToTemplateSelect = function(self)
-            self.isTemplateSelected = false
-            self.templateSelectWindow.frame.visible = true
-            self.queryEditor.frame.visible = false
+            local queryEditor = self.stepWindows:pop()
+            queryEditor:close()
+            setTopWindowVisible(self, true)
         end,
 
         -- Loads a preset query, and opens the QueryEditor.
@@ -120,20 +123,17 @@ Metatable = {
         -- * queryTemplate: QueryTemplate object, used to generate the preset query.
         --
         selectTemplate = function(self, queryTemplate)
-            queryTemplate.applyTemplate(self)
+            setTopWindowVisible(self, false)
+            self.stepWindows:push(QueryEditor.new{
+                app = self,
+            })
 
-            self.isTemplateSelected = true
-            self.templateSelectWindow.frame.visible = false
-            self.queryEditor.frame.visible = true
+            queryTemplate.applyTemplate(self)
         end,
 
         -- Implements AbstractApp:show().
         show = function(self)
-            if self.isTemplateSelected then
-                self.queryEditor.frame.visible = true
-            else
-                self.templateSelectWindow.frame.visible = true
-            end
+            setTopWindowVisible(self, true)
         end,
     },
 }
@@ -141,6 +141,17 @@ setmetatable(Metatable.__index, {__index = AbstractApp.Metatable.__index})
 
 -- Unique name for this application.
 AppName = "query"
+
+-- Shows (or hide) the frame of the AbstractStepWindow on top of the stack.
+--
+-- Args:
+-- * self: QueryApp object.
+-- * value: True for visible, false to hide.
+--
+setTopWindowVisible = function(self, value)
+    local stack = self.stepWindows
+    stack[stack.topIndex].frame.visible = value
+end
 
 AbstractApp.Factory:registerClass(AppName, QueryApp)
 return QueryApp
