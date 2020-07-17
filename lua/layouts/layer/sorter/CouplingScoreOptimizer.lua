@@ -37,7 +37,7 @@ local CouplingScoreOptimizer = ErrorOnInvalidRead.new{
 }
 
 -- Implementation stuff (private scope).
-local computeCouplingScoreDelta
+local computeHalfScoreDelta
 local sortByHighestCouplingCoefficient
 local swapAndGetDelta
 

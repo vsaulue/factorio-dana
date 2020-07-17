@@ -125,8 +125,6 @@ Metatable = {
             self.previousControllerType = nil
             self.previousCharacter = nil
         end,
-
-        set
     }
 }
 

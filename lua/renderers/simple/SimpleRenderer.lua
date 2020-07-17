@@ -29,6 +29,7 @@ local LightGrey = {r = 0.2, g = 0.2, b = 0.2, a = 1}
 local CategoryToColor
 local DefaultLayoutParameters
 local drawLegend
+local drawLegendForLine
 local drawLegendForRectangle
 local drawLegendTitle
 local LegendTextColor

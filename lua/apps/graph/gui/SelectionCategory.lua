@@ -49,7 +49,6 @@ local SelectionCategory = ErrorOnInvalidRead.new{
             root = selectionWindow.frame.add{
                 type = "flow",
                 direction = "vertical",
-                name = name,
                 visible = false,
             },
         }

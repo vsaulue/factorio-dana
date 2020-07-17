@@ -22,6 +22,7 @@ local cLogger = ClassLogger.new{className = "LayerEntryPosition"}
 
 local buildNodes
 local computeSlotsX
+local Metatable
 local nodesFieldName
 local setSlotsY
 local translateNodesX
