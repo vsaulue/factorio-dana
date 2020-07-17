@@ -33,6 +33,14 @@ describe("Stack", function()
         assert.are.equals(stack.topIndex, 0)
     end)
 
+    it("setmetatable", function()
+        local testStack = {
+            topIndex = 0,
+        }
+        Stack.setmetatable(testStack)
+        assert.are.equals(testStack.push, stack.push)
+    end)
+
     describe(":pop()", function()
         it("-- valid", function()
             setSampleStack(stack)

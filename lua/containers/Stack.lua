@@ -40,7 +40,16 @@ local Stack = ErrorOnInvalidRead.new{
         }
         setmetatable(result, Metatable)
         return result
-    end
+    end,
+
+    -- Assigns Stack's metatable to the argument.
+    --
+    -- Args:
+    -- * object: Table to modify.
+    --
+    setmetatable = function(object)
+        setmetatable(object, Metatable)
+    end,
 }
 
 -- Metatable of the Stack class.
