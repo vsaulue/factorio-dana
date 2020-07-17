@@ -24,7 +24,6 @@ local cLogger = ClassLogger.new{className = "QueryEditor"}
 
 local BackButton
 local DrawButton
-local Metatable
 local StepName
 
 -- GUI Window to edit a the query of a QueryApp.
@@ -33,7 +32,6 @@ local StepName
 -- * backButton: BackButton object of this window.
 -- * drawButton: DrawButton of this window.
 -- * filterEditor: AbstractFilterEditor of this window.
--- * filterEditorRoot: LuaGuiElement used as root of the filter editor.
 --
 local QueryEditor = ErrorOnInvalidRead.new{
     -- Creates a new QueryEditor object.
@@ -45,7 +43,7 @@ local QueryEditor = ErrorOnInvalidRead.new{
     --
     new = function(object)
         object.stepName = StepName
-        AbstractStepWindow.new(object, Metatable)
+        AbstractStepWindow.new(object)
 
         local app = object.app
         object.frame.caption = {"dana.apps.query.queryEditor.title"}
@@ -55,9 +53,10 @@ local QueryEditor = ErrorOnInvalidRead.new{
             style = "inside_shallow_frame_with_padding",
             direction = "vertical",
         }
-        object.filterEditorRoot = innerFrame.add{
-            type = "flow",
-            direction = "vertical",
+        object.filterEditor = AbstractFilterEditor.Factory:make{
+            appResources = app.appController.appResources,
+            filter = app.query.filter,
+            root = innerFrame,
         }
         local bottomFlow = object.frame.add{
             type = "flow",
@@ -95,33 +94,10 @@ local QueryEditor = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         BackButton.setmetatable(object.backButton)
         DrawButton.setmetatable(object.drawButton)
-        if object.filterEditor then
-            AbstractFilterEditor.Factory:restoreMetatable(object.filterEditor)
-        end
-        setmetatable(object, Metatable)
+        AbstractFilterEditor.Factory:restoreMetatable(object.filterEditor)
+        setmetatable(object, AbstractStepWindow.Metatable)
     end,
 }
-
--- Metatable of the QueryEditor class.
-Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Changes the filter editor of this object.
-        --
-        -- Args:
-        -- * self: QueryEditor object.
-        -- * filterEditorClass: Table of the class of the new filter AbstractFilterEditor.
-        --
-        changeFilterEditor = function(self, filterEditorClass)
-            GuiElement.clear(self.filterEditorRoot)
-            self.filterEditor = filterEditorClass.new{
-                appResources = self.app.appController.appResources,
-                filter = self.app.query.filter,
-                root = self.filterEditorRoot,
-            }
-        end,
-    },
-}
-setmetatable(Metatable.__index, {__index = AbstractStepWindow.Metatable.__index})
 
 -- Button to go back to the TemplateSelectWindow.
 --

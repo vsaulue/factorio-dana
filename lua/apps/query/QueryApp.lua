@@ -123,12 +123,12 @@ Metatable = {
         -- * queryTemplate: QueryTemplate object, used to generate the preset query.
         --
         selectTemplate = function(self, queryTemplate)
+            queryTemplate.applyTemplate(self)
+
             setTopWindowVisible(self, false)
             self.stepWindows:push(QueryEditor.new{
                 app = self,
             })
-
-            queryTemplate.applyTemplate(self)
         end,
 
         -- Implements AbstractApp:show().
