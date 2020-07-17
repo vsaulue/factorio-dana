@@ -24,6 +24,7 @@ local cLogger = ClassLogger.new{className = "graphApp/SelectionWindow"}
 local Categories
 local CategoriesOrder
 local Metatable
+local SelectToolButton
 
 -- GUI to display selected parts of a graph.
 --
@@ -33,6 +34,7 @@ local Metatable
 -- * maxCategoryHeight: Maximum height of a category.
 -- * noSelection: Gui flow displaying the "Empty selection" message.
 -- * rawPlayer: LuaPlayer object.
+-- * selectToolButton: SelectToolButton of this window.
 --
 local SelectionWindow = ErrorOnInvalidRead.new{
     -- Creates a new SelectionWindow object.
@@ -51,7 +53,16 @@ local SelectionWindow = ErrorOnInvalidRead.new{
         }
         object.frame.location = {0,50}
         object.frame.style.maximal_height = rawPlayer.display_resolution.height - 50
-        object.maxCategoryHeight = object.frame.style.maximal_height - (1+#CategoriesOrder)*32
+        object.maxCategoryHeight = object.frame.style.maximal_height - 20 - (1+#CategoriesOrder)*32
+
+        object.selectToolButton = SelectToolButton.new{
+            rawElement = object.frame.add{
+                type = "button",
+                caption = {"dana.apps.graph.selectionWindow.selectButton"},
+            },
+            rawPlayer = rawPlayer,
+        }
+        object.selectToolButton.rawElement.style.horizontally_stretchable = true
 
         local categoryHeight = object.frame.style.maximal_height - (1+#CategoriesOrder)*20
 
@@ -76,6 +87,8 @@ local SelectionWindow = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
+        SelectToolButton.setmetatable(object.selectToolButton)
+
         ErrorOnInvalidRead.setmetatable(object.categories)
         for _,category in pairs(object.categories) do
             SelectionCategory.setmetatable(category)
@@ -129,5 +142,23 @@ Metatable = {
 
 -- Array of category names, holding the order in which they are displayed.
 CategoriesOrder = {"vertices", "edges", "links"}
+
+-- Button to give the dana-select item to the player.
+--
+-- RO Fields:
+-- * rawPlayer: Player to give the item to.
+--
+SelectToolButton = GuiElement.newSubclass{
+    className = "GraphApp/SelectToolButton",
+    mandatoryFields = {"rawPlayer"},
+    __index = {
+        onClick = function(self, event)
+            self.rawPlayer.clean_cursor()
+            self.rawPlayer.cursor_stack.set_stack{
+                name = "dana-select",
+            }
+        end,
+    },
+}
 
 return SelectionWindow
