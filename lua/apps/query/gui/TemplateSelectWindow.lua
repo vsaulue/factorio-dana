@@ -24,7 +24,6 @@ local QueryTemplates = require("lua/apps/query/QueryTemplates")
 local cLogger = ClassLogger.new{className = "queryApp/TemplateSelectWindow"}
 
 local FullGraphButton
-local Metatable
 local StepName
 local TemplateSelectButton
 
@@ -46,8 +45,8 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
     --
     new = function(object)
         object.stepName = StepName
-
         AbstractStepWindow.new(object)
+
         object.frame.caption = {"dana.apps.query.templateSelectWindow.title"}
         local app = object.app
 
@@ -82,7 +81,6 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
             }
             object.templateButtons[newButton] = true
         end
-        setmetatable(object, Metatable)
         return object
     end,
 
@@ -92,7 +90,7 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        setmetatable(object, AbstractStepWindow.Metatable)
         FullGraphButton.setmetatable(object.fullGraphButton)
 
         ErrorOnInvalidRead.setmetatable(object.templateButtons)
@@ -100,20 +98,6 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
             TemplateSelectButton.setmetatable(templateButton)
         end
     end,
-}
-
--- Metatable of the TemplateSelectWindow class.
-Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Releases all API resources of this object.
-        --
-        -- Args:
-        -- * self: TemplateSelectWindow object.
-        --
-        close = function(self)
-            GuiElement.destroy(self.frame)
-        end,
-    }
 }
 
 -- Button to display the full recipe graph.

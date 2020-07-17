@@ -21,6 +21,8 @@ local GuiElement = require("lua/gui/GuiElement")
 
 local cLogger = ClassLogger.new{className = "queryApp/AbstractStepWindow"}
 
+local Metatable
+
 -- Base class for windows of the QueryApp.
 --
 -- RO Fields:
@@ -36,6 +38,20 @@ local AbstractStepWindow = ErrorOnInvalidRead.new{
         end,
     },
 
+    -- Metatable of the AbstractStepWindow class.
+    Metatable = {
+        __index = ErrorOnInvalidRead.new{
+            -- Releases all API resources of this object.
+            --
+            -- Args:
+            -- * self: QueryEditor object.
+            --
+            close = function(self)
+                GuiElement.destroy(self.frame)
+            end,
+        },
+    },
+
     -- Creates a new AbstractStepWindow object.
     --
     -- Args:
@@ -43,7 +59,7 @@ local AbstractStepWindow = ErrorOnInvalidRead.new{
     --
     -- Returns: The argument turned into an AbstractStepWindow object.
     --
-    new = function(object)
+    new = function(object, metatable)
         local app = cLogger:assertField(object, "app")
         cLogger:assertField(object, "stepName")
 
@@ -52,8 +68,11 @@ local AbstractStepWindow = ErrorOnInvalidRead.new{
             direction = "vertical",
         }
 
+        setmetatable(object, metatable or Metatable)
         return object
     end,
 }
+
+Metatable = AbstractStepWindow.Metatable
 
 return AbstractStepWindow

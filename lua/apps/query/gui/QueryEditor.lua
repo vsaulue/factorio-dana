@@ -45,9 +45,8 @@ local QueryEditor = ErrorOnInvalidRead.new{
     --
     new = function(object)
         object.stepName = StepName
-        setmetatable(object, Metatable)
+        AbstractStepWindow.new(object, Metatable)
 
-        AbstractStepWindow.new(object)
         local app = object.app
         object.frame.caption = {"dana.apps.query.queryEditor.title"}
 
@@ -120,17 +119,9 @@ Metatable = {
                 root = self.filterEditorRoot,
             }
         end,
-
-        -- Releases all API resources of this object.
-        --
-        -- Args:
-        -- * self: QueryEditor object.
-        --
-        close = function(self)
-            GuiElement.destroy(self.frame)
-        end,
     },
 }
+setmetatable(Metatable.__index, {__index = AbstractStepWindow.Metatable.__index})
 
 -- Button to go back to the TemplateSelectWindow.
 --
