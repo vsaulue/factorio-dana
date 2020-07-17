@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
 local AbstractFilterEditor = require("lua/apps/query/gui/AbstractFilterEditor")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
@@ -24,16 +25,15 @@ local cLogger = ClassLogger.new{className = "QueryEditor"}
 local BackButton
 local DrawButton
 local Metatable
+local StepName
 
 -- GUI Window to edit a the query of a QueryApp.
 --
 -- RO Fields:
--- * app: QueryApp object owning this window.
 -- * backButton: BackButton object of this window.
 -- * drawButton: DrawButton of this window.
 -- * filterEditor: AbstractFilterEditor of this window.
 -- * filterEditorRoot: LuaGuiElement used as root of the filter editor.
--- * frame: Frame object from Factorio (LuaGuiElement).
 --
 local QueryEditor = ErrorOnInvalidRead.new{
     -- Creates a new QueryEditor object.
@@ -44,13 +44,13 @@ local QueryEditor = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a QueryEditor object.
     --
     new = function(object)
-        local app = cLogger:assertField(object, "app")
+        object.stepName = StepName
         setmetatable(object, Metatable)
-        object.frame = app.appController.appResources.rawPlayer.gui.center.add{
-            type = "frame",
-            direction = "vertical",
-            caption = {"dana.apps.query.queryEditor.title"},
-        }
+
+        AbstractStepWindow.new(object)
+        local app = object.app
+        object.frame.caption = {"dana.apps.query.queryEditor.title"}
+
         local innerFrame = object.frame.add{
             type = "frame",
             style = "inside_shallow_frame_with_padding",
@@ -166,4 +166,8 @@ DrawButton = GuiElement.newSubclass{
     },
 }
 
+-- Unique name for this step.
+StepName = "queryEditor"
+
+AbstractStepWindow.Factory:registerClass(StepName, QueryEditor)
 return QueryEditor
