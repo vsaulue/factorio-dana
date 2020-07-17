@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
 local AllQueryFilter = require("lua/model/query/filter/AllQueryFilter")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
@@ -24,13 +25,14 @@ local cLogger = ClassLogger.new{className = "queryApp/TemplateSelectWindow"}
 
 local FullGraphButton
 local Metatable
+local StepName
 local TemplateSelectButton
 
 -- A menu window with a button for each query template.
 --
+-- Inherits from AbstractStepWindow.
+--
 -- RO Fields:
--- * app: QueryApp owning this window.
--- * frame: Frame object from Factorio (LuaGuiElement).
 -- * fullGraphButton: FullGraphButton object.
 -- * templateButtons: Set of TemplateSelectButton owned by this window.
 --
@@ -43,11 +45,12 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a TemplateSelectWindow object.
     --
     new = function(object)
-        local app = cLogger:assertField(object, "app")
-        object.frame = app.appController.appResources.rawPlayer.gui.center.add{
-            type = "frame",
-            caption = {"dana.apps.query.templateSelectWindow.title"},
-        }
+        object.stepName = StepName
+
+        AbstractStepWindow.new(object)
+        object.frame.caption = {"dana.apps.query.templateSelectWindow.title"}
+        local app = object.app
+
         local innerFrame = object.frame.add{
             type = "frame",
             style = "inside_deep_frame",
@@ -131,6 +134,9 @@ FullGraphButton = GuiElement.newSubclass{
     },
 }
 
+-- Unique name for this step.
+StepName = "templateSelect"
+
 -- Button to select a preset query template.
 --
 -- Inherits from GuiElement.
@@ -150,4 +156,5 @@ TemplateSelectButton = GuiElement.newSubclass{
     },
 }
 
+AbstractStepWindow.Factory:registerClass(StepName, TemplateSelectWindow)
 return TemplateSelectWindow
