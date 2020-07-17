@@ -30,6 +30,8 @@ local cLogger = ClassLogger.new{className = "queryApp/AbstractFilterEditor"}
 local AbstractFilterEditor = ErrorOnInvalidRead.new{
     -- Factory instance able to restore metatables of AbstractFilterEditor objects.
     Factory = AbstractFactory.new{
+        enableMake = true,
+
         getClassNameOfObject = function(object)
             return object.filter.filterType
         end,
