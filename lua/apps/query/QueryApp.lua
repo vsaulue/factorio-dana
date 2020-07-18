@@ -16,6 +16,7 @@
 
 local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
 local AbstractApp = require("lua/apps/AbstractApp")
+local EmptyGraphWindow = require("lua/apps/query/gui/EmptyGraphWindow")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Query = require("lua/model/query/Query")
 local Stack = require("lua/containers/Stack")
@@ -118,11 +119,23 @@ Metatable = {
             local query = self.query
             local force = self.appController.appResources.force
             local graph,vertexDists = query:execute(force)
-            self.appController:makeAndSwitchApp{
-                appName = "graph",
-                graph = graph,
-                vertexDists = vertexDists,
-            }
+
+            local vertexCount = 0
+            for _ in pairs(graph.vertices) do
+                vertexCount = vertexCount + 1
+            end
+
+            if vertexCount > 0 then
+                self.appController:makeAndSwitchApp{
+                    appName = "graph",
+                    graph = graph,
+                    vertexDists = vertexDists,
+                }
+            else
+                self:pushStepWindow(EmptyGraphWindow.new{
+                    app = self,
+                })
+            end
         end,
 
         -- Implements AbstractApp:show().
