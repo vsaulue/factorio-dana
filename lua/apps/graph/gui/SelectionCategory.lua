@@ -250,6 +250,12 @@ EdgeTypeIcon = ErrorOnInvalidRead.new{
         sprite = "dana-boiler-icon",
         tooltip = AbstractTransform.TypeToLocalisedStr.boiler,
     },
+    fuel = {
+        type = "sprite",
+        name = "typeIcon",
+        sprite = "dana-fuel-icon",
+        tooltip = AbstractTransform.TypeToLocalisedStr.fuel,
+    },
     recipe = {
         type = "sprite",
         name = "typeIcon",
