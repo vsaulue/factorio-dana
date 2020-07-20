@@ -71,6 +71,9 @@ Metatable = {
             for _,boiler in pairs(force.prototypes.transforms.boiler) do
                 result:addEdge(makeEdge(boiler))
             end
+            for _,fuel in pairs(force.prototypes.transforms.fuel) do
+                result:addEdge(makeEdge(fuel))
+            end
 
             return result
         end,
