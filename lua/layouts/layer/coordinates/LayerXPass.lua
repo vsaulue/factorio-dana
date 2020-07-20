@@ -50,7 +50,7 @@ local LayerXPass = ErrorOnInvalidRead.new{
                 local xMargin = typeToMarginX[entryType]
                 x = x + xMargin
                 local entryRecord = layerCoordinateGenerator.entryPositions[entry]
-                entryRecord:initX(x, xLength)
+                entryRecord:initX(x, xLength, xMargin)
                 x = x + xLength + xMargin
             end
             if x > xLengthMax then
