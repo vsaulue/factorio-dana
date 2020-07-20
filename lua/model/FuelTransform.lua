@@ -1,0 +1,58 @@
+-- This file is part of Dana.
+-- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+--
+-- Dana is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- Dana is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
+
+local AbstractTransform = require("lua/model/AbstractTransform")
+local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+
+-- Transform associated to fuel items generating a byproduct when used.
+--
+-- Example: 'Uranium fuel cell' -> 'Used-up uranium fuel cell'.
+--
+-- RO Fields: same as AbstractTransform.
+--
+local FuelTransform = ErrorOnInvalidRead.new{
+    -- Restores the metatable of an FuelTransform object, and all its owned objects.
+    setmetatable = AbstractTransform.setmetatable,
+
+    -- Creates a new FuelTransform if the item generates a byproduct when used as fuel.
+    --
+    -- Args:
+    -- * itemIntermediate: Factorio prototype of an item.
+    -- * intermediatesDatabase: Database containing the Intermediate objects to use for this transform.
+    --
+    -- Returns: The new FuelTransform if the fuel item generates a byproduct at usage. Nil otherwise.
+    --
+    tryMake = function(itemIntermediate, intermediatesDatabase)
+        local result = nil
+        local burnt_result = itemIntermediate.rawPrototype.burnt_result
+        if burnt_result then
+            local product = intermediatesDatabase.item[burnt_result.name]
+            result = AbstractTransform.new{
+                type = "fuel",
+                rawPrototype = itemIntermediate.rawPrototype,
+                ingredients = ErrorOnInvalidRead.new{
+                    [itemIntermediate] = true,
+                },
+                products = ErrorOnInvalidRead.new{
+                    [product] = true
+                }
+            }
+        end
+        return result
+    end,
+}
+
+return FuelTransform

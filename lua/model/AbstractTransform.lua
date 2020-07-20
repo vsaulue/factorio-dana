@@ -66,6 +66,7 @@ local AbstractTransform = ErrorOnInvalidRead.new{
     -- Map[type] -> localised string.
     TypeToLocalisedStr = ErrorOnInvalidRead.new{
         boiler = {"dana.model.transform.boilerType"},
+        fuel = {"dana.model.transform.fuelType"},
         recipe = {"dana.model.transform.recipeType"},
         resource = {"dana.model.transform.resourceType"},
         ["offshore-pump"] = {"dana.model.transform.offshorePumpType"},
@@ -74,6 +75,7 @@ local AbstractTransform = ErrorOnInvalidRead.new{
     -- Map[type] -> Prefix for spritePath.
     TypeToSpritePrefix = ErrorOnInvalidRead.new{
         boiler = "entity",
+        fuel = "item",
         recipe = "recipe",
         resource = "entity",
         ["offshore-pump"] = "entity",

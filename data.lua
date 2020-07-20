@@ -66,6 +66,12 @@ data:extend{
         height = 32,
     },{
         type = "sprite",
+        name = "dana-fuel-icon",
+        filename = "__dana__/graphics/fuel-symbol.png",
+        width = 32,
+        height = 32,
+    },{
+        type = "sprite",
         name = "dana-item-icon",
         filename = "__dana__/graphics/item-symbol.png",
         width = 32,
