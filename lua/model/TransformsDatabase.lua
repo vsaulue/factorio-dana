@@ -17,6 +17,7 @@
 local BoilerTransform = require("lua/model/BoilerTransform")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local FuelTransform = require("lua/model/FuelTransform")
 local OffshorePumpTransform = require("lua/model/OffshorePumpTransform")
 local RecipeTransform = require("lua/model/RecipeTransform")
 local ResourceTransform = require("lua/model/ResourceTransform")
@@ -29,6 +30,7 @@ local Metatable
 --
 -- RO Fields:
 -- * boiler[entityName]: Map of BoilerTransform, indexed by the boiler entity's name.
+-- * fuel[itemName]: Map of FuelTransform, indexed by the fuel item's name.
 -- * intermediates: IntermediatesDatabase holding all the Intermediates in the transforms.
 -- * offshorePump[entityName]: Map of OffshorePumpTransform, indexed by the entity's name.
 -- * recipe[recipeName]: Map of RecipeTransform, indexed by the recipe's name.
@@ -45,6 +47,7 @@ local TransformsDatabase = ErrorOnInvalidRead.new{
     new = function(object)
         cLogger:assertField(object, "intermediates")
         object.boiler = ErrorOnInvalidRead.new()
+        object.fuel = ErrorOnInvalidRead.new()
         object.offshorePump = ErrorOnInvalidRead.new()
         object.recipe = ErrorOnInvalidRead.new()
         object.resource = ErrorOnInvalidRead.new()
@@ -63,6 +66,11 @@ local TransformsDatabase = ErrorOnInvalidRead.new{
         ErrorOnInvalidRead.setmetatable(object.boiler)
         for _,boilerTransform in pairs(object.boiler) do
             BoilerTransform.setmetatable(boilerTransform)
+        end
+
+        ErrorOnInvalidRead.setmetatable(object.fuel)
+        for _,fuelTransform in pairs(object.fuel) do
+            FuelTransform.setmetatable(fuelTransform)
         end
 
         ErrorOnInvalidRead.setmetatable(object.offshorePump)
@@ -120,6 +128,15 @@ Metatable = {
                 recipes[rawRecipe.name] = RecipeTransform.make(rawRecipe, self.intermediates)
             end
             self.recipe = recipes
+
+            local fuel = ErrorOnInvalidRead.new()
+            for _,item in pairs(self.intermediates.item) do
+                local fuelTransform = FuelTransform.tryMake(item, self.intermediates)
+                if fuelTransform then
+                    fuel[item.rawPrototype.name] = fuelTransform
+                end
+            end
+            self.fuel = fuel
         end,
     }
 }
