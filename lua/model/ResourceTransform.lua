@@ -21,7 +21,10 @@ local Metatable
 
 -- Transform associated to a resource prototype.
 --
--- RO Field: same as AbstractTransform.
+-- Inherits from AbstractTransform.
+--
+-- RO Field:
+-- * rawResource: Resource prototype wrapped by this transform.
 --
 local ResourceTransform = ErrorOnInvalidRead.new{
     -- Restores the metatable of a ResourceTransform object, and all its owned objects.
@@ -60,7 +63,7 @@ local ResourceTransform = ErrorOnInvalidRead.new{
 
             result = AbstractTransform.new({
                 type = "resource",
-                rawPrototype = resourceEntityPrototype,
+                rawResource = resourceEntityPrototype,
                 ingredients = ingredients,
                 products = products,
             }, Metatable)
@@ -77,12 +80,12 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AbstractTransform:generateSpritePath().
         generateSpritePath = function(self)
-            return AbstractTransform.makeSpritePath("entity", self.rawPrototype)
+            return AbstractTransform.makeSpritePath("entity", self.rawResource)
         end,
 
         -- Implements AbstractTransform:getTypeStr().
         getShortName = function(self)
-            return self.rawPrototype.localised_name
+            return self.rawResource.localised_name
         end,
 
         -- Implements AbstractTransform:getTypeStr().
