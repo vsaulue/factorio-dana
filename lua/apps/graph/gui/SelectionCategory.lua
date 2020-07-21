@@ -14,10 +14,12 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractTransform = require("lua/model/AbstractTransform")
+local BoilerTransform = require("lua/model/BoilerTransform")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local FuelTransform = require("lua/model/FuelTransform")
 local GuiElement = require("lua/gui/GuiElement")
 local Intermediate = require("lua/model/Intermediate")
+local RecipeTransform = require("lua/model/RecipeTransform")
 
 local CategoryInfos
 local EdgeTypeIcon
@@ -188,7 +190,7 @@ CategoryInfos = ErrorOnInvalidRead.new{
 
                 flow.add{
                     type = "label",
-                    caption = edgeIndex.rawPrototype.localised_name,
+                    caption = edgeIndex:getShortName(),
                 }
                 count = count + 1
             end
@@ -248,19 +250,19 @@ EdgeTypeIcon = ErrorOnInvalidRead.new{
         type = "sprite",
         name = "typeIcon",
         sprite = "dana-boiler-icon",
-        tooltip = AbstractTransform.TypeToLocalisedStr.boiler,
+        tooltip = BoilerTransform.TypeLocalisedStr,
     },
     fuel = {
         type = "sprite",
         name = "typeIcon",
         sprite = "dana-fuel-icon",
-        tooltip = AbstractTransform.TypeToLocalisedStr.fuel,
+        tooltip = FuelTransform.TypeLocalisedStr,
     },
     recipe = {
         type = "sprite",
         name = "typeIcon",
         sprite = "dana-recipe-icon",
-        tooltip = AbstractTransform.TypeToLocalisedStr.recipe,
+        tooltip = RecipeTransform.TypeLocalisedStr,
     },
 }
 
