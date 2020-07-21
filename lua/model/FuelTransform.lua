@@ -23,7 +23,10 @@ local Metatable
 --
 -- Example: 'Uranium fuel cell' -> 'Used-up uranium fuel cell'.
 --
--- RO Fields: same as AbstractTransform.
+-- Inherits from AbstractTransform.
+--
+-- RO Fields:
+-- * inputItem: Item prototype that is the input of this transform.
 --
 local FuelTransform = ErrorOnInvalidRead.new{
     -- Restores the metatable of a FuelTransform object, and all its owned objects.
@@ -50,7 +53,7 @@ local FuelTransform = ErrorOnInvalidRead.new{
             local product = intermediatesDatabase.item[burnt_result.name]
             result = AbstractTransform.new({
                 type = "fuel",
-                rawPrototype = itemIntermediate.rawPrototype,
+                inputItem = itemIntermediate,
                 ingredients = ErrorOnInvalidRead.new{
                     [itemIntermediate] = true,
                 },
@@ -71,12 +74,12 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AbstractTransform;generateSpritePath().
         generateSpritePath = function(self)
-            return AbstractTransform.makeSpritePath("item", self.rawPrototype)
+            return AbstractTransform.makeSpritePath("item", self.inputItem.rawPrototype)
         end,
 
         -- Implements AbstractTransform:getTypeStr().
         getShortName = function(self)
-            return self.rawPrototype.localised_name
+            return self.inputItem.rawPrototype.localised_name
         end,
 
         -- Implements AbstractTransform:getTypeStr().
