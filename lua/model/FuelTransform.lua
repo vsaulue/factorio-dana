@@ -74,7 +74,7 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AbstractTransform;generateSpritePath().
         generateSpritePath = function(self)
-            return AbstractTransform.makeSpritePath("item", self.inputItem.rawPrototype)
+            return AbstractTransform.makeSpritePath("item", self.inputItem.rawPrototype.burnt_result)
         end,
 
         -- Implements AbstractTransform:getTypeStr().
