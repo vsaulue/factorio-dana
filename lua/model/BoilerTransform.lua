@@ -28,7 +28,10 @@ local Metatable
 --
 -- Not all boilers will be mapped into a transform (some boilers just heat the fluid).
 --
--- RO Fields: same as AbstractTransform.
+-- Inherits from AbstractTransform.
+--
+-- RO Fields:
+-- * rawBoiler: Prototype of the boiler doing this transform.
 --
 local BoilerTransform = ErrorOnInvalidRead.new{
     -- Restores the metatable of a BoilerTransform object, and all its owned objects.
@@ -71,7 +74,7 @@ local BoilerTransform = ErrorOnInvalidRead.new{
             if inputCount == 1 and outputCount == 1 then
                 result = AbstractTransform.new({
                     type = "boiler",
-                    rawPrototype = boilerPrototype,
+                    rawBoiler = boilerPrototype,
                     ingredients = inputs,
                     products = outputs,
                 }, Metatable)
@@ -91,12 +94,12 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AbstractTransform:generateSpritePath().
         generateSpritePath = function(self)
-            return AbstractTransform.makeSpritePath("entity", self.rawPrototype)
+            return AbstractTransform.makeSpritePath("entity", self.rawBoiler)
         end,
 
         -- Implements AbstractTransform:getTypeStr().
         getShortName = function(self)
-            return self.rawPrototype.localised_name
+            return self.rawBoiler.localised_name
         end,
 
         -- Implements AbstractTransform:getTypeStr().
