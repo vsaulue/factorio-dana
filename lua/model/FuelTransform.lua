@@ -61,6 +61,9 @@ local FuelTransform = ErrorOnInvalidRead.new{
         end
         return result
     end,
+
+        -- LocalisedString representing the type.
+    TypeLocalisedStr = AbstractTransform.makeTypeLocalisedStr("fuelType"),
 }
 
 -- Metatable of the FuelTransform class.
@@ -69,6 +72,16 @@ Metatable = {
         -- Implements AbstractTransform;generateSpritePath().
         generateSpritePath = function(self)
             return AbstractTransform.makeSpritePath("item", self.rawPrototype)
+        end,
+
+        -- Implements AbstractTransform:getTypeStr().
+        getShortName = function(self)
+            return self.rawPrototype.localised_name
+        end,
+
+        -- Implements AbstractTransform:getTypeStr().
+        getTypeStr = function(self)
+            return FuelTransform.TypeLocalisedStr
         end,
     }
 }

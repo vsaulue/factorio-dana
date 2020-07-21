@@ -52,6 +52,9 @@ local OffshorePumpTransform = ErrorOnInvalidRead.new{
             type = "offshore-pump",
         }, Metatable)
     end,
+
+    -- LocalisedString representing the type.
+    TypeLocalisedStr = AbstractTransform.makeTypeLocalisedStr("offshorePumpType"),
 }
 
 -- Metatable of the OffshorePumpTransform class.
@@ -60,6 +63,16 @@ Metatable = {
         -- Implements AbstractTransform:generateSpritePath().
         generateSpritePath = function(self)
             return AbstractTransform.makeSpritePath("entity", self.rawPrototype)
+        end,
+
+        -- Implements AbstractTransform:getTypeStr().
+        getShortName = function(self)
+            return self.rawPrototype.localised_name
+        end,
+
+        -- Implements AbstractTransform:getTypeStr().
+        getTypeStr = function(self)
+            return OffshorePumpTransform.TypeLocalisedStr
         end,
     },
 }

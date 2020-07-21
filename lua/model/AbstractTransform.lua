@@ -49,6 +49,17 @@ local AbstractTransform = ErrorOnInvalidRead.new{
         return spriteType .. "/" .. prototype.name
     end,
 
+    -- Generates a LocalisedString for a transform type.
+    --
+    -- Args:
+    -- * suffix: Suffix of the locale path.
+    --
+    -- Returns: A LocalisedString for the transform.
+    --
+    makeTypeLocalisedStr = function(suffix)
+        return {"dana.model.transform." .. suffix}
+    end,
+
     -- Creates a new AbstractTransform object.
     --
     -- Args:
@@ -61,7 +72,7 @@ local AbstractTransform = ErrorOnInvalidRead.new{
         cLogger:assertField(object, "products")
         local rawPrototype = cLogger:assertField(object, "rawPrototype")
         local type = cLogger:assertField(object, "type")
-        object.localisedName = {"dana.model.transform.name", TypeToLocalisedStr[type], rawPrototype.localised_name}
+        object.localisedName = {"dana.model.transform.name", object:getTypeStr(), object:getShortName()}
         object.spritePath = object:generateSpritePath()
         return object
     end,
@@ -101,6 +112,24 @@ Metatable = {
         -- Returns: A SpritePath object (Factorio API).
         --
         generateSpritePath = function(self) end,
+
+        -- Gets a LocalisedString corresponding to the wrapped prototype.
+        --
+        -- Args:
+        -- * self: AbstractTransform object.
+        --
+        -- Returns: The LocalisedString of the name of the wrapped prototype.
+        --
+        getShortName = function(self) end,
+
+        -- Gets a LocalisedString of the type of this transform.
+        --
+        -- Args:
+        -- * self: AbstractTransform object.
+        --
+        -- Returns: The type as a LocalisedString.
+        --
+        getTypeStr = function(self) end,
     },
 }
 

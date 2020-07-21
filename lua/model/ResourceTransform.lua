@@ -67,6 +67,9 @@ local ResourceTransform = ErrorOnInvalidRead.new{
         end
         return result
     end,
+
+    -- LocalisedString representing the type.
+    TypeLocalisedStr = AbstractTransform.makeTypeLocalisedStr("resourceType"),
 }
 
 -- Metatable of the ResourceTransform class.
@@ -75,6 +78,16 @@ Metatable = {
         -- Implements AbstractTransform:generateSpritePath().
         generateSpritePath = function(self)
             return AbstractTransform.makeSpritePath("entity", self.rawPrototype)
+        end,
+
+        -- Implements AbstractTransform:getTypeStr().
+        getShortName = function(self)
+            return self.rawPrototype.localised_name
+        end,
+
+        -- Implements AbstractTransform:getTypeStr().
+        getTypeStr = function(self)
+            return ResourceTransform.TypeLocalisedStr
         end,
     },
 }
