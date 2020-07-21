@@ -17,13 +17,21 @@
 local AbstractTransform = require("lua/model/AbstractTransform")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
+local Metatable
+
 -- Transform associated to a resource prototype.
 --
 -- RO Field: same as AbstractTransform.
 --
 local ResourceTransform = ErrorOnInvalidRead.new{
     -- Restores the metatable of a ResourceTransform object, and all its owned objects.
-    setmetatable = AbstractTransform.setmetatable,
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        AbstractTransform.setmetatable(object, Metatable)
+    end,
 
     -- Creates a new ResourceTransforms if the resource entity prototype is mineable.
     --
@@ -50,15 +58,25 @@ local ResourceTransform = ErrorOnInvalidRead.new{
                 ingredients[intermediate] = true
             end
 
-            result = AbstractTransform.new{
+            result = AbstractTransform.new({
                 type = "resource",
                 rawPrototype = resourceEntityPrototype,
                 ingredients = ingredients,
                 products = products,
-            }
+            }, Metatable)
         end
         return result
     end,
+}
+
+-- Metatable of the ResourceTransform class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Implements AbstractTransform:generateSpritePath().
+        generateSpritePath = function(self)
+            return AbstractTransform.makeSpritePath("entity", self.rawPrototype)
+        end,
+    },
 }
 
 return ResourceTransform

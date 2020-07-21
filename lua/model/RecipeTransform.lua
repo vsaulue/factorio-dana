@@ -18,6 +18,7 @@ local AbstractTransform = require("lua/model/AbstractTransform")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local makeIntermediateSet
+local Metatable
 
 -- Transform associated to a recipe.
 --
@@ -35,16 +36,32 @@ local RecipeTransform = ErrorOnInvalidRead.new{
     -- Returns: The new RecipeTransform object.
     --
     make = function(recipePrototype, intermediatesDatabase)
-        return AbstractTransform.new{
+        return AbstractTransform.new({
             ingredients = makeIntermediateSet(recipePrototype.ingredients, intermediatesDatabase),
             products = makeIntermediateSet(recipePrototype.products, intermediatesDatabase),
             rawPrototype = recipePrototype,
             type = "recipe",
-        }
+        }, Metatable)
     end,
 
     -- Restores the metatable of a RecipeTransform object, and all its owned objects.
-    setmetatable = AbstractTransform.setmetatable,
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        AbstractTransform.setmetatable(object, Metatable)
+    end,
+}
+
+-- Metatable of the RecipeTransform class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Implements AbstractTransform:generateSpritePath().
+        generateSpritePath = function(self)
+            return AbstractTransform.makeSpritePath("recipe", self.rawPrototype)
+        end,
+    },
 }
 
 -- Creates a set of Intermediate from an array of ingredients/products from Factorio.

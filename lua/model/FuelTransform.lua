@@ -17,6 +17,8 @@
 local AbstractTransform = require("lua/model/AbstractTransform")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
+local Metatable
+
 -- Transform associated to fuel items generating a byproduct when used.
 --
 -- Example: 'Uranium fuel cell' -> 'Used-up uranium fuel cell'.
@@ -24,8 +26,14 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 -- RO Fields: same as AbstractTransform.
 --
 local FuelTransform = ErrorOnInvalidRead.new{
-    -- Restores the metatable of an FuelTransform object, and all its owned objects.
-    setmetatable = AbstractTransform.setmetatable,
+    -- Restores the metatable of a FuelTransform object, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        AbstractTransform.setmetatable(object, Metatable)
+    end,
 
     -- Creates a new FuelTransform if the item generates a byproduct when used as fuel.
     --
@@ -40,7 +48,7 @@ local FuelTransform = ErrorOnInvalidRead.new{
         local burnt_result = itemIntermediate.rawPrototype.burnt_result
         if burnt_result then
             local product = intermediatesDatabase.item[burnt_result.name]
-            result = AbstractTransform.new{
+            result = AbstractTransform.new({
                 type = "fuel",
                 rawPrototype = itemIntermediate.rawPrototype,
                 ingredients = ErrorOnInvalidRead.new{
@@ -49,10 +57,20 @@ local FuelTransform = ErrorOnInvalidRead.new{
                 products = ErrorOnInvalidRead.new{
                     [product] = true
                 }
-            }
+            }, Metatable)
         end
         return result
     end,
+}
+
+-- Metatable of the FuelTransform class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Implements AbstractTransform;generateSpritePath().
+        generateSpritePath = function(self)
+            return AbstractTransform.makeSpritePath("item", self.rawPrototype)
+        end,
+    }
 }
 
 return FuelTransform

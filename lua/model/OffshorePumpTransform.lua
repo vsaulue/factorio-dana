@@ -17,13 +17,21 @@
 local AbstractTransform = require("lua/model/AbstractTransform")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
+local Metatable
+
 -- Transform associated to an offshore pump.
 --
 -- RO Fields: same as AbstractTransform.
 --
 local OffshorePumpTransform = ErrorOnInvalidRead.new{
     -- Restores the metatable of an OffshorePumpTransform object, and all its owned objects.
-    setmetatable = AbstractTransform.setmetatable,
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        AbstractTransform.setmetatable(object, Metatable)
+    end,
 
     -- Creates a new OffshorePumpTransform from an offshore-pump prototype.
     --
@@ -35,15 +43,25 @@ local OffshorePumpTransform = ErrorOnInvalidRead.new{
     --
     make = function(offshorePumpPrototype, intermediatesDatabase)
         local fluid = intermediatesDatabase.fluid[offshorePumpPrototype.fluid.name]
-        return AbstractTransform.new{
+        return AbstractTransform.new({
             ingredients = ErrorOnInvalidRead.new(),
             products = ErrorOnInvalidRead.new{
                 [fluid] = true,
             },
             rawPrototype = offshorePumpPrototype,
             type = "offshore-pump",
-        }
+        }, Metatable)
     end,
+}
+
+-- Metatable of the OffshorePumpTransform class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Implements AbstractTransform:generateSpritePath().
+        generateSpritePath = function(self)
+            return AbstractTransform.makeSpritePath("entity", self.rawPrototype)
+        end,
+    },
 }
 
 return OffshorePumpTransform

@@ -20,6 +20,8 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "BoilerTransform"}
 
+local Metatable
+
 -- Transform associated to a boiler.
 --
 -- Example: The vanilla boiler turns 'water' into 'steam' (which are 2 different fluids in the game).
@@ -29,8 +31,14 @@ local cLogger = ClassLogger.new{className = "BoilerTransform"}
 -- RO Fields: same as AbstractTransform.
 --
 local BoilerTransform = ErrorOnInvalidRead.new{
-    -- Restores the metatable of an BoilerTransform object, and all its owned objects.
-    setmetatable = AbstractTransform.setmetatable,
+    -- Restores the metatable of a BoilerTransform object, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
+    setmetatable = function(object)
+        AbstractTransform.setmetatable(object, Metatable)
+    end,
 
     -- Creates a new BoilerTransforms if the given boiler prototype actually performs a transformation.
     --
@@ -61,18 +69,28 @@ local BoilerTransform = ErrorOnInvalidRead.new{
         end
         if inputCount >= 1 and outputCount >= 1 then
             if inputCount == 1 and outputCount == 1 then
-                result = AbstractTransform.new{
+                result = AbstractTransform.new({
                     type = "boiler",
                     rawPrototype = boilerPrototype,
                     ingredients = inputs,
                     products = outputs,
-                }
+                }, Metatable)
             else
                 Logger.warn("Boiler prototype '" .. boilerPrototype.name .. "' ignored (multiple inputs or outputs).")
             end
         end
         return result
     end,
+}
+
+-- Metatable of the BoilerTransform class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Implements AbstractTransform:generateSpritePath().
+        generateSpritePath = function(self)
+            return AbstractTransform.makeSpritePath("entity", self.rawPrototype)
+        end,
+    },
 }
 
 return BoilerTransform
