@@ -18,7 +18,7 @@ local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
-local makeEdge
+local addTransform
 local Metatable
 
 -- Class generating edges from the different transforms of a Force database.
@@ -30,13 +30,18 @@ local Metatable
 -- * chooses which transforms (recipe, boiler, mining) will be turned into an edge.
 -- * which transform properties will be turned into edge inputs & outputs (ex: mining fluid).
 --
+-- Fields:
+-- * includeSinks: Boolean to include sink recipes.
+--
 local QuerySelector = ErrorOnInvalidRead.new{
     -- Creates a new QuerySelector object.
     --
     -- Returns: The new QuerySelector object.
     --
     new = function()
-        local result = {}
+        local result = {
+            includeSinks = false,
+        }
         setmetatable(result, Metatable)
         return result
     end,
@@ -66,13 +71,13 @@ Metatable = {
             local result = DirectedHypergraph.new()
 
             for _,forceRecipe in pairs(force.recipes) do
-                result:addEdge(makeEdge(forceRecipe.recipeTransform))
+                addTransform(self, result, forceRecipe.recipeTransform)
             end
             for _,boiler in pairs(force.prototypes.transforms.boiler) do
-                result:addEdge(makeEdge(boiler))
+                addTransform(self, result, boiler)
             end
             for _,fuel in pairs(force.prototypes.transforms.fuel) do
-                result:addEdge(makeEdge(fuel))
+                addTransform(self, result, fuel)
             end
 
             return result
@@ -80,19 +85,22 @@ Metatable = {
     },
 }
 
--- Turns an entry from a PrototypeDatabase into a DirectedHypergraph edge.
+-- Adds a transform as a graph edges if it matches the selector's parameters.
 --
 -- Args:
--- * entry: An entry from PrototypeDatabase (supported types: recipe, boiler)
+-- * self: QuerySelector object.
+-- * graph: DirectedHypergraph to fill.
+-- * transform: AbstractTransform to add.
 --
--- Returns: the new edge.
---
-makeEdge = function(entry)
-    return DirectedHypergraphEdge.new{
-        index = entry,
-        inbound = entry.ingredients,
-        outbound = entry.products,
-    }
+addTransform = function(self, graph, transform)
+    local products = transform.products
+    if self.includeSinks or next(transform.products) then
+        graph:addEdge(DirectedHypergraphEdge.new{
+            index = transform,
+            inbound = transform.ingredients,
+            outbound = products,
+        })
+    end
 end
 
 return QuerySelector
