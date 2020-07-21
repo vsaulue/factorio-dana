@@ -19,8 +19,6 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "AbstractTransform"}
 
-local TypeToLocalisedStr
-
 -- Class holding the data of a transformation.
 --
 -- A transform is something (recipe, mining, electricity/heat generation...) that turns a given
@@ -88,15 +86,6 @@ local AbstractTransform = ErrorOnInvalidRead.new{
         ErrorOnInvalidRead.setmetatable(object.ingredients)
         ErrorOnInvalidRead.setmetatable(object.products)
     end,
-
-    -- Map[type] -> localised string.
-    TypeToLocalisedStr = ErrorOnInvalidRead.new{
-        boiler = {"dana.model.transform.boilerType"},
-        fuel = {"dana.model.transform.fuelType"},
-        recipe = {"dana.model.transform.recipeType"},
-        resource = {"dana.model.transform.resourceType"},
-        ["offshore-pump"] = {"dana.model.transform.offshorePumpType"},
-    },
 }
 
 --[[
@@ -134,7 +123,5 @@ Metatable = {
 }
 
 --]]
-
-TypeToLocalisedStr = AbstractTransform.TypeToLocalisedStr
 
 return AbstractTransform
