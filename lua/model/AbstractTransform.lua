@@ -20,7 +20,6 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local cLogger = ClassLogger.new{className = "AbstractTransform"}
 
 local TypeToLocalisedStr
-local TypeToSpritePrefix
 
 -- Class holding the data of a transformation.
 --
@@ -87,15 +86,6 @@ local AbstractTransform = ErrorOnInvalidRead.new{
         resource = {"dana.model.transform.resourceType"},
         ["offshore-pump"] = {"dana.model.transform.offshorePumpType"},
     },
-
-    -- Map[type] -> Prefix for spritePath.
-    TypeToSpritePrefix = ErrorOnInvalidRead.new{
-        boiler = "entity",
-        fuel = "item",
-        recipe = "recipe",
-        resource = "entity",
-        ["offshore-pump"] = "entity",
-    },
 }
 
 --[[
@@ -117,6 +107,5 @@ Metatable = {
 --]]
 
 TypeToLocalisedStr = AbstractTransform.TypeToLocalisedStr
-TypeToSpritePrefix = AbstractTransform.TypeToSpritePrefix
 
 return AbstractTransform
