@@ -17,7 +17,8 @@
 local AbstractTransform = require("lua/model/AbstractTransform")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
-local makeIntermediateSet
+local makeIngredientSet
+local makeProductSet
 local Metatable
 
 -- Transform associated to a recipe.
@@ -40,8 +41,8 @@ local RecipeTransform = ErrorOnInvalidRead.new{
     --
     make = function(recipePrototype, intermediatesDatabase)
         return AbstractTransform.new({
-            ingredients = makeIntermediateSet(recipePrototype.ingredients, intermediatesDatabase),
-            products = makeIntermediateSet(recipePrototype.products, intermediatesDatabase),
+            ingredients = makeIngredientSet(recipePrototype.ingredients, intermediatesDatabase),
+            products = makeProductSet(recipePrototype.products, intermediatesDatabase),
             rawRecipe = recipePrototype,
             type = "recipe",
         }, Metatable)
@@ -80,19 +81,39 @@ Metatable = {
     },
 }
 
--- Creates a set of Intermediate from an array of ingredients/products from Factorio.
+-- Creates a set of Intermediate from an array of ingredients from Factorio.
 --
 -- Args:
--- * ingredientsOrProducts: Array of Ingredient or Products.
+-- * ingredients: Array of Ingredient.
 -- * intermediatesDatabase: Database containing the Intermediates to return.
 --
 -- Returns: A set containing the Intermediate objects wrapping the values of the array.
 --
-makeIntermediateSet = function(ingredientsOrProducts, intermediatesDatabase)
+makeIngredientSet = function(ingredients, intermediatesDatabase)
     local result = ErrorOnInvalidRead.new()
-    for _,rawIntermediate in pairs(ingredientsOrProducts) do
-        local intermediate = intermediatesDatabase:getIngredientOrProduct(rawIntermediate)
+    for _,ingredient in pairs(ingredients) do
+        local intermediate = intermediatesDatabase:getIngredientOrProduct(ingredient)
         result[intermediate] = true
+    end
+    return result
+end
+
+-- Creates a set of Intermediate from an array of products from Factorio.
+--
+-- Args:
+-- * products: Array of Product.
+-- * intermediatesDatabase: Database containing the Intermediates to return.
+--
+-- Returns: A set containing the Intermediate objects wrapping the values of the array.
+--
+makeProductSet = function(products, intermediatesDatabase)
+    local result = ErrorOnInvalidRead.new()
+    for _,product in pairs(products) do
+        local maxAmount = product.amount or product.amount_max
+        if (maxAmount > 0) and (product.probability > 0) then
+            local intermediate = intermediatesDatabase:getIngredientOrProduct(product)
+            result[intermediate] = true
+        end
     end
     return result
 end
