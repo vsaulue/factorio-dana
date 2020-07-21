@@ -24,7 +24,10 @@ local Metatable
 --
 -- Recipes are the majority of transforms: furnaces, refineries or assembling machines use recipes.
 --
--- RO fields: same as AbstractTransform.
+-- Inherits from AbstractTransform.
+--
+-- RO Fields:
+-- * rawRecipe: RecipePrototype wrapped by this transform.
 --
 local RecipeTransform = ErrorOnInvalidRead.new{
     -- Creates a new RecipeTransform from a recipe prototype.
@@ -39,7 +42,7 @@ local RecipeTransform = ErrorOnInvalidRead.new{
         return AbstractTransform.new({
             ingredients = makeIntermediateSet(recipePrototype.ingredients, intermediatesDatabase),
             products = makeIntermediateSet(recipePrototype.products, intermediatesDatabase),
-            rawPrototype = recipePrototype,
+            rawRecipe = recipePrototype,
             type = "recipe",
         }, Metatable)
     end,
@@ -62,12 +65,12 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AbstractTransform:generateSpritePath().
         generateSpritePath = function(self)
-            return AbstractTransform.makeSpritePath("recipe", self.rawPrototype)
+            return AbstractTransform.makeSpritePath("recipe", self.rawRecipe)
         end,
 
         -- Implements AbstractTransform:getTypeStr().
         getShortName = function(self)
-            return self.rawPrototype.localised_name
+            return self.rawRecipe.localised_name
         end,
 
         -- Implements AbstractTransform:getTypeStr().
