@@ -21,6 +21,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 -- Fields:
 -- * xMin: Minimum coordinate on the X axis.
 -- * xMax: Maximum coordinate on the X axis.
+-- * xMargin: Margin on the X axis.
 -- * yMin: Minimum coordinate on the Y axis.
 -- * yMax: Maximum coordinate on the Y axis.
 --

@@ -37,7 +37,6 @@ local translateNodesX
 -- * output: placement data of this entry, returned in the LayoutCoordinates object.
 -- * lowNodes[channelIndex]: Tree node of the given channel index for low slots.
 -- * highNodes[channelIndex]: Tree node of the given channel index for outbound slots.
--- * xMargin: X margin of this object.
 --
 -- Methods:
 -- * getNode: Gets the tree node associated to the given slot.
@@ -102,7 +101,7 @@ Metatable = {
         --
         initX = function(self, xMin, xLength, xMargin)
             local entry = self.entry
-            self.xMargin = xMargin
+            self.output.xMargin = xMargin
             self.output.xMin = xMin
             self.output.xMax = xMin + xLength
             computeSlotsX(entry.lowSlots, self.lowNodes, xMin, xLength)

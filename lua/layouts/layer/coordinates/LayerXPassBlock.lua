@@ -42,7 +42,7 @@ local LayerXPassBlock = ErrorOnInvalidRead.new{
     make = function(entryPos, xMin, weight)
         local xHalfLength = entryPos:getXLength() / 2
         local xCenter = xMin + xHalfLength
-        local xOffset = xHalfLength + entryPos.xMargin
+        local xOffset = xHalfLength + entryPos.output.xMargin
         local result = {
             entries = Array.new(),
             xCenterOfMass = xCenter,
@@ -74,7 +74,7 @@ Metatable = {
             for i=1,entryArray.count do
                 local newEntry = entryArray[i]
                 entries[baseCount+i] = newEntry
-                xMaxOffsetDelta = xMaxOffsetDelta + newEntry:getXLength() + 2 * newEntry.xMargin
+                xMaxOffsetDelta = xMaxOffsetDelta + newEntry:getXLength() + 2 * newEntry.output.xMargin
             end
             entries.count = baseCount + entryArray.count
             self.xMaxOffset = self.xMaxOffset + xMaxOffsetDelta
@@ -90,7 +90,7 @@ Metatable = {
             local x = self.xMinOffset + self.xCenterOfMass
             for i=1,entries.count do
                 local entryPos = entries[i]
-                local xMargin = entryPos.xMargin
+                local xMargin = entryPos.output.xMargin
                 local xLength = entryPos:getXLength()
                 x = x + xMargin
                 entryPos:translateX(x - entryPos.output.xMin)
@@ -137,7 +137,7 @@ Metatable = {
             local xMinOffsetDelta = 0
             for i=1,entryArray.count do
                 local entry = entryArray[i]
-                xMinOffsetDelta = xMinOffsetDelta + entry:getXLength() + 2 * entry.xMargin
+                xMinOffsetDelta = xMinOffsetDelta + entry:getXLength() + 2 * entry.output.xMargin
             end
 
             mergeArrays(entryArray, oldEntries)
