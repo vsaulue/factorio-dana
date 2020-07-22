@@ -16,6 +16,7 @@
 
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local RectangleNode = require("lua/layouts/RectangleNode")
 local TreeLink = require("lua/layouts/TreeLink")
 
 local cLogger = ClassLogger.new{className = "LayoutCoordinates"}
@@ -70,12 +71,12 @@ local LayoutCoordinates = ErrorOnInvalidRead.new{
 
         ErrorOnInvalidRead.setmetatable(object.edges)
         for _,edgeData in pairs(object.edges) do
-            ErrorOnInvalidRead.setmetatable(edgeData)
+            RectangleNode.setmetatable(edgeData)
         end
 
         ErrorOnInvalidRead.setmetatable(object.vertices)
         for _,vertexData in pairs(object.vertices) do
-            ErrorOnInvalidRead.setmetatable(vertexData)
+            RectangleNode.setmetatable(vertexData)
         end
 
         ErrorOnInvalidRead.setmetatable(object.links)

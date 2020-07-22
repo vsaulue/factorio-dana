@@ -16,6 +16,7 @@
 
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local RectangleNode = require("lua/layouts/RectangleNode")
 local TreeLinkNode = require("lua/layouts/TreeLinkNode")
 
 local cLogger = ClassLogger.new{className = "LayerEntryPosition"}
@@ -54,7 +55,7 @@ local LayerEntryPosition = ErrorOnInvalidRead.new{
     new = function(object)
         local entry = cLogger:assertField(object, "entry")
 
-        object.output = ErrorOnInvalidRead.new()
+        object.output = RectangleNode.new()
         object.lowNodes = buildNodes(entry.lowSlots, entry)
         object.highNodes = buildNodes(entry.highSlots, entry)
 
