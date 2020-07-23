@@ -23,7 +23,7 @@ local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
 local LinkCategory = require("lua/layouts/LinkCategory")
 local TreeLink = require("lua/layouts/TreeLink")
 local Logger = require("lua/logger/Logger")
-local RectangleNode = require("lua/layouts/RectangleNode")
+local RectangleNodeShape = require("lua/layouts/RectangleNodeShape")
 local Stack = require("lua/containers/Stack")
 
 local addTreeLink
@@ -106,26 +106,25 @@ createEntryCoordinateRecords = function(self)
     local params = self.params
     local linkWidth = params.linkWidth
 
-    local typeToMinX = ErrorOnInvalidRead.new{
-        edge = params.edgeMinX,
-        linkNode = linkWidth,
-        vertex = params.vertexMinX,
-    }
-    local typeToMarginX = ErrorOnInvalidRead.new{
-        edge = params.edgeMarginX,
-        linkNode = 0,
-        vertex = params.vertexMarginX,
-    }
-
-    local typeToMinY = ErrorOnInvalidRead.new{
-        edge = params.edgeMinY,
-        linkNode = 0,
-        vertex = params.vertexMinY,
-    }
-    local typeToMarginY = ErrorOnInvalidRead.new{
-        edge = params.edgeMarginY,
-        linkNode = 0,
-        vertex = params.vertexMarginY,
+    local typeToShape = ErrorOnInvalidRead.new{
+        edge = RectangleNodeShape.new{
+            minXLength = params.edgeMinX,
+            minYLength = params.edgeMinY,
+            xMargin = params.edgeMarginX,
+            yMargin = params.edgeMarginY,
+        },
+        linkNode = RectangleNodeShape.new{
+            minXLength = params.linkWidth,
+            minYLength = 0,
+            xMargin = 0,
+            yMargin = 0,
+        },
+        vertex = RectangleNodeShape.new{
+            minXLength = params.vertexMinX,
+            minYLength = params.vertexMinY,
+            xMargin = params.vertexMarginX,
+            yMargin = params.vertexMarginY,
+        },
     }
 
     local entries = self.layout.layers.entries
@@ -135,14 +134,9 @@ createEntryCoordinateRecords = function(self)
         for rank=1,layer.count do
             local entry = layer[rank]
             local maxSlotsCount = math.max(entry.lowSlots.count, entry.highSlots.count)
-            local entryType = entry.type
+            local minXLength = maxSlotsCount * linkWidth
             local entryRecord = LayerEntryPosition.new{
-                output = RectangleNode.new{
-                    xMargin = typeToMarginX[entryType],
-                    xLength = math.max(typeToMinX[entryType], linkWidth * maxSlotsCount),
-                    yMargin = typeToMarginY[entryType],
-                    yLength = typeToMinY[entryType],
-                },
+                output = typeToShape[entry.type]:generateNode(minXLength),
                 entry = entry,
             }
             layerYLength = math.max(layerYLength, entryRecord.output:getYLength(true))
