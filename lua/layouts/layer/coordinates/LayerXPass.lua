@@ -151,7 +151,7 @@ firstPass = function(layerCoordinateGenerator)
             local xLength = entryRecord.output:getXLength(false)
             local xMargin = entryRecord.output.xMargin
             x = x + xMargin
-            entryRecord:initX(x)
+            entryRecord:setXMin(x)
             x = x + xLength + xMargin
         end
         if x > xLengthMax then

@@ -78,21 +78,6 @@ Metatable = {
             return self[nodesFieldName[isInbound]][channelIndex]
         end,
 
-        -- Initializes the X coordinates of this object.
-        --
-        -- Args:
-        -- * self: LayerEntryPosition object.
-        -- * xMin: New xMin value.
-        --
-        initX = function(self, xMin)
-            local entry = self.entry
-            local output = self.output
-            output:setXMin(xMin)
-            local xLength = output:getXLength(false)
-            computeSlotsX(entry.lowSlots, self.lowNodes, xMin, xLength)
-            computeSlotsX(entry.highSlots, self.highNodes, xMin, xLength)
-        end,
-
         -- Initializes the Y coordinates of this object.
         --
         -- Args:
@@ -105,6 +90,22 @@ Metatable = {
             self.output:initY(yMin, yLength)
             setSlotsY(self.lowNodes, yMin)
             setSlotsY(self.highNodes, yMin + yLength)
+        end,
+
+        -- Sets the X coordinates of the node (margin excluded) and the attached links.
+        --
+        -- Args:
+        -- * self: LayerEntryPosition object.
+        -- * xMin: New xMin value.
+        --
+        setXMin = function(self, xMin)
+            local output = self.output
+            output:setXMin(xMin)
+            local xLength = output:getXLength(false)
+
+            local entry = self.entry
+            computeSlotsX(entry.lowSlots, self.lowNodes, xMin, xLength)
+            computeSlotsX(entry.highSlots, self.highNodes, xMin, xLength)
         end,
 
         -- Moves this object on the X axis.
