@@ -100,10 +100,10 @@ Metatable = {
         -- * yMin: New yMin value.
         --
         setYMin = function(self, yMin)
-            local entry = self.entry
-            self.output:setYMin(yMin)
-            setSlotsY(self.lowNodes, yMin)
-            setSlotsY(self.highNodes, yMin + self.output:getYLength(false))
+            local output = self.output
+            output:setYMin(yMin)
+            setSlotsY(self.lowNodes, output, true)
+            setSlotsY(self.highNodes, output, false)
         end,
     },
 }
@@ -152,12 +152,13 @@ end
 -- Sets the y field of a set of link nodes.
 --
 -- Args:
--- * nodes: Map of link nodes, indexed by channel indexes.
--- * y: New 'y' value of the nodes.
+-- * linkNodes: Map of link nodes, indexed by channel indexes.
+-- * node: RectangleNode on which the links must be attached.
+-- * isFromLowY: True if links are attached to the low-Y side. False for the high-Y side.
 --
-setSlotsY = function(nodes, y)
-    for _,node in pairs(nodes) do
-        node.y = y
+setSlotsY = function(linkNodes, node, isFromLowY)
+    for _,linkNode in pairs(linkNodes) do
+        linkNode.y = node:yProject(linkNode.x, isFromLowY)
     end
 end
 
