@@ -109,16 +109,6 @@ Metatable = {
             return self.yLength
         end,
 
-        -- Initializes the Y coordinates of this node.
-        --
-        -- Args:
-        -- * self: RectangleNode object.
-        -- * yMin: New yMin value.
-        --
-        initY = function(self, yMin)
-            self.yMin = yMin
-        end,
-
         -- Sets the minimum coordinate on the X axis (margin NOT included).
         --
         -- Args:
@@ -127,6 +117,16 @@ Metatable = {
         --
         setXMin = function(self, xMin)
             self.xMin = xMin
+        end,
+
+        -- Sets the minimum coordinate on the Y axis (margin NOT included).
+        --
+        -- Args:
+        -- * self: RectangleNode object.
+        -- * yMin: New yMin value.
+        --
+        setYMin = function(self, yMin)
+            self.yMin = yMin
         end,
     },
 }
