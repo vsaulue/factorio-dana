@@ -113,9 +113,9 @@ computeY = function(self)
         local yMiddle = y + yLayerLength / 2
         for rank=1,layer.count do
             local entry = layer[rank]
-            local yHalfLength = typeToMinY[entry.type] / 2
+            local yLength = typeToMinY[entry.type]
             local layerEntryPos = self.entryPositions[entry]
-            layerEntryPos:initY(yMiddle - yHalfLength, yMiddle + yHalfLength)
+            layerEntryPos:initY(yMiddle - yLength / 2, yLength)
         end
         y = y + yLayerLength
     end

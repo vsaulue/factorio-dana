@@ -121,14 +121,14 @@ Metatable = {
             for vertexIndex,coords in pairs(layoutCoordinates.vertices) do
                 left_top.x = coords.xMin
                 left_top.y = coords.yMin
-                right_bottom.x = coords.xMax
-                right_bottom.y = coords.yMax
+                right_bottom.x = coords.xMin + coords.xLength
+                right_bottom.y = coords.yMin + coords.yLength
                 local rectangle = canvas:newRectangle(vertexRectangleArgs)
                 rectangle.rendererType = "vertex"
                 rectangle.rendererIndex = vertexIndex
                 canvas:newSprite{
                     sprite = vertexIndex.spritePath,
-                    target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
+                    target = {coords.xMin + coords.xLength / 2, coords.yMin + coords.yLength / 2},
                 }
             end
 
@@ -139,15 +139,15 @@ Metatable = {
             for edgeIndex,coords in pairs(layoutCoordinates.edges) do
                 left_top.x = coords.xMin
                 left_top.y = coords.yMin
-                right_bottom.x = coords.xMax
-                right_bottom.y = coords.yMax
+                right_bottom.x = coords.xMin + coords.xLength
+                right_bottom.y = coords.yMin + coords.yLength
                 local rectangle = canvas:newRectangle(edgeRectangleArgs)
                 rectangle.selectable = true
                 rectangle.rendererType = "edge"
                 rectangle.rendererIndex = edgeIndex
                 canvas:newSprite{
                     sprite = edgeIndex.spritePath,
-                    target = {(coords.xMin + coords.xMax) / 2, (coords.yMin + coords.yMax) / 2},
+                    target = {coords.xMin + coords.xLength / 2, coords.yMin + coords.yLength / 2},
                 }
             end
 

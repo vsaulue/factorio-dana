@@ -21,11 +21,11 @@ local Metatable
 -- Class holding the position data of a vertex/edge in a layout.
 --
 -- Fields:
+-- * xLength: Length of this object on the X axis.
 -- * xMin: Minimum coordinate on the X axis.
--- * xMax: Maximum coordinate on the X axis.
 -- * xMargin: Margin on the X axis.
+-- * yLength: Length of this object on the X axis.
 -- * yMin: Minimum coordinate on the Y axis.
--- * yMax: Maximum coordinate on the Y axis.
 --
 local RectangleNode = ErrorOnInvalidRead.new{
     -- Creates a new RectangleNode object.
@@ -62,7 +62,9 @@ Metatable = {
         -- * Maximum Y-axis coordinate.
         --
         getAABB = function(self)
-            return self.xMin, self.xMax, self.yMin, self.yMax
+            local xMin = self.xMin
+            local yMin = self.yMin
+            return xMin, xMin + self.xLength, yMin, yMin + self.yLength
         end,
 
         -- Gets the minimum coordinate on the X axis (without margin).
@@ -85,7 +87,7 @@ Metatable = {
         -- Returns: The length of this object on the X axis.
         --
         getXLength = function(self, withMargins)
-            local result = self.xMax - self.xMin
+            local result = self.xLength
             if withMargins then
                 result = result + 2 * self.xMargin
             end
@@ -102,7 +104,7 @@ Metatable = {
         --
         initX = function(self, xMin, xLength, xMargin)
             self.xMin = xMin
-            self.xMax = xMin + xLength
+            self.xLength = xLength
             self.xMargin = xMargin
         end,
 
@@ -111,11 +113,11 @@ Metatable = {
         -- Args:
         -- * self: RectangleNode object.
         -- * yMin: New yMin value.
-        -- * yMax: New yMax value.
+        -- * yLength: New length of this object on the Y-axis.
         --
-        initY = function(self, yMin, yMax)
+        initY = function(self, yMin, yLength)
             self.yMin = yMin
-            self.yMax = yMax
+            self.yLength = yLength
         end,
 
         -- Moves this object on the X axis.
@@ -126,7 +128,6 @@ Metatable = {
         --
         translateX = function(self, xDelta)
             self.xMin = self.xMin + xDelta
-            self.xMax = self.xMax + xDelta
         end,
     },
 }

@@ -99,13 +99,13 @@ Metatable = {
         -- Args:
         -- * self: LayerEntryPosition object.
         -- * yMin: New yMin value.
-        -- * yMax: New yMax value.
+        -- * yLength: New length of this object on the Y-axis.
         --
-        initY = function(self, yMin, yMax)
+        initY = function(self, yMin, yLength)
             local entry = self.entry
-            self.output:initY(yMin, yMax)
+            self.output:initY(yMin, yLength)
             setSlotsY(self.lowNodes, yMin)
-            setSlotsY(self.highNodes, yMax)
+            setSlotsY(self.highNodes, yMin + yLength)
         end,
 
         -- Moves this object on the X axis.
