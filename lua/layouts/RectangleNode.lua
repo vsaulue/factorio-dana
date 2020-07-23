@@ -28,6 +28,7 @@ local Metatable
 -- * xMin: Minimum coordinate on the X axis.
 -- * xMargin: Margin on the X axis.
 -- * yLength: Length of this object on the X axis.
+-- * yMargin: Margin on the Y axis.
 -- * yMin: Minimum coordinate on the Y axis.
 --
 local RectangleNode = ErrorOnInvalidRead.new{
@@ -42,6 +43,7 @@ local RectangleNode = ErrorOnInvalidRead.new{
         cLogger:assertField(object, "xLength")
         cLogger:assertField(object, "xMargin")
         cLogger:assertField(object, "yLength")
+        cLogger:assertField(object, "yMargin")
         setmetatable(object, Metatable)
         return object
     end,

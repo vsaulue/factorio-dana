@@ -120,6 +120,11 @@ createEntryCoordinateRecords = function(self)
         linkNode = 0,
         vertex = params.vertexMinY,
     }
+    local typeToMarginY = ErrorOnInvalidRead.new{
+        edge = params.edgeMarginY,
+        linkNode = 0,
+        vertex = params.vertexMarginY,
+    }
 
     local entries = self.layout.layers.entries
     for layerId=1,entries.count do
@@ -132,6 +137,7 @@ createEntryCoordinateRecords = function(self)
                 output = RectangleNode.new{
                     xMargin = typeToMarginX[entryType],
                     xLength = math.max(typeToMinX[entryType], linkWidth * maxSlotsCount),
+                    yMargin = typeToMarginY[entryType],
                     yLength = typeToMinY[entryType],
                 },
                 entry = entry,
