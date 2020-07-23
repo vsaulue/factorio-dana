@@ -139,17 +139,6 @@ end
 -- Returns: The index of the widest layer (X length).
 --
 firstPass = function(layerCoordinateGenerator)
-    local params = layerCoordinateGenerator.params
-    local typeToMinX = ErrorOnInvalidRead.new{
-        edge = params.edgeMinX,
-        linkNode = params.linkWidth,
-        vertex = params.vertexMinX,
-    }
-    local typeToMarginX = ErrorOnInvalidRead.new{
-        edge = params.edgeMarginX,
-        linkNode = 0,
-        vertex = params.vertexMarginX,
-    }
     local entries = layerCoordinateGenerator.layout.layers.entries
     local xLengthMax = - math.huge
     local layerIdMaxLength = nil
@@ -158,13 +147,11 @@ firstPass = function(layerCoordinateGenerator)
         local x = 0
         for rank=1,layer.count do
             local entry = layer[rank]
-            local entryType = entry.type
-            local maxSlotsCount = math.max(entry.lowSlots.count, entry.highSlots.count)
-            local xLength = math.max(typeToMinX[entryType], params.linkWidth * maxSlotsCount)
-            local xMargin = typeToMarginX[entryType]
-            x = x + xMargin
             local entryRecord = layerCoordinateGenerator.entryPositions[entry]
-            entryRecord:initX(x, xLength, xMargin)
+            local xLength = entryRecord.output:getXLength(false)
+            local xMargin = entryRecord.output.xMargin
+            x = x + xMargin
+            entryRecord:initX(x)
             x = x + xLength + xMargin
         end
         if x > xLengthMax then

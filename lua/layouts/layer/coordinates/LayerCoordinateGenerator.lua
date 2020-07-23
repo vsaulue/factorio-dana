@@ -101,14 +101,32 @@ end
 -- * self: LayerCoordinateGenerator object.
 --
 createEntryCoordinateRecords = function(self)
+    local params = self.params
+    local linkWidth = params.linkWidth
+
+    local typeToMinX = ErrorOnInvalidRead.new{
+        edge = params.edgeMinX,
+        linkNode = linkWidth,
+        vertex = params.vertexMinX,
+    }
+    local typeToMarginX = ErrorOnInvalidRead.new{
+        edge = params.edgeMarginX,
+        linkNode = 0,
+        vertex = params.vertexMarginX,
+    }
+
     local entries = self.layout.layers.entries
     for layerId=1,entries.count do
         local layer = entries[layerId]
         for rank=1,layer.count do
             local entry = layer[rank]
+            local maxSlotsCount = math.max(entry.lowSlots.count, entry.highSlots.count)
             local entryType = entry.type
             local entryRecord = LayerEntryPosition.new{
-                output = RectangleNode.new(),
+                output = RectangleNode.new{
+                    xMargin = typeToMarginX[entryType],
+                    xLength = math.max(typeToMinX[entryType], linkWidth * maxSlotsCount),
+                },
                 entry = entry,
             }
             self.entryPositions[entry] = entryRecord

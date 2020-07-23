@@ -83,12 +83,12 @@ Metatable = {
         -- Args:
         -- * self: LayerEntryPosition object.
         -- * xMin: New xMin value.
-        -- * xLength: New length of this object on the X-axis.
-        -- * xMargin: X margin of this object.
         --
-        initX = function(self, xMin, xLength, xMargin)
+        initX = function(self, xMin)
             local entry = self.entry
-            self.output:initX(xMin, xLength, xMargin)
+            local output = self.output
+            output:initX(xMin)
+            local xLength = output:getXLength(false)
             computeSlotsX(entry.lowSlots, self.lowNodes, xMin, xLength)
             computeSlotsX(entry.highSlots, self.highNodes, xMin, xLength)
         end,

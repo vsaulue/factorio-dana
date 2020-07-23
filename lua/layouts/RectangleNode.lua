@@ -14,7 +14,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+
+local cLogger = ClassLogger.new{className = "RectangleNode"}
 
 local Metatable
 
@@ -35,10 +38,11 @@ local RectangleNode = ErrorOnInvalidRead.new{
     --
     -- Returns: The argument turned into a RectangleNode object.
     --
-    new = function()
-        local result = {}
-        setmetatable(result, Metatable)
-        return result
+    new = function(object)
+        cLogger:assertField(object, "xLength")
+        cLogger:assertField(object, "xMargin")
+        setmetatable(object, Metatable)
+        return object
     end,
 
     -- Restores the metatable of a RectangleNode instance, and all its owned objects.
@@ -99,13 +103,9 @@ Metatable = {
         -- Args:
         -- * self: RectangleNode object.
         -- * xMin: New xMin value.
-        -- * xLength: New length of this object on the X-axis.
-        -- * xMargin: X margin of this object.
         --
-        initX = function(self, xMin, xLength, xMargin)
+        initX = function(self, xMin)
             self.xMin = xMin
-            self.xLength = xLength
-            self.xMargin = xMargin
         end,
 
         -- Initializes the Y coordinates of this node.
