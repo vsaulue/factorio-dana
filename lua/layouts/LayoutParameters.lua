@@ -34,7 +34,7 @@ local Metatable
 -- * vertexMinX: Minimum desired X-length if vertices.
 -- * vertexMinY: Minimum desired Y-length if vertices.
 --
-local LayoutParameters = {
+local LayoutParameters = ErrorOnInvalidRead.new{
     -- Creates a new LayoutParameters object.
     --
     -- Args:
