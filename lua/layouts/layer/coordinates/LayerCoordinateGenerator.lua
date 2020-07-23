@@ -23,6 +23,7 @@ local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
 local LinkCategory = require("lua/layouts/LinkCategory")
 local TreeLink = require("lua/layouts/TreeLink")
 local Logger = require("lua/logger/Logger")
+local RectangleNode = require("lua/layouts/RectangleNode")
 local Stack = require("lua/containers/Stack")
 
 local addTreeLink
@@ -107,6 +108,7 @@ createEntryCoordinateRecords = function(self)
             local entry = layer[rank]
             local entryType = entry.type
             local entryRecord = LayerEntryPosition.new{
+                output = RectangleNode.new(),
                 entry = entry,
             }
             self.entryPositions[entry] = entryRecord

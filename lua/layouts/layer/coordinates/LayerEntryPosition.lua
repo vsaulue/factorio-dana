@@ -16,7 +16,6 @@
 
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local RectangleNode = require("lua/layouts/RectangleNode")
 local TreeLinkNode = require("lua/layouts/TreeLinkNode")
 
 local cLogger = ClassLogger.new{className = "LayerEntryPosition"}
@@ -47,14 +46,14 @@ local LayerEntryPosition = ErrorOnInvalidRead.new{
     -- Turns a table into a LayerEntryPosition object.
     --
     -- Args:
-    -- * object: The table to turn into a LayerEntryPosition object. Must have an entry field.
+    -- * object: The table to turn into a LayerEntryPosition object (required fields: entry, output).
     --
     -- Returns: object, turned into a LayerEntryPosition object.
     --
     new = function(object)
         local entry = cLogger:assertField(object, "entry")
+        cLogger:assertField(object, "output")
 
-        object.output = RectangleNode.new()
         object.lowNodes = buildNodes(entry.lowSlots, entry)
         object.highNodes = buildNodes(entry.highSlots, entry)
 
