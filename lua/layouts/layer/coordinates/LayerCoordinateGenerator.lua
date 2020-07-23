@@ -158,16 +158,12 @@ end
 -- * self: LayerCoordinateGenerator object.
 --
 computeY = function(self)
-    local params = self.params
-    local yLayerLength = math.max(
-        params.edgeMinY + 2 * params.edgeMarginY,
-        params.vertexMinY + 2 * params.vertexMarginY
-    )
     local entries = self.layout.layers.entries
     local channelLayers = self.layout.channelLayers
     local routers = self.channelRouters
     local y = 0
     for layerId=1,entries.count do
+        local yLayerLength = self.layerYLengths[layerId]
         y = routers[layerId]:setY(y)
         local layer = entries[layerId]
         local yMiddle = y + yLayerLength / 2
