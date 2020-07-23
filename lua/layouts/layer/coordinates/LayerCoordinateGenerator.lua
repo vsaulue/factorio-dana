@@ -25,6 +25,16 @@ local TreeLink = require("lua/layouts/TreeLink")
 local Logger = require("lua/logger/Logger")
 local Stack = require("lua/containers/Stack")
 
+local addTreeLink
+local createEntryCoordinateRecords
+local computeY
+local fillLayoutCoordinates
+local generateTreeLinks
+local generateTreeLinksFromNode
+local initChannelRouters
+local LinkCategories
+local processChannelLayer
+
 -- Helper class to compute the final coordinates of a LayerLayout object.
 --
 -- This class is private (not accessible from other files): it is just an intermediate
@@ -38,19 +48,36 @@ local Stack = require("lua/containers/Stack")
 -- * result: Output LayoutCoordinates object.
 --
 local LayerCoordinateGenerator = ErrorOnInvalidRead.new{
-    run = nil, -- implemented later
-}
+    -- Computes the coordinates of each elements of a LayerLayout object.
+    --
+    -- Args:
+    -- * layout: LayerLayout object.
+    -- * params: LayoutParameters object, describing constraints for the coordinates of elements.
+    --
+    -- Returns: a LayoutCoordinates object.
+    --
+    run = function(layout, params)
+        local result = LayoutCoordinates.new{
+            layoutParameters = params,
+        }
+        local self = ErrorOnInvalidRead.new{
+            channelRouters = Array.new(),
+            entryPositions = ErrorOnInvalidRead.new(),
+            layout = layout,
+            params = params,
+            result = result,
+        }
 
--- Implementation stuff (private scope).
-local addTreeLink
-local createEntryCoordinateRecords
-local computeY
-local fillLayoutCoordinates
-local generateTreeLinks
-local generateTreeLinksFromNode
-local initChannelRouters
-local LinkCategories
-local processChannelLayer
+        createEntryCoordinateRecords(self)
+        LayerXPass.run(self)
+        initChannelRouters(self)
+        computeY(self)
+        fillLayoutCoordinates(self)
+        generateTreeLinks(self)
+
+        return result
+    end,
+}
 
 -- Creates and adds a tree link to the generated layout.
 --
@@ -233,35 +260,5 @@ LinkCategories = ErrorOnInvalidRead.new{
         localisedDescription = {"dana.layouts.layer.linkCategories.backwardDesc"},
     },
 }
-
--- Computes the coordinates of each elements of a LayerLayout object.
---
--- Args:
--- * layout: LayerLayout object.
--- * params: LayoutParameters object, describing constraints for the coordinates of elements.
---
--- Returns: a LayoutCoordinates object.
---
-function LayerCoordinateGenerator.run(layout, params)
-    local result = LayoutCoordinates.new{
-        layoutParameters = params,
-    }
-    local self = ErrorOnInvalidRead.new{
-        channelRouters = Array.new(),
-        entryPositions = ErrorOnInvalidRead.new(),
-        layout = layout,
-        params = params,
-        result = result,
-    }
-
-    createEntryCoordinateRecords(self)
-    LayerXPass.run(self)
-    initChannelRouters(self)
-    computeY(self)
-    fillLayoutCoordinates(self)
-    generateTreeLinks(self)
-
-    return result
-end
 
 return LayerCoordinateGenerator
