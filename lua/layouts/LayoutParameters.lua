@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -15,6 +15,8 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+
+local Metatable
 
 -- Class holding data to compute final coordinates of stuff in a graph layout.
 --
@@ -33,11 +35,22 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 -- * vertexMinY: Minimum desired Y-length if vertices.
 --
 local LayoutParameters = {
-    new = nil, -- implemented later
+    -- Creates a new LayoutParameters object.
+    --
+    -- Args:
+    -- * object: table to turn into a LayoutParameter object (or nil to create a new object).
+    --
+    -- Returns: the new LayoutParameters object.
+    --
+    new = function(object)
+        local result = object or {}
+        setmetatable(result, Metatable)
+        return result
+    end
 }
 
 -- Metatable of the LayoutParameters class.
-local Metatable = {
+Metatable = {
     __index = ErrorOnInvalidRead.new{
         edgeMarginX = 1,
         edgeMarginY = 1,
@@ -50,18 +63,5 @@ local Metatable = {
         vertexMinY = 1,
     },
 }
-
--- Creates a new LayoutParameters object.
---
--- Args:
--- * object: table to turn into a LayoutParameter object (or nil to create a new object).
---
--- Returns: the new LayoutParameters object.
---
-function LayoutParameters.new(object)
-    local result = object or {}
-    setmetatable(result, Metatable)
-    return result
-end
 
 return LayoutParameters
