@@ -22,9 +22,9 @@ local cLogger = ClassLogger.new{className = "LayerEntryPosition"}
 
 local buildNodes
 local computeSlotsX
+local computeSlotsY
 local Metatable
 local nodesFieldName
-local setSlotsY
 
 -- Class holding placement data of a specific entry.
 --
@@ -102,8 +102,8 @@ Metatable = {
         setYMin = function(self, yMin)
             local output = self.output
             output:setYMin(yMin)
-            setSlotsY(self.lowNodes, output, true)
-            setSlotsY(self.highNodes, output, false)
+            computeSlotsY(self.lowNodes, output, true)
+            computeSlotsY(self.highNodes, output, false)
         end,
     },
 }
@@ -156,7 +156,7 @@ end
 -- * node: RectangleNode on which the links must be attached.
 -- * isFromLowY: True if links are attached to the low-Y side. False for the high-Y side.
 --
-setSlotsY = function(linkNodes, node, isFromLowY)
+computeSlotsY = function(linkNodes, node, isFromLowY)
     for _,linkNode in pairs(linkNodes) do
         linkNode.y = node:yProject(linkNode.x, isFromLowY)
     end
