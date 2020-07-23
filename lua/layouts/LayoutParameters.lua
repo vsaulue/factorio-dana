@@ -19,8 +19,6 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "LayoutParameters"}
 
-local Metatable
-
 -- Class holding data to compute final coordinates of stuff in a graph layout.
 --
 -- Coordinates returned by layout are "abstract": X and Y. It's up to the renderer to decide
@@ -41,17 +39,11 @@ local LayoutParameters = ErrorOnInvalidRead.new{
     --
     new = function(object)
         cLogger:assertField(object, "edgeShape")
+        cLogger:assertField(object, "linkWidth")
         cLogger:assertField(object, "vertexShape")
-        setmetatable(object, Metatable)
+        ErrorOnInvalidRead.setmetatable(object)
         return object
     end
-}
-
--- Metatable of the LayoutParameters class.
-Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        linkWidth = 1,
-    },
 }
 
 return LayoutParameters
