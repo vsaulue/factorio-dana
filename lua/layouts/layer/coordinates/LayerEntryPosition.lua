@@ -87,7 +87,7 @@ Metatable = {
         initX = function(self, xMin)
             local entry = self.entry
             local output = self.output
-            output:initX(xMin)
+            output:setXMin(xMin)
             local xLength = output:getXLength(false)
             computeSlotsX(entry.lowSlots, self.lowNodes, xMin, xLength)
             computeSlotsX(entry.highSlots, self.highNodes, xMin, xLength)
