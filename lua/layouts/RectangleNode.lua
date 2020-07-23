@@ -41,6 +41,7 @@ local RectangleNode = ErrorOnInvalidRead.new{
     new = function(object)
         cLogger:assertField(object, "xLength")
         cLogger:assertField(object, "xMargin")
+        cLogger:assertField(object, "yLength")
         setmetatable(object, Metatable)
         return object
     end,
