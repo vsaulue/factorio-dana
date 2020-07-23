@@ -25,7 +25,6 @@ local computeSlotsX
 local Metatable
 local nodesFieldName
 local setSlotsY
-local translateNodesX
 
 -- Class holding placement data of a specific entry.
 --
@@ -107,18 +106,6 @@ Metatable = {
             computeSlotsX(entry.lowSlots, self.lowNodes, xMin, xLength)
             computeSlotsX(entry.highSlots, self.highNodes, xMin, xLength)
         end,
-
-        -- Moves this object on the X axis.
-        --
-        -- Args:
-        -- * self: LayerEntryPosition object.
-        -- * xDelta: Value to add to the X coordinates.
-        --
-        translateX = function(self, xDelta)
-            self.output:translateX(xDelta)
-            translateNodesX(self.lowNodes, xDelta)
-            translateNodesX(self.highNodes, xDelta)
-        end,
     },
 }
 
@@ -180,17 +167,5 @@ nodesFieldName = ErrorOnInvalidRead.new{
     [true] = "lowNodes",
     [false] = "highNodes",
 }
-
--- Updates the x field of a set of link nodes.
---
--- Args:
--- * nodes: Map of Tree nodes.
--- * xDelta: Value to add to the x field of tree nodes.
---
-translateNodesX = function(nodes, xDelta)
-    for _,node in pairs(nodes) do
-        node.x = node.x + xDelta
-    end
-end
 
 return LayerEntryPosition
