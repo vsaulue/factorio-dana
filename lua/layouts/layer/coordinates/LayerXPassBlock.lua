@@ -95,7 +95,7 @@ Metatable = {
                 local xMargin = node.xMargin
                 local xLength = node:getXLength(false)
                 x = x + xMargin
-                entryPos:translateX(x - node:getXMin())
+                entryPos:setXMin(x)
                 x = x + xLength + xMargin
             end
         end,
