@@ -79,18 +79,6 @@ Metatable = {
             return self[nodesFieldName[isInbound]][channelIndex]
         end,
 
-        -- Get the length of this object on the X axis.
-        --
-        -- Args:
-        -- * self: LayerEntryPosition object.
-        --
-        -- Returns: The length of this object on the X axis.
-        --
-        getXLength = function(self)
-            local output = self.output
-            return output.xMax - output.xMin
-        end,
-
         -- Initializes the X coordinates of this object.
         --
         -- Args:
