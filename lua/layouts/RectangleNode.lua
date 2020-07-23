@@ -119,16 +119,6 @@ Metatable = {
         setXMin = function(self, xMin)
             self.xMin = xMin
         end,
-
-        -- Moves this object on the X axis.
-        --
-        -- Args:
-        -- * self: RectangleNode object.
-        -- * xDelta: Value to add to the X coordinates.
-        --
-        translateX = function(self, xDelta)
-            self.xMin = self.xMin + xDelta
-        end,
     },
 }
 
