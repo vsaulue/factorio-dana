@@ -86,7 +86,7 @@ barycenterPass = function(layerCoordinateGenerator, layerId, parser)
             local entry = layer[rank]
             local entryPos = entryPositions[entry]
             local count = 0
-            local oldXMin = entryPos.output.xMin
+            local oldXMin = entryPos.output:getXMin()
             local newXMin = 0
             for channelIndex,node in pairs(entryPos[parser.EntryPosNear]) do
                 local channelX = channelsAvgX[channelIndex]

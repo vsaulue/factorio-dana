@@ -101,9 +101,7 @@ Metatable = {
         --
         initX = function(self, xMin, xLength, xMargin)
             local entry = self.entry
-            self.output.xMargin = xMargin
-            self.output.xMin = xMin
-            self.output.xMax = xMin + xLength
+            self.output:initX(xMin, xLength, xMargin)
             computeSlotsX(entry.lowSlots, self.lowNodes, xMin, xLength)
             computeSlotsX(entry.highSlots, self.highNodes, xMin, xLength)
         end,
@@ -117,8 +115,7 @@ Metatable = {
         --
         initY = function(self, yMin, yMax)
             local entry = self.entry
-            self.output.yMin = yMin
-            self.output.yMax = yMax
+            self.output:initY(yMin, yMax)
             setSlotsY(self.lowNodes, yMin)
             setSlotsY(self.highNodes, yMax)
         end,
@@ -130,9 +127,7 @@ Metatable = {
         -- * xDelta: Value to add to the X coordinates.
         --
         translateX = function(self, xDelta)
-            local output = self.output
-            output.xMin = output.xMin + xDelta
-            output.xMax = output.xMax + xDelta
+            self.output:translateX(xDelta)
             translateNodesX(self.lowNodes, xDelta)
             translateNodesX(self.highNodes, xDelta)
         end,

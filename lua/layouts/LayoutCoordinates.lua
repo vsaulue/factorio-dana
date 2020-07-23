@@ -100,7 +100,7 @@ Metatable = {
             local map = self.edges
             cLogger:assert(not rawget(map, edgeIndex), "Duplicate edge index.")
             map[edgeIndex] = edgeData
-            updateAabb(self, edgeData)
+            updateAabb(self, edgeData:getAABB())
         end,
 
         -- Adds a tree link.
@@ -122,13 +122,8 @@ Metatable = {
                 yMax = max(yMax, node.y)
             end)
 
-            local halfLinkWidth = self.layoutParameters.linkWidth / 2
-            updateAabb(self, {
-                xMin = xMin - halfLinkWidth,
-                xMax = xMax + halfLinkWidth,
-                yMin = yMin - halfLinkWidth,
-                yMax = yMax + halfLinkWidth,
-            })
+            local halfWidth = self.layoutParameters.linkWidth / 2
+            updateAabb(self, xMin - halfWidth, xMax + halfWidth, yMin - halfWidth, yMax + halfWidth)
         end,
 
         -- Adds an edge record.
@@ -142,7 +137,7 @@ Metatable = {
             local map = self.vertices
             cLogger:assert(not rawget(map, vertexIndex), "Duplicate vertex index.")
             map[vertexIndex] = vertexData
-            updateAabb(self, vertexData)
+            updateAabb(self, vertexData:getAABB())
         end,
     }
 }
@@ -151,13 +146,16 @@ Metatable = {
 --
 -- Args:
 -- * self: LayoutCoordinates object.
--- * aabb: AABB object to include in the layout's bounding box.
+-- * xMin: Minimum value on the X axis of the AABB to include.
+-- * xMax: Maximum value on the X axis of the AABB to include.
+-- * yMin: Minimum value on the Y axis of the AABB to include.
+-- * yMax: Maximum value on the Y axis of the AABB to include.
 --
-updateAabb = function(self, aabb)
-    self.xMin = min(self.xMin, aabb.xMin)
-    self.xMax = max(self.xMax, aabb.xMax)
-    self.yMin = min(self.yMin, aabb.yMin)
-    self.yMax = max(self.yMax, aabb.yMax)
+updateAabb = function(self, xMin, xMax, yMin, yMax)
+    self.xMin = min(self.xMin, xMin)
+    self.xMax = max(self.xMax, xMax)
+    self.yMin = min(self.yMin, yMin)
+    self.yMax = max(self.yMax, yMax)
 end
 
 return LayoutCoordinates
