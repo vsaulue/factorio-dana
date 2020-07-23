@@ -98,6 +98,17 @@ Metatable = {
             return result
         end,
 
+        -- Get the length of this node on the Y axis (margins NOT included).
+        --
+        -- Args:
+        -- * self: RectangleNode object.
+        --
+        -- Returns: The length of this object on the Y axis.
+        --
+        getYLength = function(self)
+            return self.yLength
+        end,
+
         -- Initializes the Y coordinates of this node.
         --
         -- Args:
