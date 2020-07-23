@@ -44,6 +44,7 @@ local processChannelLayer
 -- Fields:
 -- * channelRouters[i]: ChannelRouter object corresponding to the i-th channel layer.
 -- * entryPositions[entry]: LayerEntryPosition object associated to a specific entry.
+-- * layerYLengths[layerId]: Map giving the Y length of a layer.
 -- * layout: Input LayerLayout instance.
 -- * params: LayoutParameters object, describing constraints for the coordinates of elements.
 -- * result: Output LayoutCoordinates object.
@@ -64,6 +65,7 @@ local LayerCoordinateGenerator = ErrorOnInvalidRead.new{
         local self = ErrorOnInvalidRead.new{
             channelRouters = Array.new(),
             entryPositions = ErrorOnInvalidRead.new(),
+            layerYLengths = ErrorOnInvalidRead.new(),
             layout = layout,
             params = params,
             result = result,
@@ -129,6 +131,7 @@ createEntryCoordinateRecords = function(self)
     local entries = self.layout.layers.entries
     for layerId=1,entries.count do
         local layer = entries[layerId]
+        local layerYLength = 0
         for rank=1,layer.count do
             local entry = layer[rank]
             local maxSlotsCount = math.max(entry.lowSlots.count, entry.highSlots.count)
@@ -142,8 +145,10 @@ createEntryCoordinateRecords = function(self)
                 },
                 entry = entry,
             }
+            layerYLength = math.max(layerYLength, entryRecord.output:getYLength(true))
             self.entryPositions[entry] = entryRecord
         end
+        self.layerYLengths[layerId] = layerYLength
     end
 end
 
