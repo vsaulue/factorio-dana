@@ -136,6 +136,23 @@ Metatable = {
         setYMin = function(self, yMin)
             self.yMin = yMin
         end,
+
+        -- Projects a point along the Y axis on the rectangle.
+        --
+        -- Args:
+        -- * self: RectangleNode object.
+        -- * x: X coordinate of the point to project.
+        -- * isFromLowY: True to project from -infinity on the Y axis. False from +infinity.
+        --
+        -- Returns: The Y coordinate of the projected point.
+        --
+        yProject = function(self, x, isFromLowY)
+            local result = self.yMin
+            if not isFromLowY then
+                result = result + self.yLength
+            end
+            return result
+        end,
     },
 }
 
