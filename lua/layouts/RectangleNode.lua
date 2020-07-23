@@ -16,6 +16,8 @@
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
+local Metatable
+
 -- Class holding the position data of a vertex/edge in a layout.
 --
 -- Fields:
@@ -33,10 +35,100 @@ local RectangleNode = ErrorOnInvalidRead.new{
     --
     -- Returns: The argument turned into a RectangleNode object.
     --
-    new = ErrorOnInvalidRead.new,
+    new = function()
+        local result = {}
+        setmetatable(result, Metatable)
+        return result
+    end,
 
     -- Restores the metatable of a RectangleNode instance, and all its owned objects.
-    setmetatable = ErrorOnInvalidRead.setmetatable,
+    setmetatable = function(object)
+        setmetatable(object, Metatable)
+    end,
+}
+
+-- Metatable of the RectangleNode class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Gets the 4 coordinates of the bounding box of this node (without margins).
+        --
+        -- Args:
+        -- * self: RectangleNode object.
+        --
+        -- Returns:
+        -- * Minimum X-axis coordinate.
+        -- * Maximum X-axis coordinate.
+        -- * Minimum Y-axis coordinate.
+        -- * Maximum Y-axis coordinate.
+        --
+        getAABB = function(self)
+            return self.xMin, self.xMax, self.yMin, self.yMax
+        end,
+
+        -- Gets the minimum coordinate on the X axis (without margin).
+        --
+        -- Args:
+        -- * self: RectangleNode object.
+        --
+        -- Returns: The minimum X-axis coordinate.
+        --
+        getXMin = function(self)
+            return self.xMin
+        end,
+
+        -- Get the length of this node on the X axis.
+        --
+        -- Args:
+        -- * self: RectangleNode object.
+        -- * withMargins: True to include the xMargin.
+        --
+        -- Returns: The length of this object on the X axis.
+        --
+        getXLength = function(self, withMargins)
+            local result = self.xMax - self.xMin
+            if withMargins then
+                result = result + 2 * self.xMargin
+            end
+            return result
+        end,
+
+        -- Initializes the X coordinates of this node.
+        --
+        -- Args:
+        -- * self: RectangleNode object.
+        -- * xMin: New xMin value.
+        -- * xLength: New length of this object on the X-axis.
+        -- * xMargin: X margin of this object.
+        --
+        initX = function(self, xMin, xLength, xMargin)
+            self.xMin = xMin
+            self.xMax = xMin + xLength
+            self.xMargin = xMargin
+        end,
+
+        -- Initializes the Y coordinates of this node.
+        --
+        -- Args:
+        -- * self: RectangleNode object.
+        -- * yMin: New yMin value.
+        -- * yMax: New yMax value.
+        --
+        initY = function(self, yMin, yMax)
+            self.yMin = yMin
+            self.yMax = yMax
+        end,
+
+        -- Moves this object on the X axis.
+        --
+        -- Args:
+        -- * self: RectangleNode object.
+        -- * xDelta: Value to add to the X coordinates.
+        --
+        translateX = function(self, xDelta)
+            self.xMin = self.xMin + xDelta
+            self.xMax = self.xMax + xDelta
+        end,
+    },
 }
 
 return RectangleNode
