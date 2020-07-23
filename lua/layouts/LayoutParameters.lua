@@ -14,7 +14,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+
+local cLogger = ClassLogger.new{className = "LayoutParameters"}
 
 local Metatable
 
@@ -24,15 +27,9 @@ local Metatable
 -- which one is horizontal/vertical (or do fancier transforms).
 --
 -- Fields:
--- * edgeMarginX: Space to leave around hyperedges on the X-axis.
--- * edgeMarginY: Space to leave around hyperedges on the Y-axis.
--- * edgeMinX: Minimum desired X-length of hyperedges.
--- * edgeMinY: Minimum desired Y-length of hyperedges.
+-- * edgeShape: RectangleNodeShape to use to generate edge nodes.
 -- * linkWidth: Width of links, including margins (if you want 0.1-wide links separated by 0.5 gaps, set it to 0.6).
--- * vertexMarginX: Space to leave around vertices on the X-axis.
--- * vertexMarginY: Space to leave around vertices on the Y-axis.
--- * vertexMinX: Minimum desired X-length if vertices.
--- * vertexMinY: Minimum desired Y-length if vertices.
+-- * vertexShape: RectangleNodeShape to use to generate vertex nodes.
 --
 local LayoutParameters = ErrorOnInvalidRead.new{
     -- Creates a new LayoutParameters object.
@@ -43,24 +40,17 @@ local LayoutParameters = ErrorOnInvalidRead.new{
     -- Returns: the new LayoutParameters object.
     --
     new = function(object)
-        local result = object or {}
-        setmetatable(result, Metatable)
-        return result
+        cLogger:assertField(object, "edgeShape")
+        cLogger:assertField(object, "vertexShape")
+        setmetatable(object, Metatable)
+        return object
     end
 }
 
 -- Metatable of the LayoutParameters class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
-        edgeMarginX = 1,
-        edgeMarginY = 1,
-        edgeMinX = 1,
-        edgeMinY = 1,
         linkWidth = 1,
-        vertexMarginX = 1,
-        vertexMarginY = 1,
-        vertexMinX = 1,
-        vertexMinY = 1,
     },
 }
 

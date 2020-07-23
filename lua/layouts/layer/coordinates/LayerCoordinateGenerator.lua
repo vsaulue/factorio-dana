@@ -107,24 +107,14 @@ createEntryCoordinateRecords = function(self)
     local linkWidth = params.linkWidth
 
     local typeToShape = ErrorOnInvalidRead.new{
-        edge = RectangleNodeShape.new{
-            minXLength = params.edgeMinX,
-            minYLength = params.edgeMinY,
-            xMargin = params.edgeMarginX,
-            yMargin = params.edgeMarginY,
-        },
+        edge = params.edgeShape,
         linkNode = RectangleNodeShape.new{
             minXLength = params.linkWidth,
             minYLength = 0,
             xMargin = 0,
             yMargin = 0,
         },
-        vertex = RectangleNodeShape.new{
-            minXLength = params.vertexMinX,
-            minYLength = params.vertexMinY,
-            xMargin = params.vertexMarginX,
-            yMargin = params.vertexMarginY,
-        },
+        vertex = params.vertexShape,
     }
 
     local entries = self.layout.layers.entries

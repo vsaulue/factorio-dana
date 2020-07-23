@@ -19,6 +19,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
 local LayoutParameters = require("lua/layouts/LayoutParameters")
 local LinkCategory = require("lua/layouts/LinkCategory")
+local RectangleNodeShape = require("lua/layouts/RectangleNodeShape")
 local RendererSelection = require("lua/renderers/RendererSelection")
 
 local cLogger = ClassLogger.new{className = "SimpleRenderer"}
@@ -170,15 +171,19 @@ CategoryToColor = ErrorOnInvalidRead.new{
 
 -- LayoutParameters object, used by all instances of SimpleRenderer.
 DefaultLayoutParameters = LayoutParameters.new{
-    edgeMarginX = 0.2,
-    edgeMarginY = 0.2,
-    edgeMinX = 1.6,
-    edgeMinY = 1.6,
+    edgeShape = RectangleNodeShape.new{
+        xMargin = 0.2,
+        yMargin = 0.2,
+        minXLength = 1.6,
+        minYLength = 1.6,
+    },
     linkWidth = 0.25,
-    vertexMarginX = 0.2,
-    vertexMarginY = 0.2,
-    vertexMinX = 1.6,
-    vertexMinY = 1.6,
+    vertexShape = RectangleNodeShape.new{
+        xMargin = 0.2,
+        yMargin = 0.2,
+        minXLength = 1.6,
+        minYLength = 1.6,
+    },
 }
 
 -- Draws a legend at the top-left of the graph.
@@ -206,8 +211,8 @@ drawLegend = function(self)
 
     drawLegendTitle(canvas, cursor)
 
-    drawLegendForRectangle(canvas, cursor, makeVertexRectangleArgs(), params.vertexMinX, params.vertexMinY, {"dana.renderer.simple.legend.vertexText"})
-    drawLegendForRectangle(canvas, cursor, makeEdgeRectangleArgs(), params.edgeMinX, params.edgeMinY, {"dana.renderer.simple.legend.edgeText"})
+    drawLegendForRectangle(canvas, cursor, makeVertexRectangleArgs(), params.vertexShape, {"dana.renderer.simple.legend.vertexText"})
+    drawLegendForRectangle(canvas, cursor, makeEdgeRectangleArgs(), params.edgeShape, {"dana.renderer.simple.legend.edgeText"})
 
     cursor.y = cursor.y + 0.75
 
@@ -272,21 +277,20 @@ end
 -- * canvas: Canvas object on which element will be drawn.
 -- * cursor: A {x=,y=} table indicating where to draw. The Y field will be incremented for the next legend element.
 -- * rectangleArgs: Table passed to Canvas:newLine(). Must contain all fields except left_top/right_bottom.
--- * xLength: Width of the rectangle.
--- * yLength: Height of the rectangle.
+-- * shape: RectangleNodeShape object containing the dimensions.
 -- * localisedText: Localised string to display near the rectangle.
 --
-drawLegendForRectangle = function(canvas, cursor, rectangleArgs, xLength, yLength, localisedText)
+drawLegendForRectangle = function(canvas, cursor, rectangleArgs, shape, localisedText)
     local xStart = cursor.x
     -- Rectangle
     rectangleArgs.left_top = cursor
     rectangleArgs.right_bottom = {
-        x = xStart + xLength,
-        y = cursor.y + yLength,
+        x = xStart + shape.minXLength,
+        y = cursor.y + shape.minYLength,
     }
     canvas:newRectangle(rectangleArgs)
     -- Text
-    cursor.x = xStart + xLength + 0.5
+    cursor.x = xStart + shape.minXLength + 0.5
     cursor.y = cursor.y + 0.2
     canvas:newText{
         text = localisedText,
