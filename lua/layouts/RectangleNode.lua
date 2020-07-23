@@ -101,15 +101,20 @@ Metatable = {
             return result
         end,
 
-        -- Get the length of this node on the Y axis (margins NOT included).
+        -- Get the length of this node on the Y axis.
         --
         -- Args:
         -- * self: RectangleNode object.
+        -- * withMargins: True to include the yMargin.
         --
         -- Returns: The length of this object on the Y axis.
         --
-        getYLength = function(self)
-            return self.yLength
+        getYLength = function(self, withMargins)
+            local result = self.yLength
+            if withMargins then
+                result = result + 2 * self.yMargin
+            end
+            return result
         end,
 
         -- Sets the minimum coordinate on the X axis (margin NOT included).

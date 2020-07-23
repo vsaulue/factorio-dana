@@ -103,7 +103,7 @@ Metatable = {
             local entry = self.entry
             self.output:setYMin(yMin)
             setSlotsY(self.lowNodes, yMin)
-            setSlotsY(self.highNodes, yMin + self.output:getYLength())
+            setSlotsY(self.highNodes, yMin + self.output:getYLength(false))
         end,
     },
 }

@@ -169,7 +169,7 @@ computeY = function(self)
         for rank=1,layer.count do
             local entry = layer[rank]
             local layerEntryPos = self.entryPositions[entry]
-            local yLength = layerEntryPos.output:getYLength()
+            local yLength = layerEntryPos.output:getYLength(false)
             layerEntryPos:setYMin(yMiddle - yLength / 2)
         end
         y = y + yLayerLength
