@@ -114,11 +114,9 @@ Metatable = {
         -- Args:
         -- * self: RectangleNode object.
         -- * yMin: New yMin value.
-        -- * yLength: New length of this object on the Y-axis.
         --
-        initY = function(self, yMin, yLength)
+        initY = function(self, yMin)
             self.yMin = yMin
-            self.yLength = yLength
         end,
 
         -- Sets the minimum coordinate on the X axis (margin NOT included).

@@ -82,13 +82,12 @@ Metatable = {
         -- Args:
         -- * self: LayerEntryPosition object.
         -- * yMin: New yMin value.
-        -- * yLength: New length of this object on the Y-axis.
         --
-        initY = function(self, yMin, yLength)
+        initY = function(self, yMin)
             local entry = self.entry
-            self.output:initY(yMin, yLength)
+            self.output:initY(yMin)
             setSlotsY(self.lowNodes, yMin)
-            setSlotsY(self.highNodes, yMin + yLength)
+            setSlotsY(self.highNodes, yMin + self.output:getYLength())
         end,
 
         -- Sets the X coordinates of the node (margin excluded) and the attached links.

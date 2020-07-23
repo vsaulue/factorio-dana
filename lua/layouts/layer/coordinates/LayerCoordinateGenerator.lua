@@ -115,6 +115,12 @@ createEntryCoordinateRecords = function(self)
         vertex = params.vertexMarginX,
     }
 
+    local typeToMinY = ErrorOnInvalidRead.new{
+        edge = params.edgeMinY,
+        linkNode = 0,
+        vertex = params.vertexMinY,
+    }
+
     local entries = self.layout.layers.entries
     for layerId=1,entries.count do
         local layer = entries[layerId]
@@ -126,6 +132,7 @@ createEntryCoordinateRecords = function(self)
                 output = RectangleNode.new{
                     xMargin = typeToMarginX[entryType],
                     xLength = math.max(typeToMinX[entryType], linkWidth * maxSlotsCount),
+                    yLength = typeToMinY[entryType],
                 },
                 entry = entry,
             }
@@ -141,11 +148,6 @@ end
 --
 computeY = function(self)
     local params = self.params
-    local typeToMinY = ErrorOnInvalidRead.new{
-        edge = params.edgeMinY,
-        linkNode = 0,
-        vertex = params.vertexMinY,
-    }
     local yLayerLength = math.max(
         params.edgeMinY + 2 * params.edgeMarginY,
         params.vertexMinY + 2 * params.vertexMarginY
@@ -160,9 +162,9 @@ computeY = function(self)
         local yMiddle = y + yLayerLength / 2
         for rank=1,layer.count do
             local entry = layer[rank]
-            local yLength = typeToMinY[entry.type]
             local layerEntryPos = self.entryPositions[entry]
-            layerEntryPos:initY(yMiddle - yLength / 2, yLength)
+            local yLength = layerEntryPos.output:getYLength()
+            layerEntryPos:initY(yMiddle - yLength / 2)
         end
         y = y + yLayerLength
     end
