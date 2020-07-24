@@ -17,6 +17,7 @@
 local AbstractCanvasObject = require("lua/canvas/objects/AbstractCanvasObject")
 local CanvasCircle = require("lua/canvas/objects/CanvasCircle")
 local CanvasLine = require("lua/canvas/objects/CanvasLine")
+local CanvasPolygon = require("lua/canvas/objects/CanvasPolygon")
 local CanvasRectangle = require("lua/canvas/objects/CanvasRectangle")
 local CanvasSprite = require("lua/canvas/objects/CanvasSprite")
 local CanvasText = require("lua/canvas/objects/CanvasText")
@@ -144,6 +145,16 @@ Metatable = {
         --
         newCircle = function(self, initData)
             return drawWrapper(self, initData, CanvasCircle)
+        end,
+
+        -- Draws a new polygon.
+        --
+        -- Args:
+        -- * self: Canvas object.
+        -- * initData: Arguments passed to the rendering API (surface & players are filled by this method).
+        --
+        newPolygon = function(self, initData)
+            return drawWrapper(self, initData, CanvasPolygon)
         end,
 
         -- Draws a new rectangle.
