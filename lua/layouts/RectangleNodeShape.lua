@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractNodeShape = require("lua/layouts/AbstractNodeShape")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local RectangleNode = require("lua/layouts/RectangleNode")
@@ -22,7 +23,7 @@ local cLogger = ClassLogger.new{className = "RectangleNodeShape"}
 
 local Metatable
 
--- Class holding data to build RectangleNode objects in a layout.
+-- AbstractNodeShape specialisation that generates RectangleNode objects.
 --
 -- Fields:
 -- * minXLength: Minimum desired X-length of nodes.
@@ -43,22 +44,14 @@ local RectangleNodeShape = ErrorOnInvalidRead.new{
         cLogger:assertField(object, "minYLength")
         cLogger:assertField(object, "xMargin")
         cLogger:assertField(object, "yMargin")
-        setmetatable(object, Metatable)
-        return object
+        return AbstractNodeShape.new(object, Metatable)
     end,
 }
 
 -- Metatable of the RectangleNodeShape class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
-        -- Generates a RectangleNode object.
-        --
-        -- Args:
-        -- * self: RectangleNodeShape object.
-        -- * minXLength: Additional constraint on the X-length.
-        --
-        -- Returns: The new RectangleNode object.
-        --
+        -- Implements AbstractNodeShape:generateNode().
         generateNode = function(self, minXLength)
             local xLength = math.max(minXLength, self.minXLength)
             return RectangleNode.new{
