@@ -25,9 +25,9 @@ local cLogger = ClassLogger.new{className = "LayoutParameters"}
 -- which one is horizontal/vertical (or do fancier transforms).
 --
 -- Fields:
--- * edgeShape: RectangleNodeShape to use to generate edge nodes.
+-- * edgeShape: AbstractNodeShape to use to generate edge nodes.
 -- * linkWidth: Width of links, including margins (if you want 0.1-wide links separated by 0.5 gaps, set it to 0.6).
--- * vertexShape: RectangleNodeShape to use to generate vertex nodes.
+-- * vertexShape: AbstractNodeShape to use to generate vertex nodes.
 --
 local LayoutParameters = ErrorOnInvalidRead.new{
     -- Creates a new LayoutParameters object.
