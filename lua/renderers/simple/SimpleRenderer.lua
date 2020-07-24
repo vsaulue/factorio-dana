@@ -31,7 +31,7 @@ local CategoryToColor
 local DefaultLayoutParameters
 local drawLegend
 local drawLegendForLine
-local drawLegendForRectangle
+local drawLegendForNode
 local drawLegendTitle
 local LegendTextColor
 local Metatable
@@ -112,43 +112,27 @@ Metatable = {
             self.layoutCoordinates = layoutCoordinates
             local canvas = self.canvas
 
-            local left_top = {}
-            local right_bottom = {}
-
             local vertexRectangleArgs = makeVertexRectangleArgs()
             vertexRectangleArgs.selectable = true
-            vertexRectangleArgs.left_top = left_top
-            vertexRectangleArgs.right_bottom = right_bottom
-            for vertexIndex,coords in pairs(layoutCoordinates.vertices) do
-                left_top.x = coords.xMin
-                left_top.y = coords.yMin
-                right_bottom.x = coords.xMin + coords.xLength
-                right_bottom.y = coords.yMin + coords.yLength
-                local rectangle = canvas:newRectangle(vertexRectangleArgs)
+            for vertexIndex,node in pairs(layoutCoordinates.vertices) do
+                local rectangle = node:drawOnCanvas(canvas, vertexRectangleArgs)
                 rectangle.rendererType = "vertex"
                 rectangle.rendererIndex = vertexIndex
                 canvas:newSprite{
                     sprite = vertexIndex.spritePath,
-                    target = {coords.xMin + coords.xLength / 2, coords.yMin + coords.yLength / 2},
+                    target = {node:getMiddle()},
                 }
             end
 
             local edgeRectangleArgs = makeEdgeRectangleArgs()
             edgeRectangleArgs.selectable = true
-            edgeRectangleArgs.left_top = left_top
-            edgeRectangleArgs.right_bottom = right_bottom
-            for edgeIndex,coords in pairs(layoutCoordinates.edges) do
-                left_top.x = coords.xMin
-                left_top.y = coords.yMin
-                right_bottom.x = coords.xMin + coords.xLength
-                right_bottom.y = coords.yMin + coords.yLength
-                local rectangle = canvas:newRectangle(edgeRectangleArgs)
-                rectangle.selectable = true
+            for edgeIndex,node in pairs(layoutCoordinates.edges) do
+                local rectangle = node:drawOnCanvas(canvas, edgeRectangleArgs)
                 rectangle.rendererType = "edge"
                 rectangle.rendererIndex = edgeIndex
                 canvas:newSprite{
                     sprite = edgeIndex.spritePath,
-                    target = {coords.xMin + coords.xLength / 2, coords.yMin + coords.yLength / 2},
+                    target = {node:getMiddle()},
                 }
             end
 
@@ -211,8 +195,8 @@ drawLegend = function(self)
 
     drawLegendTitle(canvas, cursor)
 
-    drawLegendForRectangle(canvas, cursor, makeVertexRectangleArgs(), params.vertexShape, {"dana.renderer.simple.legend.vertexText"})
-    drawLegendForRectangle(canvas, cursor, makeEdgeRectangleArgs(), params.edgeShape, {"dana.renderer.simple.legend.edgeText"})
+    drawLegendForNode(canvas, cursor, makeVertexRectangleArgs(), params.vertexShape, {"dana.renderer.simple.legend.vertexText"})
+    drawLegendForNode(canvas, cursor, makeEdgeRectangleArgs(), params.edgeShape, {"dana.renderer.simple.legend.edgeText"})
 
     cursor.y = cursor.y + 0.75
 
@@ -271,26 +255,24 @@ drawLegendForLine = function(canvas, cursor, lineArgs, length, localisedText)
     cursor.x = xStart
 end
 
--- Draws a rectangle in the legend box, and adds a description on its right.
+-- Draws a node in the legend box, and adds a description on its right.
 --
 -- Args:
 -- * canvas: Canvas object on which element will be drawn.
 -- * cursor: A {x=,y=} table indicating where to draw. The Y field will be incremented for the next legend element.
--- * rectangleArgs: Table passed to Canvas:newLine(). Must contain all fields except left_top/right_bottom.
--- * shape: RectangleNodeShape object containing the dimensions.
+-- * rendererArgs: Table passed to AbstractNode:drawOnCanvas().
+-- * shape: AbstractNodeShape object of the node to draw.
 -- * localisedText: Localised string to display near the rectangle.
 --
-drawLegendForRectangle = function(canvas, cursor, rectangleArgs, shape, localisedText)
+drawLegendForNode = function(canvas, cursor, rendererArgs, shape, localisedText)
     local xStart = cursor.x
-    -- Rectangle
-    rectangleArgs.left_top = cursor
-    rectangleArgs.right_bottom = {
-        x = xStart + shape.minXLength,
-        y = cursor.y + shape.minYLength,
-    }
-    canvas:newRectangle(rectangleArgs)
+    -- Node
+    local node = shape:generateNode(0)
+    node:setXMin(xStart)
+    node:setYMin(cursor.y)
+    node:drawOnCanvas(canvas, rendererArgs)
     -- Text
-    cursor.x = xStart + shape.minXLength + 0.5
+    cursor.x = xStart + node:getXLength() + 0.5
     cursor.y = cursor.y + 0.2
     canvas:newText{
         text = localisedText,
