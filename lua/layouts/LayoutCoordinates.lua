@@ -14,9 +14,9 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractNode = require("lua/layouts/AbstractNode")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local RectangleNode = require("lua/layouts/RectangleNode")
 local TreeLink = require("lua/layouts/TreeLink")
 
 local cLogger = ClassLogger.new{className = "LayoutCoordinates"}
@@ -34,10 +34,10 @@ local updateAabb
 -- * Vertex: placement data for a vertex { xMin=..., xMax=..., yMin=..., yMax=...}
 --
 -- RO Fields:
--- * edges: map of Edge objects, indexed by their indices from the input hypergraph.
+-- * edges[edgeIndex]: Map of AbstractNode objects, indexed by edge indices from the input hypergraph.
 -- * layoutParameters: LayoutParameters used to generate these coordinates.
 -- * links: set of TreeLink objects.
--- * vertices: map of Vertex objects, indexed by their indices from the input hypergraph.
+-- * vertices[vertexIndex]: Map of AbstractNode objects, indexed by vertex indices from the input hypergraph.
 -- * xMax: Maximum value on the X axis (bounding box).
 -- * xMin: Minimum value on the X axis (bounding box).
 -- * yMax: Maximum value on the Y axis (bounding box).
@@ -71,12 +71,12 @@ local LayoutCoordinates = ErrorOnInvalidRead.new{
 
         ErrorOnInvalidRead.setmetatable(object.edges)
         for _,edgeData in pairs(object.edges) do
-            RectangleNode.setmetatable(edgeData)
+            AbstractNode.Factory:restoreMetatable(edgeData)
         end
 
         ErrorOnInvalidRead.setmetatable(object.vertices)
         for _,vertexData in pairs(object.vertices) do
-            RectangleNode.setmetatable(vertexData)
+            AbstractNode.Factory:restoreMetatable(vertexData)
         end
 
         ErrorOnInvalidRead.setmetatable(object.links)
