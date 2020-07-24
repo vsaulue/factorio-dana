@@ -61,11 +61,37 @@ local RectangleNode = ErrorOnInvalidRead.new{
 -- Metatable of the RectangleNode class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Implements AbstractNode:drawOnCanvas().
+        drawOnCanvas = function(self, canvas, rendererArgs)
+            local left_top = rendererArgs.left_top
+            if not left_top then
+                left_top = {}
+                rendererArgs.left_top = left_top
+            end
+            left_top.x = self.xMin
+            left_top.y = self.yMin
+
+            local right_bottom = rendererArgs.right_bottom
+            if not right_bottom then
+                right_bottom = {}
+                rendererArgs.right_bottom = right_bottom
+            end
+            right_bottom.x = self.xMin + self.xLength
+            right_bottom.y = self.yMin + self.yLength
+
+            return canvas:newRectangle(rendererArgs)
+        end,
+
         -- Implements AbstractNode:getAABB().
         getAABB = function(self)
             local xMin = self.xMin
             local yMin = self.yMin
             return xMin, xMin + self.xLength, yMin, yMin + self.yLength
+        end,
+
+        -- Implements AbstractNode:getMiddle()
+        getMiddle = function(self)
+            return self.xMin + self.xLength / 2, self.yMin + self.yLength / 2
         end,
 
         -- Implements AbstractNode:getXMin().
