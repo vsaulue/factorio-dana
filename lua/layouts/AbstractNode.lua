@@ -54,6 +54,15 @@ local AbstractNode = ErrorOnInvalidRead.new{
 --[[
 
 Metatable = {
+        -- Draws this node on a Canvas.
+        --
+        -- Args:
+        -- * self: AbstractNode object.
+        -- * canvas: Canvas object on which to draw the node.
+        -- * rendererArgs (modified): Arguments passed to Factorio's rendering API to create the shape.
+        --
+        drawOnCanvas = function(self, canvas, rendererArgs) end,
+
         -- Gets the 4 coordinates of the bounding box of this node (without margins).
         --
         -- Args:
@@ -66,6 +75,17 @@ Metatable = {
         -- * Maximum Y-axis coordinate.
         --
         getAABB = function(self) end,
+
+        -- Gets the coordinate of the center of this node.
+        --
+        -- Args:
+        -- * self: AbstractNode object.
+        --
+        -- Returns:
+        -- * The X coordinate of the center.
+        -- * The Y coordinate of the center.
+        --
+        getMiddle = function(self) end,
 
         -- Gets the minimum coordinate on the X axis (without margin).
         --
