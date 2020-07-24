@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local CircleNodeShape = require("lua/layouts/CircleNodeShape")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
@@ -162,11 +163,10 @@ DefaultLayoutParameters = LayoutParameters.new{
         minYLength = 1.6,
     },
     linkWidth = 0.25,
-    vertexShape = RectangleNodeShape.new{
+    vertexShape = CircleNodeShape.new{
+        minRadius = 0.8,
         xMargin = 0.2,
         yMargin = 0.2,
-        minXLength = 1.6,
-        minYLength = 1.6,
     },
 }
 
