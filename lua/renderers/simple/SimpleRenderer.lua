@@ -30,8 +30,8 @@ local drawLegendForLine
 local drawLegendForNode
 local drawLegendTitle
 local Metatable
-local makeEdgeRectangleArgs
-local makeVertexRectangleArgs
+local makeEdgeNodeArgs
+local makeVertexNodeArgs
 local renderTree
 
 -- Class used to render graphs onto a LuaSurface.
@@ -106,10 +106,10 @@ Metatable = {
             self.layoutCoordinates = layoutCoordinates
             local canvas = self.canvas
 
-            local vertexRectangleArgs = makeVertexRectangleArgs()
-            vertexRectangleArgs.selectable = true
+            local vertexNodeArgs = makeVertexNodeArgs()
+            vertexNodeArgs.selectable = true
             for vertexIndex,node in pairs(layoutCoordinates.vertices) do
-                local rectangle = node:drawOnCanvas(canvas, vertexRectangleArgs)
+                local rectangle = node:drawOnCanvas(canvas, vertexNodeArgs)
                 rectangle.rendererType = "vertex"
                 rectangle.rendererIndex = vertexIndex
                 canvas:newSprite{
@@ -118,10 +118,10 @@ Metatable = {
                 }
             end
 
-            local edgeRectangleArgs = makeEdgeRectangleArgs()
-            edgeRectangleArgs.selectable = true
+            local edgeNodeArgs = makeEdgeNodeArgs()
+            edgeNodeArgs.selectable = true
             for edgeIndex,node in pairs(layoutCoordinates.edges) do
-                local rectangle = node:drawOnCanvas(canvas, edgeRectangleArgs)
+                local rectangle = node:drawOnCanvas(canvas, edgeNodeArgs)
                 rectangle.rendererType = "edge"
                 rectangle.rendererIndex = edgeIndex
                 canvas:newSprite{
@@ -164,8 +164,8 @@ drawLegend = function(self)
 
     drawLegendTitle(canvas, cursor)
 
-    drawLegendForNode(canvas, cursor, makeVertexRectangleArgs(), params.vertexShape, {"dana.renderer.simple.legend.vertexText"})
-    drawLegendForNode(canvas, cursor, makeEdgeRectangleArgs(), params.edgeShape, {"dana.renderer.simple.legend.edgeText"})
+    drawLegendForNode(canvas, cursor, makeVertexNodeArgs(), params.vertexShape, {"dana.renderer.simple.legend.vertexText"})
+    drawLegendForNode(canvas, cursor, makeEdgeNodeArgs(), params.edgeShape, {"dana.renderer.simple.legend.edgeText"})
 
     cursor.y = cursor.y + 0.75
 
@@ -275,7 +275,7 @@ end
 --
 -- Returns: A partially filled table usable in Canvas:makeRectangle().
 --
-makeEdgeRectangleArgs = function()
+makeEdgeNodeArgs = function()
     return {
         color = SimpleConfig.EdgeColor,
         draw_on_ground = true,
@@ -287,7 +287,7 @@ end
 --
 -- Returns: A partially filled table usable in Canvas:makeRectangle().
 --
-makeVertexRectangleArgs = function()
+makeVertexNodeArgs = function()
     return {
         color = SimpleConfig.VertexColor,
         draw_on_ground = true,
