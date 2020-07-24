@@ -14,27 +14,20 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local CircleNodeShape = require("lua/layouts/CircleNodeShape")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
 local LayoutParameters = require("lua/layouts/LayoutParameters")
 local LinkCategory = require("lua/layouts/LinkCategory")
-local RectangleNodeShape = require("lua/layouts/RectangleNodeShape")
 local RendererSelection = require("lua/renderers/RendererSelection")
+local SimpleConfig = require("lua/renderers/simple/SimpleConfig")
 
 local cLogger = ClassLogger.new{className = "SimpleRenderer"}
 
-local DarkGrey = {r = 0.1, g = 0.1, b = 0.1, a = 1}
-local LightGrey = {r = 0.2, g = 0.2, b = 0.2, a = 1}
-
-local CategoryToColor
-local DefaultLayoutParameters
 local drawLegend
 local drawLegendForLine
 local drawLegendForNode
 local drawLegendTitle
-local LegendTextColor
 local Metatable
 local makeEdgeRectangleArgs
 local makeLinkLineArgs
@@ -109,7 +102,7 @@ Metatable = {
         -- * layout: Layout to draw.
         --
         drawLayout = function(self, layout)
-            local layoutCoordinates = layout:computeCoordinates(DefaultLayoutParameters)
+            local layoutCoordinates = layout:computeCoordinates(SimpleConfig.LayoutParameters)
             self.layoutCoordinates = layoutCoordinates
             local canvas = self.canvas
 
@@ -139,35 +132,13 @@ Metatable = {
 
             for rendererLink in pairs(layoutCoordinates.links) do
                 local categoryIndex = rendererLink.categoryIndex
-                local color = CategoryToColor[categoryIndex]
+                local color = SimpleConfig.LinkCategoryToColor[categoryIndex]
                 renderTree(self, rendererLink.tree, color)
             end
 
             drawLegend(self)
         end,
     }
-}
-
--- Map[categoryIndex] -> Color, used to determine the color of the links.
-CategoryToColor = ErrorOnInvalidRead.new{
-    ["layer.forward"] = {r = 1, g = 1, b = 1, a = 1},
-    ["layer.backward"] = {a = 1, r = 1},
-}
-
--- LayoutParameters object, used by all instances of SimpleRenderer.
-DefaultLayoutParameters = LayoutParameters.new{
-    edgeShape = RectangleNodeShape.new{
-        xMargin = 0.2,
-        yMargin = 0.2,
-        minXLength = 1.6,
-        minYLength = 1.6,
-    },
-    linkWidth = 0.25,
-    vertexShape = CircleNodeShape.new{
-        minRadius = 0.8,
-        xMargin = 0.2,
-        yMargin = 0.2,
-    },
 }
 
 -- Draws a legend at the top-left of the graph.
@@ -178,7 +149,7 @@ DefaultLayoutParameters = LayoutParameters.new{
 drawLegend = function(self)
     local LegendXLength = 20
     local canvas = self.canvas
-    local params = DefaultLayoutParameters
+    local params = SimpleConfig.LayoutParameters
     local xMin = self.layoutCoordinates.xMin
     if xMin == math.huge then
         xMin = 0
@@ -202,7 +173,7 @@ drawLegend = function(self)
 
     -- Links
     local lineArgs = makeLinkLineArgs()
-    for categoryIndex,color in pairs(CategoryToColor) do
+    for categoryIndex,color in pairs(SimpleConfig.LinkCategoryToColor) do
         local text = LinkCategory.get(categoryIndex).localisedDescription
         lineArgs.color = color
         drawLegendForLine(canvas, cursor, lineArgs, 1.6, text)
@@ -212,7 +183,7 @@ drawLegend = function(self)
     canvas:newRectangle{
         left_top = {xMin, yMin},
         right_bottom = cursor,
-        color = LegendTextColor,
+        color = SimpleConfig.LegendFrameColor,
         filled = false,
     }
 
@@ -246,7 +217,7 @@ drawLegendForLine = function(canvas, cursor, lineArgs, length, localisedText)
     canvas:newText{
         text = localisedText,
         target = cursor,
-        color = LegendTextColor,
+        color = SimpleConfig.LegendTextColor,
         scale = 2,
     }
     -- Position for the next line
@@ -277,7 +248,7 @@ drawLegendForNode = function(canvas, cursor, rendererArgs, shape, localisedText)
     canvas:newText{
         text = localisedText,
         target = cursor,
-        color = LegendTextColor,
+        color = SimpleConfig.LegendTextColor,
         scale = 2,
     }
     -- Position for the next line
@@ -295,15 +266,12 @@ drawLegendTitle = function(canvas, cursor)
     canvas:newText{
         text = {"dana.renderer.simple.legend.title"},
         target = cursor,
-        color = LegendTextColor,
+        color = SimpleConfig.LegendTextColor,
         scale = 5,
     }
     -- Position for the next line
     cursor.y = cursor.y + 4
 end
-
--- Color of the text in the legend.
-LegendTextColor = {a=1,r=0.8,g=0.8,b=0.8}
 
 -- Makes common constructor arguments for the background rectangle of edges.
 --
@@ -311,7 +279,7 @@ LegendTextColor = {a=1,r=0.8,g=0.8,b=0.8}
 --
 makeEdgeRectangleArgs = function()
     return {
-        color = DarkGrey,
+        color = SimpleConfig.EdgeColor,
         draw_on_ground = true,
         filled = true,
     }
@@ -324,7 +292,7 @@ end
 makeLinkLineArgs = function()
     return {
         draw_on_ground = true,
-        width = 1,
+        width = SimpleConfig.LinkLineWitdh,
     }
 end
 
@@ -334,7 +302,7 @@ end
 --
 makeVertexRectangleArgs = function()
     return {
-        color = LightGrey,
+        color = SimpleConfig.VertexColor,
         draw_on_ground = true,
         filled = true,
     }
