@@ -28,8 +28,6 @@ local Metatable
 -- Fields:
 -- * minXLength: Minimum desired X-length of nodes.
 -- * minYLength: Minimum desired Y-length of nodes.
--- * xMargin: Space to leave around the node on the X-axis.
--- * yMargin: Space to leave around the node on the Y-axis.
 --
 local RectangleNodeShape = ErrorOnInvalidRead.new{
     -- Creates a new RectangleNodeShape object.
@@ -42,8 +40,6 @@ local RectangleNodeShape = ErrorOnInvalidRead.new{
     new = function(object)
         cLogger:assertField(object, "minXLength")
         cLogger:assertField(object, "minYLength")
-        cLogger:assertField(object, "xMargin")
-        cLogger:assertField(object, "yMargin")
         return AbstractNodeShape.new(object, Metatable)
     end,
 }
