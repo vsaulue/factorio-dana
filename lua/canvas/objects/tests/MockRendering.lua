@@ -19,6 +19,17 @@ local rendering = {
         id.type = "destroyed"
     end,
 
+    draw_circle = function(initData)
+        return {
+            type = "circle",
+            target = {
+                x = initData.target.x,
+                y = initData.target.y,
+            },
+            radius = initData.radius,
+        }
+    end,
+
     draw_line = function(initData)
         return {
             type = "line",
@@ -67,11 +78,29 @@ local rendering = {
         return result
     end,
 
+    get_radius = function(id)
+        local result = nil
+        if id.type == "circle" then
+            result = id.radius
+        end
+        return result
+    end,
+
     get_right_bottom = function(id)
         local result = nil
         if id.type == "rectangle" then
             result = {
                 position = id.right_bottom,
+            }
+        end
+        return result
+    end,
+
+    get_target = function(id)
+        local result = nil
+        if id.type == "circle" then
+            result = {
+                position = id.target,
             }
         end
         return result
