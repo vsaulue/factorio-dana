@@ -21,6 +21,7 @@ local LayoutParameters = require("lua/layouts/LayoutParameters")
 local LinkCategory = require("lua/layouts/LinkCategory")
 local RendererSelection = require("lua/renderers/RendererSelection")
 local SimpleConfig = require("lua/renderers/simple/SimpleConfig")
+local SimpleTreeDrawer = require("lua/renderers/simple/SimpleTreeDrawer")
 
 local cLogger = ClassLogger.new{className = "SimpleRenderer"}
 
@@ -30,7 +31,6 @@ local drawLegendForNode
 local drawLegendTitle
 local Metatable
 local makeEdgeRectangleArgs
-local makeLinkLineArgs
 local makeVertexRectangleArgs
 local renderTree
 
@@ -131,9 +131,7 @@ Metatable = {
             end
 
             for rendererLink in pairs(layoutCoordinates.links) do
-                local categoryIndex = rendererLink.categoryIndex
-                local color = SimpleConfig.LinkCategoryToColor[categoryIndex]
-                renderTree(self, rendererLink.tree, color)
+                SimpleTreeDrawer.run(canvas, rendererLink)
             end
 
             drawLegend(self)
@@ -172,7 +170,7 @@ drawLegend = function(self)
     cursor.y = cursor.y + 0.75
 
     -- Links
-    local lineArgs = makeLinkLineArgs()
+    local lineArgs = SimpleTreeDrawer.makeLinkLineArgs()
     for categoryIndex,color in pairs(SimpleConfig.LinkCategoryToColor) do
         local text = LinkCategory.get(categoryIndex).localisedDescription
         lineArgs.color = color
@@ -285,17 +283,6 @@ makeEdgeRectangleArgs = function()
     }
 end
 
--- Makes common constructor arguments for the lines of links.
---
--- Returns: A partially filled table usable in Canvas:makeLine().
---
-makeLinkLineArgs = function()
-    return {
-        draw_on_ground = true,
-        width = SimpleConfig.LinkLineWitdh,
-    }
-end
-
 -- Makes common constructor arguments for the background rectangle of vertices.
 --
 -- Returns: A partially filled table usable in Canvas:makeRectangle().
@@ -306,46 +293,6 @@ makeVertexRectangleArgs = function()
         draw_on_ground = true,
         filled = true,
     }
-end
-
--- Renders a tree link.
---
--- Args:
--- * self: SimpleRenderer object.
--- * tree: The tree link to render.
--- * color: Color used to draw the link.
---
-renderTree = function(self,tree,color)
-    local canvas = self.canvas
-    local from = {tree.x, tree.y}
-    local lineArgs = makeLinkLineArgs()
-    lineArgs.color = color
-    lineArgs.from = from
-    lineArgs.to = {}
-    lineArgs.selectable = true
-
-    local count = 0
-    for subtree in pairs(tree.children) do
-        count = count + 1
-        lineArgs.to.x = subtree.x
-        lineArgs.to.y = subtree.y
-        local line = canvas:newLine(lineArgs)
-        line.rendererType = "treeLinkNode"
-        line.rendererIndex = subtree
-        renderTree(self, subtree, color)
-    end
-    if rawget(tree, "parent") then
-        count = count + 1
-    end
-    if count > 2 then
-        canvas:newCircle{
-            color = color,
-            draw_on_ground = true,
-            filled = true,
-            radius = 0.125,
-            target = from,
-        }
-    end
 end
 
 return SimpleRenderer
