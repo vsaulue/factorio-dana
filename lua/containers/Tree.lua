@@ -28,6 +28,7 @@ local Metatable
 -- This is just a simple tree. No sorting, no balancing.
 --
 -- RO fields:
+-- * childCount: Number of children of this node.
 -- * children: the set of children trees of this tree.
 -- * parent: Parent node in the tree.
 --
@@ -60,6 +61,7 @@ local Tree = ErrorOnInvalidRead.new{
     new = function(object)
         local result = object or {}
         result.children = ErrorOnInvalidRead.new()
+        result.childCount = 0
         setmetatable(result, Metatable)
         return result
     end,
@@ -90,6 +92,7 @@ Metatable = {
             cLogger:assert(not rawget(newChild, "parent"), "attempt to insert a subtree in 2 different trees.")
             newChild.parent = self
             self.children[newChild] = true
+            self.childCount = self.childCount + 1
         end,
 
         -- Gets the root node of this tree.

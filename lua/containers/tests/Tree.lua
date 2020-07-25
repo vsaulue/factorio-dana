@@ -33,15 +33,18 @@ describe("Tree", function()
     it("constructor", function()
         assert.is_not_nil(tree.children)
         assert.is_nil(rawget(tree, "parent"))
+        assert.are.equals(tree.childCount, 0)
     end)
 
     it("setmetatable()", function()
         local tree2 = {
             children = {},
+            childCount = 1,
         }
         local child = {
             parent = tree2,
             children = {},
+            childCount = 0,
         }
         tree2.children[child] = true
 
@@ -91,6 +94,7 @@ describe("Tree", function()
             assert.is_true(tree.children[child])
             assert.is_nil(rawget(tree, "parent"))
             assert.are.equals(child.parent, tree)
+            assert.are.equals(tree.childCount, 1)
         end)
 
         it("error if the node is inserted twice", function()
