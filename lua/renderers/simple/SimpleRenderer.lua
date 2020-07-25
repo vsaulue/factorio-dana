@@ -173,6 +173,7 @@ drawLegend = function(self)
     -- Links
     local linkDrawer = SimpleLinkDrawer.new{
         canvas = canvas,
+        makeTriangle = true,
     }
     for categoryIndex,color in pairs(SimpleConfig.LinkCategoryToColor) do
         drawLegendForLine(linkDrawer, cursor, categoryIndex)
