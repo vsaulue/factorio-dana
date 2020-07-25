@@ -18,6 +18,8 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local SimpleConfig = require("lua/renderers/simple/SimpleConfig")
 local SimpleLinkDrawer = require("lua/renderers/simple/SimpleLinkDrawer")
 
+local drawFromVertex
+local drawToVertex
 local runImpl
 
 -- Utility class drawing TreeLink of the SimpleRenderer.
@@ -36,42 +38,76 @@ local SimpleTreeDrawer = ErrorOnInvalidRead.new{
         }
         linkDrawer:setLinkCategoryIndex(treeLink.categoryIndex)
         linkDrawer.lineArgs.selectable = true
-        runImpl(linkDrawer, treeLink.tree)
+
+        local root = treeLink.tree
+        if root.channelIndex.isFromVertexToEdge then
+            drawFromVertex(linkDrawer, root)
+        else
+            drawToVertex(linkDrawer, root)
+        end
     end,
 }
 
--- Renders a treeLinkNode object.
+-- Renders a treeLinkNode object, with arrows going from the vertex to the edges.
 --
 -- Args:
 -- * linkDrawer (modified): SimpleLinkDrawer to use to draw the links.
 -- * tree: The treeLinkNode to render.
 --
-runImpl = function(linkDrawer, tree)
-    local count = 0
+drawFromVertex = function(linkDrawer, tree)
     for subtree in pairs(tree.children) do
-        runImpl(linkDrawer, subtree)
-        count = count + 1
+        drawFromVertex(linkDrawer, subtree)
     end
 
     linkDrawer:setFrom(tree.x, tree.y)
     for subtree in pairs(tree.children) do
+        local subCount = subtree.childCount
+        linkDrawer.makeTriangle = (subCount == 0)
         linkDrawer:setTo(subtree.x, subtree.y)
         local line = linkDrawer:draw()
         line.rendererType = "treeLinkNode"
         line.rendererIndex = subtree
+
+        if subCount >= 2 then
+            linkDrawer.canvas:newCircle{
+                color = linkDrawer.lineArgs.color,
+                draw_on_ground = true,
+                filled = true,
+                radius = 0.125,
+                target = linkDrawer.to,
+            }
+        end
+    end
+end
+
+-- Renders a treeLinkNode object, with arrows going from the edges to the vertex.
+--
+-- Args:
+-- * linkDrawer (modified): SimpleLinkDrawer to use to draw the links.
+-- * tree: The treeLinkNode to render.
+--
+drawToVertex = function(linkDrawer, tree)
+    for subtree in pairs(tree.children) do
+        drawToVertex(linkDrawer, subtree)
     end
 
-    if rawget(tree, "parent") then
-        count = count + 1
-    end
-    if count > 2 then
-        linkDrawer.canvas:newCircle{
-            color = linkDrawer.lineArgs.color,
-            draw_on_ground = true,
-            filled = true,
-            radius = 0.125,
-            target = linkDrawer.lineArgs.from,
-        }
+    linkDrawer:setTo(tree.x, tree.y)
+    linkDrawer.makeTriangle = not rawget(tree, "parent")
+    for subtree in pairs(tree.children) do
+        linkDrawer:setFrom(subtree.x, subtree.y)
+        local line = linkDrawer:draw()
+        line.rendererType = "treeLinkNode"
+        line.rendererIndex = subtree
+
+        if subtree.childCount >= 2 then
+            linkDrawer.canvas:newCircle{
+                color = linkDrawer.lineArgs.color,
+                draw_on_ground = true,
+                filled = true,
+                radius = 0.125,
+                target = linkDrawer.from,
+            }
+        end
     end
 end
 
