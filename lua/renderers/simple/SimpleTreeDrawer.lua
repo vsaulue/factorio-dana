@@ -17,6 +17,7 @@
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local SimpleConfig = require("lua/renderers/simple/SimpleConfig")
 
+local makeLinkLineArgs
 local runImpl
 
 -- Utility class drawing TreeLink of the SimpleRenderer.
@@ -41,30 +42,33 @@ local SimpleTreeDrawer = ErrorOnInvalidRead.new{
     --
     run = function(canvas, treeLink)
         local color = SimpleConfig.LinkCategoryToColor[treeLink.categoryIndex]
-        runImpl(canvas, treeLink.tree, color)
+        local lineArgs = makeLinkLineArgs()
+        lineArgs.color = color
+        lineArgs.from = {}
+        lineArgs.to = {}
+        lineArgs.selectable = true
+        runImpl(canvas, lineArgs, treeLink.tree)
     end,
 }
+
+makeLinkLineArgs = SimpleTreeDrawer.makeLinkLineArgs
 
 -- Renders a treeLinkNode object.
 --
 -- Args:
 -- * canvas: Canvas object on which to do the render.
+-- * lineArgs (modified): Constructor arguments to use in Canvas:drawLine()
 -- * tree: The treeLinkNode to render.
--- * color: Color used to draw the link.
 --
-runImpl = function(canvas, tree, color)
-    local from = {tree.x, tree.y}
-    local lineArgs = SimpleTreeDrawer.makeLinkLineArgs()
-    lineArgs.color = color
-    lineArgs.from = from
-    lineArgs.to = {}
-    lineArgs.selectable = true
-
+runImpl = function(canvas, lineArgs, tree)
     local count = 0
     for subtree in pairs(tree.children) do
-        runImpl(canvas, subtree, color)
+        runImpl(canvas, lineArgs, subtree)
         count = count + 1
     end
+
+    lineArgs.from.x = tree.x
+    lineArgs.from.y = tree.y
     for subtree in pairs(tree.children) do
         lineArgs.to.x = subtree.x
         lineArgs.to.y = subtree.y
@@ -72,16 +76,17 @@ runImpl = function(canvas, tree, color)
         line.rendererType = "treeLinkNode"
         line.rendererIndex = subtree
     end
+
     if rawget(tree, "parent") then
         count = count + 1
     end
     if count > 2 then
         canvas:newCircle{
-            color = color,
+            color = lineArgs.color,
             draw_on_ground = true,
             filled = true,
             radius = 0.125,
-            target = from,
+            target = lineArgs.from,
         }
     end
 end
