@@ -16,24 +16,13 @@
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local SimpleConfig = require("lua/renderers/simple/SimpleConfig")
+local SimpleLinkDrawer = require("lua/renderers/simple/SimpleLinkDrawer")
 
-local makeLinkLineArgs
 local runImpl
 
 -- Utility class drawing TreeLink of the SimpleRenderer.
 --
 local SimpleTreeDrawer = ErrorOnInvalidRead.new{
-    -- Makes common constructor arguments for the lines of links.
-    --
-    -- Returns: A partially filled table usable in Canvas:makeLine().
-    --
-    makeLinkLineArgs = function()
-        return {
-            draw_on_ground = true,
-            width = SimpleConfig.LinkLineWitdh,
-        }
-    end,
-
     -- Renders a TreeLink object.
     --
     -- Args:
@@ -42,37 +31,32 @@ local SimpleTreeDrawer = ErrorOnInvalidRead.new{
     --
     run = function(canvas, treeLink)
         local color = SimpleConfig.LinkCategoryToColor[treeLink.categoryIndex]
-        local lineArgs = makeLinkLineArgs()
-        lineArgs.color = color
-        lineArgs.from = {}
-        lineArgs.to = {}
-        lineArgs.selectable = true
-        runImpl(canvas, lineArgs, treeLink.tree)
+        local linkDrawer = SimpleLinkDrawer.new{
+            canvas = canvas,
+        }
+        linkDrawer:setLinkCategoryIndex(treeLink.categoryIndex)
+        linkDrawer.lineArgs.selectable = true
+        runImpl(linkDrawer, treeLink.tree)
     end,
 }
-
-makeLinkLineArgs = SimpleTreeDrawer.makeLinkLineArgs
 
 -- Renders a treeLinkNode object.
 --
 -- Args:
--- * canvas: Canvas object on which to do the render.
--- * lineArgs (modified): Constructor arguments to use in Canvas:drawLine()
+-- * linkDrawer (modified): SimpleLinkDrawer to use to draw the links.
 -- * tree: The treeLinkNode to render.
 --
-runImpl = function(canvas, lineArgs, tree)
+runImpl = function(linkDrawer, tree)
     local count = 0
     for subtree in pairs(tree.children) do
-        runImpl(canvas, lineArgs, subtree)
+        runImpl(linkDrawer, subtree)
         count = count + 1
     end
 
-    lineArgs.from.x = tree.x
-    lineArgs.from.y = tree.y
+    linkDrawer:setFrom(tree.x, tree.y)
     for subtree in pairs(tree.children) do
-        lineArgs.to.x = subtree.x
-        lineArgs.to.y = subtree.y
-        local line = canvas:newLine(lineArgs)
+        linkDrawer:setTo(subtree.x, subtree.y)
+        local line = linkDrawer:draw()
         line.rendererType = "treeLinkNode"
         line.rendererIndex = subtree
     end
@@ -81,12 +65,12 @@ runImpl = function(canvas, lineArgs, tree)
         count = count + 1
     end
     if count > 2 then
-        canvas:newCircle{
-            color = lineArgs.color,
+        linkDrawer.canvas:newCircle{
+            color = linkDrawer.lineArgs.color,
             draw_on_ground = true,
             filled = true,
             radius = 0.125,
-            target = lineArgs.from,
+            target = linkDrawer.lineArgs.from,
         }
     end
 end
