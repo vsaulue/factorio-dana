@@ -62,13 +62,15 @@ runImpl = function(canvas, tree, color)
 
     local count = 0
     for subtree in pairs(tree.children) do
+        runImpl(canvas, subtree, color)
         count = count + 1
+    end
+    for subtree in pairs(tree.children) do
         lineArgs.to.x = subtree.x
         lineArgs.to.y = subtree.y
         local line = canvas:newLine(lineArgs)
         line.rendererType = "treeLinkNode"
         line.rendererIndex = subtree
-        runImpl(canvas, subtree, color)
     end
     if rawget(tree, "parent") then
         count = count + 1
