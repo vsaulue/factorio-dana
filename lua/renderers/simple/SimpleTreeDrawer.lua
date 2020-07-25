@@ -40,7 +40,9 @@ local SimpleTreeDrawer = ErrorOnInvalidRead.new{
         linkDrawer.lineArgs.selectable = true
 
         local root = treeLink.tree
-        if root.channelIndex.isFromVertexToEdge then
+        local channelIndex = root.channelIndex
+        linkDrawer:setSpritePath(channelIndex.vertexIndex.spritePath)
+        if channelIndex.isFromVertexToEdge then
             drawFromVertex(linkDrawer, root)
         else
             drawToVertex(linkDrawer, root)
@@ -62,8 +64,11 @@ drawFromVertex = function(linkDrawer, tree)
     linkDrawer:setFrom(tree.x, tree.y)
     for subtree in pairs(tree.children) do
         local subCount = subtree.childCount
-        linkDrawer.makeTriangle = (subCount == 0)
+        local isLeaf = (subCount == 0)
+        linkDrawer.makeTriangle = isLeaf
+        linkDrawer.drawSpriteAtDest = isLeaf
         linkDrawer:setTo(subtree.x, subtree.y)
+
         local line = linkDrawer:draw()
         line.rendererType = "treeLinkNode"
         line.rendererIndex = subtree
@@ -88,12 +93,14 @@ drawToVertex = function(linkDrawer, tree)
     linkDrawer:setTo(tree.x, tree.y)
     linkDrawer.makeTriangle = not rawget(tree, "parent")
     for subtree in pairs(tree.children) do
+        local subCount = subtree.childCount
         linkDrawer:setFrom(subtree.x, subtree.y)
+        linkDrawer.drawSpriteAtSrc = (subCount == 0)
         local line = linkDrawer:draw()
         line.rendererType = "treeLinkNode"
         line.rendererIndex = subtree
 
-        if subtree.childCount >= 2 then
+        if subCount >= 2 then
             linkDrawer:drawCircle(true)
         end
     end
