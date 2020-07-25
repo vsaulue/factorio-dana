@@ -54,7 +54,11 @@ local LayerEntryPosition = ErrorOnInvalidRead.new{
         cLogger:assertField(object, "output")
 
         object.lowNodes = buildNodes(entry.lowSlots, entry)
-        object.highNodes = buildNodes(entry.highSlots, entry)
+        if entry.type == "linkNode" then
+            object.highNodes = object.lowNodes
+        else
+            object.highNodes = buildNodes(entry.highSlots, entry)
+        end
 
         setmetatable(object, Metatable)
         return object

@@ -231,7 +231,6 @@ generateTreeLinksFromNode = function(self, nodes, startLayerId)
                     layerId = layerId + 1
                     nextNode = branch.entryPosition.highNodes[channelIndex]
                 end
-                branch.entryNode:addChild(nextNode)
             else
                 nextNode = nil
             end
