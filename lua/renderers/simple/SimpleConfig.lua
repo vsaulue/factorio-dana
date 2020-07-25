@@ -45,6 +45,9 @@ local SimpleConfig = ErrorOnInvalidRead.new{
         ["layer.backward"] = {a = 1, r = 1},
     },
 
+    -- Radius of the connection circle on links.
+    LinkCircleRadius = 0.1,
+
     -- Width (in pixels) of the lines used to draw links.
     LinkLineWitdh = 1,
 

@@ -27,6 +27,7 @@ local Metatable
 --
 -- RO Fields:
 -- * canvas: Canvas object on which to draw the line.
+-- * circleArgs: Argument passed to Canvas:newLine() to draw the connection circles.
 -- * from: Coordinates of the start of the arrow.
 -- * makeTriangle: True to draw a proper arrow. False for just a line.
 -- * lineArgs: Argument passed to Canvas:newLine() to draw the segment.
@@ -46,6 +47,11 @@ local SimpleLinkDrawer = ErrorOnInvalidRead.new{
         object.to = {}
         object.lineTo = {}
         object.makeTriangle = object.makeTriangle or false
+        object.circleArgs = {
+            draw_on_ground = true,
+            filled = true,
+            radius = SimpleConfig.LinkCircleRadius,
+        }
         object.lineArgs = {
             draw_on_ground = true,
             from = object.from,
@@ -98,6 +104,24 @@ Metatable = {
             return canvas:newLine(self.lineArgs)
         end,
 
+        -- Draws a connection circle either at `from` or `to` coordinates.
+        --
+        -- Args:
+        -- * self: SimpleLinkDrawer object.
+        -- * isFrom: True to center the circle on `from`. False for `to`.
+        --
+        -- Returns: The created CanvasCircle.
+        --
+        drawCircle = function(self, isFrom)
+            local circleArgs = self.circleArgs
+            if isFrom then
+                circleArgs.target = self.from
+            else
+                circleArgs.target = self.to
+            end
+            return self.canvas:newCircle(circleArgs)
+        end,
+
         -- Set the category index of the link.
         --
         -- Args:
@@ -108,6 +132,7 @@ Metatable = {
             local color = SimpleConfig.LinkCategoryToColor[value]
             self.lineArgs.color = color
             self.triangleArgs.color = color
+            self.circleArgs.color = color
         end,
 
         -- Set the source end point of this link.

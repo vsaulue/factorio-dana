@@ -69,13 +69,7 @@ drawFromVertex = function(linkDrawer, tree)
         line.rendererIndex = subtree
 
         if subCount >= 2 then
-            linkDrawer.canvas:newCircle{
-                color = linkDrawer.lineArgs.color,
-                draw_on_ground = true,
-                filled = true,
-                radius = 0.125,
-                target = linkDrawer.to,
-            }
+            linkDrawer:drawCircle(false)
         end
     end
 end
@@ -100,13 +94,7 @@ drawToVertex = function(linkDrawer, tree)
         line.rendererIndex = subtree
 
         if subtree.childCount >= 2 then
-            linkDrawer.canvas:newCircle{
-                color = linkDrawer.lineArgs.color,
-                draw_on_ground = true,
-                filled = true,
-                radius = 0.125,
-                target = linkDrawer.from,
-            }
+            linkDrawer:drawCircle(true)
         end
     end
 end
