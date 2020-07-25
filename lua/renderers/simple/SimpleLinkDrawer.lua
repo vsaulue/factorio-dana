@@ -20,13 +20,19 @@ local SimpleConfig = require("lua/renderers/simple/SimpleConfig")
 
 local cLogger = ClassLogger.new{className = "SimpleLinkDrawer"}
 
+local ArrowVertices
 local Metatable
 
 -- Class to draw line segment of links.
 --
 -- RO Fields:
 -- * canvas: Canvas object on which to draw the line.
--- * lineArgs: Argument passed to Canvas:drawLine().
+-- * from: Coordinates of the start of the arrow.
+-- * makeTriangle: True to draw a proper arrow. False for just a line.
+-- * lineArgs: Argument passed to Canvas:newLine() to draw the segment.
+-- * lineTo: Coordinates of the end of the line (might be slightly different from `to` for cosmetic reasons).
+-- * to: Coordinates of the target of the arrow.
+-- * triangleArgs: Arguments passed to Canvas:newPolygon() to draw the arrow.
 --
 local SimpleLinkDrawer = ErrorOnInvalidRead.new{
     -- Creates a new SimpleLinkDrawer object.
@@ -36,11 +42,20 @@ local SimpleLinkDrawer = ErrorOnInvalidRead.new{
     --
     new = function(object)
         cLogger:assertField(object, "canvas")
+        object.from = {}
+        object.to = {}
+        object.lineTo = {}
+        object.makeTriangle = object.makeTriangle or false
         object.lineArgs = {
             draw_on_ground = true,
-            from = {},
-            to = {},
+            from = object.from,
+            to = object.lineTo,
             width = SimpleConfig.LinkLineWitdh,
+        }
+        object.triangleArgs = {
+            orientation_target = object.lineArgs.from,
+            target = object.to,
+            vertices = ArrowVertices,
         }
         setmetatable(object, Metatable)
         return object
@@ -58,7 +73,29 @@ Metatable = {
         -- Returns: The created CanvasLine.
         --
         draw = function(self)
-            return self.canvas:newLine(self.lineArgs)
+            local canvas = self.canvas
+            local lineTo = self.lineTo
+            local to = self.to
+
+            lineTo.x = to.x
+            lineTo.y = to.y
+
+            if self.makeTriangle then
+
+                local from = self.from
+                local dx = to.x - from.x
+                local dy = to.y - from.y
+                local length = math.sqrt(dx * dx + dy * dy)
+
+                local TriangleLength = SimpleConfig.LinkArrowLength
+                if length > 1.5 * TriangleLength then
+                    canvas:newPolygon(self.triangleArgs)
+                    lineTo.x = to.x - dx / length * TriangleLength
+                    lineTo.y = to.y - dy / length * TriangleLength
+                end
+            end
+
+            return canvas:newLine(self.lineArgs)
         end,
 
         -- Set the category index of the link.
@@ -68,7 +105,9 @@ Metatable = {
         -- * value: The new category index value.
         --
         setLinkCategoryIndex = function(self, value)
-            self.lineArgs.color = SimpleConfig.LinkCategoryToColor[value]
+            local color = SimpleConfig.LinkCategoryToColor[value]
+            self.lineArgs.color = color
+            self.triangleArgs.color = color
         end,
 
         -- Set the source end point of this link.
@@ -79,7 +118,7 @@ Metatable = {
         -- * y: New Y coordinate of this end.
         --
         setFrom = function(self, x, y)
-            local from = self.lineArgs.from
+            local from = self.from
             from.x = x
             from.y = y
         end,
@@ -92,11 +131,24 @@ Metatable = {
         -- * y: New Y coordinate of this end.
         --
         setTo = function(self, x, y)
-            local to = self.lineArgs.to
+            local to = self.to
             to.x = x
             to.y = y
         end,
     }
+}
+
+-- Vertex coordinates to build the triangle end of the arrow.
+ArrowVertices = {
+    { target = {0,0}},
+    { target = {
+        -math.tan(SimpleConfig.LinkArrowAngle/2) * SimpleConfig.LinkArrowLength,
+        - SimpleConfig.LinkArrowLength}
+    },
+    { target = {
+        math.tan(SimpleConfig.LinkArrowAngle/2) * SimpleConfig.LinkArrowLength,
+        - SimpleConfig.LinkArrowLength}
+    },
 }
 
 return SimpleLinkDrawer

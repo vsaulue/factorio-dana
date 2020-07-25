@@ -33,6 +33,12 @@ local SimpleConfig = ErrorOnInvalidRead.new{
     -- Color of the text in the legend.
     LegendTextColor = {a=1,r=0.8,g=0.8,b=0.8},
 
+    -- Length of the triangle of the arrow of links.
+    LinkArrowLength = 0.15,
+
+    -- Angle of the extremity of the arrow of links.
+    LinkArrowAngle = 2 * math.pi / 5,
+
     -- Map[categoryIndex] -> Color, used to determine the color of the links.
     LinkCategoryToColor = ErrorOnInvalidRead.new{
         ["layer.forward"] = {r = 1, g = 1, b = 1, a = 1},
