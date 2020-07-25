@@ -58,7 +58,7 @@ local SimpleConfig = ErrorOnInvalidRead.new{
     LayoutParameters = LayoutParameters.new{
         edgeShape = RectangleNodeShape.new{
             xMargin = 0.2,
-            yMargin = 0.2,
+            yMargin = 0.45,
             minXLength = 1.6,
             minYLength = 1.6,
         },
