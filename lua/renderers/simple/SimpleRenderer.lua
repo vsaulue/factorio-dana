@@ -21,6 +21,7 @@ local LayoutParameters = require("lua/layouts/LayoutParameters")
 local LinkCategory = require("lua/layouts/LinkCategory")
 local RendererSelection = require("lua/renderers/RendererSelection")
 local SimpleConfig = require("lua/renderers/simple/SimpleConfig")
+local SimpleLinkDrawer = require("lua/renderers/simple/SimpleLinkDrawer")
 local SimpleTreeDrawer = require("lua/renderers/simple/SimpleTreeDrawer")
 
 local cLogger = ClassLogger.new{className = "SimpleRenderer"}
@@ -170,11 +171,11 @@ drawLegend = function(self)
     cursor.y = cursor.y + 0.75
 
     -- Links
-    local lineArgs = SimpleTreeDrawer.makeLinkLineArgs()
+    local linkDrawer = SimpleLinkDrawer.new{
+        canvas = canvas,
+    }
     for categoryIndex,color in pairs(SimpleConfig.LinkCategoryToColor) do
-        local text = LinkCategory.get(categoryIndex).localisedDescription
-        lineArgs.color = color
-        drawLegendForLine(canvas, cursor, lineArgs, 1.6, text)
+        drawLegendForLine(linkDrawer, cursor, categoryIndex)
     end
 
     cursor.x = xMin + LegendXLength
@@ -194,33 +195,29 @@ end
 -- Draws a line in the legend box, and adds a description on its right.
 --
 -- Args:
--- * canvas: Canvas object on which element will be drawn.
+-- * lineDrawer: SimpleLinkDrawer object used to draw the lines.
 -- * cursor: A {x=,y=} table indicating where to draw. The Y field will be incremented for the next legend element.
--- * lineArgs: Table passed to Canvas:newLine(). Must contain all fields except from/to.
--- * length: Length of the line to draw.
--- * localisedText: Localised string to display near the line.
+-- * linkCategoryIndex: Index of the link category to draw.
 --
-drawLegendForLine = function(canvas, cursor, lineArgs, length, localisedText)
+drawLegendForLine = function(linkDrawer, cursor, linkCategoryIndex)
     local xStart = cursor.x
     -- Line
-    lineArgs.from = cursor
-    lineArgs.to = {
-        x = xStart + length,
-        y = cursor.y,
-    }
-    canvas:newLine(lineArgs)
+    local length = SimpleConfig.LegendLinkLength
+    linkDrawer:setLinkCategoryIndex(linkCategoryIndex)
+    linkDrawer:setFrom(cursor.x, cursor.y)
+    linkDrawer:setTo(cursor.x + length, cursor.y)
+    linkDrawer:draw()
     -- Text
     cursor.y = cursor.y - 0.6
     cursor.x = xStart + length + 0.5
-    canvas:newText{
-        text = localisedText,
+    linkDrawer.canvas:newText{
+        text = LinkCategory.get(linkCategoryIndex).localisedDescription,
         target = cursor,
         color = SimpleConfig.LegendTextColor,
         scale = 2,
     }
     -- Position for the next line
     cursor.y = cursor.y + 2.5
-    lineArgs.to.y = cursor.y
     cursor.x = xStart
 end
 

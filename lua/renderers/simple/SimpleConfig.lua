@@ -27,6 +27,9 @@ local SimpleConfig = ErrorOnInvalidRead.new{
     -- Color of the frame of the legend.
     LegendFrameColor = {a=1,r=0.8,g=0.8,b=0.8},
 
+    -- Length of links in the legend.
+    LegendLinkLength = 1.6,
+
     -- Color of the text in the legend.
     LegendTextColor = {a=1,r=0.8,g=0.8,b=0.8},
 
