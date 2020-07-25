@@ -62,7 +62,7 @@ local SimpleConfig = ErrorOnInvalidRead.new{
             minXLength = 1.6,
             minYLength = 1.6,
         },
-        linkWidth = 0.25,
+        linkWidth = 0.3,
         vertexShape = CircleNodeShape.new{
             minRadius = 0.8,
             xMargin = 0.2,
