@@ -25,13 +25,18 @@ local Metatable
 
 -- Class to draw line segment of links.
 --
+-- RW Fields:
+-- * drawSpriteAtSrc: True to add a sprite on the line near the `from` end.
+-- * drawSpriteAtDest: True to add a sprite on the line near the `to` end.
+-- * makeTriangle: True to draw a proper arrow. False for just a line.
+--
 -- RO Fields:
 -- * canvas: Canvas object on which to draw the line.
 -- * circleArgs: Argument passed to Canvas:newLine() to draw the connection circles.
 -- * from: Coordinates of the start of the arrow.
--- * makeTriangle: True to draw a proper arrow. False for just a line.
 -- * lineArgs: Argument passed to Canvas:newLine() to draw the segment.
 -- * lineTo: Coordinates of the end of the line (might be slightly different from `to` for cosmetic reasons).
+-- * spriteArgs: Argument passed to Canvas:newSprite() to draw the sprites.
 -- * to: Coordinates of the target of the arrow.
 -- * triangleArgs: Arguments passed to Canvas:newPolygon() to draw the arrow.
 --
@@ -46,6 +51,8 @@ local SimpleLinkDrawer = ErrorOnInvalidRead.new{
         object.from = {}
         object.to = {}
         object.lineTo = {}
+        object.drawSpriteAtDest = object.drawSpriteAtDest or false
+        object.drawSpriteAtSrc = object.drawSpriteAtDest or false
         object.makeTriangle = object.makeTriangle or false
         object.circleArgs = {
             draw_on_ground = true,
@@ -57,6 +64,11 @@ local SimpleLinkDrawer = ErrorOnInvalidRead.new{
             from = object.from,
             to = object.lineTo,
             width = SimpleConfig.LinkLineWitdh,
+        }
+        object.spriteArgs = {
+            target = {},
+            x_scale = SimpleConfig.LinkSpriteScale,
+            y_scale = SimpleConfig.LinkSpriteScale,
         }
         object.triangleArgs = {
             orientation_target = object.lineArgs.from,
@@ -86,18 +98,46 @@ Metatable = {
             lineTo.x = to.x
             lineTo.y = to.y
 
-            if self.makeTriangle then
-
+            local makeTriangle = self.makeTriangle
+            local drawSpriteAtDest = self.drawSpriteAtDest
+            local drawSpriteAtSrc = self.drawSpriteAtSrc
+            if makeTriangle or drawSpriteAtDest or drawSpriteAtSrc then
                 local from = self.from
                 local dx = to.x - from.x
                 local dy = to.y - from.y
-                local length = math.sqrt(dx * dx + dy * dy)
+                local remainingLength = math.sqrt(dx * dx + dy * dy)
+                local nx = dx / remainingLength
+                local ny = dy / remainingLength
 
-                local TriangleLength = SimpleConfig.LinkArrowLength
-                if length > 1.5 * TriangleLength then
-                    canvas:newPolygon(self.triangleArgs)
-                    lineTo.x = to.x - dx / length * TriangleLength
-                    lineTo.y = to.y - dy / length * TriangleLength
+                if makeTriangle then
+                    local TriangleLength = SimpleConfig.LinkArrowLength
+                    if remainingLength > 1.5 * TriangleLength then
+                        canvas:newPolygon(self.triangleArgs)
+                        lineTo.x = to.x - nx * TriangleLength
+                        lineTo.y = to.y - ny * TriangleLength
+                        remainingLength = remainingLength - TriangleLength
+                    end
+                end
+
+
+                local SpriteLength = SimpleConfig.LinkSpriteScale
+                local lengthOffset = 0.6 * SpriteLength
+                local spriteArgs = self.spriteArgs
+                local target = spriteArgs.target
+                if drawSpriteAtDest then
+                    if remainingLength > SpriteLength then
+                        target.x = lineTo.x - nx * lengthOffset
+                        target.y = lineTo.y - ny * lengthOffset
+                        canvas:newSprite(self.spriteArgs)
+                        remainingLength = remainingLength - SpriteLength
+                    end
+                end
+                if drawSpriteAtSrc then
+                    if remainingLength > SpriteLength then
+                        target.x = from.x + nx * lengthOffset
+                        target.y = from.y + ny * lengthOffset
+                        canvas:newSprite(self.spriteArgs)
+                    end
                 end
             end
 
@@ -146,6 +186,16 @@ Metatable = {
             local from = self.from
             from.x = x
             from.y = y
+        end,
+
+        -- Set the path of the sprite to draw near the ends of the line.
+        --
+        -- Args:
+        -- * self: SimpleLinkDrawer object.
+        -- * value: New SpritePath to set.
+        --
+        setSpritePath = function(self, value)
+            self.spriteArgs.sprite = value
         end,
 
         -- Set the destination end point of this link.

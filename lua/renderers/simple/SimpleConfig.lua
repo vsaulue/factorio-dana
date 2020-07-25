@@ -51,6 +51,9 @@ local SimpleConfig = ErrorOnInvalidRead.new{
     -- Width (in pixels) of the lines used to draw links.
     LinkLineWitdh = 1,
 
+    -- Scale of the sprites drawn on links.
+    LinkSpriteScale = 0.3,
+
     -- LayoutParameters defining the shapes/dimensions of elements in the drawing.
     LayoutParameters = LayoutParameters.new{
         edgeShape = RectangleNodeShape.new{
