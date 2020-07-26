@@ -64,9 +64,9 @@ drawFromVertex = function(linkDrawer, tree)
     linkDrawer:setFrom(tree.x, tree.y)
     for subtree in pairs(tree.children) do
         local subCount = subtree.childCount
-        local isLeaf = (subCount == 0)
-        linkDrawer.makeTriangle = isLeaf
-        linkDrawer.drawSpriteAtDest = isLeaf
+        local drawExtra = (subCount == 0) or subtree.infoHint
+        linkDrawer.makeTriangle = drawExtra
+        linkDrawer.drawSpriteAtDest = drawExtra
         linkDrawer:setTo(subtree.x, subtree.y)
 
         local line = linkDrawer:draw()
@@ -91,7 +91,8 @@ drawToVertex = function(linkDrawer, tree)
     end
 
     linkDrawer:setTo(tree.x, tree.y)
-    linkDrawer.makeTriangle = not rawget(tree, "parent")
+    linkDrawer.makeTriangle = not rawget(tree, "parent") or tree.infoHint
+    linkDrawer.drawSpriteAtDest = tree.infoHint
     for subtree in pairs(tree.children) do
         local subCount = subtree.childCount
         linkDrawer:setFrom(subtree.x, subtree.y)
