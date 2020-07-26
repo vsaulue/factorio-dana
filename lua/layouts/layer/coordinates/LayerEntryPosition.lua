@@ -130,6 +130,8 @@ buildNodes = function(slots, entry)
             linkNode.channelIndex = channelIndex
         elseif type == "edge" then
             linkNode.edgeIndex = entry.index
+        else
+            linkNode.infoHint = true
         end
         result[channelIndex] = linkNode
     end
