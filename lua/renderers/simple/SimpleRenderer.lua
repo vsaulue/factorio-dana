@@ -131,8 +131,11 @@ Metatable = {
                 }
             end
 
+            local linkDrawer = SimpleLinkDrawer.new{
+                canvas = canvas,
+            }
             for rendererLink in pairs(layoutCoordinates.links) do
-                SimpleTreeDrawer.run(canvas, rendererLink)
+                SimpleTreeDrawer.run(linkDrawer, rendererLink)
             end
 
             drawLegend(self)

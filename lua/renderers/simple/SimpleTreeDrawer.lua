@@ -16,7 +16,6 @@
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local SimpleConfig = require("lua/renderers/simple/SimpleConfig")
-local SimpleLinkDrawer = require("lua/renderers/simple/SimpleLinkDrawer")
 
 local drawFromVertex
 local drawToVertex
@@ -28,14 +27,10 @@ local SimpleTreeDrawer = ErrorOnInvalidRead.new{
     -- Renders a TreeLink object.
     --
     -- Args:
-    -- * canvas: Canvas object on which to do the render.
+    -- * linkDrawer: SimpleLinkDrawer object to use.
     -- * treeLink: The TreeLink to render.
     --
-    run = function(canvas, treeLink)
-        local color = SimpleConfig.LinkCategoryToColor[treeLink.categoryIndex]
-        local linkDrawer = SimpleLinkDrawer.new{
-            canvas = canvas,
-        }
+    run = function(linkDrawer, treeLink)
         linkDrawer:setLinkCategoryIndex(treeLink.categoryIndex)
         linkDrawer.lineArgs.selectable = true
 
@@ -43,6 +38,7 @@ local SimpleTreeDrawer = ErrorOnInvalidRead.new{
         local channelIndex = root.channelIndex
         linkDrawer:setSpritePath(channelIndex.vertexIndex.spritePath)
         if channelIndex.isFromVertexToEdge then
+            linkDrawer.drawSpriteAtSrc = false
             drawFromVertex(linkDrawer, root)
         else
             drawToVertex(linkDrawer, root)
