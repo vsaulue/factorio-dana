@@ -19,6 +19,7 @@ local Force = require("lua/model/Force")
 local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local Player = require("lua/Player")
 
+local getModVersion
 local Metatable
 local newSurface
 
@@ -33,6 +34,7 @@ local newSurface
 -- * graphSurface: surface used to draw graphs.
 -- * players: map of Player objects, indexed by their Factorio index.
 -- * prototypes: PrototypeDatabase wrapping all useful prototypes from Factorio.
+-- * version: String representing the version of the mod's persisted data (format: "a.b.c").
 --
 -- Methods: See Metatable.__index.
 --
@@ -50,6 +52,7 @@ local Dana = ErrorOnInvalidRead.new{
             graphSurface = newSurface(game),
             players = {},
             prototypes = PrototypeDatabase.new(game),
+            version = getModVersion(game),
         }
 
         for _,rawForce in pairs(game.forces) do
@@ -138,6 +141,17 @@ Metatable = {
         end,
     },
 }
+
+-- Gets the currently running version of this mod.
+--
+-- Args:
+-- * gameScript: LuaGameScript object.
+--
+-- Returns: A string representing the running version (format: "a.b.c").
+--
+getModVersion = function(gameScript)
+    return gameScript.active_mods[script.mod_name]
+end
 
 -- Creates a new surface.
 --
