@@ -20,7 +20,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local cLogger = ClassLogger.new{className = "GuiElement"}
 
 local assertClassParametersField
-local GuiElementMap = {}
+local GuiElementMap
 local Metatable
 local new
 local recursiveUnbind
@@ -105,7 +105,7 @@ local GuiElement = ErrorOnInvalidRead.new{
     -- * event: Event object sent by Factorio.
     --
     on_gui_checked_state_changed = function(event)
-        local element = GuiElementMap[event.element.index]
+        local element = GuiElementMap[event.player_index][event.element.index]
         if element then
             element:onCheckedStateChanged(event)
         end
@@ -117,7 +117,7 @@ local GuiElement = ErrorOnInvalidRead.new{
     -- * event: Event object sent by Factorio.
     --
     on_gui_click = function(event)
-        local element = GuiElementMap[event.element.index]
+        local element = GuiElementMap[event.player_index][event.element.index]
         if element then
             local onClick = element.onClick
             if onClick then
@@ -132,7 +132,7 @@ local GuiElement = ErrorOnInvalidRead.new{
     -- * event: Event object sent by Factorio.
     --
     on_gui_elem_changed = function(event)
-        local element = GuiElementMap[event.element.index]
+        local element = GuiElementMap[event.player_index][event.element.index]
         if element then
             element:onElemChanged(event)
         end
@@ -144,7 +144,7 @@ local GuiElement = ErrorOnInvalidRead.new{
     -- * event: Event object sent by Factorio.
     --
     on_gui_text_changed = function(event)
-        local element = GuiElementMap[event.element.index]
+        local element = GuiElementMap[event.player_index][event.element.index]
         if element then
             element:onTextChanged(event)
         end
@@ -160,6 +160,18 @@ local GuiElement = ErrorOnInvalidRead.new{
     --
     on_init = function()
         global.guiElementMap = GuiElementMap
+        for playerIndex in pairs(game.players) do
+            GuiElementMap[playerIndex] = {}
+        end
+    end,
+
+    -- Function to call in Factorio's on_player_created event.
+    --
+    -- Args:
+    -- * event: Event object sent by Factorio.
+    --
+    on_player_created = function(event)
+        GuiElementMap[event.player_index] = {}
     end,
 }
 
@@ -216,6 +228,9 @@ assertClassParametersField = function(classParameters, fieldName)
     return result
 end
 
+-- Map[playerIndex][rawElemIndex] -> GuiElement. Gets the GuiElement wrapping a specific LuaGuiElement.
+GuiElementMap = {}
+
 -- Creates a new GuiElement object.
 --
 -- Args:
@@ -230,8 +245,9 @@ new = function(object, metatable)
 
     -- Binding
     local index = rawElement.index
-    cLogger:assert(not GuiElementMap[index], "attempt to bind an object twice.")
-    GuiElementMap[index] = object
+    local playerMap = GuiElementMap[rawElement.player_index]
+    cLogger:assert(not playerMap[index], "attempt to bind an object twice.")
+    playerMap[index] = object
 
     return object
 end
@@ -242,7 +258,7 @@ end
 -- * rawElement: Parent of the LuaGuiElement hierarchy to unbind.
 --
 recursiveUnbind = function(rawElement)
-    GuiElementMap[rawElement.index] = nil
+    GuiElementMap[rawElement.player_index][rawElement.index] = nil
     for _,rawChild in ipairs(rawElement.children) do
         recursiveUnbind(rawChild)
     end

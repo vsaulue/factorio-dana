@@ -50,6 +50,7 @@ local function on_gui_click(event)
 end
 
 local function on_player_created(event)
+    GuiElement.on_player_created(event)
     dana:on_player_created(event)
 end
 
