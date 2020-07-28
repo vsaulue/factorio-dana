@@ -1,5 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.1
+Date: 2020-07-28
   Bugfixes:
     - Fix crash on new player joining in multiplayer. (https://forums.factorio.com/viewtopic.php?p=503291#p503291)
     - Fix crash on right clicking an item/fluid selection button. (https://github.com/vsaulue/factorio-dana/issues/1)
