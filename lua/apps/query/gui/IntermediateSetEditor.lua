@@ -118,10 +118,13 @@ AddElemButton = GuiElement.newSubclass{
     mandatoryFields = {"setEditor"},
     __index = {
         onElemChanged = function(self, event)
-            local intermediates = self.setEditor.force.prototypes.intermediates
-            local intermediate = intermediates[self.rawElement.elem_type][self.rawElement.elem_value]
-            addIntermediate(self.setEditor, intermediate)
-            self.rawElement.elem_value = nil
+            local elemValue = self.rawElement.elem_value
+            if elemValue then
+                local intermediates = self.setEditor.force.prototypes.intermediates
+                local intermediate = intermediates[self.rawElement.elem_type][elemValue]
+                addIntermediate(self.setEditor, intermediate)
+                self.rawElement.elem_value = nil
+            end
         end,
     },
 }
