@@ -141,7 +141,8 @@ CategoryInfos = ErrorOnInvalidRead.new{
         generateGuiElements = function(self, rendererSelection)
             local parent = self.root.content
             local count = 0
-            for vertexIndex in pairs(rendererSelection.vertices) do
+            for prepNodeIndex in pairs(rendererSelection.nodes.hyperVertex) do
+                local vertexIndex = prepNodeIndex.index
                 local flow = parent.add{
                     type = "flow",
                     direction = "horizontal",
@@ -172,7 +173,8 @@ CategoryInfos = ErrorOnInvalidRead.new{
         generateGuiElements = function(self, rendererSelection)
             local parent = self.root.content
             local count = 0
-            for edgeIndex in pairs(rendererSelection.edges) do
+            for prepNodeIndex in pairs(rendererSelection.nodes.hyperEdge) do
+                local edgeIndex = prepNodeIndex.index
                 local flow = parent.add{
                     type = "flow",
                     direction = "horizontal",

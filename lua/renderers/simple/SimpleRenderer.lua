@@ -19,6 +19,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
 local LayoutParameters = require("lua/layouts/LayoutParameters")
 local LinkCategory = require("lua/layouts/LinkCategory")
+local PrepNodeIndex = require("lua/layouts/preprocess/PrepNodeIndex")
 local RendererSelection = require("lua/renderers/RendererSelection")
 local SimpleConfig = require("lua/renderers/simple/SimpleConfig")
 local SimpleLinkDrawer = require("lua/renderers/simple/SimpleLinkDrawer")
@@ -83,13 +84,17 @@ Metatable = {
         --
         makeRendererSelection = function(self, canvasSelection)
             local result = RendererSelection.new()
-            local rendererTypeToTable = ErrorOnInvalidRead.new{
-                edge = result.edges,
-                vertex = result.vertices,
-                treeLinkNode = result.links,
-            }
+            local links = result.links
+            local nodes = result.nodes
             for canvasObject in pairs(canvasSelection) do
-                rendererTypeToTable[canvasObject.rendererType][canvasObject.rendererIndex] = true
+                local rendererType = canvasObject.rendererType
+                if rendererType == "node" then
+                    local prepNodeIndex = canvasObject.rendererIndex
+                    nodes[prepNodeIndex.type][prepNodeIndex] = true
+                else
+                    cLogger:assert(rendererType == "treeLinkNode", "Unknown renderer type.")
+                    links[canvasObject.rendererIndex] = true
+                end
             end
             return result
         end,
@@ -111,8 +116,11 @@ Metatable = {
             vertexNodeArgs.selectable = true
             for vertexIndex,node in pairs(layoutCoordinates.vertices) do
                 local rectangle = node:drawOnCanvas(canvas, vertexNodeArgs)
-                rectangle.rendererType = "vertex"
-                rectangle.rendererIndex = vertexIndex
+                rectangle.rendererType = "node"
+                rectangle.rendererIndex = PrepNodeIndex.new{
+                    type = "hyperVertex",
+                    index = vertexIndex,
+                }
                 canvas:newSprite{
                     sprite = vertexIndex.spritePath,
                     target = {node:getMiddle()},
@@ -123,8 +131,11 @@ Metatable = {
             edgeNodeArgs.selectable = true
             for edgeIndex,node in pairs(layoutCoordinates.edges) do
                 local rectangle = node:drawOnCanvas(canvas, edgeNodeArgs)
-                rectangle.rendererType = "edge"
-                rectangle.rendererIndex = edgeIndex
+                rectangle.rendererType = "node"
+                rectangle.rendererIndex = PrepNodeIndex.new{
+                    type = "hyperEdge",
+                    index = edgeIndex,
+                }
                 canvas:newSprite{
                     sprite = edgeIndex.spritePath,
                     target = {node:getMiddle()},

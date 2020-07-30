@@ -34,9 +34,11 @@ local RendererSelection = ErrorOnInvalidRead.new{
     --
     new = function()
         local result = {
-            edges = ErrorOnInvalidRead.new(),
             links = ErrorOnInvalidRead.new(),
-            vertices = ErrorOnInvalidRead.new(),
+            nodes = ErrorOnInvalidRead.new{
+                hyperEdge = ErrorOnInvalidRead.new(),
+                hyperVertex = ErrorOnInvalidRead.new(),
+            },
         }
         setmetatable(result, Metatable)
         return result
