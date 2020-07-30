@@ -19,7 +19,6 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
 local LayoutParameters = require("lua/layouts/LayoutParameters")
 local LinkCategory = require("lua/layouts/LinkCategory")
-local PrepNodeIndex = require("lua/layouts/preprocess/PrepNodeIndex")
 local RendererSelection = require("lua/renderers/RendererSelection")
 local SimpleConfig = require("lua/renderers/simple/SimpleConfig")
 local SimpleLinkDrawer = require("lua/renderers/simple/SimpleLinkDrawer")
@@ -112,32 +111,21 @@ Metatable = {
             self.layoutCoordinates = layoutCoordinates
             local canvas = self.canvas
 
-            local vertexNodeArgs = makeVertexNodeArgs()
-            vertexNodeArgs.selectable = true
-            for vertexIndex,node in pairs(layoutCoordinates.vertices) do
-                local rectangle = node:drawOnCanvas(canvas, vertexNodeArgs)
-                rectangle.rendererType = "node"
-                rectangle.rendererIndex = PrepNodeIndex.new{
-                    type = "hyperVertex",
-                    index = vertexIndex,
-                }
-                canvas:newSprite{
-                    sprite = vertexIndex.spritePath,
-                    target = {node:getMiddle()},
-                }
-            end
-
             local edgeNodeArgs = makeEdgeNodeArgs()
             edgeNodeArgs.selectable = true
-            for edgeIndex,node in pairs(layoutCoordinates.edges) do
-                local rectangle = node:drawOnCanvas(canvas, edgeNodeArgs)
-                rectangle.rendererType = "node"
-                rectangle.rendererIndex = PrepNodeIndex.new{
-                    type = "hyperEdge",
-                    index = edgeIndex,
-                }
+            local vertexNodeArgs = makeVertexNodeArgs()
+            vertexNodeArgs.selectable = true
+            local nodeArgs = {
+                hyperEdge = edgeNodeArgs,
+                hyperVertex = vertexNodeArgs,
+            }
+
+            for nodeIndex,node in pairs(layoutCoordinates.nodes) do
+                local canvasObject = node:drawOnCanvas(canvas, nodeArgs[nodeIndex.type])
+                canvasObject.rendererType = "node"
+                canvasObject.rendererIndex = nodeIndex
                 canvas:newSprite{
-                    sprite = edgeIndex.spritePath,
+                    sprite = nodeIndex.index.spritePath,
                     target = {node:getMiddle()},
                 }
             end

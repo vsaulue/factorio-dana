@@ -23,6 +23,7 @@ local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
 local LinkCategory = require("lua/layouts/LinkCategory")
 local TreeLink = require("lua/layouts/TreeLink")
 local Logger = require("lua/logger/Logger")
+local PrepNodeIndex = require("lua/layouts/preprocess/PrepNodeIndex")
 local RectangleNodeShape = require("lua/layouts/RectangleNodeShape")
 local Stack = require("lua/containers/Stack")
 
@@ -168,12 +169,20 @@ end
 -- * self: LayerCoordinateGenerator object.
 --
 fillLayoutCoordinates = function(self)
+    local result = self.result
+    local EntryTypeToPrepNodeType = {
+        edge = "hyperEdge",
+        vertex = "hyperVertex",
+    }
+
     for entry,entryRecord in pairs(self.entryPositions) do
-        local entryType = entry.type
-        if entryType == "vertex" then
-            self.result:addVertex(entry.index, entryRecord.output)
-        elseif entryType == "edge" then
-            self.result:addEdge(entry.index, entryRecord.output)
+        local prepNodeType = EntryTypeToPrepNodeType[entry.type]
+        if prepNodeType then
+            local index = PrepNodeIndex.new{
+                type = prepNodeType,
+                index = entry.index,
+            }
+            result:addNode(index, entryRecord.output)
         end
     end
 end

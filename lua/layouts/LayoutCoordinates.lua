@@ -34,10 +34,9 @@ local updateAabb
 -- * Vertex: placement data for a vertex { xMin=..., xMax=..., yMin=..., yMax=...}
 --
 -- RO Fields:
--- * edges[edgeIndex]: Map of AbstractNode objects, indexed by edge indices from the input hypergraph.
 -- * layoutParameters: LayoutParameters used to generate these coordinates.
 -- * links: set of TreeLink objects.
--- * vertices[vertexIndex]: Map of AbstractNode objects, indexed by vertex indices from the input hypergraph.
+-- * node[prepNodeIndex]: Map of AbstractNode objects, indexed by edge indices from the input hypergraph.
 -- * xMax: Maximum value on the X axis (bounding box).
 -- * xMin: Minimum value on the X axis (bounding box).
 -- * yMax: Maximum value on the Y axis (bounding box).
@@ -50,9 +49,8 @@ local LayoutCoordinates = ErrorOnInvalidRead.new{
     --
     new = function(object)
         cLogger:assertField(object, "layoutParameters")
-        object.edges = ErrorOnInvalidRead.new()
         object.links = ErrorOnInvalidRead.new()
-        object.vertices = ErrorOnInvalidRead.new()
+        object.nodes = ErrorOnInvalidRead.new()
         object.xMin = math.huge
         object.xMax = -math.huge
         object.yMin = math.huge
@@ -69,14 +67,9 @@ local LayoutCoordinates = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         setmetatable(object, Metatable)
 
-        ErrorOnInvalidRead.setmetatable(object.edges)
-        for _,edgeData in pairs(object.edges) do
-            AbstractNode.Factory:restoreMetatable(edgeData)
-        end
-
-        ErrorOnInvalidRead.setmetatable(object.vertices)
-        for _,vertexData in pairs(object.vertices) do
-            AbstractNode.Factory:restoreMetatable(vertexData)
+        ErrorOnInvalidRead.setmetatable(object.nodes)
+        for _,node in pairs(object.nodes) do
+            AbstractNode.Factory:restoreMetatable(node)
         end
 
         ErrorOnInvalidRead.setmetatable(object.links)
@@ -93,14 +86,14 @@ Metatable = {
         --
         -- Args:
         -- * self: LayoutCoordinates object.
-        -- * edgeIndex: Index of the edge.
-        -- * edgeData: Edge record to add.
+        -- * nodeIndex: Index of the node.
+        -- * node: AbstractNode to add.
         --
-        addEdge = function(self, edgeIndex, edgeData)
-            local map = self.edges
-            cLogger:assert(not rawget(map, edgeIndex), "Duplicate edge index.")
-            map[edgeIndex] = edgeData
-            updateAabb(self, edgeData:getAABB())
+        addNode = function(self, nodeIndex, nodeData)
+            local map = self.nodes
+            cLogger:assert(not rawget(map, nodeIndex), "Duplicate node index.")
+            map[nodeIndex] = nodeData
+            updateAabb(self, nodeData:getAABB())
         end,
 
         -- Adds a tree link.
@@ -124,20 +117,6 @@ Metatable = {
 
             local halfWidth = self.layoutParameters.linkWidth / 2
             updateAabb(self, xMin - halfWidth, xMax + halfWidth, yMin - halfWidth, yMax + halfWidth)
-        end,
-
-        -- Adds an edge record.
-        --
-        -- Args:
-        -- * self: LayoutCoordinates object.
-        -- * vertexIndex: Index of the vertex.
-        -- * vertexData: Vertex record to add.
-        --
-        addVertex = function(self, vertexIndex, vertexData)
-            local map = self.vertices
-            cLogger:assert(not rawget(map, vertexIndex), "Duplicate vertex index.")
-            map[vertexIndex] = vertexData
-            updateAabb(self, vertexData:getAABB())
         end,
     }
 }
