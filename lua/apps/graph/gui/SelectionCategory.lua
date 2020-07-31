@@ -205,7 +205,7 @@ CategoryInfos = ErrorOnInvalidRead.new{
         generateGuiElements = function(self, rendererSelection)
             local parent = self.root.content
             local result = 0
-            for channelIndex,edgeIndices in pairs(rendererSelection:makeAggregatedLinkSelection()) do
+            for linkIndex,edgeIndices in pairs(rendererSelection:makeAggregatedLinkSelection()) do
                 local flow = parent.add{
                     type = "flow",
                     direction = "horizontal",
@@ -213,12 +213,12 @@ CategoryInfos = ErrorOnInvalidRead.new{
 
                 flow.add{
                     type = "sprite",
-                    sprite = channelIndex.vertexIndex.spritePath,
-                    tooltip = channelIndex.vertexIndex.localisedName,
+                    sprite = linkIndex.vertexIndex.spritePath,
+                    tooltip = linkIndex.vertexIndex.localisedName,
                 }
 
-                local arrowLabel = flow.add(LinkArrowLabel[channelIndex.isFromVertexToEdge])
-                arrowLabel.style.font_color = LinkArrowColor[channelIndex.isFromVertexToEdge]
+                local arrowLabel = flow.add(LinkArrowLabel[linkIndex.isFromVertexToEdge])
+                arrowLabel.style.font_color = LinkArrowColor[linkIndex.isFromVertexToEdge]
 
                 local count = 0
                 for leaf in pairs(edgeIndices) do
