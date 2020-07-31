@@ -14,32 +14,32 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ChannelIndex = require("lua/layouts/ChannelIndex")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local LinkIndex = require("lua/layouts/LinkIndex")
 
-local cLogger = ClassLogger.new{className = "LayerChannelIndex"}
+local cLogger = ClassLogger.new{className = "LayerLinkIndex"}
 
--- Specialization of the ChannelIndex class, for layer layouts.
+-- Specialization of the LinkIndex class, for layer layouts.
 --
 -- RO Fields:
 -- * isForward: true if the link is going from lower to higher index layer, false otherwise.
--- * + inherited from ChannelIndex.
+-- * + inherited from LinkIndex.
 --
 local LayerChannelIndex = ErrorOnInvalidRead.new{
-    -- Creates a new ChannelIndex object.
+    -- Creates a new LayerChannelIndex object.
     --
     -- Args:
-    -- * object: Table to turn into a ChannelIndex object (required fields: vertexIndex, isFromVertexToEdge).
+    -- * object: Table to turn into a LayerChannelIndex object (required fields: vertexIndex, isFromVertexToEdge).
     --
-    -- Returns: The argument turned into a ChannelIndex object.
+    -- Returns: The argument turned into a LayerChannelIndex object.
     --
     new = function(object)
         cLogger:assertField(object, "isForward")
-        return ChannelIndex.new(object)
+        return LinkIndex.new(object)
     end,
 
-    setmetatable = ChannelIndex.setmetatable,
+    setmetatable = LinkIndex.setmetatable,
 }
 
 return LayerChannelIndex

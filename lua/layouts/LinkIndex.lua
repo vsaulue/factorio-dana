@@ -17,7 +17,7 @@
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
-local cLogger = ClassLogger.new{className = "ChannelIndex"}
+local cLogger = ClassLogger.new{className = "LinkIndex"}
 
 -- Class implementing a unique key for links in layouts.
 --
@@ -25,13 +25,13 @@ local cLogger = ClassLogger.new{className = "ChannelIndex"}
 -- * isFromVertexToEdge: true if the link is going from a vertex to an edge, false otherwise.
 -- * vertexIndex: Unique identifier of a vertex in an hypergraph.
 --
-local ChannelIndex = ErrorOnInvalidRead.new{
-    -- Creates a new ChannelIndex object.
+local LinkIndex = ErrorOnInvalidRead.new{
+    -- Creates a new LinkIndex object.
     --
     -- Args:
-    -- * object: Table to turn into a ChannelIndex object (required fields: vertexIndex, isFromVertexToEdge).
+    -- * object: Table to turn into a LinkIndex object (required fields: vertexIndex, isFromVertexToEdge).
     --
-    -- Returns: The argument turned into a ChannelIndex object.
+    -- Returns: The argument turned into a LinkIndex object.
     --
     new = function(object)
         cLogger:assertField(object, "vertexIndex")
@@ -43,4 +43,4 @@ local ChannelIndex = ErrorOnInvalidRead.new{
     setmetatable = ErrorOnInvalidRead.setmetatable,
 }
 
-return ChannelIndex
+return LinkIndex
