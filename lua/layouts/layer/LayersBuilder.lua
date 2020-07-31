@@ -40,13 +40,13 @@ local LayersBuilder = ErrorOnInvalidRead.new{
     -- Creates a new LayersBuilder object.
     --
     -- Args:
-    -- * object: Table to turn into a LayersBuilder object (must have a channelIndexFactory field).
+    -- * object: Table to turn into a LayersBuilder object (must have a linkIndexFactory field).
     --
     -- Returns: The new LayersBuilder object.
     --
     new = function(object)
         assert(not object.layers, "LayersBuilder: 'layers' field in constructor forbidden.")
-        assert(object.channelIndexFactory, "LayersBuilder: missing mandatory 'channelIndexFactory' field in constructor.")
+        assert(object.linkIndexFactory, "LayersBuilder: missing mandatory 'linkIndexFactory' field in constructor.")
 
         object.layers = Layers.new()
         object.linkNodes = ErrorOnInvalidRead.new()
@@ -172,7 +172,7 @@ Metatable = {
 -- * value: Set to add in `self.linkNodes` (or nil for an empty set).
 --
 initLinkNodes = function(self, vertexIndex, isForward, isFromVertexToEdge, value)
-    local channelIndex = self.channelIndexFactory:get(vertexIndex, isForward, isFromVertexToEdge)
+    local channelIndex = self.linkIndexFactory:get(vertexIndex, isForward, isFromVertexToEdge)
     self.linkNodes[channelIndex] = value or {}
 end
 
@@ -199,7 +199,7 @@ link = function(self, edgeEntry, vertexEntry, isFromVertexToEdge)
         isForward = isFromVertexToEdge
     end
 
-    local channelIndex = self.channelIndexFactory:get(vertexEntry.index, isForward, isFromVertexToEdge)
+    local channelIndex = self.linkIndexFactory:get(vertexEntry.index, isForward, isFromVertexToEdge)
     local linkNodes = self.linkNodes[channelIndex]
 
     -- Horizontal connections.

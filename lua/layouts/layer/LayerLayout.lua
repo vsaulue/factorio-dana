@@ -58,7 +58,7 @@ local LayerLayout = ErrorOnInvalidRead.new{
         local vertexDists = cLogger:assertField(object, "vertexDists")
 
         local layersBuilder = LayersBuilder.new{
-            channelIndexFactory = LayerLinkIndexFactory.new()
+            linkIndexFactory = LayerLinkIndexFactory.new()
         }
 
         -- 1) Assign vertices, edges to layers & add dummy vertices.
