@@ -25,7 +25,7 @@ local Metatable
 -- the same field values. This enables fast comparison and map lookup.
 --
 -- RO fields:
--- * cache[isForward,isFromVertexToEdge,vertexId]: 3-levels deep table caching already generated LayerLinkIndex objects.
+-- * cache[isForward,isFromVertexToEdge,symbol]: 3-levels deep table caching already generated LayerLinkIndex objects.
 --
 -- Methods:
 -- * get: Gets (or create) the LayerLinkIndex object associated with the arguments.
@@ -58,25 +58,25 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Gets (or create) the LayerLinkIndex object associated with the arguments.
         --
-        -- If this factory already returned an object for the given vertexIndex/isforward
+        -- If this factory already returned an object for the given fields
         -- value, it is guaranteed to return the same object on future calls of this method.
         --
         -- Args:
         -- * self: LayerLinkIndexFactory object.
-        -- * vertexIndex: vertexIndex value of the LayerLinkIndex.
+        -- * symbol: symbol value of the LayerLinkIndex.
         -- * isForward: isForward value of the LayerLinkIndex.
         -- * isFromVertexToEdge: isFromVertexToEdge value of the LayerLinkIndex.
         --
-        -- Returns: A ChannelObject instance with the specified vertexIndex/isForward values.
-        get = function(self, vertexIndex, isForward, isFromVertexToEdge)
-            local result = self.cache[isForward][isFromVertexToEdge][vertexIndex]
+        -- Returns: A ChannelObject instance with the specified fields values.
+        get = function(self, symbol, isForward, isFromVertexToEdge)
+            local result = self.cache[isForward][isFromVertexToEdge][symbol]
             if not result then
                 result = LayerLinkIndex.new{
                     isForward = isForward,
                     isFromVertexToEdge = isFromVertexToEdge,
-                    vertexIndex = vertexIndex,
+                    symbol = symbol,
                 }
-                self.cache[isForward][isFromVertexToEdge][vertexIndex] = result
+                self.cache[isForward][isFromVertexToEdge][symbol] = result
             end
             return result
         end,

@@ -213,8 +213,8 @@ CategoryInfos = ErrorOnInvalidRead.new{
 
                 flow.add{
                     type = "sprite",
-                    sprite = linkIndex.vertexIndex.spritePath,
-                    tooltip = linkIndex.vertexIndex.localisedName,
+                    sprite = linkIndex.symbol.spritePath,
+                    tooltip = linkIndex.symbol.localisedName,
                 }
 
                 local arrowLabel = flow.add(LinkArrowLabel[linkIndex.isFromVertexToEdge])

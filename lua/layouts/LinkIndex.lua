@@ -23,18 +23,18 @@ local cLogger = ClassLogger.new{className = "LinkIndex"}
 --
 -- RO Fields:
 -- * isFromVertexToEdge: true if the link is going from a vertex to an edge, false otherwise.
--- * vertexIndex: Unique identifier of a vertex in an hypergraph.
+-- * symbol: Object describing what this link represents (ex: Intermediate).
 --
 local LinkIndex = ErrorOnInvalidRead.new{
     -- Creates a new LinkIndex object.
     --
     -- Args:
-    -- * object: Table to turn into a LinkIndex object (required fields: vertexIndex, isFromVertexToEdge).
+    -- * object: Table to turn into a LinkIndex object (required fields: symbol, isFromVertexToEdge).
     --
     -- Returns: The argument turned into a LinkIndex object.
     --
     new = function(object)
-        cLogger:assertField(object, "vertexIndex")
+        cLogger:assertField(object, "symbol")
         cLogger:assertField(object, "isFromVertexToEdge")
         ErrorOnInvalidRead.setmetatable(object)
         return object
