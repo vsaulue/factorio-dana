@@ -67,15 +67,15 @@ barycenterPass = function(layerCoordinateGenerator, layerId, parser)
         local channelLayer = layout.channelLayers[layerId + parser.ChannelLayerOffset]
 
         local channelsAvgX = {}
-        for channelIndex,entries in pairs(channelLayer[parser.ChannelLayerFar]) do
+        for linkIndex,entries in pairs(channelLayer[parser.ChannelLayerFar]) do
             local totalX = 0
             local count = entries.count
             if count > 0 then
                 for i=1,count do
                     local entry = entries[i]
-                    totalX = totalX + entryPositions[entry]:getNode(channelIndex, parser.EntryPosIsFarLow).x
+                    totalX = totalX + entryPositions[entry]:getNode(linkIndex, parser.EntryPosIsFarLow).x
                 end
-                channelsAvgX[channelIndex] = totalX / count
+                channelsAvgX[linkIndex] = totalX / count
             end
         end
 
@@ -88,8 +88,8 @@ barycenterPass = function(layerCoordinateGenerator, layerId, parser)
             local count = 0
             local oldXMin = entryPos.output:getXMin()
             local newXMin = 0
-            for channelIndex,node in pairs(entryPos[parser.EntryPosNear]) do
-                local channelX = channelsAvgX[channelIndex]
+            for linkIndex,node in pairs(entryPos[parser.EntryPosNear]) do
+                local channelX = channelsAvgX[linkIndex]
                 if channelX then
                     local offsetX = node.x - oldXMin
                     newXMin = newXMin + channelX - offsetX
