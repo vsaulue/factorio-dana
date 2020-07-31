@@ -170,11 +170,11 @@ Metatable = {
 -- * self: LayersBuilder object.
 -- * vertexIndex: Value of the vertexIndex field of the LinkIndex.
 -- * isForward: Value of the isForward field of the LinkIndex.
--- * isFromVertexToEdge: Value of the isFromVertexToEdge field of the LinkIndex.
+-- * isFromRoot: Value of the isFromRoot field of the LinkIndex.
 -- * value: Set to add in `self.linkNodes` (or nil for an empty set).
 --
-initLinkNodes = function(self, vertexIndex, isForward, isFromVertexToEdge, value)
-    local linkIndex = self.linkIndexFactory:get(vertexIndex, isForward, isFromVertexToEdge)
+initLinkNodes = function(self, vertexIndex, isForward, isFromRoot, value)
+    local linkIndex = self.linkIndexFactory:get(vertexIndex, isForward, isFromRoot)
     self.linkNodes[linkIndex] = value or {}
 end
 
@@ -184,9 +184,9 @@ end
 -- * self: LayersBuilder object.
 -- * edgeEntry: Entry of the edge to link.
 -- * vertexEntry: Entry of the vertex to link.
--- * isFromVertexToEdge: true if the link goes from the vertex to the edge, false for the other way.
+-- * isFromRoot: true if the link goes from the vertex to the edge, false for the other way.
 --
-link = function(self, edgeEntry, vertexEntry, isFromVertexToEdge)
+link = function(self, edgeEntry, vertexEntry, isFromRoot)
     local edgeLayerId = self.layers:getPos(edgeEntry)[1]
     local vertexLayerId = self.layers:getPos(vertexEntry)[1]
 
@@ -195,13 +195,13 @@ link = function(self, edgeEntry, vertexEntry, isFromVertexToEdge)
     local newVerticalLink = newVerticalLink
     if edgeLayerId < vertexLayerId then
         step = 1
-        isForward = not isFromVertexToEdge
+        isForward = not isFromRoot
         newVerticalLink = newVerticalLink2
     elseif edgeLayerId > vertexLayerId then
-        isForward = isFromVertexToEdge
+        isForward = isFromRoot
     end
 
-    local linkIndex = self.linkIndexFactory:get(vertexEntry.index, isForward, isFromVertexToEdge)
+    local linkIndex = self.linkIndexFactory:get(vertexEntry.index, isForward, isFromRoot)
     local linkNodes = self.linkNodes[linkIndex]
 
     -- Horizontal connections.
@@ -211,13 +211,13 @@ link = function(self, edgeEntry, vertexEntry, isFromVertexToEdge)
         if not linkNode then
             linkNode = newLinkNode(self, vertexLayerId, linkIndex)
         end
-        newHorizontalLink(self, linkNode, vertexEntry, linkIndex, not isFromVertexToEdge)
+        newHorizontalLink(self, linkNode, vertexEntry, linkIndex, not isFromRoot)
 
         linkNode = linkNodes[edgeLayerId]
         if not linkNode then
             linkNode = newLinkNode(self, edgeLayerId, linkIndex)
         end
-        newHorizontalLink(self, linkNode, edgeEntry, linkIndex, isFromVertexToEdge)
+        newHorizontalLink(self, linkNode, edgeEntry, linkIndex, isFromRoot)
         previousEntry = linkNode
     end
 

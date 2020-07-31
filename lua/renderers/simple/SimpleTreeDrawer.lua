@@ -37,7 +37,7 @@ local SimpleTreeDrawer = ErrorOnInvalidRead.new{
         local root = treeLink.tree
         local linkIndex = root.linkIndex
         linkDrawer:setSpritePath(linkIndex.symbol.spritePath)
-        if linkIndex.isFromVertexToEdge then
+        if linkIndex.isFromRoot then
             linkDrawer.drawSpriteAtSrc = false
             drawFromVertex(linkDrawer, root)
         else

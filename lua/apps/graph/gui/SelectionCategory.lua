@@ -217,8 +217,8 @@ CategoryInfos = ErrorOnInvalidRead.new{
                     tooltip = linkIndex.symbol.localisedName,
                 }
 
-                local arrowLabel = flow.add(LinkArrowLabel[linkIndex.isFromVertexToEdge])
-                arrowLabel.style.font_color = LinkArrowColor[linkIndex.isFromVertexToEdge]
+                local arrowLabel = flow.add(LinkArrowLabel[linkIndex.isFromRoot])
+                arrowLabel.style.font_color = LinkArrowColor[linkIndex.isFromRoot]
 
                 local count = 0
                 for leaf in pairs(edgeIndices) do
@@ -268,13 +268,13 @@ EdgeTypeIcon = ErrorOnInvalidRead.new{
     },
 }
 
--- Map[isFromVertexToEdge]: Map giving the color of the arrow for link selection.
+-- Map[isFromRoot]: Map giving the color of the arrow for link selection.
 LinkArrowColor = ErrorOnInvalidRead.new{
     [true] = {r = 1, g = 0.6, b = 0.6, a = 1},
     [false] = {r = 0.6, g = 1, b = 0.6, a = 1},
 }
 
--- Map[isFromVertexToEdge]: LuaGuiElement construction info of the arrow for link selection.
+-- Map[isFromRoot]: LuaGuiElement construction info of the arrow for link selection.
 LinkArrowLabel = ErrorOnInvalidRead.new{
     [true] = {
         type = "label",

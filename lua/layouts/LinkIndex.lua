@@ -22,20 +22,20 @@ local cLogger = ClassLogger.new{className = "LinkIndex"}
 -- Class implementing a unique key for links in layouts.
 --
 -- RO Fields:
--- * isFromVertexToEdge: true if the link is going from a vertex to an edge, false otherwise.
+-- * isFromRoot: true if the link is going from the root to the leaves, false otherwise.
 -- * symbol: Object describing what this link represents (ex: Intermediate).
 --
 local LinkIndex = ErrorOnInvalidRead.new{
     -- Creates a new LinkIndex object.
     --
     -- Args:
-    -- * object: Table to turn into a LinkIndex object (required fields: symbol, isFromVertexToEdge).
+    -- * object: Table to turn into a LinkIndex object (required fields: symbol, isFromRoot).
     --
     -- Returns: The argument turned into a LinkIndex object.
     --
     new = function(object)
         cLogger:assertField(object, "symbol")
-        cLogger:assertField(object, "isFromVertexToEdge")
+        cLogger:assertField(object, "isFromRoot")
         ErrorOnInvalidRead.setmetatable(object)
         return object
     end,

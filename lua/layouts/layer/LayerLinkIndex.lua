@@ -30,7 +30,7 @@ local LayerLinkIndex = ErrorOnInvalidRead.new{
     -- Creates a new LayerLinkIndex object.
     --
     -- Args:
-    -- * object: Table to turn into a LayerLinkIndex object (required fields: vertexIndex, isFromVertexToEdge).
+    -- * object: Table to turn into a LayerLinkIndex object (required fields: vertexIndex, isFromRoot).
     --
     -- Returns: The argument turned into a LayerLinkIndex object.
     --
