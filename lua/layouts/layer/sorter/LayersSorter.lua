@@ -238,7 +238,7 @@ end
 -- Run the sorting algorithm on each layers.
 --
 -- Sorting is done layer by layer, following this a multi-step pipeline:
--- * 1) Greedily place firstPass entries, at the barycenter of their inbound channel indexes.
+-- * 1) Greedily place firstPass entries, at the barycenter of their inbound LayerLinkIndex set.
 -- * 2) Insert roots, by trying to minimize couplings score of the layer.
 -- * 3) Places secondPass entries, as barycenter of their parents.
 --

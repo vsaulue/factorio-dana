@@ -26,13 +26,13 @@ local cLogger = ClassLogger.new{className = "LayerLinkIndex"}
 -- * isForward: true if the link is going from lower to higher index layer, false otherwise.
 -- * + inherited from LinkIndex.
 --
-local LayerChannelIndex = ErrorOnInvalidRead.new{
-    -- Creates a new LayerChannelIndex object.
+local LayerLinkIndex = ErrorOnInvalidRead.new{
+    -- Creates a new LayerLinkIndex object.
     --
     -- Args:
-    -- * object: Table to turn into a LayerChannelIndex object (required fields: vertexIndex, isFromVertexToEdge).
+    -- * object: Table to turn into a LayerLinkIndex object (required fields: vertexIndex, isFromVertexToEdge).
     --
-    -- Returns: The argument turned into a LayerChannelIndex object.
+    -- Returns: The argument turned into a LayerLinkIndex object.
     --
     new = function(object)
         cLogger:assertField(object, "isForward")
@@ -42,4 +42,4 @@ local LayerChannelIndex = ErrorOnInvalidRead.new{
     setmetatable = LinkIndex.setmetatable,
 }
 
-return LayerChannelIndex
+return LayerLinkIndex

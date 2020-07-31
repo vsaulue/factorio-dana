@@ -22,7 +22,7 @@ local Tree = require("lua/containers/Tree")
 -- RO Fields:
 -- * x: X coordinate of this node.
 -- * y: Y coordinate of this node.
--- * channelIndex (optional): ChannelIndex object of this link. Field present only at the root of the tree.
+-- * channelIndex (optional): LinkIndex object of this link. Field present only at the root of the tree.
 -- * edgeIndex (optional): Index of the edge of this node. Field present only at the leaves of the tree.
 -- * infoHint: Hint for the renderer that it's a good node to place direction/vertex info.
 -- + inherited from Tree.

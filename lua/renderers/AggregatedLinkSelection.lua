@@ -16,10 +16,10 @@
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
--- Class holding the link selection of a RendererSelection, aggregated by ChannelIndex.
+-- Class holding the link selection of a RendererSelection, aggregated by LinkIndex.
 --
 -- RO Fields:
--- [channelIndex]: Set of edges linked to this channel index.
+-- [linkIndex]: Set of edges linked by this LinkIndex.
 --
 local AggregatedLinkSelection = ErrorOnInvalidRead.new{
     new = ErrorOnInvalidRead.new,

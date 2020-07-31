@@ -51,7 +51,7 @@ local pushBranchIfLinkNode
 -- * entryPositions[entry]: Map giving the LayerEntryPosition object of a LayerEntry.
 -- * linkWidth: Width of links, including margins.
 -- * roots[channelIndex]: Map of generated Tree for each channel, useable for tree links.
--- * tracks[trackId][trunkRank]: 2-dim Array of ChannelIndex.
+-- * tracks[trackId][trunkRank]: 2-dim Array of LayerLinkIndex.
 -- * trunks[channelIndex]: Map of trunks for each channel (trunk = Array of ChannelBranches).
 --
 local ChannelRouter = ErrorOnInvalidRead.new{

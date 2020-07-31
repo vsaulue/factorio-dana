@@ -212,12 +212,12 @@ end
 
 -- Generates a tree link for each tree node in a map.
 --
--- The map must be indexed by the associated channelIndex (ex: LayerEntryPosition.lowNodes).
+-- The map must be indexed by the associated linkIndex (ex: LayerEntryPosition.lowNodes).
 -- The generated links will have the nodes in the map as root.
 --
 -- Args:
 -- * self: LayerCoordinateGenerator object being built.
--- * nodes: Input map of ChannelIndex -> TreeNode.
+-- * nodes[linkNode]: Input map of TreeNode.
 -- * startLayerId: Index of the router associated with the input nodes.
 --
 generateTreeLinksFromNode = function(self, nodes, startLayerId)
@@ -270,7 +270,7 @@ initChannelRouters = function(self)
     routers.count = count
 end
 
--- Map[isForward] -> LinkCategory: Gets the category of a link depending on channelIndex.isForward.
+-- Map[isForward] -> LinkCategory: Gets the category of a link depending on linkIndex.isForward.
 LinkCategories = ErrorOnInvalidRead.new{
     [true] = LinkCategory.make{
         index = "layer.forward",

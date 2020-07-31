@@ -27,8 +27,8 @@ local ValidTypes
 -- RO properties:
 -- * type: must be either "edge", "linkNode", or "vertex".
 -- * index: an identifier.
--- * lowSlots: ReversibleArray containing the set of low ChannelIndex objects.
--- * highSlots: ReversibleArray containing the set of high ChannelIndex objects.
+-- * lowSlots: ReversibleArray containing the set of low LayerLinkIndex objects.
+-- * highSlots: ReversibleArray containing the set of high LayerLinkIndex objects.
 --
 -- Additional fields for "linkNode" type:
 -- * isForward: true if the link of this entry are going from lower to higher layer indices.

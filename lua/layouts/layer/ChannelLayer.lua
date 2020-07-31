@@ -23,9 +23,9 @@ local Metatable
 -- Class holding the connection data between two layers in a LayersLayout object.
 --
 -- RO fields:
--- * highEntries[channelIndex]: ReversibleArray of entries from the upper layer connected to a channelIndex
+-- * highEntries[linkIndex]: ReversibleArray of entries from the upper layer connected to a channel.
 --   (ordered from lower to higher rank in the entry layer)
--- * lowEntries[channelIndex]: ReversibleArray of entries from the lower layer connected to a channelIndex
+-- * lowEntries[linkIndex]: ReversibleArray of entries from the lower layer connected to a channel.
 --   (ordered from lower to higher rank in the entry layer)
 --
 -- Methods: see Metatable.__index.
@@ -50,7 +50,7 @@ local ChannelLayer = ErrorOnInvalidRead.new{
 --
 -- Args:
 -- * self: ChannelLayer object.
--- * channelIndex: Index of the channel to initialize.
+-- * channelIndex: LinkIndex corresponding to the channel to initialize.
 --
 initChannelIndex = function(self, channelIndex)
     if not rawget(self.lowEntries, channelIndex) then
@@ -68,7 +68,7 @@ Metatable = {
         --
         -- Args:
         -- * self: ChannelLayer object.
-        -- * channelIndex: Index of the channel to initialize.
+        -- * channelIndex: LinkIndex corresponding to the channel to edit.
         -- * highEntry: Entry of the next layer to append to this channel's connections
         --
         appendHighEntry = function(self, channelIndex, highEntry)
@@ -82,7 +82,7 @@ Metatable = {
         --
         -- Args:
         -- * self: ChannelLayer object.
-        -- * channelIndex: Index of the channel to initialize.
+        -- * channelIndex: LinkIndex corresponding to channel to edit.
         -- * lowEntry: Entry of the previous layer to append to this channel's connections
         --
         appendLowEntry = function(self, channelIndex, lowEntry)

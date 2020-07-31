@@ -19,7 +19,7 @@ local TreeLinkNode = require("lua/layouts/TreeLinkNode")
 
 -- Class representing a branch of a trunk in a Channel routing algorithm.
 --
--- * channelIndex: Channel index of the linked trunk and slot.
+-- * channelIndex: LinkIndex identifying the linked trunk and slot.
 -- * entryNode: Tree node attached to the entry.
 -- * entryPosition: LayerEntryPosition object.
 -- * isLow: True if the entry is in the lower entry layer, false otherwise.

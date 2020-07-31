@@ -20,7 +20,7 @@ local ReversibleArray = require("lua/containers/ReversibleArray")
 
 -- Class holding the equivalence classes of a layer.
 --
--- Equivalence classes are entries that share exactly the same channel indexes set as parents.
+-- Equivalence classes are entries that share exactly the same LayerLinkIndex set as parents.
 -- Roots are a particular equivalence class, with 0 parent.
 --
 -- RO fields:

@@ -32,7 +32,7 @@ local newVerticalLink2
 --
 -- RO fields:
 -- * layers: Layer object being built.
--- * linkNodes[channelIndex,layerIndex]: map giving the vertex/linkNode entry for the specified channel in the specified layer.
+-- * linkNodes[linkIndex,layerIndex]: map giving the vertex/linkNode entry for the specified link in the specified layer.
 --
 -- Methods: see Metatable.__index.
 --
@@ -162,13 +162,13 @@ Metatable = {
     },
 }
 
--- Adds a new set in the `linkNodes` field for the specified channel index.
+-- Adds a new set in the `linkNodes` field for the specified LinkIndex.
 --
 -- Args:
 -- * self: LayersBuilder object.
--- * vertexIndex: Value of the vertexIndex field of the ChannelIndex.
--- * isForward: Value of the isForward field of the ChannelIndex.
--- * isFromVertexToEdge: Value of the isFromVertexToEdge field of the ChannelIndex.
+-- * vertexIndex: Value of the vertexIndex field of the LinkIndex.
+-- * isForward: Value of the isForward field of the LinkIndex.
+-- * isFromVertexToEdge: Value of the isFromVertexToEdge field of the LinkIndex.
 -- * value: Set to add in `self.linkNodes` (or nil for an empty set).
 --
 initLinkNodes = function(self, vertexIndex, isForward, isFromVertexToEdge, value)
@@ -250,13 +250,13 @@ newEntry = function(self, layerIndex, newEntry)
     return newEntry
 end
 
--- Connects two entries in the same layer through the specified channel index.
+-- Connects two entries in the same layer through the specified LinkIndex.
 --
 -- Args:
 -- * self: LayersBuilder object.
 -- * entryA: One of the entry to connect.
 -- * entryB: The other entry to connect.
--- * channelIndex: ChannelIndex of this link.
+-- * channelIndex: LinkIndex of this link.
 -- * isLow: True to make the connection in the lower channel layer, false for the upper channel layer.
 --
 newHorizontalLink = function(self, entryA, entryB, channelIndex, isLow)
@@ -276,7 +276,7 @@ end
 -- Args:
 -- * self: LayersBuilder object.
 -- * layerId: Index of the layer in which the entry will be inserted.
--- * channelIndex: ChannelIndex of the new linkNode entry.
+-- * channelIndex: LinkIndex of the new linkNode entry.
 --
 -- Returns: The new linkNode entry.
 --
@@ -291,13 +291,13 @@ newLinkNode = function(self, layerId, channelIndex)
     return result
 end
 
--- Connects two entries from different layers through the specified channel index.
+-- Connects two entries from different layers through the specified LinkIndex.
 --
 -- Args:
 -- * self: LayersBuilder object.
 -- * lowEntry: Entry with the lowest layerId to connect.
 -- * highEntry: Entry with the greatest layerId to connect.
--- * channelIndex: ChannelIndex of this link.
+-- * channelIndex: LinkIndex of this link.
 --
 newVerticalLink = function(self, lowEntry, highEntry, channelIndex)
     local reverse = self.layers.reverse
@@ -306,13 +306,13 @@ newVerticalLink = function(self, lowEntry, highEntry, channelIndex)
     highEntry.lowSlots:pushBackIfNotPresent(channelIndex)
 end
 
--- Connects two entries from different layers through the specified channel index.
+-- Connects two entries from different layers through the specified LinkIndex.
 --
 -- Args:
 -- * self: LayersBuilder object.
 -- * highEntry: Entry with the greatest layerId to connect.
 -- * lowEntry: Entry with the lowest layerId to connect.
--- * channelIndex: ChannelIndex of this link.
+-- * channelIndex: LinkIndex of this link.
 --
 newVerticalLink2 = function(self, highEntry, lowEntry, channelIndex)
     newVerticalLink(self, lowEntry, highEntry, channelIndex)

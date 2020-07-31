@@ -33,8 +33,8 @@ local nodesFieldName
 -- RO fields:
 -- * entry: LayerEntry object whose position is held.
 -- * output: placement data of this entry, returned in the LayoutCoordinates object.
--- * lowNodes[channelIndex]: Tree node of the given channel index for low slots.
--- * highNodes[channelIndex]: Tree node of the given channel index for outbound slots.
+-- * lowNodes[linkIndex]: Tree node of the given link index for low slots.
+-- * highNodes[linkIndex]: Tree node of the given link index for high slots.
 --
 -- Methods:
 -- * getNode: Gets the tree node associated to the given slot.
@@ -72,7 +72,7 @@ Metatable = {
         --
         -- Args:
         -- * self: LayerEntryPosition object.
-        -- * channelIndex: Channel index of the slot.
+        -- * channelIndex: LinkIndex of the slot.
         -- * isInbound: true for an inbound slot, false otherwise.
         --
         -- Returns: The tree object associated to the given slot.
@@ -112,10 +112,10 @@ Metatable = {
     },
 }
 
--- Builds a map of Tree nodes corresponding to a ReversibleArray of ChannelIndex.
+-- Builds a map of Tree nodes corresponding to a ReversibleArray of LayerLinkIndex.
 --
 -- Args:
--- * slots: ReversibleArray of ChannelIndex.
+-- * slots: ReversibleArray of LayerLinkIndex.
 -- * entry: LayerEntry object owning the slots.
 --
 -- Returns: A map of Tree objects, indexed by channel indexes.
