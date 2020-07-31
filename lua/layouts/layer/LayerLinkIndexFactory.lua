@@ -30,10 +30,10 @@ local Metatable
 -- Methods:
 -- * get: Gets (or create) the LayerLinkIndex object associated with the arguments.
 --
-local ChannelIndexFactory = ErrorOnInvalidRead.new{
-    -- Creates a new ChannelIndexFactory.
+local LayerLinkIndexFactory = ErrorOnInvalidRead.new{
+    -- Creates a new LayerLinkIndexFactory.
     --
-    -- Returns: A new ChannelIndexFactory object.
+    -- Returns: A new LayerLinkIndexFactory object.
     --
     new = function()
         local result = {
@@ -53,7 +53,7 @@ local ChannelIndexFactory = ErrorOnInvalidRead.new{
     end,
 }
 
--- Metatable of the ChannelIndexFactory class (private scope).
+-- Metatable of the LayerLinkIndexFactory class (private scope).
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Gets (or create) the LayerLinkIndex object associated with the arguments.
@@ -62,7 +62,7 @@ Metatable = {
         -- value, it is guaranteed to return the same object on future calls of this method.
         --
         -- Args:
-        -- * self: ChannelIndexFactory object.
+        -- * self: LayerLinkIndexFactory object.
         -- * vertexIndex: vertexIndex value of the LayerLinkIndex.
         -- * isForward: isForward value of the LayerLinkIndex.
         -- * isFromVertexToEdge: isFromVertexToEdge value of the LayerLinkIndex.
@@ -83,4 +83,4 @@ Metatable = {
     },
 }
 
-return ChannelIndexFactory
+return LayerLinkIndexFactory

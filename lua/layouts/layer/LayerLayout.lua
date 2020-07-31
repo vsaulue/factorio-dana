@@ -15,13 +15,13 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local Array = require("lua/containers/Array")
-local ChannelIndexFactory = require("lua/layouts/layer/ChannelIndexFactory")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperSCC = require("lua/hypergraph/algorithms/HyperSCC")
 local LayerCoordinateGenerator = require("lua/layouts/layer/coordinates/LayerCoordinateGenerator")
+local LayerLinkIndexFactory = require("lua/layouts/layer/LayerLinkIndexFactory")
 local LayersBuilder = require("lua/layouts/layer/LayersBuilder")
 local LayersSorter = require("lua/layouts/layer/sorter/LayersSorter")
 local SlotsSorter = require("lua/layouts/layer/SlotsSorter")
@@ -57,9 +57,8 @@ local LayerLayout = ErrorOnInvalidRead.new{
         local graph = cLogger:assertField(object, "graph")
         local vertexDists = cLogger:assertField(object, "vertexDists")
 
-        local channelIndexFactory = ChannelIndexFactory.new()
         local layersBuilder = LayersBuilder.new{
-            channelIndexFactory = channelIndexFactory
+            channelIndexFactory = LayerLinkIndexFactory.new()
         }
 
         -- 1) Assign vertices, edges to layers & add dummy vertices.
