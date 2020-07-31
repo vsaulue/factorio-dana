@@ -16,8 +16,11 @@
 
 local Array = require("lua/containers/Array")
 local ChannelLayer = require("lua/layouts/layer/ChannelLayer")
+local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Layers = require("lua/layouts/layer/Layers")
+
+local cLogger = ClassLogger.new{className = "LayersBuilder"}
 
 local initLinkNodes
 local link
@@ -45,8 +48,7 @@ local LayersBuilder = ErrorOnInvalidRead.new{
     -- Returns: The new LayersBuilder object.
     --
     new = function(object)
-        assert(not object.layers, "LayersBuilder: 'layers' field in constructor forbidden.")
-        assert(object.linkIndexFactory, "LayersBuilder: missing mandatory 'linkIndexFactory' field in constructor.")
+        cLogger:assertField(object, "linkIndexFactory")
 
         object.layers = Layers.new()
         object.linkNodes = ErrorOnInvalidRead.new()
@@ -260,7 +262,7 @@ end
 -- * isLow: True to make the connection in the lower channel layer, false for the upper channel layer.
 --
 newHorizontalLink = function(self, entryA, entryB, channelIndex, isLow)
-    assert(self.layers:getPos(entryA)[1] == self.layers:getPos(entryA)[1], "LayerLayout: invalid link creation.")
+    cLogger:assert(self.layers:getPos(entryA)[1] == self.layers:getPos(entryA)[1], "invalid link creation.")
 
     local slotTableName = "highSlots"
     if isLow then
@@ -282,7 +284,7 @@ end
 --
 newLinkNode = function(self, layerId, channelIndex)
     local linkNodes = self.linkNodes[channelIndex]
-    assert(not linkNodes[layerId], "LayersBuilder: attempt to override a linkNode entry.")
+    cLogger:assert(not linkNodes[layerId], "attempt to override a linkNode entry.")
     local result = newEntry(self, layerId, {
         type = "linkNode",
         index = {},
@@ -301,7 +303,7 @@ end
 --
 newVerticalLink = function(self, lowEntry, highEntry, channelIndex)
     local reverse = self.layers.reverse
-    assert(reverse[lowEntry.type][lowEntry.index][1] == reverse[highEntry.type][highEntry.index][1] - 1, "LayerLayout: invalid link creation.")
+    cLogger:assert(reverse[lowEntry.type][lowEntry.index][1] == reverse[highEntry.type][highEntry.index][1] - 1, "invalid link creation.")
     lowEntry.highSlots:pushBackIfNotPresent(channelIndex)
     highEntry.lowSlots:pushBackIfNotPresent(channelIndex)
 end
