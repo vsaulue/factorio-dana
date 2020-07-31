@@ -174,8 +174,8 @@ Metatable = {
 -- * value: Set to add in `self.linkNodes` (or nil for an empty set).
 --
 initLinkNodes = function(self, vertexIndex, isForward, isFromVertexToEdge, value)
-    local channelIndex = self.linkIndexFactory:get(vertexIndex, isForward, isFromVertexToEdge)
-    self.linkNodes[channelIndex] = value or {}
+    local linkIndex = self.linkIndexFactory:get(vertexIndex, isForward, isFromVertexToEdge)
+    self.linkNodes[linkIndex] = value or {}
 end
 
 -- Creates a sequence of links & linkNode entries between a vertex and an edge.
@@ -201,23 +201,23 @@ link = function(self, edgeEntry, vertexEntry, isFromVertexToEdge)
         isForward = isFromVertexToEdge
     end
 
-    local channelIndex = self.linkIndexFactory:get(vertexEntry.index, isForward, isFromVertexToEdge)
-    local linkNodes = self.linkNodes[channelIndex]
+    local linkIndex = self.linkIndexFactory:get(vertexEntry.index, isForward, isFromVertexToEdge)
+    local linkNodes = self.linkNodes[linkIndex]
 
     -- Horizontal connections.
     local previousEntry = edgeEntry
     if not isForward then
         local linkNode = linkNodes[vertexLayerId]
         if not linkNode then
-            linkNode = newLinkNode(self, vertexLayerId, channelIndex)
+            linkNode = newLinkNode(self, vertexLayerId, linkIndex)
         end
-        newHorizontalLink(self, linkNode, vertexEntry, channelIndex, not isFromVertexToEdge)
+        newHorizontalLink(self, linkNode, vertexEntry, linkIndex, not isFromVertexToEdge)
 
         linkNode = linkNodes[edgeLayerId]
         if not linkNode then
-            linkNode = newLinkNode(self, edgeLayerId, channelIndex)
+            linkNode = newLinkNode(self, edgeLayerId, linkIndex)
         end
-        newHorizontalLink(self, linkNode, edgeEntry, channelIndex, isFromVertexToEdge)
+        newHorizontalLink(self, linkNode, edgeEntry, linkIndex, isFromVertexToEdge)
         previousEntry = linkNode
     end
 
@@ -227,12 +227,12 @@ link = function(self, edgeEntry, vertexEntry, isFromVertexToEdge)
     while not connected do
         local linkNode = linkNodes[i]
         if linkNode then
-            newVerticalLink(self, linkNode, previousEntry, channelIndex)
+            newVerticalLink(self, linkNode, previousEntry, linkIndex)
             connected = true
         else
-            linkNode = newLinkNode(self, i, channelIndex)
+            linkNode = newLinkNode(self, i, linkIndex)
             i = i + step
-            newVerticalLink(self, linkNode, previousEntry, channelIndex)
+            newVerticalLink(self, linkNode, previousEntry, linkIndex)
             previousEntry = linkNode
         end
     end
@@ -258,10 +258,10 @@ end
 -- * self: LayersBuilder object.
 -- * entryA: One of the entry to connect.
 -- * entryB: The other entry to connect.
--- * channelIndex: LinkIndex of this link.
+-- * linkIndex: LinkIndex of this link.
 -- * isLow: True to make the connection in the lower channel layer, false for the upper channel layer.
 --
-newHorizontalLink = function(self, entryA, entryB, channelIndex, isLow)
+newHorizontalLink = function(self, entryA, entryB, linkIndex, isLow)
     cLogger:assert(self.layers:getPos(entryA)[1] == self.layers:getPos(entryA)[1], "invalid link creation.")
 
     local slotTableName = "highSlots"
@@ -269,8 +269,8 @@ newHorizontalLink = function(self, entryA, entryB, channelIndex, isLow)
         slotTableName = "lowSlots"
     end
 
-    entryA[slotTableName]:pushBackIfNotPresent(channelIndex)
-    entryB[slotTableName]:pushBackIfNotPresent(channelIndex)
+    entryA[slotTableName]:pushBackIfNotPresent(linkIndex)
+    entryB[slotTableName]:pushBackIfNotPresent(linkIndex)
 end
 
 -- Creates a new linkNode.
@@ -278,12 +278,12 @@ end
 -- Args:
 -- * self: LayersBuilder object.
 -- * layerId: Index of the layer in which the entry will be inserted.
--- * channelIndex: LinkIndex of the new linkNode entry.
+-- * linkIndex: LinkIndex of the new linkNode entry.
 --
 -- Returns: The new linkNode entry.
 --
-newLinkNode = function(self, layerId, channelIndex)
-    local linkNodes = self.linkNodes[channelIndex]
+newLinkNode = function(self, layerId, linkIndex)
+    local linkNodes = self.linkNodes[linkIndex]
     cLogger:assert(not linkNodes[layerId], "attempt to override a linkNode entry.")
     local result = newEntry(self, layerId, {
         type = "linkNode",
@@ -299,13 +299,13 @@ end
 -- * self: LayersBuilder object.
 -- * lowEntry: Entry with the lowest layerId to connect.
 -- * highEntry: Entry with the greatest layerId to connect.
--- * channelIndex: LinkIndex of this link.
+-- * linkIndex: LinkIndex of this link.
 --
-newVerticalLink = function(self, lowEntry, highEntry, channelIndex)
+newVerticalLink = function(self, lowEntry, highEntry, linkIndex)
     local reverse = self.layers.reverse
     cLogger:assert(reverse[lowEntry.type][lowEntry.index][1] == reverse[highEntry.type][highEntry.index][1] - 1, "invalid link creation.")
-    lowEntry.highSlots:pushBackIfNotPresent(channelIndex)
-    highEntry.lowSlots:pushBackIfNotPresent(channelIndex)
+    lowEntry.highSlots:pushBackIfNotPresent(linkIndex)
+    highEntry.lowSlots:pushBackIfNotPresent(linkIndex)
 end
 
 -- Connects two entries from different layers through the specified LinkIndex.
@@ -314,10 +314,10 @@ end
 -- * self: LayersBuilder object.
 -- * highEntry: Entry with the greatest layerId to connect.
 -- * lowEntry: Entry with the lowest layerId to connect.
--- * channelIndex: LinkIndex of this link.
+-- * linkIndex: LinkIndex of this link.
 --
-newVerticalLink2 = function(self, highEntry, lowEntry, channelIndex)
-    newVerticalLink(self, lowEntry, highEntry, channelIndex)
+newVerticalLink2 = function(self, highEntry, lowEntry, linkIndex)
+    newVerticalLink(self, lowEntry, highEntry, linkIndex)
 end
 
 return LayersBuilder
