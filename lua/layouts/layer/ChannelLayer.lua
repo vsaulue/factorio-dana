@@ -17,7 +17,7 @@
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local ReversibleArray = require("lua/containers/ReversibleArray")
 
-local initChannelIndex
+local initChannel
 local Metatable
 
 -- Class holding the connection data between two layers in a LayersLayout object.
@@ -52,7 +52,7 @@ local ChannelLayer = ErrorOnInvalidRead.new{
 -- * self: ChannelLayer object.
 -- * channelIndex: LinkIndex corresponding to the channel to initialize.
 --
-initChannelIndex = function(self, channelIndex)
+initChannel = function(self, channelIndex)
     if not rawget(self.lowEntries, channelIndex) then
         self.highEntries[channelIndex] = ReversibleArray.new()
         self.lowEntries[channelIndex] = ReversibleArray.new()
@@ -72,7 +72,7 @@ Metatable = {
         -- * highEntry: Entry of the next layer to append to this channel's connections
         --
         appendHighEntry = function(self, channelIndex, highEntry)
-            initChannelIndex(self, channelIndex)
+            initChannel(self, channelIndex)
             self.highEntries[channelIndex]:pushBackIfNotPresent(highEntry)
         end,
 
@@ -86,7 +86,7 @@ Metatable = {
         -- * lowEntry: Entry of the previous layer to append to this channel's connections
         --
         appendLowEntry = function(self, channelIndex, lowEntry)
-            initChannelIndex(self, channelIndex)
+            initChannel(self, channelIndex)
             self.lowEntries[channelIndex]:pushBackIfNotPresent(lowEntry)
         end,
     },
