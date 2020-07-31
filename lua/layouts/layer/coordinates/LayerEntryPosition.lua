@@ -72,13 +72,13 @@ Metatable = {
         --
         -- Args:
         -- * self: LayerEntryPosition object.
-        -- * channelIndex: LinkIndex of the slot.
+        -- * linkIndex: LinkIndex of the slot.
         -- * isInbound: true for an inbound slot, false otherwise.
         --
         -- Returns: The tree object associated to the given slot.
         --
-        getNode = function(self, channelIndex, isInbound)
-            return self[nodesFieldName[isInbound]][channelIndex]
+        getNode = function(self, linkIndex, isInbound)
+            return self[nodesFieldName[isInbound]][linkIndex]
         end,
 
         -- Sets the X coordinates of the node (margin excluded) and the attached links.
@@ -149,8 +149,8 @@ end
 computeSlotsX = function(slots, nodes, xMin, xLength)
     local count = slots.count
     for rank=1,count do
-        local channelIndex = slots[rank]
-        local node = nodes[channelIndex]
+        local linkIndex = slots[rank]
+        local node = nodes[linkIndex]
         node.x = xMin + xLength * (rank - 0.5) / count
     end
 end
