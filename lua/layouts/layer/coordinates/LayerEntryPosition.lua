@@ -124,16 +124,16 @@ buildNodes = function(slots, entry)
     local result = ErrorOnInvalidRead.new()
     local type = entry.type
     for i=1,slots.count do
-        local channelIndex = slots[i]
+        local linkIndex = slots[i]
         local linkNode = TreeLinkNode.new()
         if type == "vertex" then
-            linkNode.channelIndex = channelIndex
+            linkNode.linkIndex = linkIndex
         elseif type == "edge" then
             linkNode.edgeIndex = entry.index
         else
             linkNode.infoHint = true
         end
-        result[channelIndex] = linkNode
+        result[linkIndex] = linkNode
     end
     return result
 end

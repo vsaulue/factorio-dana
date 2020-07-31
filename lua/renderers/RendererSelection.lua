@@ -58,19 +58,19 @@ Metatable = {
         makeAggregatedLinkSelection = function(self)
             local nodeSets = {}
             for node in pairs(self.links) do
-                local channelIndex = node:getRoot().channelIndex
-                local map = nodeSets[channelIndex] or ErrorOnInvalidRead.new()
+                local linkIndex = node:getRoot().linkIndex
+                local map = nodeSets[linkIndex] or ErrorOnInvalidRead.new()
                 map[node] = true
-                nodeSets[channelIndex] = map
+                nodeSets[linkIndex] = map
             end
             local result = AggregatedLinkSelection.new()
-            for channelIndex,nodes in pairs(nodeSets) do
+            for linkIndex,nodes in pairs(nodeSets) do
                 local leaves = Tree.getLeavesOfSet(nodes)
                 local edgeIndices = ErrorOnInvalidRead.new()
                 for leaf in pairs(leaves) do
                     edgeIndices[leaf.edgeIndex] = true
                 end
-                result[channelIndex] = edgeIndices
+                result[linkIndex] = edgeIndices
             end
             return result
         end
