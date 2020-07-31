@@ -222,29 +222,29 @@ end
 --
 generateTreeLinksFromNode = function(self, nodes, startLayerId)
     local channelRouters = self.channelRouters
-    for channelIndex,rootNode in pairs(nodes) do
+    for linkIndex,rootNode in pairs(nodes) do
         local layerId = startLayerId
         local stack = Stack.new()
         local nextNode = rootNode
         while nextNode do
             local router = channelRouters[layerId]
-            router:buildTree(channelIndex, nextNode, stack)
+            router:buildTree(linkIndex, nextNode, stack)
             local topIndex = stack.topIndex
             if topIndex > 0 then
                 assert(topIndex == 1, "LayerCoordinateGenerator: invalid link structure.")
                 local branch = stack:pop()
                 if branch.isLow then
                     layerId = layerId - 1
-                    nextNode = branch.entryPosition.lowNodes[channelIndex]
+                    nextNode = branch.entryPosition.lowNodes[linkIndex]
                 else
                     layerId = layerId + 1
-                    nextNode = branch.entryPosition.highNodes[channelIndex]
+                    nextNode = branch.entryPosition.highNodes[linkIndex]
                 end
             else
                 nextNode = nil
             end
         end
-        addTreeLink(self, rootNode, channelIndex.isForward)
+        addTreeLink(self, rootNode, linkIndex.isForward)
     end
 end
 
