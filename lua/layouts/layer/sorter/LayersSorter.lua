@@ -39,15 +39,15 @@ local sortLayers
 -- * layers: Layers object, whose layers are to be sorted.
 --
 local LayersSorter = ErrorOnInvalidRead.new{
-    -- Runs the sorting algorithm on a LayersBuilder object.
+    -- Runs the sorting algorithm on a Layers object.
     --
     -- Args:
-    -- * layersBuilder: LayersBuilder object.
+    -- * layers: Layers object.
     --
-    run = function(layersBuilder)
+    run = function(layers)
         local self = ErrorOnInvalidRead.new{
-            channelLayers = layersBuilder.layers:generateChannelLayers(),
-            layers = layersBuilder.layers,
+            channelLayers = layers:generateChannelLayers(),
+            layers = layers,
             layersSortingData = ErrorOnInvalidRead.new(),
         }
 

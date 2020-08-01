@@ -65,7 +65,7 @@ local LayerLayout = ErrorOnInvalidRead.new{
         assignToLayers(layersBuilder, graph, vertexDists)
 
         -- 2) Order vertices within their layers (crossing minimization).
-        LayersSorter.run(layersBuilder)
+        LayersSorter.run(layersBuilder.layers)
 
         -- 3) Channel layers (= connection layers between vertex/edge layers).
         local channelLayers = layersBuilder.layers:generateChannelLayers()
