@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local Array = require("lua/containers/Array")
+local ChannelLayer = require("lua/layouts/layer/ChannelLayer")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local LayerEntry = require("lua/layouts/layer/LayerEntry")
 
@@ -52,6 +53,49 @@ local Layers = ErrorOnInvalidRead.new{
 -- Metatable of the Layers class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Generates the channel layers for this layer layout.
+        --
+        -- N+1 channel layers are generated (N being the number of entry layers). The first channel
+        -- layer returned by this function is placed before the first entry layer. The last channel
+        -- layer of the returned array is placed after the last entry layer.
+        --
+        -- Args:
+        -- * self: Layers object.
+        --
+        -- Returns: An array containing the generated channel layers.
+        --
+        generateChannelLayers = function(self)
+            local entries = self.entries
+            local result = Array.new()
+
+            -- 1) Create N+1 channel layers.
+            local count = entries.count + 1
+            for i=1,count do
+                result[i] = ChannelLayer.new()
+            end
+            result.count = count
+
+            -- 2) Fill them.
+            for i=1,entries.count do
+                local layer = entries[i]
+                local lowChannelLayer = result[i]
+                local highChannelLayer = result[i+1]
+                for j=1,layer.count do
+                    local entry = layer[j]
+                    local lowSlots = entry.lowSlots
+                    for i=1,lowSlots.count do
+                        lowChannelLayer:appendHighEntry(lowSlots[i], entry)
+                    end
+                    local highSlots = entry.highSlots
+                    for i=1,highSlots.count do
+                        highChannelLayer:appendLowEntry(highSlots[i], entry)
+                    end
+                end
+            end
+
+            return result
+        end,
+
         -- Gets an entry from its type and index.
         --
         -- Args:
