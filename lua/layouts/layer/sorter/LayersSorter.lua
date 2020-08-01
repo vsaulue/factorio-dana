@@ -313,7 +313,7 @@ end
 --
 function LayersSorter.run(layersBuilder)
     local self = ErrorOnInvalidRead.new{
-        channelLayers = layersBuilder:generateChannelLayers(),
+        channelLayers = layersBuilder.layers:generateChannelLayers(),
         layers = layersBuilder.layers,
         layersSortingData = ErrorOnInvalidRead.new(),
     }
