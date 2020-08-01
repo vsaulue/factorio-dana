@@ -22,6 +22,12 @@ local EquivalenceClasses = require("lua/layouts/layer/sorter/EquivalenceClasses"
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local OrderedSet = require("lua/containers/OrderedSet")
 
+local computeCouplings
+local computePosition
+local createCouplings
+local parseInput
+local sortLayers
+
 -- Helper class for sorting entries in their layers.
 --
 -- This is a global algorithm, parsing the full layer graph, and using a heuristic to give an initial
@@ -33,15 +39,23 @@ local OrderedSet = require("lua/containers/OrderedSet")
 -- * layers: Layers object, whose layers are to be sorted.
 --
 local LayersSorter = ErrorOnInvalidRead.new{
-    run = nil, -- implemented later
-}
+    -- Runs the sorting algorithm on a LayersBuilder object.
+    --
+    -- Args:
+    -- * layersBuilder: LayersBuilder object.
+    --
+    run = function(layersBuilder)
+        local self = ErrorOnInvalidRead.new{
+            channelLayers = layersBuilder.layers:generateChannelLayers(),
+            layers = layersBuilder.layers,
+            layersSortingData = ErrorOnInvalidRead.new(),
+        }
 
--- Implementation stuff (private scope).
-local computeCouplings
-local computePosition
-local createCouplings
-local parseInput
-local sortLayers
+        parseInput(self)
+        createCouplings(self)
+        sortLayers(self)
+    end,
+}
 
 -- Layer sorting data.
 --
@@ -304,23 +318,6 @@ sortLayers = function(self)
         local positions = optimizer:generatePositions()
         self.layers:sortLayer(layerId, positions)
     end
-end
-
--- Runs the sorting algorithm on a LayersBuilder object.
---
--- Args:
--- * layersBuilder: LayersBuilder object.
---
-function LayersSorter.run(layersBuilder)
-    local self = ErrorOnInvalidRead.new{
-        channelLayers = layersBuilder.layers:generateChannelLayers(),
-        layers = layersBuilder.layers,
-        layersSortingData = ErrorOnInvalidRead.new(),
-    }
-
-    parseInput(self)
-    createCouplings(self)
-    sortLayers(self)
 end
 
 return LayersSorter
