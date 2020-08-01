@@ -68,7 +68,7 @@ local LayerLayout = ErrorOnInvalidRead.new{
         LayersSorter.run(layersBuilder)
 
         -- 3) Channel layers (= connection layers between vertex/edge layers).
-        local channelLayers = layersBuilder:generateChannelLayers()
+        local channelLayers = layersBuilder.layers:generateChannelLayers()
 
         -- 4) Build the new LayerLayout object.
         object.channelLayers = channelLayers
