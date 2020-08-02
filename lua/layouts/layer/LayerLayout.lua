@@ -22,8 +22,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperSCC = require("lua/hypergraph/algorithms/HyperSCC")
 local LayerCoordinateGenerator = require("lua/layouts/layer/coordinates/LayerCoordinateGenerator")
 local LayerLinkBuilder = require("lua/layouts/layer/LayerLinkBuilder")
-local LayerLinkIndexFactory = require("lua/layouts/layer/LayerLinkIndexFactory")
-local LayersBuilder = require("lua/layouts/layer/LayersBuilder")
+local Layers = require("lua/layouts/layer/Layers")
 local LayersSorter = require("lua/layouts/layer/sorter/LayersSorter")
 local SlotsSorter = require("lua/layouts/layer/SlotsSorter")
 
@@ -58,23 +57,21 @@ local LayerLayout = ErrorOnInvalidRead.new{
         local graph = cLogger:assertField(object, "graph")
         local vertexDists = cLogger:assertField(object, "vertexDists")
 
-        local layersBuilder = LayersBuilder.new{
-            linkIndexFactory = LayerLinkIndexFactory.new()
-        }
+        local layers = Layers.new()
 
         -- 1) Assign vertices, edges to layers & add dummy vertices.
-        assignToLayers(layersBuilder, graph, vertexDists)
-        LayerLinkBuilder.run(layersBuilder.layers, graph)
+        assignToLayers(layers, graph, vertexDists)
+        LayerLinkBuilder.run(layers, graph)
 
         -- 2) Order vertices within their layers (crossing minimization).
-        LayersSorter.run(layersBuilder.layers)
+        LayersSorter.run(layers)
 
         -- 3) Channel layers (= connection layers between vertex/edge layers).
-        local channelLayers = layersBuilder.layers:generateChannelLayers()
+        local channelLayers = layers:generateChannelLayers()
 
         -- 4) Build the new LayerLayout object.
         object.channelLayers = channelLayers
-        object.layers = layersBuilder.layers
+        object.layers = layers
         setmetatable(object, Metatable)
 
         -- 5) Bonus: Little things to make the result slightly less incomprehensible
@@ -104,11 +101,11 @@ Metatable = {
 -- This function does NOT order the layers themselves.
 --
 -- Args:
--- * layersBuilder: LayersBuilder object to fill.
+-- * layers: Layers object to fill.
 -- * graph: DirectedHypergraph to draw.
 -- * vertexOrder[vertexIndex] -> int: suggested partial order of vertices.
 --
-assignToLayers = function(layersBuilder, graph, vertexOrder)
+assignToLayers = function(layers, graph, vertexOrder)
     local order = Array.new()
 
     -- 1) Assign using the topological order of SCCs in the input graph.
@@ -141,14 +138,20 @@ assignToLayers = function(layersBuilder, graph, vertexOrder)
         end
         for vertexIndex in pairs(scc) do
             local vertex = graph.vertices[vertexIndex]
-            layersBuilder:newVertex(layerId, vertexIndex)
+            layers:newEntry(layerId, {
+                type = "vertex",
+                index = vertexIndex,
+            })
             for edgeIndex in pairs(vertex.outbound) do
                 edgeToLayer[edgeIndex] = math.max(edgeToLayer[edgeIndex], 1 + layerId)
             end
         end
     end
     for edgeIndex,layerId in pairs(edgeToLayer) do
-        layersBuilder:newEdge(layerId, graph.edges[edgeIndex])
+        layers:newEntry(layerId, {
+            type = "edge",
+            index = edgeIndex,
+        })
     end
 end
 
