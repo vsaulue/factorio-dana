@@ -21,6 +21,7 @@ local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperSCC = require("lua/hypergraph/algorithms/HyperSCC")
 local LayerCoordinateGenerator = require("lua/layouts/layer/coordinates/LayerCoordinateGenerator")
+local LayerLinkBuilder = require("lua/layouts/layer/LayerLinkBuilder")
 local LayerLinkIndexFactory = require("lua/layouts/layer/LayerLinkIndexFactory")
 local LayersBuilder = require("lua/layouts/layer/LayersBuilder")
 local LayersSorter = require("lua/layouts/layer/sorter/LayersSorter")
@@ -63,6 +64,7 @@ local LayerLayout = ErrorOnInvalidRead.new{
 
         -- 1) Assign vertices, edges to layers & add dummy vertices.
         assignToLayers(layersBuilder, graph, vertexDists)
+        LayerLinkBuilder.run(layersBuilder.layers, graph)
 
         -- 2) Order vertices within their layers (crossing minimization).
         LayersSorter.run(layersBuilder.layers)

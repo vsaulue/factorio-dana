@@ -85,12 +85,12 @@ Metatable = {
 
             for vertexIndex in pairs(edge.inbound) do
                 local vertexEntry = self.layers:getEntry("vertex",vertexIndex)
-                link(self, edgeEntry, vertexEntry, true)
+                --link(self, edgeEntry, vertexEntry, true)
             end
 
             for vertexIndex in pairs(edge.outbound) do
                 local vertexEntry = self.layers:getEntry("vertex",vertexIndex)
-                link(self, edgeEntry, vertexEntry, false)
+                --link(self, edgeEntry, vertexEntry, false)
             end
         end,
 
