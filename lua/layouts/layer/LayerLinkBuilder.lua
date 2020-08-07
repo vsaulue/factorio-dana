@@ -60,8 +60,8 @@ local LayerLinkBuilder = ErrorOnInvalidRead.new{
                     end
                 end
 
-                addLinkIndex(layers, rEntry.highSlots, forwardIndex , 1 + rLayerId, lMax - 1)
-                addLinkIndex(layers, rEntry.highSlots, backwardIndex, lMin        , rLayerId)
+                addLinkIndex(layerLayout, rEntry.highSlots, forwardIndex , 1 + rLayerId, lMax - 1)
+                addLinkIndex(layerLayout, rEntry.highSlots, backwardIndex, lMin        , rLayerId)
             else
                 for leafIndex in pairs(leaves) do
                     local lLayerId,lEntry = getLayerIdAndEntry(layers, leafIndex)
@@ -77,8 +77,8 @@ local LayerLinkBuilder = ErrorOnInvalidRead.new{
                     end
                 end
 
-                addLinkIndex(layers, rEntry.lowSlots, forwardIndex , 1 + lMin, rLayerId - 1)
-                addLinkIndex(layers, rEntry.lowSlots, backwardIndex, rLayerId, lMax)
+                addLinkIndex(layerLayout, rEntry.lowSlots, forwardIndex , 1 + lMin, rLayerId - 1)
+                addLinkIndex(layerLayout, rEntry.lowSlots, backwardIndex, rLayerId, lMax)
             end
         end
     end,
@@ -87,21 +87,22 @@ local LayerLinkBuilder = ErrorOnInvalidRead.new{
 -- Finalize the addition of a LayerLinkIndex.
 --
 -- Args:
--- * layers: Layers object.
+-- * layerLayout: LayerLayout object.
 -- * rootSlots: Slots of the root's entry to fill.
 -- * linkIndex: LayerLinkIndex to finalize (may be nil: in this case the function does nothing).
 -- * lowLayerId: First index of the range of layers for which a linkNode must be added.
 -- * highLayerId: Last index of the range of layers for which a linkNode must be added.
 --
-addLinkIndex = function(layers, rootSlots, linkIndex, lowLayerId, highLayerId)
+addLinkIndex = function(layerLayout, rootSlots, linkIndex, lowLayerId, highLayerId)
     if linkIndex then
         rootSlots:pushBack(linkIndex)
+        layerLayout.linkIndices[linkIndex] = true
         for layerId=lowLayerId,highLayerId do
             local linkNode = {
                 type = "linkNode",
                 index = {},
             }
-            layers:newEntry(layerId, linkNode)
+            layerLayout.layers:newEntry(layerId, linkNode)
             linkNode.lowSlots:pushBack(linkIndex)
             linkNode.highSlots:pushBack(linkIndex)
         end
