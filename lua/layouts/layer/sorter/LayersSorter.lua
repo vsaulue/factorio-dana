@@ -220,19 +220,18 @@ parseInput = function(self)
         -- They should only be attached to linkNodes, and those will be placed next to the vertex entry
         -- in the secondPass.
         for channelIndex,highEntries in pairs(pureLowChannels) do
-            local vertexEntry = nil
+            local rootEntry = nil
             for i=1,highEntries.count do
                 local entry = highEntries[i]
-                if entry.type == "node" and entry.index.type == "hyperVertex" then
-                    assert(not vertexEntry, "LayersSorter: channel has multiple vertex entries.")
-                    vertexEntry = entry
+                if channelIndex.rootNodeIndex == entry.index then
+                    rootEntry = entry
                 end
             end
-            if vertexEntry then
+            if rootEntry then
                 for i=1,highEntries.count do
                     local entry = highEntries[i]
-                    if entry ~= vertexEntry then
-                        layerData.secondPass[entry] = vertexEntry
+                    if entry ~= rootEntry then
+                        layerData.secondPass[entry] = rootEntry
                     end
                 end
             end
