@@ -19,6 +19,7 @@ local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local HyperPreprocessor = require("lua/layouts/preprocess/HyperPreprocessor")
 local HyperSCC = require("lua/hypergraph/algorithms/HyperSCC")
 local LayerCoordinateGenerator = require("lua/layouts/layer/coordinates/LayerCoordinateGenerator")
 local LayerLinkBuilder = require("lua/layouts/layer/LayerLinkBuilder")
@@ -57,6 +58,9 @@ local LayerLayout = ErrorOnInvalidRead.new{
         local graph = cLogger:assertField(object, "graph")
         local vertexDists = cLogger:assertField(object, "vertexDists")
 
+        local prepGraph, prepDists = HyperPreprocessor.run(graph, vertexDists)
+        object.prepGraph = prepGraph
+        object.prepDists = prepDists
         object.layers = Layers.new()
 
         -- 1) Assign vertices, edges to layers & add dummy vertices.
