@@ -130,6 +130,7 @@ assignToLayers = function(self)
     for edgeIndex in pairs(graph.edges) do
         edgeToLayer[edgeIndex] = 1
     end
+    local vertexToLayer = {}
     for index=1,order.count do
         local scc = order[index]
         local layerId = 2
@@ -143,19 +144,22 @@ assignToLayers = function(self)
         end
         for vertexIndex in pairs(scc) do
             local vertex = graph.vertices[vertexIndex]
-            layers:newEntry(layerId, {
-                type = "vertex",
-                index = vertexIndex,
-            })
+            vertexToLayer[vertexIndex] = layerId
             for edgeIndex in pairs(vertex.outbound) do
                 edgeToLayer[edgeIndex] = math.max(edgeToLayer[edgeIndex], 1 + layerId)
             end
         end
     end
-    for edgeIndex,layerId in pairs(edgeToLayer) do
+    for nodeIndex in pairs(self.prepGraph.nodes) do
+        local layerId = nil
+        if nodeIndex.type == "hyperVertex" then
+            layerId = vertexToLayer[nodeIndex.index]
+        else
+            layerId = edgeToLayer[nodeIndex.index]
+        end
         layers:newEntry(layerId, {
-            type = "edge",
-            index = edgeIndex,
+            type = "node",
+            index = nodeIndex,
         })
     end
 end

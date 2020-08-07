@@ -205,7 +205,7 @@ CategoryInfos = ErrorOnInvalidRead.new{
         generateGuiElements = function(self, rendererSelection)
             local parent = self.root.content
             local result = 0
-            for linkIndex,edgeIndices in pairs(rendererSelection:makeAggregatedLinkSelection()) do
+            for linkIndex,nodeIndices in pairs(rendererSelection:makeAggregatedLinkSelection()) do
                 local flow = parent.add{
                     type = "flow",
                     direction = "horizontal",
@@ -221,15 +221,15 @@ CategoryInfos = ErrorOnInvalidRead.new{
                 arrowLabel.style.font_color = LinkArrowColor[linkIndex.isFromRoot]
 
                 local count = 0
-                for leaf in pairs(edgeIndices) do
+                for leaf in pairs(nodeIndices) do
                     count = count + 1
                 end
                 if count <= 5 then
-                    for edgeIndex in pairs(edgeIndices) do
+                    for nodeIndex in pairs(nodeIndices) do
                         flow.add{
                             type = "sprite",
-                            sprite = edgeIndex.spritePath,
-                            tooltip = edgeIndex.localisedName,
+                            sprite = nodeIndex.index.spritePath,
+                            tooltip = nodeIndex.index.localisedName,
                         }
                     end
                 else

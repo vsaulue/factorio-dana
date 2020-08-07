@@ -223,7 +223,7 @@ parseInput = function(self)
             local vertexEntry = nil
             for i=1,highEntries.count do
                 local entry = highEntries[i]
-                if entry.type == "vertex" then
+                if entry.type == "node" and entry.index.type == "hyperVertex" then
                     assert(not vertexEntry, "LayersSorter: channel has multiple vertex entries.")
                     vertexEntry = entry
                 end

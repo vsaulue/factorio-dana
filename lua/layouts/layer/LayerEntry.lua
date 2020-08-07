@@ -25,7 +25,7 @@ local ValidTypes
 -- Class for representing an entry (node) in a Layers object.
 --
 -- RO properties:
--- * type: must be either "edge", "linkNode", or "vertex".
+-- * type: must be either "linkNode" or "node".
 -- * index: an identifier.
 -- * lowSlots: ReversibleArray containing the set of low LayerLinkIndex objects.
 -- * highSlots: ReversibleArray containing the set of high LayerLinkIndex objects.
@@ -54,9 +54,8 @@ local LayerEntry = ErrorOnInvalidRead.new{
 
 -- Set of valid values for the "type" field.
 ValidTypes = {
-    edge = true,
     linkNode = true,
-    vertex = true,
+    node = true,
 }
 
 return LayerEntry

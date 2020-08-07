@@ -107,15 +107,16 @@ createEntryCoordinateRecords = function(self)
     local params = self.params
     local linkWidth = params.linkWidth
 
-    local typeToShape = ErrorOnInvalidRead.new{
-        edge = params.edgeShape,
-        linkNode = RectangleNodeShape.new{
-            minXLength = params.linkWidth,
-            minYLength = 0,
-            xMargin = 0,
-            yMargin = 0,
-        },
-        vertex = params.vertexShape,
+    local linkNodeShape = RectangleNodeShape.new{
+        minXLength = params.linkWidth,
+        minYLength = 0,
+        xMargin = 0,
+        yMargin = 0,
+    }
+
+    local nodeSubtypeToShape = ErrorOnInvalidRead.new{
+        hyperEdge = params.edgeShape,
+        hyperVertex = params.vertexShape,
     }
 
     local entries = self.layout.layers.entries
@@ -126,8 +127,12 @@ createEntryCoordinateRecords = function(self)
             local entry = layer[rank]
             local maxSlotsCount = math.max(entry.lowSlots.count, entry.highSlots.count)
             local minXLength = maxSlotsCount * linkWidth
+            local shape = linkNodeShape
+            if entry.type == "node" then
+                shape = nodeSubtypeToShape[entry.index.type]
+            end
             local entryRecord = LayerEntryPosition.new{
-                output = typeToShape[entry.type]:generateNode(minXLength),
+                output = shape:generateNode(minXLength),
                 entry = entry,
             }
             layerYLength = math.max(layerYLength, entryRecord.output:getYLength(true))
@@ -170,19 +175,10 @@ end
 --
 fillLayoutCoordinates = function(self)
     local result = self.result
-    local EntryTypeToPrepNodeType = {
-        edge = "hyperEdge",
-        vertex = "hyperVertex",
-    }
 
     for entry,entryRecord in pairs(self.entryPositions) do
-        local prepNodeType = EntryTypeToPrepNodeType[entry.type]
-        if prepNodeType then
-            local index = PrepNodeIndex.new{
-                type = prepNodeType,
-                index = entry.index,
-            }
-            result:addNode(index, entryRecord.output)
+        if entry.type == "node" then
+            result:addNode(entry.index, entryRecord.output)
         end
     end
 end
@@ -201,7 +197,7 @@ generateTreeLinks = function(self)
         local layer = layers[layerId]
         for entryRank=1,layer.count do
             local entry = layer[entryRank]
-            if entry.type == "vertex" then
+            if entry.type == "node" and entry.index.type == "hyperVertex" then
                 local entryPos = entryPositions[entry]
                 generateTreeLinksFromNode(self, entryPos.lowNodes, layerId)
                 generateTreeLinksFromNode(self, entryPos.highNodes, layerId + 1)

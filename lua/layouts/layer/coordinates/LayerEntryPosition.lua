@@ -126,10 +126,12 @@ buildNodes = function(slots, entry)
     for i=1,slots.count do
         local linkIndex = slots[i]
         local linkNode = TreeLinkNode.new()
-        if type == "vertex" then
-            linkNode.linkIndex = linkIndex
-        elseif type == "edge" then
-            linkNode.edgeIndex = entry.index
+        if type == "node" then
+            if entry.index.type == "hyperVertex" then
+                linkNode.linkIndex = linkIndex
+            else
+                linkNode.edgeIndex = entry.index
+            end
         else
             linkNode.infoHint = true
         end
