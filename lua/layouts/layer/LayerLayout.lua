@@ -61,7 +61,7 @@ local LayerLayout = ErrorOnInvalidRead.new{
 
         -- 1) Assign vertices, edges to layers & add dummy vertices.
         assignToLayers(object)
-        LayerLinkBuilder.run(object.layers, graph)
+        LayerLinkBuilder.run(object)
 
         -- 2) Order vertices within their layers (crossing minimization).
         LayersSorter.run(object.layers)

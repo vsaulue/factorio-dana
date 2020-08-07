@@ -31,10 +31,11 @@ local LayerLinkBuilder = ErrorOnInvalidRead.new{
     -- All edges & vertices must have been placed in the Layers object beforehand.
     --
     -- Args:
-    -- * layers: Layers object to add the links to.
-    -- * graph: DirectedHypergraph containing the links.
+    -- * layerLayout: LayerLayout object being built.
     --
-    run = function(layers, graph)
+    run = function(layerLayout)
+        local layers = layerLayout.layers
+        local graph = layerLayout.graph
         local reverse = layers.reverse
         for vertexIndex,vertex in pairs(graph.vertices) do
             local vPos = reverse.vertex[vertexIndex]
