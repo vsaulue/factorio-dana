@@ -20,8 +20,9 @@ local LayerLinkIndex = require("lua/layouts/layer/LayerLinkIndex")
 
 local cLogger = ClassLogger.new{className = "LayerLinkBuilder"}
 
-local newLinkIndex
-local makeLinkNode
+local addLinkIndex
+local getLayerIdAndEntry
+local newLayerLinkIndex
 
 -- Utility library to build links into a Layers object.
 --
@@ -35,89 +36,110 @@ local LayerLinkBuilder = ErrorOnInvalidRead.new{
     --
     run = function(layerLayout)
         local layers = layerLayout.layers
-        local graph = layerLayout.graph
+        local graph = layerLayout.prepGraph
         local reverse = layers.reverse
-        for vertexIndex,vertex in pairs(graph.vertices) do
-            local vPos = reverse.vertex[vertexIndex]
-            local vLayerId = vPos[1]
-            local vEntry = layers.entries[vLayerId][vPos[2]]
+        for linkIndex,leaves in pairs(graph.links) do
+            local rLayerId,rEntry = getLayerIdAndEntry(layers, linkIndex.rootNodeIndex)
 
-            -- Edge -> Vertex links.
-            local forwardIndex = newLinkIndex(true, false, vertexIndex)
-            local backwardIndex = newLinkIndex(false, false, vertexIndex)
-            local eMin = math.huge
-            local eMax = -math.huge
-            for edgeIndex in pairs(vertex.inbound) do
-                local ePos = reverse.edge[edgeIndex]
-                local eLayerId = ePos[1]
-                local eEntry = layers.entries[eLayerId][ePos[2]]
+            local forwardIndex = nil
+            local backwardIndex = nil
+            local lMin = math.huge
+            local lMax = -math.huge
+            if linkIndex.isFromRoot then
+                for leafIndex in pairs(leaves) do
+                    local lLayerId,lEntry = getLayerIdAndEntry(layers, leafIndex)
 
-                if eLayerId < vLayerId then
-                    eEntry.highSlots:pushBack(forwardIndex)
-                    vEntry.lowSlots:pushBackIfNotPresent(forwardIndex)
-                    eMin = math.min(eMin, eLayerId)
-                else
-                    eEntry.highSlots:pushBack(backwardIndex)
-                    vEntry.lowSlots:pushBackIfNotPresent(backwardIndex)
-                    eMax = math.max(eMax, eLayerId)
+                    if lLayerId > rLayerId then
+                        forwardIndex = forwardIndex or newLayerLinkIndex(linkIndex, true)
+                        lEntry.lowSlots:pushBack(forwardIndex)
+                        lMax = math.max(lMax, lLayerId)
+                    else
+                        backwardIndex = backwardIndex or newLayerLinkIndex(linkIndex, false)
+                        lEntry.lowSlots:pushBack(backwardIndex)
+                        lMin = math.min(lMin, lLayerId)
+                    end
                 end
-            end
-            makeLinkNodes(layers, backwardIndex, vLayerId, eMax)
-            makeLinkNodes(layers, forwardIndex, eMin+1, vLayerId-1)
 
-            -- Vertex -> Edge links.
-            eMax = -math.huge
-            forwardIndex = newLinkIndex(true, true, vertexIndex)
-            for edgeIndex in pairs(vertex.outbound) do
-                local ePos = reverse.edge[edgeIndex]
-                local eLayerId = ePos[1]
-                local eEntry = layers.entries[eLayerId][ePos[2]]
+                addLinkIndex(layers, rEntry.highSlots, forwardIndex , 1 + rLayerId, lMax - 1)
+                addLinkIndex(layers, rEntry.highSlots, backwardIndex, lMin        , rLayerId)
+            else
+                for leafIndex in pairs(leaves) do
+                    local lLayerId,lEntry = getLayerIdAndEntry(layers, leafIndex)
 
-                cLogger:assert(eLayerId > vLayerId, "Invalid layer of edge relative to an inbound vertex.")
-                eEntry.lowSlots:pushBack(forwardIndex)
-                vEntry.highSlots:pushBackIfNotPresent(forwardIndex)
-                eMax = math.max(eMax, eLayerId)
+                    if lLayerId < rLayerId then
+                        forwardIndex = forwardIndex or newLayerLinkIndex(linkIndex, true)
+                        lEntry.highSlots:pushBack(forwardIndex)
+                        lMin = math.min(lMin, lLayerId)
+                    else
+                        backwardIndex = backwardIndex or newLayerLinkIndex(linkIndex, false)
+                        lEntry.highSlots:pushBack(backwardIndex)
+                        lMax = math.max(lMax, lLayerId)
+                    end
+                end
+
+                addLinkIndex(layers, rEntry.lowSlots, forwardIndex , 1 + lMin, rLayerId - 1)
+                addLinkIndex(layers, rEntry.lowSlots, backwardIndex, rLayerId, lMax)
             end
-            makeLinkNodes(layers, forwardIndex, vLayerId+1, eMax-1)
         end
     end,
 }
 
+-- Finalize the addition of a LayerLinkIndex.
+--
+-- Args:
+-- * layers: Layers object.
+-- * rootSlots: Slots of the root's entry to fill.
+-- * linkIndex: LayerLinkIndex to finalize (may be nil: in this case the function does nothing).
+-- * lowLayerId: First index of the range of layers for which a linkNode must be added.
+-- * highLayerId: Last index of the range of layers for which a linkNode must be added.
+--
+addLinkIndex = function(layers, rootSlots, linkIndex, lowLayerId, highLayerId)
+    if linkIndex then
+        rootSlots:pushBack(linkIndex)
+        for layerId=lowLayerId,highLayerId do
+            local linkNode = {
+                type = "linkNode",
+                index = {},
+            }
+            layers:newEntry(layerId, linkNode)
+            linkNode.lowSlots:pushBack(linkIndex)
+            linkNode.highSlots:pushBack(linkIndex)
+        end
+    end
+end
+
+-- Gets the layer index and entry of a PrepNodeIndex in a Layers object.
+--
+-- Args:
+-- * layers: Layers object containing the entry.
+-- * nodeIndex: PrepNodeIndex to look for.
+--
+-- Returns:
+-- * The index of the layer of the associated entry.
+-- * The associated entry.
+--
+getLayerIdAndEntry = function(layers, nodeIndex)
+    local pos = layers.reverse.node[nodeIndex]
+    local layerId = pos[1]
+    local entry = layers.entries[layerId][pos[2]]
+    return layerId,entry
+end
+
 -- Creates a new LayerLinkIndex object.
 --
 -- Args:
+-- * linkIndex: LinkIndex to copy.
 -- * isForward: isForward field value.
--- * isFromRoot: isFromRoot field value.
--- * symbol: symbol field value.
 --
 -- Returns: The new LayerLinkIndex object.
 --
-newLinkIndex = function(isForward, isFromRoot, symbol)
+newLayerLinkIndex = function(linkIndex, isForward)
     return LayerLinkIndex.new{
         isForward = isForward,
-        isFromRoot = isFromRoot,
-        symbol = symbol,
+        isFromRoot = linkIndex.isFromRoot,
+        rootNodeIndex = linkIndex.rootNodeIndex,
+        symbol = linkIndex.symbol,
     }
-end
-
--- Creates multiple link nodes between the specified layers.
---
--- Args:
--- * layers: Layers object to edit.
--- * linkIndex: LayerLinkIndex of the link nodes.
--- * lowLayerId: First index of the range of layers to edit.
--- * highLayerId: Last index of the range of layers to edit.
---
-makeLinkNodes = function(layers, linkIndex, lowLayerId, highLayerId)
-    for layerId=lowLayerId,highLayerId do
-        local linkNode = {
-            type = "linkNode",
-            index = {},
-        }
-        layers:newEntry(layerId, linkNode)
-        linkNode.lowSlots:pushBack(linkIndex)
-        linkNode.highSlots:pushBack(linkIndex)
-    end
 end
 
 return LayerLinkBuilder
