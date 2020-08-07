@@ -57,21 +57,20 @@ local LayerLayout = ErrorOnInvalidRead.new{
         local graph = cLogger:assertField(object, "graph")
         local vertexDists = cLogger:assertField(object, "vertexDists")
 
-        local layers = Layers.new()
+        object.layers = Layers.new()
 
         -- 1) Assign vertices, edges to layers & add dummy vertices.
-        assignToLayers(layers, graph, vertexDists)
-        LayerLinkBuilder.run(layers, graph)
+        assignToLayers(object.layers, graph, vertexDists)
+        LayerLinkBuilder.run(object.layers, graph)
 
         -- 2) Order vertices within their layers (crossing minimization).
-        LayersSorter.run(layers)
+        LayersSorter.run(object.layers)
 
         -- 3) Channel layers (= connection layers between vertex/edge layers).
-        local channelLayers = layers:generateChannelLayers()
+        local channelLayers = object.layers:generateChannelLayers()
 
         -- 4) Build the new LayerLayout object.
         object.channelLayers = channelLayers
-        object.layers = layers
         setmetatable(object, Metatable)
 
         -- 5) Bonus: Little things to make the result slightly less incomprehensible
