@@ -32,7 +32,6 @@ local createEntryCoordinateRecords
 local computeY
 local fillLayoutCoordinates
 local generateTreeLinks
-local generateTreeLinksFromNode
 local initChannelRouters
 local LinkCategories
 local processChannelLayer
@@ -191,56 +190,45 @@ end
 -- * self: LayerCoordinateGenerator object being build.
 --
 generateTreeLinks = function(self)
-    local layers = self.layout.layers.entries
-    local entryPositions = self.entryPositions
-    for layerId=1,layers.count do
-        local layer = layers[layerId]
-        for entryRank=1,layer.count do
-            local entry = layer[entryRank]
-            if entry.type == "node" and entry.index.type == "hyperVertex" then
-                local entryPos = entryPositions[entry]
-                generateTreeLinksFromNode(self, entryPos.lowNodes, layerId)
-                generateTreeLinksFromNode(self, entryPos.highNodes, layerId + 1)
-            end
-        end
-    end
-end
-
--- Generates a tree link for each tree node in a map.
---
--- The map must be indexed by the associated linkIndex (ex: LayerEntryPosition.lowNodes).
--- The generated links will have the nodes in the map as root.
---
--- Args:
--- * self: LayerCoordinateGenerator object being built.
--- * nodes[linkNode]: Input map of TreeNode.
--- * startLayerId: Index of the router associated with the input nodes.
---
-generateTreeLinksFromNode = function(self, nodes, startLayerId)
     local channelRouters = self.channelRouters
-    for linkIndex,rootNode in pairs(nodes) do
-        local layerId = startLayerId
-        local stack = Stack.new()
-        local nextNode = rootNode
-        while nextNode do
+    local entryPositions = self.entryPositions
+    local layers = self.layout.layers
+
+    local stack = Stack.new()
+    for linkIndex in pairs(self.layout.linkIndices) do
+        local rPos = layers.reverse.node[linkIndex.rootNodeIndex]
+        local layerId = rPos[1]
+        local rootEntryPos = entryPositions[layers.entries[layerId][rPos[2]]]
+
+        local rootTreeNode
+        if linkIndex.isFromRoot then
+            rootTreeNode = rootEntryPos.highNodes[linkIndex]
+            layerId = layerId + 1
+        else
+            rootTreeNode = rootEntryPos.lowNodes[linkIndex]
+        end
+
+        local nextTreeNode = rootTreeNode
+        while nextTreeNode do
             local router = channelRouters[layerId]
-            router:buildTree(linkIndex, nextNode, stack)
+            router:buildTree(linkIndex, nextTreeNode, stack)
             local topIndex = stack.topIndex
             if topIndex > 0 then
                 assert(topIndex == 1, "LayerCoordinateGenerator: invalid link structure.")
                 local branch = stack:pop()
                 if branch.isLow then
                     layerId = layerId - 1
-                    nextNode = branch.entryPosition.lowNodes[linkIndex]
+                    nextTreeNode = branch.entryPosition.lowNodes[linkIndex]
                 else
                     layerId = layerId + 1
-                    nextNode = branch.entryPosition.highNodes[linkIndex]
+                    nextTreeNode = branch.entryPosition.highNodes[linkIndex]
                 end
             else
-                nextNode = nil
+                nextTreeNode = nil
             end
         end
-        addTreeLink(self, rootNode, linkIndex.isForward)
+
+        addTreeLink(self, rootTreeNode, linkIndex.isForward)
     end
 end
 
