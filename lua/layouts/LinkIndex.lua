@@ -23,6 +23,7 @@ local cLogger = ClassLogger.new{className = "LinkIndex"}
 --
 -- RO Fields:
 -- * isFromRoot: true if the link is going from the root to the leaves, false otherwise.
+-- * rootNodeIndex (optional): PrepNodeIndex of the root.
 -- * symbol: Object describing what this link represents (ex: Intermediate).
 --
 local LinkIndex = ErrorOnInvalidRead.new{
