@@ -127,7 +127,7 @@ buildNodes = function(slots, entry)
         local linkIndex = slots[i]
         local linkNode = TreeLinkNode.new()
         if type == "node" then
-            if entry.index.type == "hyperVertex" then
+            if entry.index == linkIndex.rootNodeIndex then
                 linkNode.linkIndex = linkIndex
             else
                 linkNode.edgeIndex = entry.index
