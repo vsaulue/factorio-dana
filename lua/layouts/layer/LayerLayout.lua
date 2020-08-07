@@ -60,7 +60,7 @@ local LayerLayout = ErrorOnInvalidRead.new{
         object.layers = Layers.new()
 
         -- 1) Assign vertices, edges to layers & add dummy vertices.
-        assignToLayers(object.layers, graph, vertexDists)
+        assignToLayers(object)
         LayerLinkBuilder.run(object.layers, graph)
 
         -- 2) Order vertices within their layers (crossing minimization).
@@ -100,11 +100,13 @@ Metatable = {
 -- This function does NOT order the layers themselves.
 --
 -- Args:
--- * layers: Layers object to fill.
--- * graph: DirectedHypergraph to draw.
--- * vertexOrder[vertexIndex] -> int: suggested partial order of vertices.
+-- * self: LayerLayout object.
 --
-assignToLayers = function(layers, graph, vertexOrder)
+assignToLayers = function(self)
+    local layers = self.layers
+    local graph = self.graph
+    local vertexOrder = self.vertexDists
+
     local order = Array.new()
 
     -- 1) Assign using the topological order of SCCs in the input graph.
