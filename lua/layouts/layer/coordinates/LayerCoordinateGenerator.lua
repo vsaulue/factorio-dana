@@ -23,7 +23,6 @@ local LayoutCoordinates = require("lua/layouts/LayoutCoordinates")
 local LinkCategory = require("lua/layouts/LinkCategory")
 local TreeLink = require("lua/layouts/TreeLink")
 local Logger = require("lua/logger/Logger")
-local PrepNodeIndex = require("lua/layouts/preprocess/PrepNodeIndex")
 local RectangleNodeShape = require("lua/layouts/RectangleNodeShape")
 local Stack = require("lua/containers/Stack")
 
