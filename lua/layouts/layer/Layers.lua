@@ -40,10 +40,8 @@ local Layers = ErrorOnInvalidRead.new{
         local result = {
             entries = Array.new(),
             reverse = ErrorOnInvalidRead.new{
-                edge = ErrorOnInvalidRead.new(),
                 linkNode = ErrorOnInvalidRead.new(),
                 node = ErrorOnInvalidRead.new(),
-                vertex = ErrorOnInvalidRead.new(),
             },
         }
         setmetatable(result, Metatable)
@@ -143,13 +141,6 @@ Metatable = {
             layer:pushBack(newEntry)
             local pos = {layerIndex, layer.count}
             self.reverse[newEntry.type][newEntry.index] = pos
-            if newEntry.type == "node" then
-                if newEntry.index.type == "hyperVertex" then
-                    self.reverse.vertex[newEntry.index.index] = pos
-                else
-                    self.reverse.edge[newEntry.index.index] = pos
-                end
-            end
         end,
 
         -- Swaps 2 entries in a layer.
