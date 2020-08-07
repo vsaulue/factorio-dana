@@ -23,19 +23,20 @@ local cLogger = ClassLogger.new{className = "LinkIndex"}
 --
 -- RO Fields:
 -- * isFromRoot: true if the link is going from the root to the leaves, false otherwise.
--- * rootNodeIndex (optional): PrepNodeIndex of the root.
+-- * rootNodeIndex: PrepNodeIndex of the root.
 -- * symbol: Object describing what this link represents (ex: Intermediate).
 --
 local LinkIndex = ErrorOnInvalidRead.new{
     -- Creates a new LinkIndex object.
     --
     -- Args:
-    -- * object: Table to turn into a LinkIndex object (required fields: symbol, isFromRoot).
+    -- * object: Table to turn into a LinkIndex object (all fields required).
     --
     -- Returns: The argument turned into a LinkIndex object.
     --
     new = function(object)
         cLogger:assertField(object, "symbol")
+        cLogger:assertField(object, "rootNodeIndex")
         cLogger:assertField(object, "isFromRoot")
         ErrorOnInvalidRead.setmetatable(object)
         return object
