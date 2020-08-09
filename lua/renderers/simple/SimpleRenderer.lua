@@ -121,9 +121,11 @@ Metatable = {
             }
 
             for nodeIndex,node in pairs(layoutCoordinates.nodes) do
-                local canvasObject = node:drawOnCanvas(canvas, nodeArgs[nodeIndex.type])
-                canvasObject.rendererType = "node"
-                canvasObject.rendererIndex = nodeIndex
+                local objects = node:drawOnCanvas(canvas, nodeArgs[nodeIndex.type])
+                for canvasObject in pairs(objects) do
+                    canvasObject.rendererType = "node"
+                    canvasObject.rendererIndex = nodeIndex
+                end
                 canvas:newSprite{
                     sprite = nodeIndex.index.spritePath,
                     target = {node:getMiddle()},

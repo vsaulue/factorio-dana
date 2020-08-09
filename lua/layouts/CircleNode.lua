@@ -71,7 +71,9 @@ Metatable = {
 
             rendererArgs.radius = self.radius
 
-            return canvas:newCircle(rendererArgs)
+            return {
+                [canvas:newCircle(rendererArgs)] = true,
+            }
         end,
 
         -- Implements AbstractNode:getAABB().

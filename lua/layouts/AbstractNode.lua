@@ -61,6 +61,8 @@ Metatable = {
         -- * canvas: Canvas object on which to draw the node.
         -- * rendererArgs (modified): Arguments passed to Factorio's rendering API to create the shape.
         --
+        -- Returns: A set of CanvasObject.
+        --
         drawOnCanvas = function(self, canvas, rendererArgs) end,
 
         -- Gets the 4 coordinates of the bounding box of this node (without margins).

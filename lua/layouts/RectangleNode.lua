@@ -79,7 +79,9 @@ Metatable = {
             right_bottom.x = self.xMin + self.xLength
             right_bottom.y = self.yMin + self.yLength
 
-            return canvas:newRectangle(rendererArgs)
+            return {
+                [canvas:newRectangle(rendererArgs)] = true,
+            }
         end,
 
         -- Implements AbstractNode:getAABB().
