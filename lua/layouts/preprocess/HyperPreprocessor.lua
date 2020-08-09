@@ -70,7 +70,8 @@ local HyperPreprocessor = ErrorOnInvalidRead.new{
                 type = "hyperEdge",
                 index = edgeIndex,
             }
-            resultGraph:newNode(nodeIndex)
+            local node = resultGraph:newNode(nodeIndex)
+            node.orderPriority = 2
             local dist = 1
             for vertexIndex in pairs(edge.inbound) do
                 fromVertexLeaves[vertexIndex][nodeIndex] = true

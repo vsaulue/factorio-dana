@@ -50,6 +50,11 @@ describe("HyperPreprocessor", function()
             local expectedDist = ExpectedNodes[nodeIndex.type][nodeIndex.index]
             assert.is_not_nil(expectedDist)
             assert.are.equals(prepDists[nodeIndex], expectedDist)
+            local expectedPriority = 1
+            if nodeIndex.type == "hyperEdge" then
+                expectedPriority = 2
+            end
+            assert.are.equals(node.orderPriority, expectedPriority)
             nodes[nodeIndex.index] = node
             nodeCount = nodeCount + 1
         end
