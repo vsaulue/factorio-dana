@@ -61,11 +61,7 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AbstractNode:drawOnCanvas().
         drawOnCanvas = function(self, canvas, rendererArgs)
-            local target = rendererArgs.target
-            if not target then
-                target = {}
-                rendererArgs.target = target
-            end
+            local target = AbstractNode.getOrInitTableField(rendererArgs, "target")
             target.x = self.xCenter
             target.y = self.yCenter
 

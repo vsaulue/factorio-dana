@@ -63,19 +63,10 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AbstractNode:drawOnCanvas().
         drawOnCanvas = function(self, canvas, rendererArgs)
-            local left_top = rendererArgs.left_top
-            if not left_top then
-                left_top = {}
-                rendererArgs.left_top = left_top
-            end
+            local left_top = AbstractNode.getOrInitTableField(rendererArgs, "left_top")
             left_top.x = self.xMin
             left_top.y = self.yMin
-
-            local right_bottom = rendererArgs.right_bottom
-            if not right_bottom then
-                right_bottom = {}
-                rendererArgs.right_bottom = right_bottom
-            end
+            local right_bottom = AbstractNode.getOrInitTableField(rendererArgs, "right_bottom")
             right_bottom.x = self.xMin + self.xLength
             right_bottom.y = self.yMin + self.yLength
 

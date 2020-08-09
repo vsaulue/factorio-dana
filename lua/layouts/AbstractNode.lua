@@ -27,6 +27,23 @@ local cLogger = ClassLogger.new{className = "AbstractNode"}
 -- * yMargin: Margin on the Y axis.
 --
 local AbstractNode = ErrorOnInvalidRead.new{
+    -- Gets a field in an object (initialises it as an empty table if not set).
+    --
+    -- Args:
+    -- * container: Object containing the field to get/set.
+    -- * fieldName: Index of the field to get/set.
+    --
+    -- Returns: The value of the specified field.
+    --
+    getOrInitTableField = function(container, fieldName)
+        local result = container[fieldName]
+        if not result then
+            result = {}
+            container[fieldName] = result
+        end
+        return result
+    end,
+
     -- Factory instance able to restore metatables of AbstractNode instances.
     Factory = AbstractFactory.new{
         getClassNameOfObject = function(object)
