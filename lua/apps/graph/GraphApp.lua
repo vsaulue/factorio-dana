@@ -22,6 +22,7 @@ local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiAlign = require("lua/gui/GuiAlign")
 local GuiElement = require("lua/gui/GuiElement")
+local HyperPreprocessor = require("lua/layouts/preprocess/HyperPreprocessor")
 local SelectionWindow = require("lua/apps/graph/gui/SelectionWindow")
 local LayerLayout = require("lua/layouts/layer/LayerLayout")
 local SimpleRenderer = require("lua/renderers/simple/SimpleRenderer")
@@ -62,9 +63,10 @@ local GraphApp = ErrorOnInvalidRead.new{
         AbstractApp.new(object, Metatable)
 
         local rawPlayer = object.appController.appResources.rawPlayer
+        local prepGraph,prepDists = HyperPreprocessor.run(graph, vertexDists)
         local layout = LayerLayout.new{
-            graph = graph,
-            vertexDists = vertexDists,
+            prepGraph = prepGraph,
+            prepDists = prepDists,
         }
         local canvas = Canvas.new{
             players = {rawPlayer},
