@@ -104,17 +104,13 @@ end
 createEntryCoordinateRecords = function(self)
     local params = self.params
     local linkWidth = params.linkWidth
+    local shapes = params.shapes
 
     local linkNodeShape = RectangleNodeShape.new{
         minXLength = params.linkWidth,
         minYLength = 0,
         xMargin = 0,
         yMargin = 0,
-    }
-
-    local nodeSubtypeToShape = ErrorOnInvalidRead.new{
-        hyperEdge = params.edgeShape,
-        hyperVertex = params.vertexShape,
     }
 
     local entries = self.layout.layers.entries
@@ -127,7 +123,7 @@ createEntryCoordinateRecords = function(self)
             local minXLength = maxSlotsCount * linkWidth
             local shape = linkNodeShape
             if entry.type == "node" then
-                shape = nodeSubtypeToShape[entry.index.type]
+                shape = shapes[entry.index.type]
             end
             local entryRecord = LayerEntryPosition.new{
                 output = shape:generateNode(minXLength),

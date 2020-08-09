@@ -25,9 +25,8 @@ local cLogger = ClassLogger.new{className = "LayoutParameters"}
 -- which one is horizontal/vertical (or do fancier transforms).
 --
 -- Fields:
--- * edgeShape: AbstractNodeShape to use to generate edge nodes.
 -- * linkWidth: Width of links, including margins (if you want 0.1-wide links separated by 0.5 gaps, set it to 0.6).
--- * vertexShape: AbstractNodeShape to use to generate vertex nodes.
+-- * shapes[PrepNodeIndex.type]: AbstractNodeShape. Map of shapes, indexed by node type.
 --
 local LayoutParameters = ErrorOnInvalidRead.new{
     -- Creates a new LayoutParameters object.
@@ -38,9 +37,9 @@ local LayoutParameters = ErrorOnInvalidRead.new{
     -- Returns: the new LayoutParameters object.
     --
     new = function(object)
-        cLogger:assertField(object, "edgeShape")
         cLogger:assertField(object, "linkWidth")
-        cLogger:assertField(object, "vertexShape")
+        local shapes = cLogger:assertField(object, "shapes")
+        ErrorOnInvalidRead.setmetatable(shapes)
         ErrorOnInvalidRead.setmetatable(object)
         return object
     end

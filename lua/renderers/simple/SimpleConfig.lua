@@ -56,17 +56,19 @@ local SimpleConfig = ErrorOnInvalidRead.new{
 
     -- LayoutParameters defining the shapes/dimensions of elements in the drawing.
     LayoutParameters = LayoutParameters.new{
-        edgeShape = RectangleNodeShape.new{
-            xMargin = 0.2,
-            yMargin = 0.45,
-            minXLength = 1.6,
-            minYLength = 1.6,
-        },
         linkWidth = 0.3,
-        vertexShape = CircleNodeShape.new{
-            minRadius = 0.8,
-            xMargin = 0.2,
-            yMargin = 0.2,
+        shapes = {
+            hyperEdge = RectangleNodeShape.new{
+                xMargin = 0.2,
+                yMargin = 0.45,
+                minXLength = 1.6,
+                minYLength = 1.6,
+            },
+            hyperVertex = CircleNodeShape.new{
+                minRadius = 0.8,
+                xMargin = 0.2,
+                yMargin = 0.2,
+            },
         },
     },
 

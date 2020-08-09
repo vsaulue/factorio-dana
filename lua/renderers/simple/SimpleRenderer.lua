@@ -167,8 +167,8 @@ drawLegend = function(self)
 
     drawLegendTitle(canvas, cursor)
 
-    drawLegendForNode(canvas, cursor, makeVertexNodeArgs(), params.vertexShape, {"dana.renderer.simple.legend.vertexText"})
-    drawLegendForNode(canvas, cursor, makeEdgeNodeArgs(), params.edgeShape, {"dana.renderer.simple.legend.edgeText"})
+    drawLegendForNode(canvas, cursor, makeVertexNodeArgs(), params.shapes.hyperVertex, {"dana.renderer.simple.legend.vertexText"})
+    drawLegendForNode(canvas, cursor, makeEdgeNodeArgs(), params.shapes.hyperEdge, {"dana.renderer.simple.legend.edgeText"})
 
     cursor.y = cursor.y + 0.75
 
