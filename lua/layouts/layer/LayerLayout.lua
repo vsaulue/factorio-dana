@@ -20,18 +20,21 @@ local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperPreprocessor = require("lua/layouts/preprocess/HyperPreprocessor")
-local HyperSCC = require("lua/hypergraph/algorithms/HyperSCC")
 local LayerCoordinateGenerator = require("lua/layouts/layer/coordinates/LayerCoordinateGenerator")
 local LayerLinkBuilder = require("lua/layouts/layer/LayerLinkBuilder")
 local Layers = require("lua/layouts/layer/Layers")
 local LayersSorter = require("lua/layouts/layer/sorter/LayersSorter")
+local PrepGraph = require("lua/layouts/preprocess/PrepGraph")
+local PrepSCC = require("lua/layouts/preprocess/algorithms/PrepSCC")
 local SlotsSorter = require("lua/layouts/layer/SlotsSorter")
+local Stack = require("lua/containers/Stack")
 
 local cLogger = ClassLogger.new{className = "LayerLayout"}
 
 local assignToLayers
-local makeSubgraphEdge
+local makeSubgraphLeaves
 local makeSubgraphWithDists
+local placeInLayers
 local Metatable
 
 -- Computes a layer layout for an hypergraph.
@@ -65,14 +68,14 @@ local LayerLayout = ErrorOnInvalidRead.new{
         object.layers = Layers.new()
         object.linkIndices = {}
 
-        -- 1) Assign vertices, edges to layers & add dummy vertices.
+        -- 1) Assign nodes to layers & add dummy linkNodes.
         assignToLayers(object)
         LayerLinkBuilder.run(object)
 
-        -- 2) Order vertices within their layers (crossing minimization).
+        -- 2) Order nodes within their layers (link crossing minimization).
         LayersSorter.run(object.layers)
 
-        -- 3) Channel layers (= connection layers between vertex/edge layers).
+        -- 3) Channel layers (= connection layers between node layers).
         local channelLayers = object.layers:generateChannelLayers()
 
         -- 4) Build the new LayerLayout object.
@@ -99,9 +102,7 @@ Metatable = {
     },
 }
 
--- Splits vertices & edges of the input graph into multiple layers.
---
--- Vertices are assigned in even layers (2nd layer, 4th layer, ...). Odd layers are reserved for edges.
+-- Splits nodes of the input graph into multiple layers.
 --
 -- This function does NOT order the layers themselves.
 --
@@ -110,125 +111,150 @@ Metatable = {
 --
 assignToLayers = function(self)
     local layers = self.layers
-    local graph = self.graph
-    local vertexOrder = self.vertexDists
+    local prepGraph = self.prepGraph
+    local nodeOrder = self.prepDists
 
     local order = Array.new()
 
     -- 1) Assign using the topological order of SCCs in the input graph.
-    local sccs = HyperSCC.run(graph).components
+    local sccs = PrepSCC.run(prepGraph).components
     for index=sccs.count,1,-1 do
         local scc = sccs[index]
-        -- 2) For each SCC sugraph, use vertexOrder to select & remove some "feedback" edges.
-        local subgraph = makeSubgraphWithDists(graph, scc, vertexOrder)
+        -- 2) For each SCC sugraph, use nodeOrder to select & remove some "feedback" edges.
+        local subgraph = makeSubgraphWithDists(prepGraph, scc, nodeOrder)
         -- 3) Refine the ordering using the topological order on this subgraph.
-        local sccs2 = HyperSCC.run(subgraph).components
+        local sccs2 = PrepSCC.run(subgraph).components
         for index2=sccs2.count,1,-1 do
             order:pushBack(sccs2[index2])
         end
     end
 
-    local edgeToLayer = {}
-    for edgeIndex in pairs(graph.edges) do
-        edgeToLayer[edgeIndex] = 1
-    end
-    local vertexToLayer = {}
+    -- 4) Place by PrepNode.orderPriority.
+    local nodeToLayer = {}
+    local firstPass = Stack.new()
+    local secondPass = Stack.new()
     for index=1,order.count do
         local scc = order[index]
-        local layerId = 2
-        for vertexIndex in pairs(scc) do
-            local vertex = graph.vertices[vertexIndex]
-            for edgeIndex,edge in pairs(vertex.inbound) do
-                if not rawget(edge.inbound, vertexIndex) then
-                    layerId = math.max(layerId, 1 + edgeToLayer[edgeIndex])
-                end
+        for nodeIndex in pairs(scc) do
+            local node = prepGraph.nodes[nodeIndex]
+            if node.orderPriority == 1 then
+                firstPass:push(nodeIndex)
+            else
+                secondPass:push(nodeIndex)
             end
         end
-        for vertexIndex in pairs(scc) do
-            local vertex = graph.vertices[vertexIndex]
-            vertexToLayer[vertexIndex] = layerId
-            for edgeIndex in pairs(vertex.outbound) do
-                edgeToLayer[edgeIndex] = math.max(edgeToLayer[edgeIndex], 1 + layerId)
-            end
-        end
-    end
-    for nodeIndex in pairs(self.prepGraph.nodes) do
-        local layerId = nil
-        if nodeIndex.type == "hyperVertex" then
-            layerId = vertexToLayer[nodeIndex.index]
-        else
-            layerId = edgeToLayer[nodeIndex.index]
-        end
-        layers:newEntry(layerId, {
-            type = "node",
-            index = nodeIndex,
-        })
+        local minLayerId = placeInLayers(self, nodeToLayer, firstPass, 1)
+        placeInLayers(self, nodeToLayer, secondPass, minLayerId)
     end
 end
 
--- Makes an edge for a subgraph, respecting a given partial order on the vertices.
---
--- An edge E in the subgraph is modified such that: max(E.inbound) <= min(E.outbound). This is done by
--- removing any vertex in E.outbound that would break the constraint.
+-- Place a set of PrepNodeIndex into a Layers object.
 --
 -- Args:
--- * edge: Input DirectedHypergraphEdge.
--- * vertices: Set of vertex indices of the subgraph.
--- * vertexOrder[vertexIndex] -> int. Suggested partial order of vertices, used to edit the edges.
+-- * self: LayerLayout object.
+-- * nodeToLayer[nodeIndex] -> int. Map giving the layer index of a node (edited by this function).
+-- * nodeIndices: Stack of PrepNodeIndex to place (cleared by this function).
+-- * minLayerId: Minimum layer index where the nodes should be placed.
 --
--- Returns: The generated DirectedHypergraphEdge.
---
-makeSubgraphEdge = function(edge, vertices, vertexOrder)
-    local inbound = {}
-    local outbound = {}
-    local result = DirectedHypergraphEdge.new{
-        index = edge.index,
-        inbound = inbound,
-        outbound = outbound,
-    }
-    local edgeDist = 0
-    for vertexIndex in pairs(edge.inbound) do
-        if vertices[vertexIndex] then
-            inbound[vertexIndex] = true
-            edgeDist = math.max(edgeDist, vertexOrder[vertexIndex] or math.huge)
+placeInLayers = function(self, nodeToLayer, nodeIndices, minLayerId)
+    local layers = self.layers
+    local links = self.prepGraph.links
+    local nodes = self.prepGraph.nodes
+
+    local layerId = minLayerId
+    for i=1,nodeIndices.topIndex do
+        local nodeIndex = nodeIndices[i]
+        local node = nodes[nodeIndex]
+        for linkIndex in pairs(node.inboundSlots) do
+            local leaves = links[linkIndex]
+            if linkIndex.isFromRoot then
+                layerId = math.max(layerId, 1 + (nodeToLayer[linkIndex.rootNodeIndex] or 0))
+            else
+                for neighbourIndex in pairs(leaves) do
+                    layerId = math.max(layerId, 1 + (nodeToLayer[neighbourIndex] or 0))
+                end
+            end
         end
+        for i=1,nodeIndices.topIndex do
+            local nodeIndex = nodeIndices[i]
+            local node = nodes[nodeIndex]
+            layers:newEntry(layerId, {
+                type = "node",
+                index = nodeIndex,
+            })
+            nodeToLayer[nodeIndex] = layerId
+        end
+        nodeIndices.topIndex = 0
     end
-    for vertexIndex in pairs(edge.outbound) do
-        if vertices[vertexIndex] and (vertexOrder[vertexIndex] or math.huge) >= edgeDist then
-            outbound[vertexIndex] = true
+
+    return layerId
+end
+
+-- Makes the set of leaves of a link in a subgraph.
+--
+-- Args:
+-- * linkIndex: LinkIndex of the link.
+-- * leaves: Set of leave from the parent graph.
+-- * nodeIndices: Set of PrepNodeIndex of the subgraph.
+-- * nodeOrder[nodeIndex] -> int. Suggested partial order of nodes, used to edit the links.
+--
+-- Returns: The new set of leaves for the subgraph.
+--
+makeSubgraphLeaves = function(linkIndex, leaves, nodeIndices, nodeOrder)
+    local rootRank = nodeOrder[linkIndex.rootNodeIndex]
+    local result = {}
+    if linkIndex.isFromRoot then
+        for nodeIndex in pairs(leaves) do
+            if nodeIndices[nodeIndex] and nodeOrder[nodeIndex] >= rootRank then
+                result[nodeIndex] = true
+            end
+        end
+    else
+        for nodeIndex in pairs(leaves) do
+            if nodeIndices[nodeIndex] and nodeOrder[nodeIndex] <= rootRank then
+                result[nodeIndex] = true
+            end
         end
     end
     return result
 end
 
--- Makes a subgraph, editing edges that don't follow a given partial order on the vertices.
+-- Makes a subgraph, editing edges that don't follow a given partial order on the nodes.
 --
--- An edge E in the subgraph is modified such that: max(E.inbound) <= min(E.outbound). This is done by
--- removing any vertex in E.outbound that would break the constraint.
+-- An link L in the subgraph is modified such that: max(L.inbound) <= min(L.outbound). This is done by
+-- removing any leaf in the node that breaks the constraint.
 --
 -- Args:
--- * graph: Input DirectedHypergraph.
--- * vertices: Set of vertex indices of the generated subgraph.
--- * vertexOrder[vertexIndex] -> int. Suggested partial order of vertices, used to edit the edges.
+-- * graph: Input PrepGraph.
+-- * nodeIndices: Set of PrepNodeIndex of the ndoes to include in the subgraph.
+-- * nodeOrder[nodeIndex] -> int. Suggested partial order of nodes, used to edit the links.
 --
 -- Returns: The generated DirectedHypergraph.
 --
-makeSubgraphWithDists = function(graph, vertices, vertexOrder)
-    local result = DirectedHypergraph.new()
-    local edges = result.edges
-    for vertexIndex,vertex in pairs(vertices) do
-        result:addVertexIndex(vertexIndex)
-        for edgeIndex,edge in pairs(vertex.inbound) do
-            if not rawget(edges, edgeIndex) then
-                result:addEdge(makeSubgraphEdge(edge, vertices, vertexOrder))
+makeSubgraphWithDists = function(graph, nodeIndices, nodeOrder)
+    local result = PrepGraph.new()
+    for nodeIndex,node in pairs(nodeIndices) do
+        result:newNode(nodeIndex)
+    end
+    for nodeIndex,node in pairs(nodeIndices) do
+        for linkIndex in pairs(node.inboundSlots) do
+            if linkIndex.rootNodeIndex == nodeIndex then
+                local newLeaves = makeSubgraphLeaves(linkIndex, graph.links[linkIndex], nodeIndices, nodeOrder)
+                if next(newLeaves) then
+                    result:addLink(linkIndex, newLeaves)
+                end
             end
         end
-        for edgeIndex,edge in pairs(vertex.outbound) do
-            if not rawget(edges, edgeIndex) then
-                result:addEdge(makeSubgraphEdge(edge, vertices, vertexOrder))
+        for linkIndex in pairs(node.outboundSlots) do
+            if linkIndex.rootNodeIndex == nodeIndex then
+                local newLeaves = makeSubgraphLeaves(linkIndex, graph.links[linkIndex], nodeIndices, nodeOrder)
+                if next(newLeaves) then
+                    result:addLink(linkIndex, newLeaves)
+                end
             end
         end
     end
+
     return result
 end
 
