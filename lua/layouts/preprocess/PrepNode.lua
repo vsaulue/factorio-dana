@@ -24,6 +24,7 @@ local cLogger = ClassLogger.new{className = "PrepNode"}
 -- RO Fields:
 -- * index: Unique index of this node in a PrepGraph.
 -- * inboundSlots: set of PrepLinkNode, representing the inputs of this node.
+-- * orderPriority: int. Hint for placing order in layouts (lower == higher priority, starts at 1).
 -- * outboundSlots: set of PrepLinkNode, representing the outputs of this node.
 --
 local PrepNode = ErrorOnInvalidRead.new{
@@ -37,6 +38,7 @@ local PrepNode = ErrorOnInvalidRead.new{
     new = function(object)
         cLogger:assertField(object, "index")
         object.inboundSlots = ErrorOnInvalidRead.new()
+        object.orderPriority = object.orderPriority or 1
         object.outboundSlots = ErrorOnInvalidRead.new()
         ErrorOnInvalidRead.setmetatable(object)
         return object
