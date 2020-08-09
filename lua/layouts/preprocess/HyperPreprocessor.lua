@@ -19,7 +19,20 @@ local PrepGraph = require("lua/layouts/preprocess/PrepGraph")
 local PrepNodeIndex = require("lua/layouts/preprocess/PrepNodeIndex")
 local LinkIndex = require("lua/layouts/LinkIndex")
 
--- Algorithm to convert a DirectedHypergraph into a PrepGraph.
+local makeEdgeNodes
+local makeLinks
+local makeVertexNodes
+
+-- Class to convert a DirectedHypergraph into a PrepGraph.
+--
+-- Fields:
+-- * fromVertexLeaves[vertexIndex]: Set of leaves for the outbound link of a vertex.
+-- * hypergraph: Input DirectedHypergraph.
+-- * prepDists[nodeIndex] -> int. Generated map encoding a partial order on the nodes of the PrepGraph.
+-- * prepGraph: The generated PrepGraph.
+-- * toVertexLeaves[vertexIndex]: Set of leaves for the inbound link of a vertex.
+-- * vertexDists[vertexIndex] -> int. Input map encoding the partial order on vertices.
+-- * vertexToNodeIndex[vertexIndex] -> PrepNodeIndex. Map giving the index of the node wrapping an input vertex.
 --
 local HyperPreprocessor = ErrorOnInvalidRead.new{
     -- Creates a PrepGraph & node order from an hypergraph & vertex order.
@@ -33,65 +46,112 @@ local HyperPreprocessor = ErrorOnInvalidRead.new{
     -- * Map[nodeIndex] -> int. Map encoding a partial order on the nodes of the PrepGraph.
     --
     run = function(hypergraph, vertexDists)
-        local resultGraph = PrepGraph.new()
-        local resultDists = {}
-        local fromVertexLinkIndices = ErrorOnInvalidRead.new()
-        local fromVertexLeaves = ErrorOnInvalidRead.new()
-        local toVertexLinkIndices = ErrorOnInvalidRead.new()
-        local toVertexLeaves = ErrorOnInvalidRead.new()
+        local self = {
+            fromVertexLeaves = ErrorOnInvalidRead.new(),
+            hypergraph = hypergraph,
+            prepDists = {},
+            prepGraph = PrepGraph.new(),
+            toVertexLeaves = ErrorOnInvalidRead.new(),
+            vertexDists = vertexDists,
+            vertexToNodeIndex = ErrorOnInvalidRead.new(),
+        }
 
-        for vertexIndex,vertex in pairs(hypergraph.vertices) do
-            local nodeIndex = PrepNodeIndex.new{
-                type = "hyperVertex",
-                index = vertexIndex,
-            }
-            resultDists[nodeIndex] = vertexDists[vertexIndex] or math.huge
-            resultGraph:newNode(nodeIndex)
-            if next(vertex.inbound) then
-                toVertexLinkIndices[vertexIndex] = LinkIndex.new{
-                    isFromRoot = false,
-                    rootNodeIndex = nodeIndex,
-                    symbol = vertexIndex,
-                }
-                toVertexLeaves[vertexIndex] = {}
-            end
-            if next(vertex.outbound) then
-                fromVertexLinkIndices[vertexIndex] = LinkIndex.new{
-                    isFromRoot = true,
-                    rootNodeIndex = nodeIndex,
-                    symbol = vertexIndex,
-                }
-                fromVertexLeaves[vertexIndex] = {}
-            end
-        end
+        makeVertexNodes(self)
+        makeEdgeNodes(self)
+        makeLinks(self)
 
-        for edgeIndex,edge in pairs(hypergraph.edges) do
-            local nodeIndex = PrepNodeIndex.new{
-                type = "hyperEdge",
-                index = edgeIndex,
-            }
-            local node = resultGraph:newNode(nodeIndex)
-            node.orderPriority = 2
-            local dist = 1
-            for vertexIndex in pairs(edge.inbound) do
-                fromVertexLeaves[vertexIndex][nodeIndex] = true
-                dist = math.max(dist, vertexDists[vertexIndex] or math.huge)
-            end
-            for vertexIndex in pairs(edge.outbound) do
-                toVertexLeaves[vertexIndex][nodeIndex] = true
-            end
-            resultDists[nodeIndex] = dist
-        end
-
-        for vertexIndex,linkIndex in pairs(fromVertexLinkIndices) do
-            resultGraph:addLink(linkIndex, fromVertexLeaves[vertexIndex])
-        end
-        for vertexIndex,linkIndex in pairs(toVertexLinkIndices) do
-            resultGraph:addLink(linkIndex, toVertexLeaves[vertexIndex])
-        end
-
-        return resultGraph,resultDists
+        return self.prepGraph,self.prepDists
     end,
 }
+
+-- Creates a node for each edge of the input hypergraph.
+--
+-- Args:
+-- * self: HyperPreprocessor object.
+--
+makeEdgeNodes = function(self)
+    local fromVertexLeaves = self.fromVertexLeaves
+    local prepDists = self.prepDists
+    local prepGraph = self.prepGraph
+    local toVertexLeaves = self.toVertexLeaves
+    local vertexDists = self.vertexDists
+
+    for edgeIndex,edge in pairs(self.hypergraph.edges) do
+        local nodeIndex = PrepNodeIndex.new{
+            type = "hyperEdge",
+            index = edgeIndex,
+        }
+        local node = prepGraph:newNode(nodeIndex)
+        node.orderPriority = 2
+        local dist = 1
+        for vertexIndex in pairs(edge.inbound) do
+            fromVertexLeaves[vertexIndex][nodeIndex] = true
+            dist = math.max(dist, vertexDists[vertexIndex] or math.huge)
+        end
+        for vertexIndex in pairs(edge.outbound) do
+            toVertexLeaves[vertexIndex][nodeIndex] = true
+        end
+        prepDists[nodeIndex] = dist
+    end
+end
+
+-- Creates links between vertex & edge nodes.
+--
+-- Args:
+-- * self: HyperPreprocessor object.
+--
+makeLinks = function(self)
+    local fromVertexLeaves = self.fromVertexLeaves
+    local prepGraph = self.prepGraph
+    local toVertexLeaves = self.toVertexLeaves
+    local vertexToNodeIndex = self.vertexToNodeIndex
+
+    for vertexIndex,leaves in pairs(fromVertexLeaves) do
+        local linkIndex = LinkIndex.new{
+            isFromRoot = true,
+            rootNodeIndex = vertexToNodeIndex[vertexIndex],
+            symbol = vertexIndex,
+        }
+        prepGraph:addLink(linkIndex, leaves)
+    end
+    for vertexIndex,leaves in pairs(toVertexLeaves) do
+        local linkIndex = LinkIndex.new{
+            isFromRoot = false,
+            rootNodeIndex = vertexToNodeIndex[vertexIndex],
+            symbol = vertexIndex,
+        }
+        prepGraph:addLink(linkIndex, leaves)
+    end
+end
+
+-- Creates a node for each vertex of the input hypergraph.
+--
+-- Args:
+-- * self: HyperPreprocessor object.
+--
+makeVertexNodes = function(self)
+    local fromVertexLeaves = self.fromVertexLeaves
+    local prepDists = self.prepDists
+    local prepGraph = self.prepGraph
+    local toVertexLeaves = self.toVertexLeaves
+    local vertexDists = self.vertexDists
+    local vertexToNodeIndex = self.vertexToNodeIndex
+
+    for vertexIndex,vertex in pairs(self.hypergraph.vertices) do
+        local nodeIndex = PrepNodeIndex.new{
+            type = "hyperVertex",
+            index = vertexIndex,
+        }
+        vertexToNodeIndex[vertexIndex] = nodeIndex
+        prepDists[nodeIndex] = vertexDists[vertexIndex] or math.huge
+        prepGraph:newNode(nodeIndex)
+        if next(vertex.inbound) then
+            toVertexLeaves[vertexIndex] = {}
+        end
+        if next(vertex.outbound) then
+            fromVertexLeaves[vertexIndex] = {}
+        end
+    end
+end
 
 return HyperPreprocessor
