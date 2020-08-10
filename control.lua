@@ -15,62 +15,15 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local FactorioLoggerBackend = require("lua/logger/backends/FactorioLoggerBackend")
-local GuiElement = require("lua/gui/GuiElement")
 local Logger = require("lua/logger/Logger")
-local Dana = require("lua/Dana")
-
 Logger.init(FactorioLoggerBackend)
 
-local dana
+local EventController = require("lua/EventController")
 
-local function on_load()
-    Logger.info("on_load() started.")
-
-    GuiElement.on_load()
-
-    dana = global.Dana
-    Dana.setmetatable(dana)
-
-    Logger.info("on_load() completed.")
-end
-
-local function on_init()
-    Logger.info("on_init() started.")
-
-    GuiElement.on_init()
-
-    dana = Dana.new()
-    global.Dana = dana
-
-    Logger.info("on_init() completed.")
-end
-
-local function on_gui_click(event)
-    GuiElement.on_gui_click(event)
-end
-
-local function on_player_created(event)
-    GuiElement.on_player_created(event)
-    dana:on_player_created(event)
-end
-
-local function on_player_selected_area(event)
-    dana:on_player_selected_area(event)
-end
+script.on_load(EventController.on_load)
+script.on_init(EventController.on_init)
 
 local events = defines.events
-
-script.on_load(on_load)
-script.on_init(on_init)
-script.on_event(events.on_gui_checked_state_changed, GuiElement.on_gui_checked_state_changed)
-script.on_event(events.on_gui_click, on_gui_click)
-
-script.on_event(events.on_gui_elem_changed, GuiElement.on_gui_elem_changed)
-script.on_event(events.on_gui_text_changed, GuiElement.on_gui_text_changed)
-
-script.on_event(events.on_force_created, function(event)
-    dana:on_force_created(event)
-end)
-
-script.on_event(events.on_player_created, on_player_created)
-script.on_event(events.on_player_selected_area, on_player_selected_area)
+for eventName,eventCallback in pairs(EventController.events) do
+	script.on_event(events[eventName], eventCallback)
+end
