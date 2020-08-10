@@ -30,6 +30,7 @@ describe("HyperPreprocessor", function()
             b = 2,
             c = 2,
             d = 3,
+            e = 3,
         }
         local prepGraph,prepDists = HyperPreprocessor.run(inputGraph, vertexDists)
         TestUtils.checkConsistency(prepGraph)
@@ -40,6 +41,9 @@ describe("HyperPreprocessor", function()
                 ["a -> bc"] = 1,
                 ["ac -> bd"] = 2,
                 ["b -> d"] = 2,
+            },
+            hyperOneToOne = {
+                e = 3,
             },
             hyperVertex = vertexDists,
         }
@@ -58,13 +62,13 @@ describe("HyperPreprocessor", function()
             nodes[nodeIndex.index] = node
             nodeCount = nodeCount + 1
         end
-        assert.are.equals(nodeCount, 7)
+        assert.are.equals(nodeCount, 8)
 
         -- Map[isFromRoot][nodeIndex] -> Array of edge index (expected leave set).
         local ExpectedLinks = {
             [true] = {
-                a = {"a -> bc", "ac -> bd"},
-                b = {"b -> d"},
+                a = {"a -> bc", "ac -> bd", "e"},
+                b = {"b -> d", "e"},
                 c = {"ac -> bd"},
             },
             [false] = {
@@ -120,6 +124,10 @@ newSampleGraph = function()
             index = "b -> d",
             inbound = {b = true},
             outbound = {d = true},
+        },{
+            index = "ab -> e",
+            inbound = {a = true, b = true},
+            outbound = {e = true},
         }
     }
     for _,edge in pairs(Edges) do

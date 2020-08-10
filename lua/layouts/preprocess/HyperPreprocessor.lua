@@ -28,6 +28,7 @@ local makeVertexNodes
 -- Fields:
 -- * fromVertexLeaves[vertexIndex]: Set of leaves for the outbound link of a vertex.
 -- * hypergraph: Input DirectedHypergraph.
+-- * mergedEdgeNodeIndex[edgeIndex] -> PrepNodeIndex. Map giving the node of edges which has been merged to a vertex node.
 -- * prepDists[nodeIndex] -> int. Generated map encoding a partial order on the nodes of the PrepGraph.
 -- * prepGraph: The generated PrepGraph.
 -- * toVertexLeaves[vertexIndex]: Set of leaves for the inbound link of a vertex.
@@ -49,6 +50,7 @@ local HyperPreprocessor = ErrorOnInvalidRead.new{
         local self = {
             fromVertexLeaves = ErrorOnInvalidRead.new(),
             hypergraph = hypergraph,
+            mergedEdgeNodeIndex = {},
             prepDists = {},
             prepGraph = PrepGraph.new(),
             toVertexLeaves = ErrorOnInvalidRead.new(),
@@ -71,27 +73,35 @@ local HyperPreprocessor = ErrorOnInvalidRead.new{
 --
 makeEdgeNodes = function(self)
     local fromVertexLeaves = self.fromVertexLeaves
+    local mergedEdgeNodeIndex = self.mergedEdgeNodeIndex
     local prepDists = self.prepDists
     local prepGraph = self.prepGraph
     local toVertexLeaves = self.toVertexLeaves
     local vertexDists = self.vertexDists
 
     for edgeIndex,edge in pairs(self.hypergraph.edges) do
-        local nodeIndex = PrepNodeIndex.new{
-            type = "hyperEdge",
-            index = edgeIndex,
-        }
-        local node = prepGraph:newNode(nodeIndex)
-        node.orderPriority = 2
+        local nodeIndex = mergedEdgeNodeIndex[edgeIndex]
+
+        if not nodeIndex then
+            nodeIndex = PrepNodeIndex.new{
+                type = "hyperEdge",
+                index = edgeIndex,
+            }
+            local node = prepGraph:newNode(nodeIndex)
+            node.orderPriority = 2
+
+            for vertexIndex in pairs(edge.outbound) do
+                toVertexLeaves[vertexIndex][nodeIndex] = true
+            end
+        end
+
         local dist = 1
         for vertexIndex in pairs(edge.inbound) do
             fromVertexLeaves[vertexIndex][nodeIndex] = true
             dist = math.max(dist, vertexDists[vertexIndex] or math.huge)
         end
-        for vertexIndex in pairs(edge.outbound) do
-            toVertexLeaves[vertexIndex][nodeIndex] = true
-        end
-        prepDists[nodeIndex] = dist
+
+        prepDists[nodeIndex] = prepDists[nodeIndex] or dist
     end
 end
 
@@ -131,6 +141,7 @@ end
 --
 makeVertexNodes = function(self)
     local fromVertexLeaves = self.fromVertexLeaves
+    local mergedEdgeNodeIndex = self.mergedEdgeNodeIndex
     local prepDists = self.prepDists
     local prepGraph = self.prepGraph
     local toVertexLeaves = self.toVertexLeaves
@@ -142,12 +153,24 @@ makeVertexNodes = function(self)
             type = "hyperVertex",
             index = vertexIndex,
         }
+
+        -- Inbound processing.
+        local firstEdgeIndex,firstEdge = next(vertex.inbound)
+        if firstEdgeIndex then
+            local edgeOutbound = firstEdge.outbound
+            if next(vertex.inbound, firstEdgeIndex) or next(edgeOutbound, next(edgeOutbound)) then
+                toVertexLeaves[vertexIndex] = {}
+            else
+                nodeIndex.type = "hyperOneToOne"
+                nodeIndex.edgeIndex = firstEdgeIndex
+                mergedEdgeNodeIndex[firstEdgeIndex] = nodeIndex
+            end
+        end
+
         vertexToNodeIndex[vertexIndex] = nodeIndex
         prepDists[nodeIndex] = vertexDists[vertexIndex] or math.huge
         prepGraph:newNode(nodeIndex)
-        if next(vertex.inbound) then
-            toVertexLeaves[vertexIndex] = {}
-        end
+
         if next(vertex.outbound) then
             fromVertexLeaves[vertexIndex] = {}
         end
