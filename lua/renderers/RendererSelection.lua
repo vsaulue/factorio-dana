@@ -37,6 +37,7 @@ local RendererSelection = ErrorOnInvalidRead.new{
             links = ErrorOnInvalidRead.new(),
             nodes = ErrorOnInvalidRead.new{
                 hyperEdge = ErrorOnInvalidRead.new(),
+                hyperOneToOne = ErrorOnInvalidRead.new(),
                 hyperVertex = ErrorOnInvalidRead.new(),
             },
         }

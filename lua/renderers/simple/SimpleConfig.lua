@@ -16,6 +16,7 @@
 
 local CircleNodeShape = require("lua/layouts/CircleNodeShape")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local HalfCircleRectNodeShape = require("lua/layouts/HalfCircleRectNodeShape")
 local LayoutParameters = require("lua/layouts/LayoutParameters")
 local RectangleNodeShape = require("lua/layouts/RectangleNodeShape")
 
@@ -60,6 +61,11 @@ local SimpleConfig = ErrorOnInvalidRead.new{
                 yMargin = 0.45,
                 minXLength = 1.6,
                 minYLength = 1.6,
+            },
+            hyperOneToOne = HalfCircleRectNodeShape.new{
+                minRadius = 0.8,
+                xMargin = 0.2,
+                yMargin = 0.45,
             },
             hyperVertex = CircleNodeShape.new{
                 minRadius = 0.8,

@@ -163,6 +163,7 @@ drawLegend = function(self)
 
     drawLegendForNode(canvas, cursor, params.shapes.hyperVertex, {"dana.renderer.simple.legend.vertexText"})
     drawLegendForNode(canvas, cursor, params.shapes.hyperEdge, {"dana.renderer.simple.legend.edgeText"})
+    drawLegendForNode(canvas, cursor, params.shapes.hyperOneToOne, {"dana.renderer.simple.legend.oneToOneText"})
 
     cursor.y = cursor.y + 0.75
 
