@@ -31,8 +31,7 @@ local drawLegendForLine
 local drawLegendForNode
 local drawLegendTitle
 local Metatable
-local makeEdgeNodeArgs
-local makeVertexNodeArgs
+local makeNodeArgs
 local renderTree
 
 -- Class used to render graphs onto a LuaSurface.
@@ -111,17 +110,10 @@ Metatable = {
             self.layoutCoordinates = layoutCoordinates
             local canvas = self.canvas
 
-            local edgeNodeArgs = makeEdgeNodeArgs()
-            edgeNodeArgs.selectable = true
-            local vertexNodeArgs = makeVertexNodeArgs()
-            vertexNodeArgs.selectable = true
-            local nodeArgs = {
-                hyperEdge = edgeNodeArgs,
-                hyperVertex = vertexNodeArgs,
-            }
-
+            local nodeArgs = makeNodeArgs()
+            nodeArgs.selectable = true
             for nodeIndex,node in pairs(layoutCoordinates.nodes) do
-                local objects = node:drawOnCanvas(canvas, nodeArgs[nodeIndex.type])
+                local objects = node:drawOnCanvas(canvas, nodeArgs)
                 for canvasObject in pairs(objects) do
                     canvasObject.rendererType = "node"
                     canvasObject.rendererIndex = nodeIndex
@@ -169,8 +161,8 @@ drawLegend = function(self)
 
     drawLegendTitle(canvas, cursor)
 
-    drawLegendForNode(canvas, cursor, makeVertexNodeArgs(), params.shapes.hyperVertex, {"dana.renderer.simple.legend.vertexText"})
-    drawLegendForNode(canvas, cursor, makeEdgeNodeArgs(), params.shapes.hyperEdge, {"dana.renderer.simple.legend.edgeText"})
+    drawLegendForNode(canvas, cursor, params.shapes.hyperVertex, {"dana.renderer.simple.legend.vertexText"})
+    drawLegendForNode(canvas, cursor, params.shapes.hyperEdge, {"dana.renderer.simple.legend.edgeText"})
 
     cursor.y = cursor.y + 0.75
 
@@ -231,13 +223,13 @@ end
 -- Args:
 -- * canvas: Canvas object on which element will be drawn.
 -- * cursor: A {x=,y=} table indicating where to draw. The Y field will be incremented for the next legend element.
--- * rendererArgs: Table passed to AbstractNode:drawOnCanvas().
 -- * shape: AbstractNodeShape object of the node to draw.
 -- * localisedText: Localised string to display near the rectangle.
 --
-drawLegendForNode = function(canvas, cursor, rendererArgs, shape, localisedText)
+drawLegendForNode = function(canvas, cursor, shape, localisedText)
     local xStart = cursor.x
     -- Node
+    local rendererArgs = makeNodeArgs()
     local node = shape:generateNode(0)
     node:setXMin(xStart)
     node:setYMin(cursor.y)
@@ -273,23 +265,11 @@ drawLegendTitle = function(canvas, cursor)
     cursor.y = cursor.y + 4
 end
 
--- Makes common constructor arguments for the background rectangle of edges.
+-- Makes common constructor arguments for the background shape of nodes.
 --
--- Returns: A partially filled table usable in Canvas:makeRectangle().
+-- Returns: A partially filled table usable in Canvas:makeXXX().
 --
-makeEdgeNodeArgs = function()
-    return {
-        color = SimpleConfig.NodeColor,
-        draw_on_ground = true,
-        filled = true,
-    }
-end
-
--- Makes common constructor arguments for the background rectangle of vertices.
---
--- Returns: A partially filled table usable in Canvas:makeRectangle().
---
-makeVertexNodeArgs = function()
+makeNodeArgs = function()
     return {
         color = SimpleConfig.NodeColor,
         draw_on_ground = true,
