@@ -168,6 +168,49 @@ CategoryInfos = ErrorOnInvalidRead.new{
         end,
     },
 
+    oneToOne = ErrorOnInvalidRead.new{
+        title = {"dana.apps.graph.selectionWindow.oneToOneCategory"},
+        generateGuiElements = function(self, rendererSelection)
+            local parent = self.root.content
+            local count = 0
+            for prepNodeIndex in pairs(rendererSelection.nodes.hyperOneToOne) do
+                local vertexIndex = prepNodeIndex.index
+                local edgeIndex = prepNodeIndex.edgeIndex
+
+                local flow = parent.add{
+                    type = "flow",
+                    direction = "horizontal",
+                }
+
+                local edgeTypeIcon = flow.add(EdgeTypeIcon[edgeIndex.type])
+                edgeTypeIcon.style.minimal_width = 32
+                local edgeIcon = flow.add{
+                    type = "sprite",
+                    sprite = edgeIndex.spritePath,
+                    tooltip = edgeIndex.localisedName,
+                }
+                edgeIcon.style.minimal_width = 32
+
+                flow.add{
+                    type = "label",
+                    caption = "+",
+                }
+
+                local vertexTypeIcon = flow.add(VertexTypeIcon[vertexIndex.type])
+                vertexTypeIcon.style.minimal_width = 32
+                local vertexIcon = flow.add{
+                    type = "sprite",
+                    sprite = vertexIndex.spritePath,
+                    tooltip = vertexIndex.localisedName,
+                }
+                vertexIcon.style.minimal_width = 32
+
+                count = count + 1
+            end
+            return count
+        end,
+    },
+
     edges = ErrorOnInvalidRead.new{
         title = {"dana.apps.graph.selectionWindow.edgeCategory"},
         generateGuiElements = function(self, rendererSelection)

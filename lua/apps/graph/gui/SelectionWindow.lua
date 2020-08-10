@@ -141,7 +141,7 @@ Metatable = {
 }
 
 -- Array of category names, holding the order in which they are displayed.
-CategoriesOrder = {"vertices", "edges", "links"}
+CategoriesOrder = {"vertices", "oneToOne", "edges", "links"}
 
 -- Button to give the dana-select item to the player.
 --
