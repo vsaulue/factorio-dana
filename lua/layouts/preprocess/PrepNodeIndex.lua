@@ -49,6 +49,8 @@ local PrepNodeIndex = ErrorOnInvalidRead.new{
 ValidTypes = {
     -- PrepNode wrapping a single edge of an hypergraph.
     hyperEdge = true,
+    -- PrepNode wrapping a single vertex and its unique inbound edge in an hypergraph.
+    hyperOneToOne = true,
     -- PrepNode wrapping a single vertex of an hypergraph.
     hyperVertex = true,
 }
