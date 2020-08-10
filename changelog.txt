@@ -1,5 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.0
+Date: 2020-08-10
   Features:
     - Node aggregation: an intermediate produced by a single transform may be displayed as a single node. (https://raw.githubusercontent.com/vsaulue/factorio-dana/assets/v0_2/node-aggregation.png)
   Changes:
