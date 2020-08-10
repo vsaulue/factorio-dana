@@ -21,9 +21,6 @@ local RectangleNodeShape = require("lua/layouts/RectangleNodeShape")
 
 -- A set of constants used to configure the SimpleRenderer.
 local SimpleConfig = ErrorOnInvalidRead.new{
-    -- Color of the edge nodes.
-    EdgeColor = {a = 1, r = 0.1, g = 0.1, b = 0.1},
-
     -- Color of the frame of the legend.
     LegendFrameColor = {a=1,r=0.8,g=0.8,b=0.8},
 
@@ -72,8 +69,8 @@ local SimpleConfig = ErrorOnInvalidRead.new{
         },
     },
 
-    -- Color of the vertex nodes.
-    VertexColor = {a = 1, r = 0.2, g = 0.2, b = 0.2},
+    -- Color of the nodes.
+    NodeColor = {a = 1, r = 0.2, g = 0.2, b = 0.2},
 }
 
 return SimpleConfig

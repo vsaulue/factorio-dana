@@ -279,7 +279,7 @@ end
 --
 makeEdgeNodeArgs = function()
     return {
-        color = SimpleConfig.EdgeColor,
+        color = SimpleConfig.NodeColor,
         draw_on_ground = true,
         filled = true,
     }
@@ -291,7 +291,7 @@ end
 --
 makeVertexNodeArgs = function()
     return {
-        color = SimpleConfig.VertexColor,
+        color = SimpleConfig.NodeColor,
         draw_on_ground = true,
         filled = true,
     }
