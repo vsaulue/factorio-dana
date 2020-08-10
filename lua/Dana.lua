@@ -166,12 +166,14 @@ newSurface = function(gameScript)
         width = 1,
     }
     local namePrefix = script.mod_name
-    local result = gameScript.create_surface(namePrefix, MapGenSettings)
+
+    local newSurfaceName = namePrefix
     local number = 1
-    while not result do
-        result = gameScript.create_surface(namePrefix .. "_" .. number, MapGenSettings)
+    while gameScript.surfaces[newSurfaceName] do
+        newSurfaceName = namePrefix .. "_" .. number
         number = number + 1
     end
+    local result = gameScript.create_surface(newSurfaceName, MapGenSettings)
     result.set_chunk_generated_status({0, 0}, defines.chunk_generated_status.entities)
     result.always_day = true
     result.freeze_daytime = true
