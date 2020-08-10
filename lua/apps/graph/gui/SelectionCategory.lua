@@ -148,8 +148,8 @@ CategoryInfos = ErrorOnInvalidRead.new{
                     direction = "horizontal",
                 }
 
-                flow.add(VertexTypeIcon[vertexIndex.type])
-                flow.typeIcon.style.minimal_width = 32
+                local typeIcon = flow.add(VertexTypeIcon[vertexIndex.type])
+                typeIcon.style.minimal_width = 32
 
                 flow.add{
                     type = "sprite",
@@ -180,8 +180,8 @@ CategoryInfos = ErrorOnInvalidRead.new{
                     direction = "horizontal",
                 }
 
-                flow.add(EdgeTypeIcon[edgeIndex.type])
-                flow.typeIcon.style.minimal_width = 32
+                local typeIcon = flow.add(EdgeTypeIcon[edgeIndex.type])
+                typeIcon.style.minimal_width = 32
 
                 flow.add{
                     type = "sprite",
@@ -250,19 +250,16 @@ CategoryInfos = ErrorOnInvalidRead.new{
 EdgeTypeIcon = ErrorOnInvalidRead.new{
     boiler = {
         type = "sprite",
-        name = "typeIcon",
         sprite = "dana-boiler-icon",
         tooltip = BoilerTransform.TypeLocalisedStr,
     },
     fuel = {
         type = "sprite",
-        name = "typeIcon",
         sprite = "dana-fuel-icon",
         tooltip = FuelTransform.TypeLocalisedStr,
     },
     recipe = {
         type = "sprite",
-        name = "typeIcon",
         sprite = "dana-recipe-icon",
         tooltip = RecipeTransform.TypeLocalisedStr,
     },
@@ -313,13 +310,11 @@ SelectionCategoryLabel = GuiElement.newSubclass{
 VertexTypeIcon = ErrorOnInvalidRead.new{
     fluid = {
         type = "sprite",
-        name = "typeIcon",
         sprite = "dana-fluid-icon",
         tooltip = Intermediate.TypeToLocalisedStr.fluid,
     },
     item = {
         type = "sprite",
-        name = "typeIcon",
         sprite = "dana-item-icon",
         tooltip = Intermediate.TypeToLocalisedStr.item,
     },
