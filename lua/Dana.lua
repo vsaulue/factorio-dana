@@ -101,6 +101,22 @@ Metatable = {
         --
         -- Args:
         -- * self: Dana object.
+        -- * configChangedData: ConfigurationChangedData object from Factorio.
+        --
+        on_configuration_changed = function(self, configChangedData)
+            self.prototypes:rebuild(game)
+            for _,force in pairs(self.forces) do
+                force:rebuild()
+            end
+            for _,player in pairs(self.players) do
+                player:reset()
+            end
+        end,
+
+        -- Callback for Factorio's event of the same name.
+        --
+        -- Args:
+        -- * self: Dana object.
         -- * event: Factorio event.
         --
         on_force_created = function(self, event)
