@@ -52,7 +52,7 @@ local OffshorePumpTransform = ErrorOnInvalidRead.new{
                 [fluid] = true,
             },
             rawPump = offshorePumpPrototype,
-            type = "offshore-pump",
+            type = "offshorePump",
         }, Metatable)
     end,
 
