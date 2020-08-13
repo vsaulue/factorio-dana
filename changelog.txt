@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.1
+  Features:
+    - Support of prototype changes caused by mod update/install/uninstall.
+  Bugfixes:
+    - Fix crash caused while accessing missing prototypes. (https://mods.factorio.com/mod/dana/discussion/5f36f18423fa1c25793a291f)
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.0
 Date: 2020-08-10
   Features:

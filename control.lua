@@ -20,6 +20,7 @@ Logger.init(FactorioLoggerBackend)
 
 local EventController = require("lua/EventController")
 
+script.on_configuration_changed(EventController.on_configuration_changed)
 script.on_load(EventController.on_load)
 script.on_init(EventController.on_init)
 
