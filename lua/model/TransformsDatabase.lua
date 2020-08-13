@@ -24,6 +24,7 @@ local ResourceTransform = require("lua/model/ResourceTransform")
 
 local cLogger = ClassLogger.new{className = "TransformsDatabase"}
 
+local tryAddTransform
 local Metatable
 
 -- Class to hold a set of transforms.
@@ -107,33 +108,41 @@ Metatable = {
             self.resource = ErrorOnInvalidRead.new()
 
             for _,entity in pairs(gameScript.entity_prototypes) do
+                local transform = nil
                 if entity.type == "resource" then
-                    local transform = ResourceTransform.tryMake(entity, self.intermediates)
-                    if transform then
-                        self.resource[entity.name] = transform
-                    end
+                    transform = ResourceTransform.tryMake(entity, self.intermediates)
                 elseif entity.type == "offshore-pump" then
-                    self.offshorePump[entity.name] = OffshorePumpTransform.make(entity, self.intermediates)
+                    transform = OffshorePumpTransform.make(entity, self.intermediates)
                 elseif entity.type == "boiler" then
-                    local transform = BoilerTransform.tryMake(entity, self.intermediates)
-                    if transform then
-                        self.boiler[entity.name] = transform
-                    end
+                    transform = BoilerTransform.tryMake(entity, self.intermediates)
                 end
+                tryAddTransform(self, entity.name, transform)
             end
 
             for _,rawRecipe in pairs(gameScript.recipe_prototypes) do
-                self.recipe[rawRecipe.name] = RecipeTransform.make(rawRecipe, self.intermediates)
+                tryAddTransform(self, rawRecipe.name, RecipeTransform.make(rawRecipe, self.intermediates))
             end
 
             for _,item in pairs(self.intermediates.item) do
-                local fuelTransform = FuelTransform.tryMake(item, self.intermediates)
-                if fuelTransform then
-                    self.fuel[item.rawPrototype.name] = fuelTransform
-                end
+                tryAddTransform(self, item.rawPrototype.name, FuelTransform.tryMake(item, self.intermediates))
             end
         end,
     }
 }
+
+-- Adds a transform to this database.
+--
+-- Args:
+-- * self: TransformsDatabase object.
+-- * name: Name of the transform to add.
+-- * transform: AbstractTransform to add. If nil, this function does nothing.
+--
+tryAddTransform = function(self, name, transform)
+    if transform then
+        local map = self[transform.type]
+        cLogger:assert(not rawget(map, name), "Duplicate transform index.")
+        map[name] = transform
+    end
+end
 
 return TransformsDatabase
