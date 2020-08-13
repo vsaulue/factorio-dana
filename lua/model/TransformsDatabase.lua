@@ -100,43 +100,38 @@ Metatable = {
         -- * gameScript: LuaGameScript object holding the new prototypes.
         --
         rebuild = function(self, gameScript)
-            local boilers = ErrorOnInvalidRead.new()
-            local offshorePumps = ErrorOnInvalidRead.new()
-            local resources = ErrorOnInvalidRead.new()
+            self.boiler = ErrorOnInvalidRead.new()
+            self.fuel = ErrorOnInvalidRead.new()
+            self.offshorePump = ErrorOnInvalidRead.new()
+            self.recipe = ErrorOnInvalidRead.new()
+            self.resource = ErrorOnInvalidRead.new()
 
             for _,entity in pairs(gameScript.entity_prototypes) do
                 if entity.type == "resource" then
                     local transform = ResourceTransform.tryMake(entity, self.intermediates)
                     if transform then
-                        resources[entity.name] = transform
+                        self.resource[entity.name] = transform
                     end
                 elseif entity.type == "offshore-pump" then
-                    offshorePumps[entity.name] = OffshorePumpTransform.make(entity, self.intermediates)
+                    self.offshorePump[entity.name] = OffshorePumpTransform.make(entity, self.intermediates)
                 elseif entity.type == "boiler" then
                     local transform = BoilerTransform.tryMake(entity, self.intermediates)
                     if transform then
-                        boilers[entity.name] = transform
+                        self.boiler[entity.name] = transform
                     end
                 end
             end
-            self.boiler = boilers
-            self.offshorePump = offshorePumps
-            self.resource = resources
 
-            local recipes = ErrorOnInvalidRead.new()
             for _,rawRecipe in pairs(gameScript.recipe_prototypes) do
-                recipes[rawRecipe.name] = RecipeTransform.make(rawRecipe, self.intermediates)
+                self.recipe[rawRecipe.name] = RecipeTransform.make(rawRecipe, self.intermediates)
             end
-            self.recipe = recipes
 
-            local fuel = ErrorOnInvalidRead.new()
             for _,item in pairs(self.intermediates.item) do
                 local fuelTransform = FuelTransform.tryMake(item, self.intermediates)
                 if fuelTransform then
-                    fuel[item.rawPrototype.name] = fuelTransform
+                    self.fuel[item.rawPrototype.name] = fuelTransform
                 end
             end
-            self.fuel = fuel
         end,
     }
 }
