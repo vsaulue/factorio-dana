@@ -26,7 +26,9 @@ local QueryApp = require("lua/apps/query/QueryApp")
 
 local cLogger = ClassLogger.new{className = "AppController"}
 
+local closeApp
 local Metatable
+local setApp
 
 -- Class booting & switching applications for a Player.
 --
@@ -90,15 +92,9 @@ Metatable = {
         -- * newApp: table used to build the new application.
         --
         makeAndSwitchApp = function(self, newApp)
-            self.app:close()
-            GuiElement.clear(self.appResources.menuFlow)
+            closeApp(self)
             newApp.appController = self
-            self.app = AbstractApp.Factory:make(newApp)
-            if self.opened then
-                self.app:show()
-            else
-                self.app:hide()
-            end
+            setApp(self, AbstractApp.Factory:make(newApp))
         end,
 
         -- Shows the current app, and moves the player to the drawing surface.
@@ -114,5 +110,31 @@ Metatable = {
         end,
     }
 }
+
+-- Closes the running application.
+--
+-- Args:
+-- * self: AppController object.
+--
+closeApp = function(self)
+    self.app:close()
+    GuiElement.clear(self.appResources.menuFlow)
+    self.app = false
+end
+
+-- Sets a new application.
+--
+-- Args:
+-- * self: AppController object.
+-- * newApp: The new AbstractApp owned by this controller.
+--
+setApp = function(self, newApp)
+    self.app = newApp
+    if self.opened then
+        self.app:show()
+    else
+        self.app:hide()
+    end
+end
 
 return AppController
