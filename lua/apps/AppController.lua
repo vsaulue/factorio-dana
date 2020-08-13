@@ -33,6 +33,7 @@ local Metatable
 -- RO Fields:
 -- * app: AbstractApp currently running.
 -- * appResources: AppResources object used by the current application.
+-- * opened: Boolean indicating if the application is opened.
 --
 local AppController = ErrorOnInvalidRead.new{
     -- Creates a new AppController object.
@@ -49,6 +50,7 @@ local AppController = ErrorOnInvalidRead.new{
         object.app = QueryApp.new{
             appController = object,
         }
+        object.opened = false
         object.app:hide()
 
         return object
@@ -75,6 +77,8 @@ Metatable = {
         -- * self: AppController object.
         --
         hide = function(self)
+            cLogger:assert(self.opened, "invalid hide() call (GUI is already hidden).")
+            self.opened = false
             self.appResources.positionController:teleportBack()
             self.app:hide()
         end,
@@ -90,8 +94,11 @@ Metatable = {
             GuiElement.clear(self.appResources.menuFlow)
             newApp.appController = self
             self.app = AbstractApp.Factory:make(newApp)
-            self.app:hide()
-            self.app:show()
+            if self.opened then
+                self.app:show()
+            else
+                self.app:hide()
+            end
         end,
 
         -- Shows the current app, and moves the player to the drawing surface.
@@ -100,6 +107,8 @@ Metatable = {
         -- * self: AppController object.
         --
         show = function(self)
+            cLogger:assert(not self.opened, "invalid show() call (GUI is already visible).")
+            self.opened = true
             self.appResources.positionController:teleportToApp()
             self.app:show()
         end,
