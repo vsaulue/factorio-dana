@@ -20,6 +20,8 @@ local ForceRecipe = require("lua/model/ForceRecipe")
 
 local cLogger = ClassLogger.new{className = "Force"}
 
+local Metatable
+
 -- Wrapper of Factorio's LuaForce class.
 --
 -- RO Fields:
@@ -35,13 +37,10 @@ local Force = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a Force object.
     --
     new = function(object)
-        local prototypes = cLogger:assertField(object, "prototypes")
-        local rawForce = cLogger:assertField(object, "rawForce")
-        object.recipes = ErrorOnInvalidRead.new()
-        for recipeName,recipe in pairs(rawForce.recipes) do
-            object.recipes[recipeName] = ForceRecipe.make(recipe, prototypes.transforms)
-        end
-        ErrorOnInvalidRead.setmetatable(object)
+        cLogger:assertField(object, "prototypes")
+        cLogger:assertField(object, "rawForce")
+        setmetatable(object, Metatable)
+        object:rebuild()
         return object
     end,
 
@@ -51,13 +50,35 @@ local Force = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        ErrorOnInvalidRead.setmetatable(object)
+        setmetatable(object, Metatable)
 
         ErrorOnInvalidRead.setmetatable(object.recipes)
         for _,forceRecipe in pairs(object.recipes) do
             ForceRecipe.setmetatable(forceRecipe)
         end
     end,
+}
+
+-- Metatable of the Force class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Resets the cached recipes of this force.
+        --
+        -- Args:
+        -- * self: Force object.
+        --
+        rebuild = function(self)
+            local prototypes = self.prototypes
+            local rawForce = self.rawForce
+
+            local recipes = ErrorOnInvalidRead.new()
+            for recipeName,recipe in pairs(rawForce.recipes) do
+                recipes[recipeName] = ForceRecipe.make(recipe, prototypes.transforms)
+            end
+
+            self.recipes = recipes
+        end,
+    },
 }
 
 return Force
