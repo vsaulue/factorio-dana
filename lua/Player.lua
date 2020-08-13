@@ -146,6 +146,16 @@ Metatable = {
                 self.appController:hide()
             end
         end,
+
+        -- Leaves Dana mode, and switches to the default application.
+        --
+        -- Args:
+        -- * self: Player object.
+        --
+        reset = function(self)
+            self.appController:switchToDefaultApp()
+            self:hide()
+        end,
     },
 }
 
