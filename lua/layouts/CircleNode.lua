@@ -17,6 +17,7 @@
 local AbstractNode = require("lua/layouts/AbstractNode")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local TableUtils = require("lua/containers/TableUtils")
 
 local cLogger = ClassLogger.new{className = "CircleNode"}
 
@@ -61,7 +62,7 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AbstractNode:drawOnCanvas().
         drawOnCanvas = function(self, canvas, rendererArgs)
-            local target = AbstractNode.getOrInitTableField(rendererArgs, "target")
+            local target = TableUtils.getOrInitTableField(rendererArgs, "target")
             target.x = self.xCenter
             target.y = self.yCenter
 

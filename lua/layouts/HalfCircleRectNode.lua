@@ -17,6 +17,7 @@
 local AbstractNode = require("lua/layouts/AbstractNode")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local TableUtils = require("lua/containers/TableUtils")
 
 local cLogger = ClassLogger.new{className = "HalfCircleRectNode"}
 
@@ -61,16 +62,16 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AbstractNode:drawOnCanvas().
         drawOnCanvas = function(self, canvas, rendererArgs)
-            local target = AbstractNode.getOrInitTableField(rendererArgs, "target")
+            local target = TableUtils.getOrInitTableField(rendererArgs, "target")
             target.x = self.xCenter
             target.y = self.yCenter
             rendererArgs.radius = self.radius
             local circle = canvas:newCircle(rendererArgs)
 
-            local left_top = AbstractNode.getOrInitTableField(rendererArgs, "left_top")
+            local left_top = TableUtils.getOrInitTableField(rendererArgs, "left_top")
             left_top.x = self.xCenter - self.radius
             left_top.y = self.yCenter - self.radius
-            local right_bottom = AbstractNode.getOrInitTableField(rendererArgs, "right_bottom")
+            local right_bottom = TableUtils.getOrInitTableField(rendererArgs, "right_bottom")
             right_bottom.x = self.xCenter + self.radius
             right_bottom.y = self.yCenter
 

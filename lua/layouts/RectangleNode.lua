@@ -17,6 +17,7 @@
 local AbstractNode = require("lua/layouts/AbstractNode")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local TableUtils = require("lua/containers/TableUtils")
 
 local cLogger = ClassLogger.new{className = "RectangleNode"}
 
@@ -63,10 +64,10 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AbstractNode:drawOnCanvas().
         drawOnCanvas = function(self, canvas, rendererArgs)
-            local left_top = AbstractNode.getOrInitTableField(rendererArgs, "left_top")
+            local left_top = TableUtils.getOrInitTableField(rendererArgs, "left_top")
             left_top.x = self.xMin
             left_top.y = self.yMin
-            local right_bottom = AbstractNode.getOrInitTableField(rendererArgs, "right_bottom")
+            local right_bottom = TableUtils.getOrInitTableField(rendererArgs, "right_bottom")
             right_bottom.x = self.xMin + self.xLength
             right_bottom.y = self.yMin + self.yLength
 
