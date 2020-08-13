@@ -29,6 +29,7 @@ local cLogger = ClassLogger.new{className = "AppController"}
 local closeApp
 local Metatable
 local setApp
+local setDefaultApp
 
 -- Class booting & switching applications for a Player.
 --
@@ -47,13 +48,10 @@ local AppController = ErrorOnInvalidRead.new{
     --
     new = function(object)
         local appResources = cLogger:assertField(object, "appResources")
+        object.opened = false
         setmetatable(object, Metatable)
 
-        object.app = QueryApp.new{
-            appController = object,
-        }
-        object.opened = false
-        object.app:hide()
+        setDefaultApp(object)
 
         return object
     end,
@@ -108,6 +106,16 @@ Metatable = {
             self.appResources.positionController:teleportToApp()
             self.app:show()
         end,
+
+        -- Replaces the current application with the default one.
+        --
+        -- Args:
+        -- * self: AppController object.
+        --
+        switchToDefaultApp = function(self)
+            closeApp(self)
+            setDefaultApp(self)
+        end
     }
 }
 
@@ -135,6 +143,17 @@ setApp = function(self, newApp)
     else
         self.app:hide()
     end
+end
+
+-- Sets the default application.
+--
+-- Args:
+-- * self: AppController object.
+--
+setDefaultApp = function(self)
+    setApp(self, QueryApp.new{
+        appController = self
+    })
 end
 
 return AppController
