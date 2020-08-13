@@ -24,6 +24,11 @@ local dana
 -- Table containing all the callbacks that should be bound to LuaBootstrap in Factorio.
 --
 local EventController = ErrorOnInvalidRead.new{
+    -- Callback for Factorio's event of the same name.
+    on_configuration_changed = function(configChangedData)
+        dana:on_configuration_changed(configChangedData)
+    end,
+
     -- Callback for LuaBootstrap.on_init().
     on_init = function()
         Logger.info("on_init() started.")
