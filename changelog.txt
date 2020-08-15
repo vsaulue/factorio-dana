@@ -1,5 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.1
+Date: 2020-08-15
   Features:
     - Support of prototype changes caused by mod update/install/uninstall.
   Bugfixes:
