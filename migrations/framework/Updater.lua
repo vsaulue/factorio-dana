@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local compareArrays
+local getInstalledVersion
 local parseVersion
 
 -- Utility library for migration scripts.
@@ -25,7 +26,7 @@ local Updater = {
     -- If installVersion is the current version in the save file:
     -- * if targetVersion <= installVersion: the patch is skipped.
     -- * if minSupportedVersion <= installVersion < targetVersion:
-    --       the patch is applied, and installVersion is set to targetVersion.
+    --       the patch is applied, and installVersion is set to max(targetVersion, installedVersion).
     -- * if installVersion < minSupportedVersion: An error is thrown.
     --
     -- Args:
@@ -34,7 +35,7 @@ local Updater = {
     -- * callback: Function to call to apply the patch.
     --
     run = function(minSupportedVersion, targetVersion, callback)
-        local installVersion = global.Dana.version or "0.1.0"
+        local installVersion = getInstalledVersion()
         local installArray = parseVersion(installVersion)
         local targetArray = parseVersion(targetVersion)
         if compareArrays(installArray, targetArray) < 0 then
@@ -42,8 +43,15 @@ local Updater = {
             if compareArrays(minArray, installArray) > 0 then
                 error("Migration from '" .. targetVersion .. "' failed. Minimum supported: '" .. minSupportedVersion .. "'. Installed: '" .. installVersion .. "'.")
             end
+
             callback()
-            global.Dana.version = targetVersion
+
+            local newVersion = getInstalledVersion()
+            if compareArrays(parseVersion(newVersion), targetArray) < 0 then
+                global.Dana.version = targetVersion
+                newVersion = targetVersion
+            end
+            log("Migration applied (source: '" .. installVersion .. "' / installed: '" .. newVersion .. "').")
         else
             log("Migration skipped (target: '" .. targetVersion .."' / installed: '" .. installVersion .. "').")
         end
@@ -81,6 +89,14 @@ compareArrays = function(v1, v2)
         end
     end
     return result
+end
+
+-- Gets a string representing the currently installed version of Dana.
+--
+-- Returns: The version of the mod currently stored in the global table.
+--
+getInstalledVersion = function()
+    return global.Dana.version or "0.1.0"
 end
 
 -- Parses a string representing a version into an array of integer.

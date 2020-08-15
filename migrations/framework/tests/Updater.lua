@@ -48,6 +48,15 @@ describe("Updater", function()
             assert.are.equals(global.Dana.version, "7.5.11")
         end)
 
+        it("-- valid (min == Dana < target) + script updated version", function()
+            Updater.run("7.5.1", "7.5.11", function()
+                flag = true
+                global.Dana.version = "7.5.12"
+            end)
+            assert.is_true(flag)
+            assert.are.equals(global.Dana.version, "7.5.12")
+        end)
+
         it("-- skip (min < Dana == target)", function()
             Updater.run("7.4.0", "7.5.1", flagSetter)
             assert.is_false(flag)
