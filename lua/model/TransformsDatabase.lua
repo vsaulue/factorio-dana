@@ -21,6 +21,7 @@ local FuelTransform = require("lua/model/FuelTransform")
 local OffshorePumpTransform = require("lua/model/OffshorePumpTransform")
 local RecipeTransform = require("lua/model/RecipeTransform")
 local ResourceTransform = require("lua/model/ResourceTransform")
+local TableUtils = require("lua/containers/TableUtils")
 
 local cLogger = ClassLogger.new{className = "TransformsDatabase"}
 
@@ -31,9 +32,11 @@ local Metatable
 --
 -- RO Fields:
 -- * boiler[entityName]: Map of BoilerTransform, indexed by the boiler entity's name.
+-- * consumersOf[intermediate]: Set of AbstractTransform having `intermediate` as ingredient.
 -- * fuel[itemName]: Map of FuelTransform, indexed by the fuel item's name.
 -- * intermediates: IntermediatesDatabase holding all the Intermediates in the transforms.
 -- * offshorePump[entityName]: Map of OffshorePumpTransform, indexed by the entity's name.
+-- * producersOf[intermediate]: Set of AbstractTransform having `intermediate` as product.
 -- * recipe[recipeName]: Map of RecipeTransform, indexed by the recipe's name.
 -- * resource[entityName]: Map of ResourceTransform, indexed by the resource's name.
 --
@@ -47,11 +50,16 @@ local TransformsDatabase = ErrorOnInvalidRead.new{
     --
     new = function(object)
         cLogger:assertField(object, "intermediates")
+        -- Transforms
         object.boiler = ErrorOnInvalidRead.new()
         object.fuel = ErrorOnInvalidRead.new()
         object.offshorePump = ErrorOnInvalidRead.new()
         object.recipe = ErrorOnInvalidRead.new()
         object.resource = ErrorOnInvalidRead.new()
+        -- Other
+        object.producersOf = {}
+        object.consumersOf = {}
+
         setmetatable(object, Metatable)
         return object
     end,
@@ -106,6 +114,8 @@ Metatable = {
             self.offshorePump = ErrorOnInvalidRead.new()
             self.recipe = ErrorOnInvalidRead.new()
             self.resource = ErrorOnInvalidRead.new()
+            self.consumersOf = {}
+            self.producersOf = {}
 
             for _,entity in pairs(gameScript.entity_prototypes) do
                 local transform = nil
@@ -142,6 +152,17 @@ tryAddTransform = function(self, name, transform)
         local map = self[transform.type]
         cLogger:assert(not rawget(map, name), "Duplicate transform index.")
         map[name] = transform
+
+        local getTableField = TableUtils.getOrInitTableField
+
+        local consumersOf = self.consumersOf
+        for ingredient in pairs(transform.ingredients) do
+            getTableField(consumersOf, ingredient)[transform] = true
+        end
+        local producersOf = self.producersOf
+        for product in pairs(transform.products) do
+            getTableField(producersOf, product)[transform] = true
+        end
     end
 end
 
