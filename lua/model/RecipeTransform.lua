@@ -80,6 +80,7 @@ Metatable = {
         end,
     },
 }
+setmetatable(Metatable.__index, {__index = AbstractTransform.Metatable.__index})
 
 -- Creates a set of Intermediate from an array of ingredients from Factorio.
 --

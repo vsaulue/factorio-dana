@@ -57,6 +57,38 @@ local AbstractTransform = ErrorOnInvalidRead.new{
         return {"dana.model.transform." .. suffix}
     end,
 
+    -- Metatable of the AbstractTransform class.
+    Metatable = {
+        __index = {
+            -- Generates a SpritePath representing this transform.
+            --
+            -- Args:
+            -- * self: AbstractTransform object.
+            --
+            -- Returns: A SpritePath object (Factorio API).
+            --
+            generateSpritePath = nil, -- function(self) end
+
+            -- Gets a LocalisedString corresponding to the wrapped prototype.
+            --
+            -- Args:
+            -- * self: AbstractTransform object.
+            --
+            -- Returns: The LocalisedString of the name of the wrapped prototype.
+            --
+            getShortName = nil, -- function(self) end
+
+            -- Gets a LocalisedString of the type of this transform.
+            --
+            -- Args:
+            -- * self: AbstractTransform object.
+            --
+            -- Returns: The type as a LocalisedString.
+            --
+            getTypeStr = nil, -- function(self) end
+        },
+    },
+
     -- Creates a new AbstractTransform object.
     --
     -- Args:
@@ -85,41 +117,5 @@ local AbstractTransform = ErrorOnInvalidRead.new{
         ErrorOnInvalidRead.setmetatable(object.products)
     end,
 }
-
---[[
-
--- "Abstract" metatable of the AbstractTransform class.
-Metatable = {
-    __index = {
-        -- Generates a SpritePath representing this transform.
-        --
-        -- Args:
-        -- * self: AbstractTransform object.
-        --
-        -- Returns: A SpritePath object (Factorio API).
-        --
-        generateSpritePath = function(self) end,
-
-        -- Gets a LocalisedString corresponding to the wrapped prototype.
-        --
-        -- Args:
-        -- * self: AbstractTransform object.
-        --
-        -- Returns: The LocalisedString of the name of the wrapped prototype.
-        --
-        getShortName = function(self) end,
-
-        -- Gets a LocalisedString of the type of this transform.
-        --
-        -- Args:
-        -- * self: AbstractTransform object.
-        --
-        -- Returns: The type as a LocalisedString.
-        --
-        getTypeStr = function(self) end,
-    },
-}
-
---]]
 
 return AbstractTransform

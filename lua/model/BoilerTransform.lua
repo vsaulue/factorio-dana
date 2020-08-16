@@ -108,5 +108,6 @@ Metatable = {
         end,
     },
 }
+setmetatable(Metatable.__index, {__index = AbstractTransform.Metatable.__index})
 
 return BoilerTransform
