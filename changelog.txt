@@ -1,5 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.2
+Date: 2020-08-16
   Bugfixes:
     - Fix crash at start-up caused by fluid-powered boilers. (https://mods.factorio.com/mod/dana/discussion/5f38a575532359df0888b9fa)
 
