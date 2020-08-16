@@ -79,7 +79,7 @@ local BoilerTransform = ErrorOnInvalidRead.new{
                     products = outputs,
                 }, Metatable)
             else
-                Logger.warn("Boiler prototype '" .. boilerPrototype.name .. "' ignored (multiple inputs or outputs).")
+                cLogger:warn("Boiler prototype '" .. boilerPrototype.name .. "' ignored (multiple inputs or outputs).")
             end
         end
         return result
