@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.3
+  Bugfixes:
+    - Migration scripts are able to recover from GUI corruptions caused by other scripts (https://mods.factorio.com/mod/dana/discussion/5f36f18423fa1c25793a291f).
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.2
 Date: 2020-08-16
   Bugfixes:
