@@ -20,22 +20,47 @@ local Updater = require("migrations/framework/Updater")
 _G.log = function(str) end
 
 describe("Updater", function()
-    local flag
+    describe(".assertModVersion()", function()
+        local sampleModList
 
-    local flagSetter = function()
-        flag = true
-    end
+        before_each(function()
+            sampleModList = {
+                modA = "1.7.11",
+                modB = "0.4.8",
+            }
+        end)
 
-    before_each(function()
-        flag =  false
-        _G.global = {
-            Dana = {
-                version = "7.5.1",
-            },
-        }
+        it("-- valid (mod not installed)", function()
+            Updater.assertModVersion(sampleModList, "modC", "0.0.0")
+        end)
+
+        it("-- valid (mod installed)", function()
+            Updater.assertModVersion(sampleModList, "modB", "0.4.8")
+        end)
+
+        it("-- invalid", function()
+            assert.error(function()
+                Updater.assertModVersion(sampleModList, "modA", "1.10.0")
+            end)
+        end)
     end)
 
     describe(".run(min,target)", function()
+        local flag
+
+        local flagSetter = function()
+            flag = true
+        end
+
+        before_each(function()
+            flag =  false
+            _G.global = {
+                Dana = {
+                    version = "7.5.1",
+                },
+            }
+        end)
+
         it("-- valid (min < Dana < target)", function()
             Updater.run("7.5.0", "7.5.2", flagSetter)
             assert.is_true(flag)
