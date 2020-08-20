@@ -24,9 +24,10 @@ local Metatable
 -- Class managing the position of the player between the game and the application's surface.
 --
 -- Private fields:
+-- * nextDanaPosition: Position where the player will be teleported next time Dana is opened.
 -- * previousCharacter: Character of the player before opening the app.
 -- * previousControllerType: Controller of the player before opening the app.
--- * previousPosition: Position of the player on the previous surface.
+-- * previousPosition: Position of the player on the game surface before opening the app.
 -- * previousSurface: LuaSurface on which the player was before opening this app.
 -- * rawPlayer: LuaPlayer object from Factorio.
 -- * appSurface: LuaSurface that this application can use to draw.
@@ -42,7 +43,7 @@ local PositionController = ErrorOnInvalidRead.new{
     new = function(object)
         cLogger:assertField(object, "rawPlayer")
         cLogger:assertField(object, "appSurface")
-        object.previousPosition = {0,0}
+        object.nextDanaPosition = {0,0}
         setmetatable(object, Metatable)
         return object
     end,
@@ -60,7 +61,7 @@ local PositionController = ErrorOnInvalidRead.new{
 -- Metatable of the PositionController class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
-        -- Sets the player on the app surface.
+        -- Sets the player's position on the app surface.
         --
         -- If the GUI is opened, the player is teleported. Otherwise the position will be stored for
         -- the next time the GUI is opened.
@@ -70,10 +71,9 @@ Metatable = {
         -- * position: Position object (see Factorio API).
         --
         setPosition = function(self, position)
+            self.nextDanaPosition = position
             if self.rawPlayer.surface == self.appSurface then
                 self.rawPlayer.teleport(position)
-            else
-                self.previousPosition = position
             end
         end,
 
@@ -86,7 +86,6 @@ Metatable = {
         --
         teleportToApp = function(self)
             cLogger:assert(self.rawPlayer.surface ~= self.appSurface, "Player is already on Dana's surface.")
-            local targetPosition = self.previousPosition
             self.previousControllerType = self.rawPlayer.controller_type
             if self.previousControllerType == defines.controllers.character then
                 self.previousCharacter = self.rawPlayer.character
@@ -94,7 +93,7 @@ Metatable = {
             self.previousPosition = self.rawPlayer.position
             self.previousSurface = self.rawPlayer.surface
             self.rawPlayer.set_controller{type = defines.controllers.god}
-            self.rawPlayer.teleport(targetPosition, self.appSurface)
+            self.rawPlayer.teleport(self.nextDanaPosition, self.appSurface)
         end,
 
         -- Teleports the player back to its previous surface, and restores his controller.
@@ -105,9 +104,8 @@ Metatable = {
         teleportBack = function(self)
             cLogger:assert(self.rawPlayer.surface == self.appSurface, "Player is not on Dana's surface.")
 
-            local targetPosition = self.previousPosition
-            self.previousPosition = self.rawPlayer.position
-            self.rawPlayer.teleport(targetPosition, self.previousSurface)
+            self.nextDanaPosition = self.rawPlayer.position
+            self.rawPlayer.teleport(self.previousPosition, self.previousSurface)
 
             local newController = {
                 type = self.previousControllerType,
