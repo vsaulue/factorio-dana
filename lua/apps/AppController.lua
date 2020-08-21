@@ -75,11 +75,17 @@ Metatable = {
         --
         -- Args:
         -- * self: AppController object.
+        -- * keepPosition: false to teleport the player at the the position he had while opening Dana.
+        --   true to stay at the current position.
         --
-        hide = function(self)
+        hide = function(self, keepPosition)
             cLogger:assert(self.opened, "invalid hide() call (GUI is already hidden).")
             self.opened = false
-            self.appResources.positionController:teleportBack()
+            if keepPosition then
+                self.appResources.positionController:restoreController()
+            else
+                self.appResources.positionController:teleportBack()
+            end
             self.app:hide()
         end,
 

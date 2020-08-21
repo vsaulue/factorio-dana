@@ -133,6 +133,17 @@ Metatable = {
         -- * self: Dana object.
         -- * event: Factorio event.
         --
+        on_player_changed_surface = function(self, event)
+            local player = self.players[event.player_index]
+            player:onChangedSurface(event)
+        end,
+
+        -- Callback for Factorio's event of the same name.
+        --
+        -- Args:
+        -- * self: Dana object.
+        -- * event: Factorio event.
+        --
         on_player_created = function(self, event)
             local playerIndex = event.player_index
             local rawPlayer = game.players[playerIndex]

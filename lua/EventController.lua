@@ -64,6 +64,10 @@ local EventController = ErrorOnInvalidRead.new{
         on_gui_click = GuiElement.on_gui_click,
         on_gui_text_changed = GuiElement.on_gui_text_changed,
 
+        on_player_changed_surface = function(event)
+            dana:on_player_changed_surface(event)
+        end,
+
         on_player_created = function(event)
             GuiElement.on_player_created(event)
             dana:on_player_created(event)

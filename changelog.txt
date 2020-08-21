@@ -1,7 +1,10 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.3
+  Changes:
+    - If a script teleports the player to another surface, Dana will close its GUI.
   Bugfixes:
     - Migration scripts are able to recover from GUI corruptions caused by other scripts (https://mods.factorio.com/mod/dana/discussion/5f36f18423fa1c25793a291f).
+    - Fix crash caused by scripts teleporting players to other surfaces. (https://mods.factorio.com/mod/dana/discussion/5f3d95624ab56be26b4476a8).
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.2

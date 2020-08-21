@@ -109,6 +109,18 @@ local Player = ErrorOnInvalidRead.new{
 -- Metatable of the Player class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Function to call when Factorio's on_player_changed_surface is triggered for this player.
+        --
+        -- Args:
+        -- * self: Player object.
+        -- * event: Factorio event.
+        --
+        onChangedSurface = function(self, event)
+            if event.surface_index == self.graphSurface.index and self.opened then
+                self:hide(true)
+            end
+        end,
+
         -- Function to call when Factorio's on_player_selected_area is triggered for this player.
         --
         -- Args:
@@ -137,13 +149,15 @@ Metatable = {
         --
         -- Args:
         -- * self: Player object.
+        -- * keepPosition: false to teleport the player at the the position he had while opening Dana.
+        --   true to stay at the current position.
         --
-        hide = function(self)
+        hide = function(self, keepPosition)
             if self.opened then
                 self.opened = false
                 self.menuFrame.visible = false
                 self.showButton.rawElement.visible = true
-                self.appController:hide()
+                self.appController:hide(keepPosition)
             end
         end,
 
@@ -154,7 +168,7 @@ Metatable = {
         --
         reset = function(self)
             self.appController:switchToDefaultApp()
-            self:hide()
+            self:hide(false)
         end,
     },
 }
@@ -188,7 +202,7 @@ HideButton = GuiElement.newSubclass{
     mandatoryFields = {"player"},
     __index = {
         onClick = function(self, event)
-            self.player:hide()
+            self.player:hide(false)
         end,
     }
 }
