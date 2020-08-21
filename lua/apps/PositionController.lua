@@ -61,6 +61,42 @@ local PositionController = ErrorOnInvalidRead.new{
 -- Metatable of the PositionController class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Restores the controller of the player, without modifying its position.
+        --
+        -- This function should be called whenever scripts have teleported the players out
+        -- of Dana's surface.
+        --
+        -- Args:
+        -- * self: PositionController object.
+        --
+        restoreController = function(self)
+            local rawPlayer = self.rawPlayer
+            local teleportPos = nil
+            local teleportSurface = nil
+
+            local newController = {
+                type = self.previousControllerType,
+            }
+            if newController.type == defines.controllers.character then
+                local previousCharacter = self.previousCharacter
+                if previousCharacter.valid then
+                    teleportPos = rawPlayer.position
+                    teleportSurface = rawPlayer.surface
+                    newController.character = previousCharacter
+                else
+                    newController.type = defines.controllers.ghost
+                end
+            end
+            rawPlayer.set_controller(newController)
+            if teleportPos then
+                rawPlayer.teleport(teleportPos, teleportSurface)
+            end
+
+            self.previousSurface = nil
+            self.previousControllerType = nil
+            self.previousCharacter = nil
+        end,
+
         -- Sets the player's position on the app surface.
         --
         -- If the GUI is opened, the player is teleported. Otherwise the position will be stored for
@@ -107,21 +143,7 @@ Metatable = {
             self.nextDanaPosition = self.rawPlayer.position
             self.rawPlayer.teleport(self.previousPosition, self.previousSurface)
 
-            local newController = {
-                type = self.previousControllerType,
-            }
-            if newController.type == defines.controllers.character then
-                if self.previousCharacter.valid then
-                    newController.character = self.previousCharacter
-                else
-                    newController.type = defines.controllers.ghost
-                end
-            end
-            self.rawPlayer.set_controller(newController)
-
-            self.previousSurface = nil
-            self.previousControllerType = nil
-            self.previousCharacter = nil
+            self:restoreController()
         end,
     }
 }
