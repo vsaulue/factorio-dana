@@ -1,5 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.3
+Date: 2020-08-21
   Changes:
     - If a script teleports the player to another surface, Dana will close its GUI.
   Bugfixes:
