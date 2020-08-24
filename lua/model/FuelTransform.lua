@@ -55,10 +55,8 @@ local FuelTransform = ErrorOnInvalidRead.new{
             result = AbstractTransform.new({
                 type = "fuel",
                 inputItem = itemIntermediate,
-                ingredients = ErrorOnInvalidRead.new{
-                    [itemIntermediate] = true,
-                },
             }, Metatable)
+            result:addIngredient(itemIntermediate, 1)
             result:addProduct(product, ProductInfo.makeConstant(1))
         end
         return result

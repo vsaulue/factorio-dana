@@ -48,7 +48,6 @@ local OffshorePumpTransform = ErrorOnInvalidRead.new{
     make = function(offshorePumpPrototype, intermediatesDatabase)
         local fluid = intermediatesDatabase.fluid[offshorePumpPrototype.fluid.name]
         local result = AbstractTransform.new({
-            ingredients = ErrorOnInvalidRead.new(),
             rawPump = offshorePumpPrototype,
             type = "offshorePump",
         }, Metatable)

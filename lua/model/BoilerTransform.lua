@@ -76,8 +76,8 @@ local BoilerTransform = ErrorOnInvalidRead.new{
                 result = AbstractTransform.new({
                     type = "boiler",
                     rawBoiler = boilerPrototype,
-                    ingredients = inputs,
                 }, Metatable)
+                result:addIngredient(next(inputs), 1)
                 result:addProduct(next(outputs), ProductInfo.makeConstant(1))
             else
                 cLogger:warn("Boiler prototype '" .. boilerPrototype.name .. "' ignored (multiple inputs or outputs).")

@@ -26,7 +26,7 @@ local cLogger = ClassLogger.new{className = "AbstractTransform"}
 -- set of Intermediates into another set of Intermediates.
 --
 -- RO Fields:
--- * ingredients: Set of Intermediates consumed by this transform.
+-- * ingredients[intermediate] -> int. Pairs of ingredients & quantities.
 -- * localisedName: A localised string of the form "[type] name".
 -- * products[intermediate] -> ProductInfo: Map of products.
 -- * spritePath: Sprite path of the underlying prototype.
@@ -61,6 +61,32 @@ local AbstractTransform = ErrorOnInvalidRead.new{
     -- Metatable of the AbstractTransform class.
     Metatable = {
         __index = {
+            -- Adds an ingredient to this transform.
+            --
+            -- Args:
+            -- * self: AbstractTransform object.
+            -- * intermediate: Ingredient to add.
+            -- * quantity: Amount consumed by the transform.
+            --
+            addIngredient = function(self, intermediate, quantity)
+                cLogger:assert(not rawget(self.ingredients, Intermediate))
+                self.ingredients[intermediate] = quantity
+            end,
+
+            -- Adds an array of Ingredient from the API.
+            --
+            -- Args:
+            -- * self: AbstractTransform object.
+            -- * intermediatesDb: IntermediatesDatabase used to find the Intermediate.
+            -- * rawProducts: Array of Ingredient objects from Factorio's API.
+            --
+            addRawIngredientArray = function(self, intermediatesDb, rawIngredients)
+                for _,rawIngredient in pairs(rawIngredients) do
+                    local intermediate = intermediatesDb:getIngredientOrProduct(rawIngredient)
+                    self:addIngredient(intermediate, rawIngredient.amount)
+                end
+            end,
+
             -- Adds a product to this transform.
             --
             -- Args:
@@ -137,8 +163,8 @@ local AbstractTransform = ErrorOnInvalidRead.new{
     --
     new = function(object, metatable)
         setmetatable(object, metatable)
-        cLogger:assertField(object, "ingredients")
         local type = cLogger:assertField(object, "type")
+        object.ingredients = ErrorOnInvalidRead.new()
         object.products = ErrorOnInvalidRead.new()
         object.localisedName = {"dana.model.transform.name", object:getTypeStr(), object:getShortName()}
         object.spritePath = object:generateSpritePath()
