@@ -48,12 +48,6 @@ local ResourceTransform = ErrorOnInvalidRead.new{
         local result = nil
         local mineable_props = resourceEntityPrototype.mineable_properties
         if mineable_props.minable then
-            local products = ErrorOnInvalidRead.new()
-            for _,product in pairs(mineable_props.products) do
-                local intermediate = intermediatesDatabase:getIngredientOrProduct(product)
-                products[intermediate] = true
-            end
-
             local ingredients = ErrorOnInvalidRead.new()
             local fluidName = mineable_props.required_fluid
             if fluidName then
@@ -65,8 +59,9 @@ local ResourceTransform = ErrorOnInvalidRead.new{
                 type = "resource",
                 rawResource = resourceEntityPrototype,
                 ingredients = ingredients,
-                products = products,
             }, Metatable)
+
+            result:addRawProductArray(intermediatesDatabase, mineable_props.products)
         end
         return result
     end,

@@ -40,12 +40,13 @@ local RecipeTransform = ErrorOnInvalidRead.new{
     -- Returns: The new RecipeTransform object.
     --
     make = function(recipePrototype, intermediatesDatabase)
-        return AbstractTransform.new({
+        local result = AbstractTransform.new({
             ingredients = makeIngredientSet(recipePrototype.ingredients, intermediatesDatabase),
-            products = makeProductSet(recipePrototype.products, intermediatesDatabase),
             rawRecipe = recipePrototype,
             type = "recipe",
         }, Metatable)
+        result:addRawProductArray(intermediatesDatabase, recipePrototype.products)
+        return result
     end,
 
     -- Restores the metatable of a RecipeTransform object, and all its owned objects.
@@ -95,26 +96,6 @@ makeIngredientSet = function(ingredients, intermediatesDatabase)
     for _,ingredient in pairs(ingredients) do
         local intermediate = intermediatesDatabase:getIngredientOrProduct(ingredient)
         result[intermediate] = true
-    end
-    return result
-end
-
--- Creates a set of Intermediate from an array of products from Factorio.
---
--- Args:
--- * products: Array of Product.
--- * intermediatesDatabase: Database containing the Intermediates to return.
---
--- Returns: A set containing the Intermediate objects wrapping the values of the array.
---
-makeProductSet = function(products, intermediatesDatabase)
-    local result = ErrorOnInvalidRead.new()
-    for _,product in pairs(products) do
-        local maxAmount = product.amount or product.amount_max
-        if (maxAmount > 0) and (product.probability > 0) then
-            local intermediate = intermediatesDatabase:getIngredientOrProduct(product)
-            result[intermediate] = true
-        end
     end
     return result
 end
