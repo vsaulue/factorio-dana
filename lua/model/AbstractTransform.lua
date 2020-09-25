@@ -17,6 +17,7 @@
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local ProductAmount = require("lua/model/ProductAmount")
+local ProductData = require("lua/model/ProductData")
 local Set = require("lua/containers/Set")
 
 local cLogger = ClassLogger.new{className = "AbstractTransform"}
@@ -29,7 +30,7 @@ local cLogger = ClassLogger.new{className = "AbstractTransform"}
 -- RO Fields:
 -- * ingredients[intermediate] -> int. Pairs of ingredients & quantities.
 -- * localisedName: A localised string of the form "[type] name".
--- * products[intermediate] -> ProductAmount: Map of products.
+-- * products[intermediate] -> ProductData: Map of products.
 -- * spritePath: Sprite path of the underlying prototype.
 -- * type: String representing the type of the transform.
 --
@@ -94,12 +95,17 @@ local AbstractTransform = ErrorOnInvalidRead.new{
             -- Args:
             -- * self: AbstractTransform object.
             -- * intermediate: Product to add.
-            -- * productInfo: Associated ProductAmount object.
+            -- * productAmount: Associated ProductAmount object.
             --
-            addProduct = function(self, intermediate, productInfo)
-                if productInfo.amountMax > 0 and productInfo.probability > 0 then
-                    cLogger:assert(not rawget(self.products, intermediate), "Duplicate product in transform.")
-                    self.products[intermediate] = productInfo
+            addProduct = function(self, intermediate, productAmount)
+                if productAmount.amountMax > 0 and productAmount.probability > 0 then
+                    local products = self.products
+                    local productData = rawget(products, intermediate)
+                    if productData then
+                        productData:addAmount(productAmount)
+                    else
+                        products[intermediate] = ProductData.make(productAmount)
+                    end
                 end
             end,
 
@@ -221,8 +227,8 @@ local AbstractTransform = ErrorOnInvalidRead.new{
         ErrorOnInvalidRead.setmetatable(object.ingredients)
 
         ErrorOnInvalidRead.setmetatable(object.products)
-        for _,product in pairs(object.products) do
-            ProductAmount.setmetatable(product)
+        for _,productData in pairs(object.products) do
+            ProductData.setmetatable(productData)
         end
     end,
 }
