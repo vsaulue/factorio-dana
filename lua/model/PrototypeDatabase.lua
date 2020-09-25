@@ -17,6 +17,7 @@
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local IntermediatesDatabase = require("lua/model/IntermediatesDatabase")
 local Logger = require("lua/logger/Logger")
+local SimpleCyclesDatabase = require("lua/model/SimpleCyclesDatabase")
 local TransformsDatabase = require("lua/model/TransformsDatabase")
 
 local Metatable
@@ -30,6 +31,7 @@ local Metatable
 -- RO properties:
 -- * intermediates: IntermediatesDatabase golding all the Intermediate objects.
 -- * transforms: TransformsDatabase holding all the AbstractTransform objects.
+-- * simpleCycles: SimpleCyclesDatabase holding the simple cycles of `transforms`.
 --
 -- Methods:
 -- * rebuild: drops the current content of the database, and rebuild it from scratch.
@@ -44,10 +46,14 @@ local PrototypeDatabase = ErrorOnInvalidRead.new{
     --
     new = function(gameScript)
         local intermediates = IntermediatesDatabase.new()
+        local transforms = TransformsDatabase.new{
+            intermediates = intermediates,
+        }
         local result = {
             intermediates = intermediates,
-            transforms = TransformsDatabase.new{
-                intermediates = intermediates,
+            transforms = transforms,
+            simpleCycles = SimpleCyclesDatabase.new{
+                transforms = transforms,
             },
         }
         setmetatable(result, Metatable)
@@ -64,6 +70,7 @@ local PrototypeDatabase = ErrorOnInvalidRead.new{
         setmetatable(object, Metatable)
         IntermediatesDatabase.setmetatable(object.intermediates)
         TransformsDatabase.setmetatable(object.transforms)
+        SimpleCyclesDatabase.setmetatable(object.simpleCycles)
     end,
 }
 
@@ -80,6 +87,7 @@ Metatable = {
         rebuild = function(self, gameScript)
             self.intermediates:rebuild(gameScript)
             self.transforms:rebuild(gameScript)
+            self.simpleCycles:rebuild()
         end,
     },
 }
