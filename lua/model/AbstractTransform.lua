@@ -17,6 +17,7 @@
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local ProductInfo = require("lua/model/ProductInfo")
+local Set = require("lua/containers/Set")
 
 local cLogger = ClassLogger.new{className = "AbstractTransform"}
 
@@ -124,6 +125,43 @@ local AbstractTransform = ErrorOnInvalidRead.new{
                 for _,rawProduct in pairs(rawProducts) do
                     self:addRawProduct(intermediatesDb, rawProduct)
                 end
+            end,
+
+            -- Tests if two transforms forms a non-positive cycle.
+            --
+            -- Transform A forms a cycle with transform B if:
+            -- * A.ingredients == B.products, and are not empty.
+            -- * B.products == A.ingredients, and are not empty.
+            --
+            -- The loop is non-positive only if it can't be used to duplicate intermediates
+            -- (ignoring productivity modules).
+            --
+            -- Args:
+            -- * self: AbstractTransform object.
+            -- * other: The other AbstractTransform object.
+            --
+            -- Returns: True if the two transforms forms a non-positive cycle.
+            --
+            isNonPositiveCycleWith = function(self, other)
+                local result = false
+                local products = self.products
+                local oIngredients = other.ingredients
+                if next(products) and Set.areEquals(products, oIngredients) then
+                    local ingredients = self.ingredients
+                    local oProducts = other.products
+                    if next(ingredients) and Set.areEquals(ingredients, oProducts) then
+                        local ratio = math.huge
+                        for intermediate,productInfo in pairs(products) do
+                            ratio = math.min(ratio, oIngredients[intermediate] / productInfo:getAvg())
+                        end
+
+                        result = true
+                        for intermediate,productInfo in pairs(oProducts) do
+                            result = result and (ratio * ingredients[intermediate] > 0.999 * productInfo:getAvg())
+                        end
+                    end
+                end
+                return result
             end,
 
             -- Generates a SpritePath representing this transform.
