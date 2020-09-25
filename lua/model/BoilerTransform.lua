@@ -17,7 +17,7 @@
 local AbstractTransform = require("lua/model/AbstractTransform")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local ProductInfo = require("lua/model/ProductInfo")
+local ProductAmount = require("lua/model/ProductAmount")
 
 local cLogger = ClassLogger.new{className = "BoilerTransform"}
 
@@ -78,7 +78,7 @@ local BoilerTransform = ErrorOnInvalidRead.new{
                     rawBoiler = boilerPrototype,
                 }, Metatable)
                 result:addIngredient(next(inputs), 1)
-                result:addProduct(next(outputs), ProductInfo.makeConstant(1))
+                result:addProduct(next(outputs), ProductAmount.makeConstant(1))
             else
                 cLogger:warn("Boiler prototype '" .. boilerPrototype.name .. "' ignored (multiple inputs or outputs).")
             end

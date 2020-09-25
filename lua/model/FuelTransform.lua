@@ -16,7 +16,7 @@
 
 local AbstractTransform = require("lua/model/AbstractTransform")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local ProductInfo = require("lua/model/ProductInfo")
+local ProductAmount = require("lua/model/ProductAmount")
 
 local Metatable
 
@@ -57,7 +57,7 @@ local FuelTransform = ErrorOnInvalidRead.new{
                 inputItem = itemIntermediate,
             }, Metatable)
             result:addIngredient(itemIntermediate, 1)
-            result:addProduct(product, ProductInfo.makeConstant(1))
+            result:addProduct(product, ProductAmount.makeConstant(1))
         end
         return result
     end,

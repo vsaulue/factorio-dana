@@ -16,7 +16,7 @@
 
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local ProductInfo = require("lua/model/ProductInfo")
+local ProductAmount = require("lua/model/ProductAmount")
 local Set = require("lua/containers/Set")
 
 local cLogger = ClassLogger.new{className = "AbstractTransform"}
@@ -29,7 +29,7 @@ local cLogger = ClassLogger.new{className = "AbstractTransform"}
 -- RO Fields:
 -- * ingredients[intermediate] -> int. Pairs of ingredients & quantities.
 -- * localisedName: A localised string of the form "[type] name".
--- * products[intermediate] -> ProductInfo: Map of products.
+-- * products[intermediate] -> ProductAmount: Map of products.
 -- * spritePath: Sprite path of the underlying prototype.
 -- * type: String representing the type of the transform.
 --
@@ -94,7 +94,7 @@ local AbstractTransform = ErrorOnInvalidRead.new{
             -- Args:
             -- * self: AbstractTransform object.
             -- * intermediate: Product to add.
-            -- * productInfo: Associated ProductInfo object.
+            -- * productInfo: Associated ProductAmount object.
             --
             addProduct = function(self, intermediate, productInfo)
                 if productInfo.amountMax > 0 and productInfo.probability > 0 then
@@ -112,7 +112,7 @@ local AbstractTransform = ErrorOnInvalidRead.new{
             --
             addRawProduct = function(self, intermediatesDb, rawProduct)
                 local intermediate = intermediatesDb:getIngredientOrProduct(rawProduct)
-                self:addProduct(intermediate, ProductInfo.makeFromRawProduct(rawProduct))
+                self:addProduct(intermediate, ProductAmount.makeFromRawProduct(rawProduct))
             end,
 
             -- Adds an array of Product from the API.
@@ -222,7 +222,7 @@ local AbstractTransform = ErrorOnInvalidRead.new{
 
         ErrorOnInvalidRead.setmetatable(object.products)
         for _,product in pairs(object.products) do
-            ProductInfo.setmetatable(product)
+            ProductAmount.setmetatable(product)
         end
     end,
 }

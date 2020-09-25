@@ -16,7 +16,7 @@
 
 local AbstractTransform = require("lua/model/AbstractTransform")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local ProductInfo = require("lua/model/ProductInfo")
+local ProductAmount = require("lua/model/ProductAmount")
 
 local Metatable
 
@@ -52,7 +52,7 @@ local OffshorePumpTransform = ErrorOnInvalidRead.new{
             type = "offshorePump",
         }, Metatable)
         local unitsPerSecond = 60 * offshorePumpPrototype.pumping_speed
-        result:addProduct(fluid, ProductInfo.makeConstant(unitsPerSecond))
+        result:addProduct(fluid, ProductAmount.makeConstant(unitsPerSecond))
         return result
     end,
 
