@@ -70,8 +70,9 @@ local AbstractTransform = ErrorOnInvalidRead.new{
             -- * quantity: Amount consumed by the transform.
             --
             addIngredient = function(self, intermediate, quantity)
-                cLogger:assert(not rawget(self.ingredients, Intermediate))
-                self.ingredients[intermediate] = quantity
+                local ingredients = self.ingredients
+                local oldQuantity = (rawget(ingredients, intermediate) or 0)
+                ingredients[intermediate] = oldQuantity + quantity
             end,
 
             -- Adds an array of Ingredient from the API.
