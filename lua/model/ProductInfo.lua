@@ -19,6 +19,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "ProductInfo"}
 
+local Metatable
 local new
 
 -- Data associated to a product in an AbstractTransform.
@@ -80,12 +81,30 @@ local ProductInfo = ErrorOnInvalidRead.new{
         cLogger:assertField(object, "amountMax")
         cLogger:assertField(object, "amountMin")
         cLogger:assertField(object, "probability")
-        ErrorOnInvalidRead.setmetatable(object)
+        setmetatable(object, Metatable)
         return object
     end,
 
     -- Restores the metatable of a ProductInfo object, and all its owned objects.
-    setmetatable = ErrorOnInvalidRead.setmetatable,
+    setmetatable = function(object)
+        setmetatable(object, Metatable)
+    end,
+}
+
+-- Metatable of the ProductInfo class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Gets the average amount of intermediate produced.
+        --
+        -- Args:
+        -- * self: ProductInfo object.
+        --
+        -- Returns: The average amount of produced intermediate.
+        --
+        getAvg = function(self)
+            return self.probability * (self.amountMax + self.amountMin) / 2
+        end,
+    }
 }
 
 new = ProductInfo.new
