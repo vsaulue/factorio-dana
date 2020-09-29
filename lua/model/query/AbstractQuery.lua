@@ -24,7 +24,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local QueryOrderer = require("lua/model/query/QueryOrderer")
 local QuerySelector = require("lua/model/query/QuerySelector")
 
-local cLogger = ClassLogger.new{className = "Query"}
+local cLogger = ClassLogger.new{className = "AbstractQuery"}
 
 local Metatable
 
@@ -36,20 +36,20 @@ local Metatable
 -- * queryType: String encoding the exact subtype of this query.
 -- * selector: QuerySelector object, generating graph edges from the Force database.
 --
-local Query = ErrorOnInvalidRead.new{
-    -- Factory object able to restore metatables of Query instances.
+local AbstractQuery = ErrorOnInvalidRead.new{
+    -- Factory object able to restore metatables of AbstractQuery instances.
     Factory = AbstractFactory.new{
         getClassNameOfObject = function(object)
             return object.queryType
         end,
     },
 
-    -- Creates a new Query object.
+    -- Creates a new AbstractQuery object.
     --
     -- Args:
-    -- * object: Table to turn into a Query object (required fields: filter,queryType).
+    -- * object: Table to turn into a AbstractQuery object (required fields: filter,queryType).
     --
-    -- Returns: The new Query object.
+    -- Returns: The new AbstractQuery object.
     --
     new = function(object)
         cLogger:assertField(object, "filter")
@@ -60,7 +60,7 @@ local Query = ErrorOnInvalidRead.new{
         return object
     end,
 
-    -- Restores the metatable of a Query object, and all its owned objects.
+    -- Restores the metatable of a AbstractQuery object, and all its owned objects.
     --
     -- Args:
     -- * object: table to modify.
@@ -73,13 +73,13 @@ local Query = ErrorOnInvalidRead.new{
     end,
 }
 
--- Metatable of the Query class.
+-- Metatable of the AbstractQuery class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Executes this query on the specified database.
         --
         -- Args:
-        -- * self: Query object.
+        -- * self: AbstractQuery object.
         -- * force: Force database on which the query will be run.
         --
         -- Returns:
@@ -107,4 +107,4 @@ Metatable = {
     },
 }
 
-return Query
+return AbstractQuery

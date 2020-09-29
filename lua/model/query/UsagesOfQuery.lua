@@ -14,8 +14,8 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractQuery = require("lua/model/query/AbstractQuery")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local Query = require("lua/model/query/Query")
 local ReachableQueryFilter = require("lua/model/query/filter/ReachableQueryFilter")
 
 local QueryType
@@ -28,7 +28,7 @@ local UsagesOfQuery = ErrorOnInvalidRead.new{
     -- Returns: The new UsagesOfQuery object.
     --
     new = function()
-        return Query.new{
+        return AbstractQuery.new{
             filter = ReachableQueryFilter.new{
                 isForward = true,
             },
@@ -37,11 +37,11 @@ local UsagesOfQuery = ErrorOnInvalidRead.new{
     end,
 
     -- Restores the metatable of a UsagesOfQuery object, and all its owned objects.
-    setmetatable = Query.setmetatable,
+    setmetatable = AbstractQuery.setmetatable,
 }
 
--- Identifier for this subtype of Query.
+-- Identifier for this subtype of AbstractQuery.
 QueryType = "UsagesOfQuery"
 
-Query.Factory:registerClass(QueryType, UsagesOfQuery)
+AbstractQuery.Factory:registerClass(QueryType, UsagesOfQuery)
 return UsagesOfQuery

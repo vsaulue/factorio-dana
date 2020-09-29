@@ -14,9 +14,9 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractQuery = require("lua/model/query/AbstractQuery")
 local AllQueryFilter = require("lua/model/query/filter/AllQueryFilter")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local Query = require("lua/model/query/Query")
 
 local QueryType
 
@@ -28,18 +28,18 @@ local FullGraphQuery = ErrorOnInvalidRead.new{
     -- Returns: The new FullGraphQuery object.
     --
     new = function()
-        return Query.new{
+        return AbstractQuery.new{
             filter = AllQueryFilter.new(),
             queryType = QueryType,
         }
     end,
 
-    -- Restores the metatable of a Query object, and all its owned objects.
-    setmetatable = Query.setmetatable,
+    -- Restores the metatable of a FullGraphQuery object, and all its owned objects.
+    setmetatable = AbstractQuery.setmetatable,
 }
 
 -- Identifier for this subtype of Query.
 QueryType = "FullGraphQuery"
 
-Query.Factory:registerClass(QueryType, FullGraphQuery)
+AbstractQuery.Factory:registerClass(QueryType, FullGraphQuery)
 return FullGraphQuery
