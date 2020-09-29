@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractFactory = require("lua/AbstractFactory")
 local AbstractQueryFilter = require("lua/model/query/filter/AbstractQueryFilter")
 local AllQueryFilter = require("lua/model/query/filter/AllQueryFilter")
 local Array = require("lua/containers/Array")
@@ -33,6 +34,13 @@ local Metatable
 -- * selector: QuerySelector object, generating graph edges from the Force database.
 --
 local Query = ErrorOnInvalidRead.new{
+    -- Factory object able to restore metatables of Query instances.
+    Factory = AbstractFactory.new{
+        getClassNameOfObject = function(object)
+            return object.queryType
+        end,
+    },
+
     -- Creates a new Query object.
     --
     -- Returns: The new Query object.
