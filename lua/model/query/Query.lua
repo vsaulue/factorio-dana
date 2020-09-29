@@ -47,13 +47,13 @@ local Query = ErrorOnInvalidRead.new{
     -- Creates a new Query object.
     --
     -- Args:
-    -- * object: Table to turn into a Query object (required field: queryType).
+    -- * object: Table to turn into a Query object (required fields: filter,queryType).
     --
     -- Returns: The new Query object.
     --
     new = function(object)
+        cLogger:assertField(object, "filter")
         cLogger:assertField(object, "queryType")
-        object.filter = object.filter or AllQueryFilter.new()
         object.orderer = QueryOrderer.new()
         object.selector = QuerySelector.new()
         setmetatable(object, Metatable)
