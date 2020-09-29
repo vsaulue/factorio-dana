@@ -43,15 +43,17 @@ local Query = ErrorOnInvalidRead.new{
 
     -- Creates a new Query object.
     --
+    -- Args:
+    -- * object: Table to turn into a Query object.
+    --
     -- Returns: The new Query object.
     --
-    new = function()
-        local result = {
-            filter = AllQueryFilter.new(),
-            orderer = QueryOrderer.new(),
-            queryType = "AbstractQuery",
-            selector = QuerySelector.new(),
-        }
+    new = function(object)
+        local result = object or {}
+        result.filter = result.filter or AllQueryFilter.new()
+        result.queryType = result.queryType or "AbstractQuery"
+        result.orderer = QueryOrderer.new()
+        result.selector = QuerySelector.new()
         setmetatable(result, Metatable)
         return result
     end,
