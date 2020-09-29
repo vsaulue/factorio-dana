@@ -15,8 +15,8 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local ReachableFilterEditor = require("lua/apps/query/gui/ReachableFilterEditor")
-local ReachableQueryFilter = require("lua/model/query/filter/ReachableQueryFilter")
+local HowToMakeQuery = require("lua/model/query/HowToMakeQuery")
+local UsagesOfQuery = require("lua/model/query/UsagesOfQuery")
 
 -- Map of QueryTemplate object (= preset queries), indexed by names.
 --
@@ -28,9 +28,7 @@ local QueryTemplates = ErrorOnInvalidRead.new{
     -- Query to see how to craft a given set of intermediates.
     HowToMake = ErrorOnInvalidRead.new{
         applyTemplate = function(app)
-            app.query.filter = ReachableQueryFilter.new{
-                isForward = false,
-            }
+            app.query = HowToMakeQuery.new()
         end,
 
         caption = {"dana.apps.query.templateSelectWindow.howToMake"},
@@ -39,9 +37,7 @@ local QueryTemplates = ErrorOnInvalidRead.new{
     -- Query to see what can be crafted from a given set of intermediates.
     UsagesOf = ErrorOnInvalidRead.new{
         applyTemplate = function(app)
-            app.query.filter = ReachableQueryFilter.new{
-                isForward = true,
-            }
+            app.query = UsagesOfQuery.new()
         end,
 
         caption = {"dana.apps.query.templateSelectWindow.usagesOf"},

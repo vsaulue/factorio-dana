@@ -20,6 +20,9 @@ local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 
+-- Importing all AbstractFilterEditor to populate its Factory.
+require("lua/apps/query/gui/ReachableFilterEditor")
+
 local cLogger = ClassLogger.new{className = "QueryEditor"}
 
 local BackButton

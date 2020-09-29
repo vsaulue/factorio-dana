@@ -18,6 +18,7 @@ local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
 local AbstractApp = require("lua/apps/AbstractApp")
 local EmptyGraphWindow = require("lua/apps/query/gui/EmptyGraphWindow")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local FullGraphQuery = require("lua/model/query/FullGraphQuery")
 local Query = require("lua/model/query/Query")
 local Stack = require("lua/containers/Stack")
 local TemplateSelectWindow = require("lua/apps/query/gui/TemplateSelectWindow")
@@ -44,7 +45,7 @@ local QueryApp = ErrorOnInvalidRead.new{
     --
     new = function(object)
         object.appName = AppName
-        object.query = Query.new()
+        object.query = FullGraphQuery.new()
 
         AbstractApp.new(object, Metatable)
 
@@ -63,7 +64,7 @@ local QueryApp = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
-        Query.setmetatable(object.query)
+        Query.Factory:restoreMetatable(object.query)
 
         local stack = object.stepWindows
         Stack.setmetatable(stack)

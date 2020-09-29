@@ -15,9 +15,9 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
-local AllQueryFilter = require("lua/model/query/filter/AllQueryFilter")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local FullGraphQuery = require("lua/model/query/FullGraphQuery")
 local GuiElement = require("lua/gui/GuiElement")
 local QueryEditor = require("lua/apps/query/gui/QueryEditor")
 local QueryTemplates = require("lua/apps/query/QueryTemplates")
@@ -113,7 +113,7 @@ FullGraphButton = GuiElement.newSubclass{
     mandatoryFields = {"app"},
     __index = {
         onClick = function(self, event)
-            self.app.query.filter = AllQueryFilter.new()
+            self.app.query = FullGraphQuery.new()
             self.app:runQueryAndDraw()
         end,
     },
