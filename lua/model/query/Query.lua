@@ -18,10 +18,13 @@ local AbstractFactory = require("lua/AbstractFactory")
 local AbstractQueryFilter = require("lua/model/query/filter/AbstractQueryFilter")
 local AllQueryFilter = require("lua/model/query/filter/AllQueryFilter")
 local Array = require("lua/containers/Array")
+local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local QueryOrderer = require("lua/model/query/QueryOrderer")
 local QuerySelector = require("lua/model/query/QuerySelector")
+
+local cLogger = ClassLogger.new{className = "Query"}
 
 local Metatable
 
@@ -44,18 +47,17 @@ local Query = ErrorOnInvalidRead.new{
     -- Creates a new Query object.
     --
     -- Args:
-    -- * object: Table to turn into a Query object.
+    -- * object: Table to turn into a Query object (required field: queryType).
     --
     -- Returns: The new Query object.
     --
     new = function(object)
-        local result = object or {}
-        result.filter = result.filter or AllQueryFilter.new()
-        result.queryType = result.queryType or "AbstractQuery"
-        result.orderer = QueryOrderer.new()
-        result.selector = QuerySelector.new()
-        setmetatable(result, Metatable)
-        return result
+        cLogger:assertField(object, "queryType")
+        object.filter = object.filter or AllQueryFilter.new()
+        object.orderer = QueryOrderer.new()
+        object.selector = QuerySelector.new()
+        setmetatable(object, Metatable)
+        return object
     end,
 
     -- Restores the metatable of a Query object, and all its owned objects.
