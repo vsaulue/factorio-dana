@@ -28,12 +28,12 @@ local UsagesOfQuery = ErrorOnInvalidRead.new{
     -- Returns: The new UsagesOfQuery object.
     --
     new = function()
-        local result = Query.new()
-        result.filter = ReachableQueryFilter.new{
-            isForward = true,
+        return Query.new{
+            filter = ReachableQueryFilter.new{
+                isForward = true,
+            },
+            queryType = QueryType,
         }
-        result.queryType = QueryType
-        return result
     end,
 
     -- Restores the metatable of a UsagesOfQuery object, and all its owned objects.
