@@ -28,12 +28,12 @@ local HowToMakeQuery = ErrorOnInvalidRead.new{
     -- Returns: The new HowToMakeQuery object.
     --
     new = function()
-        local result = Query.new()
-        result.filter = ReachableQueryFilter.new{
-            isForward = false,
+        return Query.new{
+            filter = ReachableQueryFilter.new{
+                isForward = false,
+            },
+            queryType = QueryType,
         }
-        result.queryType = QueryType
-        return result
     end,
 
     -- Restores the metatable of a HowToMakeQuery object, and all its owned objects.
