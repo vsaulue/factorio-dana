@@ -29,6 +29,7 @@ local Metatable
 -- RO Fields:
 -- * filter: AbstractQueryFilter object, selecting the edges of the output graph.
 -- * orderer: QueryOrderer object, generating a partial order used by the layout.
+-- * queryType: String encoding the exact subtype of this query.
 -- * selector: QuerySelector object, generating graph edges from the Force database.
 --
 local Query = ErrorOnInvalidRead.new{
@@ -40,6 +41,7 @@ local Query = ErrorOnInvalidRead.new{
         local result = {
             filter = AllQueryFilter.new(),
             orderer = QueryOrderer.new(),
+            queryType = "AbstractQuery",
             selector = QuerySelector.new(),
         }
         setmetatable(result, Metatable)
