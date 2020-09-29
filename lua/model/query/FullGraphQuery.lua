@@ -28,10 +28,10 @@ local FullGraphQuery = ErrorOnInvalidRead.new{
     -- Returns: The new FullGraphQuery object.
     --
     new = function()
-        local result = Query.new()
-        result.filter = AllQueryFilter.new()
-        result.queryType = QueryType
-        return result
+        return Query.new{
+            filter = AllQueryFilter.new(),
+            queryType = QueryType,
+        }
     end,
 
     -- Restores the metatable of a Query object, and all its owned objects.
