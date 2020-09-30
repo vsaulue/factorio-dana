@@ -33,7 +33,6 @@ local Metatable
 -- RO Fields:
 -- * filter: AbstractQueryFilter object, selecting the edges of the output graph.
 -- * queryType: String encoding the exact subtype of this query.
--- * selector: QuerySelector object, generating graph edges from the Force database.
 --
 local AbstractQuery = ErrorOnInvalidRead.new{
     -- Factory object able to restore metatables of AbstractQuery instances.
@@ -53,7 +52,6 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     new = function(object)
         cLogger:assertField(object, "filter")
         cLogger:assertField(object, "queryType")
-        object.selector = QuerySelector.new()
         setmetatable(object, Metatable)
         return object
     end,
@@ -66,7 +64,6 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         setmetatable(object, Metatable)
         AbstractQueryFilter.Factory:restoreMetatable(object.filter)
-        QuerySelector.setmetatable(object.selector)
     end,
 }
 
@@ -86,7 +83,8 @@ Metatable = {
         --   way that'll (hopefully) make sense to the viewer.
         --
         execute = function(self, force)
-            local fullGraph = self.selector:makeHypergraph(force)
+            local selector = QuerySelector.new()
+            local fullGraph = selector:makeHypergraph(force)
 
             local orderer = QueryOrderer.new()
             local vertexDists = orderer:makeOrder(force, fullGraph)
