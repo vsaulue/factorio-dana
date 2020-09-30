@@ -26,6 +26,11 @@ local QueryType
 
 -- Query generating a subgraph showing how to craft some given intermediates.
 --
+-- Inherits from AbstractQuery.
+--
+-- Fields:
+-- * filter: ReachableQueryFilter used by this query.
+--
 local HowToMakeQuery = ErrorOnInvalidRead.new{
     -- Creates a new HowToMakeQuery object.
     --

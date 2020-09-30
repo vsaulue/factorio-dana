@@ -29,7 +29,6 @@ local cLogger = ClassLogger.new{className = "AbstractQuery"}
 -- Class used to generate customized hypergraphs from a Force database.
 --
 -- RO Fields:
--- * filter: AbstractQueryFilter object, selecting the edges of the output graph.
 -- * queryType: String encoding the exact subtype of this query.
 --
 local AbstractQuery = ErrorOnInvalidRead.new{
@@ -43,13 +42,12 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     -- Creates a new AbstractQuery object.
     --
     -- Args:
-    -- * object: Table to turn into a AbstractQuery object (required fields: filter,queryType).
+    -- * object: Table to turn into a AbstractQuery object (required field: queryType).
     -- * metatable: Metatable to set.
     --
     -- Returns: The new AbstractQuery object.
     --
     new = function(object, metatable)
-        cLogger:assertField(object, "filter")
         cLogger:assertField(object, "queryType")
         setmetatable(object, metatable)
         return object

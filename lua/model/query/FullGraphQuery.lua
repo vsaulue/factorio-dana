@@ -26,6 +26,11 @@ local QueryType
 
 -- Query generating the full crafting graph.
 --
+-- Inherits from AbstractQuery.
+--
+-- Fields:
+-- * filter: AllQueryFilter used by this query.
+--
 local FullGraphQuery = ErrorOnInvalidRead.new{
     -- Creates a new FullGraphQuery object.
     --
