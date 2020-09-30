@@ -54,17 +54,6 @@ local AbstractQuery = ErrorOnInvalidRead.new{
         setmetatable(object, metatable)
         return object
     end,
-
-    -- Restores the metatable of a AbstractQuery object, and all its owned objects.
-    --
-    -- Args:
-    -- * object: table to modify.
-    -- * metatable: Metatable to set.
-    --
-    setmetatable = function(object, metatable)
-        setmetatable(object, metatable)
-        AbstractQueryFilter.Factory:restoreMetatable(object.filter)
-    end,
 }
 
 --[[
