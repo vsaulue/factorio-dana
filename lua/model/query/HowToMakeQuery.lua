@@ -46,7 +46,8 @@ local HowToMakeQuery = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        AbstractQuery.setmetatable(object, Metatable)
+        setmetatable(object, Metatable)
+        ReachableQueryFilter.setmetatable(object.filter)
     end,
 }
 
