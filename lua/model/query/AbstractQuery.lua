@@ -32,7 +32,6 @@ local Metatable
 --
 -- RO Fields:
 -- * filter: AbstractQueryFilter object, selecting the edges of the output graph.
--- * orderer: QueryOrderer object, generating a partial order used by the layout.
 -- * queryType: String encoding the exact subtype of this query.
 -- * selector: QuerySelector object, generating graph edges from the Force database.
 --
@@ -54,7 +53,6 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     new = function(object)
         cLogger:assertField(object, "filter")
         cLogger:assertField(object, "queryType")
-        object.orderer = QueryOrderer.new()
         object.selector = QuerySelector.new()
         setmetatable(object, Metatable)
         return object
@@ -68,7 +66,6 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         setmetatable(object, Metatable)
         AbstractQueryFilter.Factory:restoreMetatable(object.filter)
-        QueryOrderer.setmetatable(object.orderer)
         QuerySelector.setmetatable(object.selector)
     end,
 }
@@ -90,7 +87,9 @@ Metatable = {
         --
         execute = function(self, force)
             local fullGraph = self.selector:makeHypergraph(force)
-            local vertexDists = self.orderer:makeOrder(force, fullGraph)
+
+            local orderer = QueryOrderer.new()
+            local vertexDists = orderer:makeOrder(force, fullGraph)
 
             local fullEdgeSet = {}
             for _,edge in pairs(fullGraph.edges) do
