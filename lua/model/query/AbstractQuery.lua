@@ -26,8 +26,6 @@ local QuerySelector = require("lua/model/query/QuerySelector")
 
 local cLogger = ClassLogger.new{className = "AbstractQuery"}
 
-local Metatable
-
 -- Class used to generate customized hypergraphs from a Force database.
 --
 -- RO Fields:
@@ -53,7 +51,7 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     new = function(object, metatable)
         cLogger:assertField(object, "filter")
         cLogger:assertField(object, "queryType")
-        setmetatable(object, metatable or Metatable)
+        setmetatable(object, metatable)
         return object
     end,
 
@@ -64,11 +62,12 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     -- * metatable: Metatable to set.
     --
     setmetatable = function(object, metatable)
-        setmetatable(object, metatable or Metatable)
+        setmetatable(object, metatable)
         AbstractQueryFilter.Factory:restoreMetatable(object.filter)
     end,
 }
 
+--[[
 -- Metatable of the AbstractQuery class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
@@ -84,26 +83,9 @@ Metatable = {
         --   closest to the raw resources gathered, and can be used by the layout to display transform cycles in a
         --   way that'll (hopefully) make sense to the viewer.
         --
-        execute = function(self, force)
-            local selector = QuerySelector.new()
-            local fullGraph = selector:makeHypergraph(force)
-
-            local orderer = QueryOrderer.new()
-            local vertexDists = orderer:makeOrder(force, fullGraph)
-
-            local fullEdgeSet = {}
-            for _,edge in pairs(fullGraph.edges) do
-                fullEdgeSet[edge] = true
-            end
-            local filteredEdgeSet = self.filter:execute(fullEdgeSet)
-            local resultGraph = DirectedHypergraph.new()
-            for edge in pairs(filteredEdgeSet) do
-                resultGraph:addEdge(edge)
-            end
-
-            return resultGraph,vertexDists
-        end,
+        execute = function(self, force) end,
     },
 }
+--]]
 
 return AbstractQuery
