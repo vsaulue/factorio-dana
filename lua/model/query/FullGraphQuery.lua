@@ -15,7 +15,6 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractQuery = require("lua/model/query/AbstractQuery")
-local AllQueryFilter = require("lua/model/query/filter/AllQueryFilter")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local QueryOrderer = require("lua/model/query/QueryOrderer")
@@ -28,9 +27,6 @@ local QueryType
 --
 -- Inherits from AbstractQuery.
 --
--- Fields:
--- * filter: AllQueryFilter used by this query.
---
 local FullGraphQuery = ErrorOnInvalidRead.new{
     -- Creates a new FullGraphQuery object.
     --
@@ -38,7 +34,6 @@ local FullGraphQuery = ErrorOnInvalidRead.new{
     --
     new = function()
         return AbstractQuery.new({
-            filter = AllQueryFilter.new(),
             queryType = QueryType,
         }, Metatable)
     end,
@@ -50,7 +45,6 @@ local FullGraphQuery = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
-        AllQueryFilter.setmetatable(object.filter)
     end,
 }
 
@@ -65,17 +59,7 @@ Metatable = {
             local orderer = QueryOrderer.new()
             local vertexDists = orderer:makeOrder(force, fullGraph)
 
-            local fullEdgeSet = {}
-            for _,edge in pairs(fullGraph.edges) do
-                fullEdgeSet[edge] = true
-            end
-            local filteredEdgeSet = self.filter:execute(fullEdgeSet)
-            local resultGraph = DirectedHypergraph.new()
-            for edge in pairs(filteredEdgeSet) do
-                resultGraph:addEdge(edge)
-            end
-
-            return resultGraph,vertexDists
+            return fullGraph,vertexDists
         end,
     },
 }
