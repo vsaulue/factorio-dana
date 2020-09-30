@@ -46,13 +46,14 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     --
     -- Args:
     -- * object: Table to turn into a AbstractQuery object (required fields: filter,queryType).
+    -- * metatable: Metatable to set.
     --
     -- Returns: The new AbstractQuery object.
     --
-    new = function(object)
+    new = function(object, metatable)
         cLogger:assertField(object, "filter")
         cLogger:assertField(object, "queryType")
-        setmetatable(object, Metatable)
+        setmetatable(object, metatable or Metatable)
         return object
     end,
 
@@ -60,9 +61,10 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     --
     -- Args:
     -- * object: table to modify.
+    -- * metatable: Metatable to set.
     --
-    setmetatable = function(object)
-        setmetatable(object, Metatable)
+    setmetatable = function(object, metatable)
+        setmetatable(object, metatable or Metatable)
         AbstractQueryFilter.Factory:restoreMetatable(object.filter)
     end,
 }
