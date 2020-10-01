@@ -15,7 +15,6 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractFactory = require("lua/AbstractFactory")
-local AbstractQueryFilter = require("lua/model/query/filter/AbstractQueryFilter")
 local Array = require("lua/containers/Array")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")

@@ -14,7 +14,6 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractQueryFilter = require("lua/model/query/filter/AbstractQueryFilter")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
@@ -28,8 +27,6 @@ local FilterTypeName
 --
 -- This filter can either look for what can be produced from the set of Intermediate (forward parsing),
 -- or look for transforms producing any element in the set (backward parsing).
---
--- Inherits from AbstractQueryFilter.
 --
 -- Fields:
 -- * allowOtherIntermediates: boolean to include transforms that use other intermediates.
@@ -63,8 +60,7 @@ local ReachableQueryFilter = ErrorOnInvalidRead.new{
     setmetatable = ErrorOnInvalidRead.setmetatable,
 }
 
--- Identifier for this subtype of AbstractQueryFilter.
+-- Identifier for this type of filter.
 FilterTypeName = "reachable"
 
-AbstractQueryFilter.Factory:registerClass(FilterTypeName, ReachableQueryFilter)
 return ReachableQueryFilter
