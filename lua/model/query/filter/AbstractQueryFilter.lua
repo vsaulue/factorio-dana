@@ -46,25 +46,8 @@ local AbstractQueryFilter = ErrorOnInvalidRead.new{
     new = function(object, metatable)
         cLogger:assertField(object, "filterType")
         setmetatable(object, metatable)
-        cLogger:assertField(object, "execute")
         return object
     end,
 }
-
---[[
-Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Runs this filter on a specific edge set.
-        --
-        -- Args:
-        -- * self: AbstractQueryFilter object.
-        -- * edgeSet: Input set of DirectedHyperGraphEdge.
-        --
-        -- Returns: A new set containing the edges selected by this filter.
-        --
-        execute = function(self, edgeSet) end,
-    }
-}
-]]
 
 return AbstractQueryFilter

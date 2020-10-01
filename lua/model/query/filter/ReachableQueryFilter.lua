@@ -22,7 +22,6 @@ local HyperMinDist = require("lua/hypergraph/algorithms/HyperMinDist")
 
 local cLogger = ClassLogger.new{className = "ReachableQueryFilter"}
 
-local Metatable
 local FilterTypeName
 
 -- Filters recursively selecting the transforms reachable from a given set of Intermediate.
@@ -52,7 +51,8 @@ local ReachableQueryFilter = ErrorOnInvalidRead.new{
         object.allowOtherIntermediates = object.allowOtherIntermediates or false
         object.intermediateSet = object.intermediateSet or {}
         object.filterType = FilterTypeName
-        return AbstractQueryFilter.new(object, Metatable)
+        ErrorOnInvalidRead.setmetatable(object)
+        return object
     end,
 
     -- Restores the metatable of a ReachableQueryFilter object.
@@ -60,37 +60,7 @@ local ReachableQueryFilter = ErrorOnInvalidRead.new{
     -- Args:
     -- * object: Table to modify.
     --
-    setmetatable = function(object)
-        setmetatable(object, Metatable)
-    end,
-}
-
--- Metatable of the ReachableQueryFilter type.
-Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Implements AbstractQueryFilter:execute().
-        execute = function(self, edgeSet)
-            local graph = DirectedHypergraph.new()
-            for edge in pairs(edgeSet) do
-                graph:addEdge(edge)
-            end
-
-            local distFunction
-            if self.isForward then
-                distFunction = HyperMinDist.fromSource
-            else
-                distFunction = HyperMinDist.toDest
-            end
-
-            local maxDepth = rawget(self, "maxDepth")
-            local _,edgeDists = distFunction(graph, self.intermediateSet, self.allowOtherIntermediates, maxDepth)
-            local result = {}
-            for edgeIndex in pairs(edgeDists) do
-                result[graph.edges[edgeIndex]] = true
-            end
-            return result
-        end,
-    },
+    setmetatable = ErrorOnInvalidRead.setmetatable,
 }
 
 -- Identifier for this subtype of AbstractQueryFilter.
