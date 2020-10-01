@@ -17,6 +17,7 @@
 local AbstractQuery = require("lua/model/query/AbstractQuery")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local HyperMinDist = require("lua/hypergraph/algorithms/HyperMinDist")
 local ReachableQueryFilter = require("lua/model/query/filter/ReachableQueryFilter")
 local QueryOrderer = require("lua/model/query/QueryOrderer")
 local QuerySelector = require("lua/model/query/QuerySelector")
@@ -65,19 +66,16 @@ Metatable = {
             local fullGraph = selector:makeHypergraph(force)
 
             local orderer = QueryOrderer.new()
-            local vertexDists = orderer:makeOrder(force, fullGraph)
+            local fullOrder = orderer:makeOrder(force, fullGraph)
 
-            local fullEdgeSet = {}
-            for _,edge in pairs(fullGraph.edges) do
-                fullEdgeSet[edge] = true
-            end
-            local filteredEdgeSet = self.filter:execute(fullEdgeSet)
+            local filter = self.filter
+            local _,edgeDists = HyperMinDist.fromSource(fullGraph, filter.intermediateSet, filter.allowOtherIntermediates, rawget(filter, "maxDepth"))
             local resultGraph = DirectedHypergraph.new()
-            for edge in pairs(filteredEdgeSet) do
-                resultGraph:addEdge(edge)
+            for edgeIndex in pairs(edgeDists) do
+                resultGraph:addEdge(fullGraph.edges[edgeIndex])
             end
 
-            return resultGraph,vertexDists
+            return resultGraph,fullOrder
         end,
     },
 }
