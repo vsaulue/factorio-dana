@@ -14,14 +14,15 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractQueryEditor = require("lua/apps/query/editor/AbstractQueryEditor")
 local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
-local AbstractFilterEditor = require("lua/apps/query/gui/AbstractFilterEditor")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 
--- Importing all AbstractFilterEditor to populate its Factory.
-require("lua/apps/query/gui/ReachableFilterEditor")
+-- Importing all AbstractQueryEditor to populate its Factory.
+require("lua/apps/query/editor/HowToMakeEditor")
+require("lua/apps/query/editor/UsagesOfEditor")
 
 local cLogger = ClassLogger.new{className = "QueryEditorWindow"}
 
@@ -34,7 +35,7 @@ local StepName
 -- RO Fields:
 -- * backButton: BackButton object of this window.
 -- * drawButton: DrawButton of this window.
--- * filterEditor: AbstractFilterEditor of this window.
+-- * queryEditor: AbstractQueryEditor of this window.
 --
 local QueryEditorWindow = ErrorOnInvalidRead.new{
     -- Creates a new QueryEditorWindow object.
@@ -56,9 +57,9 @@ local QueryEditorWindow = ErrorOnInvalidRead.new{
             style = "inside_shallow_frame_with_padding",
             direction = "vertical",
         }
-        object.filterEditor = AbstractFilterEditor.Factory:make{
+        object.queryEditor = AbstractQueryEditor.Factory:make{
             appResources = app.appController.appResources,
-            filter = app.query.filter,
+            query = app.query,
             root = innerFrame,
         }
         local bottomFlow = object.frame.add{
@@ -97,7 +98,7 @@ local QueryEditorWindow = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         BackButton.setmetatable(object.backButton)
         DrawButton.setmetatable(object.drawButton)
-        AbstractFilterEditor.Factory:restoreMetatable(object.filterEditor)
+        AbstractQueryEditor.Factory:restoreMetatable(object.queryEditor)
         setmetatable(object, AbstractStepWindow.Metatable)
     end,
 }
