@@ -23,7 +23,7 @@ local GuiElement = require("lua/gui/GuiElement")
 -- Importing all AbstractFilterEditor to populate its Factory.
 require("lua/apps/query/gui/ReachableFilterEditor")
 
-local cLogger = ClassLogger.new{className = "QueryEditor"}
+local cLogger = ClassLogger.new{className = "QueryEditorWindow"}
 
 local BackButton
 local DrawButton
@@ -36,13 +36,13 @@ local StepName
 -- * drawButton: DrawButton of this window.
 -- * filterEditor: AbstractFilterEditor of this window.
 --
-local QueryEditor = ErrorOnInvalidRead.new{
-    -- Creates a new QueryEditor object.
+local QueryEditorWindow = ErrorOnInvalidRead.new{
+    -- Creates a new QueryEditorWindow object.
     --
     -- Args:
-    -- * object: Table to turn into a QueryEditor object (required field: app).
+    -- * object: Table to turn into a QueryEditorWindow object (required field: app).
     --
-    -- Returns: The argument turned into a QueryEditor object.
+    -- Returns: The argument turned into a QueryEditorWindow object.
     --
     new = function(object)
         object.stepName = StepName
@@ -89,7 +89,7 @@ local QueryEditor = ErrorOnInvalidRead.new{
         return object
     end,
 
-    -- Restores the metatable of a QueryEditor object, and all its owned objects.
+    -- Restores the metatable of a QueryEditorWindow object, and all its owned objects.
     --
     -- Args:
     -- * object: table to modify.
@@ -110,7 +110,7 @@ local QueryEditor = ErrorOnInvalidRead.new{
 -- * app: QueryApp owning this button.
 --
 BackButton = GuiElement.newSubclass{
-    className = "QueryEditor/BackButton",
+    className = "QueryEditorWindow/BackButton",
     mandatoryFields = {"app"},
     __index = {
         onClick = function(self, event)
@@ -127,7 +127,7 @@ BackButton = GuiElement.newSubclass{
 -- * app: QueryApp owning this button.
 --
 DrawButton = GuiElement.newSubclass{
-    className = "QueryEditor/DrawButton",
+    className = "QueryEditorWindow/DrawButton",
     mandatoryFields = {"app"},
     __index = {
         onClick = function(self, event)
@@ -139,5 +139,5 @@ DrawButton = GuiElement.newSubclass{
 -- Unique name for this step.
 StepName = "queryEditor"
 
-AbstractStepWindow.Factory:registerClass(StepName, QueryEditor)
-return QueryEditor
+AbstractStepWindow.Factory:registerClass(StepName, QueryEditorWindow)
+return QueryEditorWindow
