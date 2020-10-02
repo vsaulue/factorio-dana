@@ -16,7 +16,7 @@
 
 local AbstractQueryEditor = require("lua/apps/query/editor/AbstractQueryEditor")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local ReachableFilterEditor = require("lua/apps/query/gui/ReachableFilterEditor")
+local MinDistParamsEditor = require("lua/apps/query/gui/MinDistParamsEditor")
 
 local QueryType
 
@@ -25,7 +25,7 @@ local QueryType
 -- Inherits from AbstractQueryEditor.
 --
 -- RO Fields:
--- * paramsEditor: ReachableFilterEditor object editing the filter.
+-- * paramsEditor: MinDistParamsEditor object editing the filter.
 --
 local UsagesOfEditor = ErrorOnInvalidRead.new{
     -- Creates a new UsagesOfEditor object.
@@ -38,7 +38,7 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
     new = function(object)
         AbstractQueryEditor.check(object, QueryType)
         ErrorOnInvalidRead.setmetatable(object)
-        object.paramsEditor = ReachableFilterEditor.new{
+        object.paramsEditor = MinDistParamsEditor.new{
             appResources = object.appResources,
             filter = object.query.filter,
             isForward = true,
@@ -54,7 +54,7 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         ErrorOnInvalidRead.setmetatable(object)
-        ReachableFilterEditor.setmetatable(object.paramsEditor)
+        MinDistParamsEditor.setmetatable(object.paramsEditor)
     end,
 }
 

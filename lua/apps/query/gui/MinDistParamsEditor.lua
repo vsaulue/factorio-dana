@@ -22,13 +22,13 @@ local GuiAlign = require("lua/gui/GuiAlign")
 local GuiElement = require("lua/gui/GuiElement")
 local IntermediateSetEditor = require("lua/apps/query/gui/IntermediateSetEditor")
 
-local cLogger = ClassLogger.new{className = "ReachableFilterEditor"}
+local cLogger = ClassLogger.new{className = "MinDistParamsEditor"}
 
 local DepthCheckbox
 local DepthField
 local LocalisedStrings
 
--- Filter editor for the ReachableQueryFilter class.
+-- Filter editor for the MinDistParams class.
 --
 -- Inherits from AbstractParamsEditor.
 --
@@ -40,13 +40,13 @@ local LocalisedStrings
 --              False to look for ingredients.
 -- * setEditor: IntermediateSetEditor object used on the source set.
 --
-local ReachableFilterEditor = ErrorOnInvalidRead.new{
-    -- Creates a new ReachableFilterEditor object.
+local MinDistParamsEditor = ErrorOnInvalidRead.new{
+    -- Creates a new MinDistParamsEditor object.
     --
     -- Args:
-    -- * object: Table to turn into a ReachableFilterEditor object (required fields: see AbstractParamsEditor).
+    -- * object: Table to turn into a MinDistParamsEditor object (required fields: see AbstractParamsEditor).
     --
-    -- Returns: The argument turned into a ReachableFilterEditor object.
+    -- Returns: The argument turned into a MinDistParamsEditor object.
     --
     new = function(object)
         AbstractParamsEditor.new(object)
@@ -111,7 +111,7 @@ local ReachableFilterEditor = ErrorOnInvalidRead.new{
         return object
     end,
 
-    -- Restores the metatable of a ReachableFilterEditor object, and all its owned objects.
+    -- Restores the metatable of a MinDistParamsEditor object, and all its owned objects.
     --
     -- Args:
     -- * object: table to modify.
@@ -128,10 +128,10 @@ local ReachableFilterEditor = ErrorOnInvalidRead.new{
 -- Checkbox to enable the maxDepth parameter.
 --
 -- RO Fields:
--- * filterEditor: ReachableFilterEditor object owning this checkbox.
+-- * filterEditor: MinDistParamsEditor object owning this checkbox.
 --
 DepthCheckbox = GuiElement.newSubclass{
-    className = "ReachableFilterEditor/DepthCheckbox",
+    className = "MinDistParamsEditor/DepthCheckbox",
     mandatoryFields = {"filterEditor"},
     __index = {
         onCheckedStateChanged = function(self, event)
@@ -152,10 +152,10 @@ DepthCheckbox = GuiElement.newSubclass{
 -- Textfield to set the maxDepth value.
 --
 -- RO Fields:
--- * filterEditor; ReachableFilterEditor object owning this textfield.
+-- * filterEditor; MinDistParamsEditor object owning this textfield.
 --
 DepthField = GuiElement.newSubclass{
-    className = "ReachableFilterEditor/DepthField",
+    className = "MinDistParamsEditor/DepthField",
     mandatoryFields = {"filterEditor"},
     __index = {
         onTextChanged = function(self, event)
@@ -192,4 +192,4 @@ LocalisedStrings = ErrorOnInvalidRead.new{
     },
 }
 
-return ReachableFilterEditor
+return MinDistParamsEditor
