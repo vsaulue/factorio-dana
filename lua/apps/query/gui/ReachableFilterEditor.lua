@@ -195,5 +195,4 @@ LocalisedStrings = ErrorOnInvalidRead.new{
     },
 }
 
-AbstractFilterEditor.Factory:registerClass("reachable", ReachableFilterEditor)
 return ReachableFilterEditor

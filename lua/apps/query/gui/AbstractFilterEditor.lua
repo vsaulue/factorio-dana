@@ -14,7 +14,6 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractFactory = require("lua/AbstractFactory")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
@@ -28,15 +27,6 @@ local cLogger = ClassLogger.new{className = "queryApp/AbstractFilterEditor"}
 -- * root: LuaGuiElement in which the GUI is created.
 --
 local AbstractFilterEditor = ErrorOnInvalidRead.new{
-    -- Factory instance able to restore metatables of AbstractFilterEditor objects.
-    Factory = AbstractFactory.new{
-        enableMake = true,
-
-        getClassNameOfObject = function(object)
-            return object.filter.filterType
-        end,
-    },
-
     -- Creates a new AbstractFilterEditor object.
     --
     -- Args:
