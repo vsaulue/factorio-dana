@@ -14,7 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractFilterEditor = require("lua/apps/query/gui/AbstractFilterEditor")
+local AbstractParamsEditor = require("lua/apps/query/gui/AbstractParamsEditor")
 local CheckboxUpdater = require("lua/gui/CheckboxUpdater")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
@@ -30,7 +30,7 @@ local LocalisedStrings
 
 -- Filter editor for the ReachableQueryFilter class.
 --
--- Inherits from AbstractFilterEditor.
+-- Inherits from AbstractParamsEditor.
 --
 -- RO Fields:
 -- * allowOtherCheckbox: CheckboxUpdater handling the allowOtherIntermediates field.
@@ -44,12 +44,12 @@ local ReachableFilterEditor = ErrorOnInvalidRead.new{
     -- Creates a new ReachableFilterEditor object.
     --
     -- Args:
-    -- * object: Table to turn into a ReachableFilterEditor object (required fields: see AbstractFilterEditor).
+    -- * object: Table to turn into a ReachableFilterEditor object (required fields: see AbstractParamsEditor).
     --
     -- Returns: The argument turned into a ReachableFilterEditor object.
     --
     new = function(object)
-        AbstractFilterEditor.new(object)
+        AbstractParamsEditor.new(object)
         ErrorOnInvalidRead.setmetatable(object)
         local isForward = cLogger:assertField(object, "isForward")
         local localisedStrings = LocalisedStrings[isForward]

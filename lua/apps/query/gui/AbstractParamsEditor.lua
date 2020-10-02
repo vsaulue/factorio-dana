@@ -17,22 +17,22 @@
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
-local cLogger = ClassLogger.new{className = "queryApp/AbstractFilterEditor"}
+local cLogger = ClassLogger.new{className = "queryApp/AbstractParamsEditor"}
 
--- Class for GUIs used to edit an AbstractQueryFilter.
+-- Class for GUIs used to edit some parameters of a query.
 --
 -- RO Fields:
 -- * appResources: AppResources of the application owning this GUI.
 -- * filter: AbstractQueryFilter modified by this GUI.
 -- * root: LuaGuiElement in which the GUI is created.
 --
-local AbstractFilterEditor = ErrorOnInvalidRead.new{
-    -- Creates a new AbstractFilterEditor object.
+local AbstractParamsEditor = ErrorOnInvalidRead.new{
+    -- Creates a new AbstractParamsEditor object.
     --
     -- Args:
-    -- * object: Table to turn into an AbstractFilterEditor object.
+    -- * object: Table to turn into an AbstractParamsEditor object.
     --
-    -- Returns: The argument turned into an AbstractFilterEditor object.
+    -- Returns: The argument turned into an AbstractParamsEditor object.
     --
     new = function(object)
         cLogger:assertField(object, "appResources")
@@ -42,4 +42,4 @@ local AbstractFilterEditor = ErrorOnInvalidRead.new{
     end,
 }
 
-return AbstractFilterEditor
+return AbstractParamsEditor
