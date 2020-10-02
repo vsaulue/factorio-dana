@@ -19,25 +19,22 @@ local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperMinDist = require("lua/hypergraph/algorithms/HyperMinDist")
 
-local cLogger = ClassLogger.new{className = "ReachableQueryFilter"}
+local cLogger = ClassLogger.new{className = "MinDistParams"}
 
--- Filters recursively selecting the transforms reachable from a given set of Intermediate.
---
--- This filter can either look for what can be produced from the set of Intermediate (forward parsing),
--- or look for transforms producing any element in the set (backward parsing).
+-- Parameters used for a breadth-first search from/to specific vertices of the graph.
 --
 -- Fields:
 -- * allowOtherIntermediates: boolean to include transforms that use other intermediates.
 -- * intermediateSet: Set of Intermediate, whose products must be selected.
 -- * maxDepth (optional): Maximum depth for the breadth-first search (default: unlimited).
 --
-local ReachableQueryFilter = ErrorOnInvalidRead.new{
-    -- Creates a new ReachableQueryFilter object.
+local MinDistParams = ErrorOnInvalidRead.new{
+    -- Creates a new MinDistParams object.
     --
     -- Args:
-    -- * object: Table to turn into a ReachableQueryFilter object.
+    -- * object: Table to turn into a MinDistParams object.
     --
-    -- Returns: The argument turned into a ReachableQueryFilter object.
+    -- Returns: The argument turned into a MinDistParams object.
     --
     new = function(object)
         object.allowOtherIntermediates = object.allowOtherIntermediates or false
@@ -46,7 +43,7 @@ local ReachableQueryFilter = ErrorOnInvalidRead.new{
         return object
     end,
 
-    -- Restores the metatable of a ReachableQueryFilter object.
+    -- Restores the metatable of a MinDistParams object.
     --
     -- Args:
     -- * object: Table to modify.
@@ -54,4 +51,4 @@ local ReachableQueryFilter = ErrorOnInvalidRead.new{
     setmetatable = ErrorOnInvalidRead.setmetatable,
 }
 
-return ReachableQueryFilter
+return MinDistParams

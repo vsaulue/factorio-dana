@@ -18,7 +18,7 @@ local AbstractQuery = require("lua/model/query/AbstractQuery")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperMinDist = require("lua/hypergraph/algorithms/HyperMinDist")
-local ReachableQueryFilter = require("lua/model/query/filter/ReachableQueryFilter")
+local MinDistParams = require("lua/model/query/params/MinDistParams")
 local QueryOrderer = require("lua/model/query/QueryOrderer")
 local QuerySelector = require("lua/model/query/QuerySelector")
 
@@ -30,7 +30,7 @@ local QueryType
 -- Inherits from AbstractQuery.
 --
 -- Fields:
--- * filter: ReachableQueryFilter used by this query.
+-- * filter: MinDistParams to configure the search for the products.
 --
 local UsagesOfQuery = ErrorOnInvalidRead.new{
     -- Creates a new UsagesOfQuery object.
@@ -39,7 +39,7 @@ local UsagesOfQuery = ErrorOnInvalidRead.new{
     --
     new = function()
         return AbstractQuery.new({
-            filter = ReachableQueryFilter.new{
+            filter = MinDistParams.new{
                 isForward = true,
             },
             queryType = QueryType,
@@ -53,7 +53,7 @@ local UsagesOfQuery = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
-        ReachableQueryFilter.setmetatable(object.filter)
+        MinDistParams.setmetatable(object.filter)
     end,
 }
 
