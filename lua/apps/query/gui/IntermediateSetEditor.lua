@@ -129,11 +129,11 @@ AddElemButton = GuiElement.newSubclass{
     },
 }
 
--- Adds an intermediate to the set of source intermediates of this filter.
+-- Adds an intermediate to the set.
 --
 -- Args:
 -- * self: IntermediateSetEditor object.
--- * intermediate: Intermediate to add to the source set of the filter.
+-- * intermediate: Intermediate to add.
 --
 addIntermediate = function(self, intermediate)
     self.output[intermediate] = true
