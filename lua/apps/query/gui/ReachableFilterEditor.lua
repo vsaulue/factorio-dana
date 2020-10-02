@@ -51,9 +51,6 @@ local ReachableFilterEditor = ErrorOnInvalidRead.new{
     new = function(object)
         AbstractFilterEditor.new(object)
         ErrorOnInvalidRead.setmetatable(object)
-        if object.filter.filterType ~= "reachable" then
-            cLogger:error("Invalid filter type: " .. object.filter.filterType)
-        end
         local isForward = cLogger:assertField(object, "isForward")
         local localisedStrings = LocalisedStrings[isForward]
         -- Set selector.

@@ -21,8 +21,6 @@ local HyperMinDist = require("lua/hypergraph/algorithms/HyperMinDist")
 
 local cLogger = ClassLogger.new{className = "ReachableQueryFilter"}
 
-local FilterTypeName
-
 -- Filters recursively selecting the transforms reachable from a given set of Intermediate.
 --
 -- This filter can either look for what can be produced from the set of Intermediate (forward parsing),
@@ -44,7 +42,6 @@ local ReachableQueryFilter = ErrorOnInvalidRead.new{
     new = function(object)
         object.allowOtherIntermediates = object.allowOtherIntermediates or false
         object.intermediateSet = object.intermediateSet or {}
-        object.filterType = FilterTypeName
         ErrorOnInvalidRead.setmetatable(object)
         return object
     end,
@@ -56,8 +53,5 @@ local ReachableQueryFilter = ErrorOnInvalidRead.new{
     --
     setmetatable = ErrorOnInvalidRead.setmetatable,
 }
-
--- Identifier for this type of filter.
-FilterTypeName = "reachable"
 
 return ReachableQueryFilter
