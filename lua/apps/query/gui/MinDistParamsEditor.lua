@@ -90,7 +90,7 @@ local MinDistParamsEditor = ErrorOnInvalidRead.new{
             direction = "horizontal",
         }
         object.depthCheckbox = DepthCheckbox.new{
-            filterEditor = object,
+            paramsEditor = object,
             rawElement = GuiAlign.makeVerticallyCentered(depthFlow, {
                 type = "checkbox",
                 caption = {"dana.apps.query.reachableFilterEditor.maxDepth"},
@@ -98,7 +98,7 @@ local MinDistParamsEditor = ErrorOnInvalidRead.new{
             }),
         }
         object.depthField = DepthField.new{
-            filterEditor = object,
+            paramsEditor = object,
             rawElement = depthFlow.add{
                 type = "textfield",
                 allow_negative = false,
@@ -128,22 +128,22 @@ local MinDistParamsEditor = ErrorOnInvalidRead.new{
 -- Checkbox to enable the maxDepth parameter.
 --
 -- RO Fields:
--- * filterEditor: MinDistParamsEditor object owning this checkbox.
+-- * paramsEditor: MinDistParamsEditor object owning this checkbox.
 --
 DepthCheckbox = GuiElement.newSubclass{
     className = "MinDistParamsEditor/DepthCheckbox",
-    mandatoryFields = {"filterEditor"},
+    mandatoryFields = {"paramsEditor"},
     __index = {
         onCheckedStateChanged = function(self, event)
             local state = event.element.state
-            local depthField = self.filterEditor.depthField
-            local filter = self.filterEditor.params
+            local depthField = self.paramsEditor.depthField
+            local params = self.paramsEditor.params
 
             depthField.rawElement.enabled = state
             if state then
-                filter.maxDepth = tonumber(depthField.rawElement.text)
+                params.maxDepth = tonumber(depthField.rawElement.text)
             else
-                filter.maxDepth = nil
+                params.maxDepth = nil
             end
         end,
     },
@@ -152,14 +152,14 @@ DepthCheckbox = GuiElement.newSubclass{
 -- Textfield to set the maxDepth value.
 --
 -- RO Fields:
--- * filterEditor; MinDistParamsEditor object owning this textfield.
+-- * paramsEditor; MinDistParamsEditor object owning this textfield.
 --
 DepthField = GuiElement.newSubclass{
     className = "MinDistParamsEditor/DepthField",
-    mandatoryFields = {"filterEditor"},
+    mandatoryFields = {"paramsEditor"},
     __index = {
         onTextChanged = function(self, event)
-            self.filterEditor.params.maxDepth = tonumber(event.element.text)
+            self.paramsEditor.params.maxDepth = tonumber(event.element.text)
         end,
     },
 }
