@@ -25,7 +25,7 @@ local QueryType
 -- Inherits from AbstractQueryEditor.
 --
 -- RO Fields:
--- * paramsEditor: MinDistParamsEditor object editing the filter.
+-- * paramsEditor: MinDistParamsEditor object editing the sourceParams.
 --
 local UsagesOfEditor = ErrorOnInvalidRead.new{
     -- Creates a new UsagesOfEditor object.
@@ -40,7 +40,7 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
         ErrorOnInvalidRead.setmetatable(object)
         object.paramsEditor = MinDistParamsEditor.new{
             appResources = object.appResources,
-            filter = object.query.filter,
+            filter = object.query.sourceParams,
             isForward = true,
             root = object.root,
         }
