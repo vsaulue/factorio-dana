@@ -40,8 +40,8 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
         ErrorOnInvalidRead.setmetatable(object)
         object.paramsEditor = MinDistParamsEditor.new{
             appResources = object.appResources,
-            filter = object.query.sourceParams,
             isForward = true,
+            params = object.query.sourceParams,
             root = object.root,
         }
         return object

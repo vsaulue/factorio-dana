@@ -28,7 +28,7 @@ local DepthCheckbox
 local DepthField
 local LocalisedStrings
 
--- Filter editor for the MinDistParams class.
+-- Editor for the MinDistParams class.
 --
 -- Inherits from AbstractParamsEditor.
 --
@@ -61,7 +61,7 @@ local MinDistParamsEditor = ErrorOnInvalidRead.new{
         }
         object.setEditor = IntermediateSetEditor.new{
             force = object.appResources.force,
-            output = object.filter.intermediateSet,
+            output = object.params.intermediateSet,
             parent = object.root,
         }
         ----------------
@@ -76,12 +76,12 @@ local MinDistParamsEditor = ErrorOnInvalidRead.new{
         }
         -- Allow other ingredients.
         object.allowOtherCheckbox = CheckboxUpdater.new{
-            object = object.filter,
+            object = object.params,
             field = "allowOtherIntermediates",
             rawElement = object.root.add{
                 type = "checkbox",
                 caption = localisedStrings.allowOtherIntermediates,
-                state = object.filter.allowOtherIntermediates,
+                state = object.params.allowOtherIntermediates,
             },
         }
         -- Maximum depth
@@ -137,7 +137,7 @@ DepthCheckbox = GuiElement.newSubclass{
         onCheckedStateChanged = function(self, event)
             local state = event.element.state
             local depthField = self.filterEditor.depthField
-            local filter = self.filterEditor.filter
+            local filter = self.filterEditor.params
 
             depthField.rawElement.enabled = state
             if state then
@@ -159,7 +159,7 @@ DepthField = GuiElement.newSubclass{
     mandatoryFields = {"filterEditor"},
     __index = {
         onTextChanged = function(self, event)
-            self.filterEditor.filter.maxDepth = tonumber(event.element.text)
+            self.filterEditor.params.maxDepth = tonumber(event.element.text)
         end,
     },
 }

@@ -23,7 +23,7 @@ local cLogger = ClassLogger.new{className = "queryApp/AbstractParamsEditor"}
 --
 -- RO Fields:
 -- * appResources: AppResources of the application owning this GUI.
--- * filter: AbstractQueryFilter modified by this GUI.
+-- * params: Query parameters modified by this GUI.
 -- * root: LuaGuiElement in which the GUI is created.
 --
 local AbstractParamsEditor = ErrorOnInvalidRead.new{
@@ -36,7 +36,7 @@ local AbstractParamsEditor = ErrorOnInvalidRead.new{
     --
     new = function(object)
         cLogger:assertField(object, "appResources")
-        cLogger:assertField(object, "filter")
+        cLogger:assertField(object, "params")
         cLogger:assertField(object, "root")
         return object
     end,
