@@ -30,7 +30,7 @@ local QueryType
 -- Inherits from AbstractQuery.
 --
 -- Fields:
--- * filter: MinDistParams to configure the search for the ingredients.
+-- * destParams: MinDistParams to configure the search for the ingredients.
 --
 local HowToMakeQuery = ErrorOnInvalidRead.new{
     -- Creates a new HowToMakeQuery object.
@@ -39,7 +39,7 @@ local HowToMakeQuery = ErrorOnInvalidRead.new{
     --
     new = function()
         return AbstractQuery.new({
-            filter = MinDistParams.new{
+            destParams = MinDistParams.new{
                 isForward = false,
             },
             queryType = QueryType,
@@ -53,7 +53,7 @@ local HowToMakeQuery = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
-        MinDistParams.setmetatable(object.filter)
+        MinDistParams.setmetatable(object.destParams)
     end,
 }
 
@@ -68,8 +68,8 @@ Metatable = {
             local orderer = QueryOrderer.new()
             local fullOrder = orderer:makeOrder(force, fullGraph)
 
-            local filter = self.filter
-            local _,edgeDists = HyperMinDist.toDest(fullGraph, filter.intermediateSet, filter.allowOtherIntermediates, rawget(filter, "maxDepth"))
+            local dest = self.destParams
+            local _,edgeDists = HyperMinDist.toDest(fullGraph, dest.intermediateSet, dest.allowOtherIntermediates, rawget(dest, "maxDepth"))
             local resultGraph = DirectedHypergraph.new()
             for edgeIndex in pairs(edgeDists) do
                 resultGraph:addEdge(fullGraph.edges[edgeIndex])
