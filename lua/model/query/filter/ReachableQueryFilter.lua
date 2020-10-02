@@ -31,8 +31,6 @@ local FilterTypeName
 -- Fields:
 -- * allowOtherIntermediates: boolean to include transforms that use other intermediates.
 -- * intermediateSet: Set of Intermediate, whose products must be selected.
--- * isForward: True for forward parsing (select recipes that can be produced from the set).
---              False for backward parsing (select recipes that produces elements from the set).
 -- * maxDepth (optional): Maximum depth for the breadth-first search (default: unlimited).
 --
 local ReachableQueryFilter = ErrorOnInvalidRead.new{
@@ -44,7 +42,6 @@ local ReachableQueryFilter = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a ReachableQueryFilter object.
     --
     new = function(object)
-        cLogger:assertField(object, "isForward")
         object.allowOtherIntermediates = object.allowOtherIntermediates or false
         object.intermediateSet = object.intermediateSet or {}
         object.filterType = FilterTypeName
