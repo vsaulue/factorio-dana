@@ -41,6 +41,7 @@ local HowToMakeEditor = ErrorOnInvalidRead.new{
         object.paramsEditor = ReachableFilterEditor.new{
             appResources = object.appResources,
             filter = object.query.filter,
+            isForward = false,
             root = object.root,
         }
         return object

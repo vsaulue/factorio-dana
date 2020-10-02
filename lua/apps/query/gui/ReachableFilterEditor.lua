@@ -36,6 +36,8 @@ local LocalisedStrings
 -- * allowOtherCheckbox: CheckboxUpdater handling the allowOtherIntermediates field.
 -- * depthCheckbox: DepthCheckbox object enabling/disabling the maxDepth parameter.
 -- * depthField: DepthField object setting the maxDepth value.
+-- * isForward: True to configure this editor for forward parsing (= looking for products).
+--              False to look for ingredients.
 -- * setEditor: IntermediateSetEditor object used on the source set.
 --
 local ReachableFilterEditor = ErrorOnInvalidRead.new{
@@ -52,7 +54,8 @@ local ReachableFilterEditor = ErrorOnInvalidRead.new{
         if object.filter.filterType ~= "reachable" then
             cLogger:error("Invalid filter type: " .. object.filter.filterType)
         end
-        local localisedStrings = LocalisedStrings[object.filter.isForward]
+        local isForward = cLogger:assertField(object, "isForward")
+        local localisedStrings = LocalisedStrings[isForward]
         -- Set selector.
         object.root.add{
             type = "label",
