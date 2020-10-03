@@ -15,8 +15,8 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local HowToMakeQuery = require("lua/model/query/HowToMakeQuery")
-local UsagesOfQuery = require("lua/model/query/UsagesOfQuery")
+local HowToMakeQuery = require("lua/query/HowToMakeQuery")
+local UsagesOfQuery = require("lua/query/UsagesOfQuery")
 
 -- Map of QueryTemplate object (= preset queries), indexed by names.
 --

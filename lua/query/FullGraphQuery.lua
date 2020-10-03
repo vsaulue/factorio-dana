@@ -14,11 +14,11 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractQuery = require("lua/model/query/AbstractQuery")
+local AbstractQuery = require("lua/query/AbstractQuery")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local QueryOrderer = require("lua/model/query/QueryOrderer")
-local QuerySelector = require("lua/model/query/QuerySelector")
+local QueryOrderer = require("lua/query/QueryOrderer")
+local QuerySelector = require("lua/query/QuerySelector")
 
 local Metatable
 local QueryType

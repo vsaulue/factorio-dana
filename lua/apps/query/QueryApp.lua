@@ -16,10 +16,10 @@
 
 local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
 local AbstractApp = require("lua/apps/AbstractApp")
-local AbstractQuery = require("lua/model/query/AbstractQuery")
+local AbstractQuery = require("lua/query/AbstractQuery")
 local EmptyGraphWindow = require("lua/apps/query/gui/EmptyGraphWindow")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local FullGraphQuery = require("lua/model/query/FullGraphQuery")
+local FullGraphQuery = require("lua/query/FullGraphQuery")
 local Stack = require("lua/containers/Stack")
 local TemplateSelectWindow = require("lua/apps/query/gui/TemplateSelectWindow")
 
