@@ -14,12 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ClassLogger = require("lua/logger/ClassLogger")
-local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local HyperMinDist = require("lua/hypergraph/algorithms/HyperMinDist")
-
-local cLogger = ClassLogger.new{className = "MinDistParams"}
 
 -- Parameters used for a breadth-first search from/to specific vertices of the graph.
 --
