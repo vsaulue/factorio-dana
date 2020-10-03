@@ -20,7 +20,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperMinDist = require("lua/hypergraph/algorithms/HyperMinDist")
 local MinDistParams = require("lua/query/params/MinDistParams")
 local QueryOrderer = require("lua/query/QueryOrderer")
-local QuerySelector = require("lua/query/QuerySelector")
+local SelectionStep = require("lua/query/steps/SelectionStep")
 
 local Metatable
 local QueryType
@@ -62,7 +62,7 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AbstractQuery:execute().
         execute = function(self, force)
-            local selector = QuerySelector.new()
+            local selector = SelectionStep.new()
             local fullGraph = selector:makeHypergraph(force)
 
             local orderer = QueryOrderer.new()

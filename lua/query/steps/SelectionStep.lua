@@ -21,22 +21,15 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local addTransform
 local Metatable
 
--- Class generating edges from the different transforms of a Force database.
---
--- In a standard SQL query, this object would correspond to:
--- SELECT a.x, a.y, b.x FROM a,b
---
--- Said in another way, this object:
--- * chooses which transforms (recipe, boiler, mining) will be turned into an edge.
--- * which transform properties will be turned into edge inputs & outputs (ex: mining fluid).
+-- Helper class to generate an hypergraph from a Force database.
 --
 -- Fields:
 -- * includeSinks: Boolean to include sink recipes.
 --
-local QuerySelector = ErrorOnInvalidRead.new{
-    -- Creates a new QuerySelector object.
+local SelectionStep = ErrorOnInvalidRead.new{
+    -- Creates a new SelectionStep object.
     --
-    -- Returns: The new QuerySelector object.
+    -- Returns: The new SelectionStep object.
     --
     new = function()
         local result = {
@@ -46,7 +39,7 @@ local QuerySelector = ErrorOnInvalidRead.new{
         return result
     end,
 
-    -- Restores the metatable of a QuerySelector object, and all its owned objects.
+    -- Restores the metatable of a SelectionStep object, and all its owned objects.
     --
     -- Args:
     -- * object: table to modify.
@@ -56,13 +49,13 @@ local QuerySelector = ErrorOnInvalidRead.new{
     end,
 }
 
--- Metatable of the QuerySelector class.
+-- Metatable of the SelectionStep class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Generates a DirectedHypergraph from a Force database.
         --
         -- Args:
-        -- * self: QuerySelector object.
+        -- * self: SelectionStep object.
         -- * force: Force object on which this query will be run.
         --
         -- Returns: a DirectedHypergraph (vertices: intermediates & edges: transforms).
@@ -88,7 +81,7 @@ Metatable = {
 -- Adds a transform as a graph edges if it matches the selector's parameters.
 --
 -- Args:
--- * self: QuerySelector object.
+-- * self: SelectionStep object.
 -- * graph: DirectedHypergraph to fill.
 -- * transform: AbstractTransform to add.
 --
@@ -103,4 +96,4 @@ addTransform = function(self, graph, transform)
     end
 end
 
-return QuerySelector
+return SelectionStep

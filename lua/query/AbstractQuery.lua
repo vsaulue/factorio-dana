@@ -20,7 +20,6 @@ local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local QueryOrderer = require("lua/query/QueryOrderer")
-local QuerySelector = require("lua/query/QuerySelector")
 
 local cLogger = ClassLogger.new{className = "AbstractQuery"}
 
