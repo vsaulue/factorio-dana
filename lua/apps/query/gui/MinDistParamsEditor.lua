@@ -71,7 +71,7 @@ local MinDistParamsEditor = ErrorOnInvalidRead.new{
         }
         object.root.add{
             type = "label",
-            caption = {"dana.apps.query.reachableFilterEditor.otherOptions"},
+            caption = {"dana.apps.query.minDistParamsEditor.otherOptions"},
             style = "frame_title",
         }
         -- Allow other ingredients.
@@ -93,7 +93,7 @@ local MinDistParamsEditor = ErrorOnInvalidRead.new{
             paramsEditor = object,
             rawElement = GuiAlign.makeVerticallyCentered(depthFlow, {
                 type = "checkbox",
-                caption = {"dana.apps.query.reachableFilterEditor.maxDepth"},
+                caption = {"dana.apps.query.minDistParamsEditor.maxDepth"},
                 state = false,
             }),
         }
@@ -172,7 +172,7 @@ DepthField = GuiElement.newSubclass{
 -- Returns: The generated localised string.
 --
 local function makeLocalisedString(suffix)
-    return {"dana.apps.query.reachableFilterEditor." .. suffix}
+    return {"dana.apps.query.minDistParamsEditor." .. suffix}
 end
 
 -- Map[isForward] -> Map of localised string recots.
