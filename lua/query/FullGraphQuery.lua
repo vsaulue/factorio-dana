@@ -17,7 +17,7 @@
 local AbstractQuery = require("lua/query/AbstractQuery")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local QueryOrderer = require("lua/query/QueryOrderer")
+local OrderingStep = require("lua/query/steps/OrderingStep")
 local SelectionStep = require("lua/query/steps/SelectionStep")
 
 local Metatable
@@ -56,7 +56,7 @@ Metatable = {
             local selector = SelectionStep.new()
             local fullGraph = selector:makeHypergraph(force)
 
-            local orderer = QueryOrderer.new()
+            local orderer = OrderingStep.new()
             local vertexDists = orderer:makeOrder(force, fullGraph)
 
             return fullGraph,vertexDists

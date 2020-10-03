@@ -21,16 +21,10 @@ local Metatable
 
 -- Class used to generate a partial order of the vertices returned by a query.
 --
--- In a SQL query, the closest equivalent would be:
--- ORDER BY **
---
--- A notable difference is that the generated order is partial, and some elements might not be included at
--- all in the order.
---
-local QueryOrderer = ErrorOnInvalidRead.new{
-    -- Creates a new QueryOrderer object.
+local OrderingStep = ErrorOnInvalidRead.new{
+    -- Creates a new OrderingStep object.
     --
-    -- Returns: The new QueryOrderer object.
+    -- Returns: The new OrderingStep object.
     --
     new = function()
         local result = {}
@@ -38,7 +32,7 @@ local QueryOrderer = ErrorOnInvalidRead.new{
         return result
     end,
 
-    -- Restores the metatable of a QueryOrderer object, and all its owned objects.
+    -- Restores the metatable of a OrderingStep object, and all its owned objects.
     --
     -- Args:
     -- * object: table to modify.
@@ -48,7 +42,7 @@ local QueryOrderer = ErrorOnInvalidRead.new{
     end,
 }
 
--- Metatable of the QueryOrderer class.
+-- Metatable of the OrderingStep class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Generates a partial order of all vertices.
@@ -56,7 +50,7 @@ Metatable = {
         -- Currently this order is always generated from the raw resources.
         --
         -- Args:
-        -- * self: QueryOrderer object.
+        -- * self: OrderingStep object.
         -- * force: Force object on which this query will be run.
         -- * graph: DirectedHypergraph containing the vertices to order.
         --
@@ -81,4 +75,4 @@ Metatable = {
     },
 }
 
-return QueryOrderer
+return OrderingStep
