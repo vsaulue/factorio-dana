@@ -47,6 +47,21 @@ local Array = ErrorOnInvalidRead.new{
         setmetatable(result, Metatable)
         return result
     end,
+
+    -- Restores the metatable of an Array object, and all its owned objects.
+    --
+    -- Args:
+    -- * object: Table to modify.
+    -- * valueMetatableSetter (optional): Function to restore the metatable of the values of the array.
+    --
+    setmetatable = function(object, valueMetatableSetter)
+        setmetatable(object, Metatable)
+        if valueMetatableSetter then
+            for i=1,object.count do
+                valueMetatableSetter(object[i])
+            end
+        end
+    end,
 }
 
 -- Metatable of the array class.

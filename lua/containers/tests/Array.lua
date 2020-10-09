@@ -36,6 +36,36 @@ describe("Array", function()
         end)
     end)
 
+    describe(".setmetatable()", function()
+        it("-- Restore value's metatables", function()
+            local array = {
+                [1] = {},
+                [2] = {},
+                [3] = {},
+                count = 3,
+            }
+            local metatable = {
+                __index = {
+                    foo = "baR",
+                },
+            }
+            Array.setmetatable(array, function(value)
+                setmetatable(value, metatable)
+            end)
+
+            for i=1,array.count do
+                assert.are.equals(array[i].foo, metatable.__index.foo)
+            end
+            assert.is_not_nil(array.pushBack)
+        end)
+
+        it("-- No metatable on values", function()
+            local array = {"a","b", count = 2}
+            Array.setmetatable(array)
+            assert.is_not_nil(array.pushBack)
+        end)
+    end)
+
     it(":loadFromOrderedSet()", function()
         local orderedSet = OrderedSet.new()
         for i=4,1,-1 do
