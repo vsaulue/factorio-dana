@@ -17,6 +17,9 @@
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Logger = require("lua/logger/Logger")
 
+local iteratorNext
+local Metatable
+
 -- Container class with array semantics.
 --
 -- This class caches the length of the array, and errors when reading an nil value.
@@ -26,163 +29,148 @@ local Logger = require("lua/logger/Logger")
 -- new values are not initialized (not necessarily nil -> "undefined behaviour" on read).
 -- * [n]: n-th value in this array. "undefined behaviour" if out of bounds.
 --
--- Methods:
--- * loadFromOrderedSet: Replaces the content of this array with the values stored in an OrderedSet object.
--- * pushBack: adds a new value at the end of the array.
--- * pushBackIteratorAll: Push back all remaining values from an iterator.
--- * pushBackIteratorOnce: Push back the current value of an iterator, and call next() once.
--- * sort: sorts the array in place.
---
 local Array = ErrorOnInvalidRead.new{
-    new = nil, -- implemented later
-}
-
-local Impl = ErrorOnInvalidRead.new{
-    -- Function used to iterate through an Array object.
+    -- Creates a new Array object.
     --
     -- Args:
-    -- * self: Array object.
-    -- * index: Index of the element accessed in the previous iteration step.
+    -- * object: Table to turn into an Array object (or nil to create an empty one).
     --
-    -- Returns:
-    -- * The index of the next element (or nil if the end of the array was reached).
-    -- * The value of the next element (or nil if the end of the array was reached).
+    -- Returns: The new Array object.
     --
-    iteratorNext = function(self,index)
-        local nextIndex = index + 1
-        local nextValue = nil
-        if nextIndex <= self.count then
-            nextValue = self[nextIndex]
-        else
-            nextIndex = nil
+    new = function(object)
+        local result = object or {
+            count = 0,
+        }
+        if object then
+            result.count = result.count or #object
         end
-        return nextIndex, nextValue
+        setmetatable(result, Metatable)
+        return result
     end,
-
-    -- Metatable of the array class.
-    Metatable = {
-        __eq = function(self, otherTable)
-            local result = rawequal(self, otherTable)
-            if not result then
-                local sCount = self.count
-                result = sCount == otherTable.count
-                local i = 1
-                while i <= sCount and result do
-                    result = self[i] == otherTable[i]
-                    i = i + 1
-                end
-            end
-            return result
-        end,
-
-        __index = ErrorOnInvalidRead.new{
-            -- Replaces the content of this array with the values stored in an OrderedSet object.
-            --
-            -- Args:
-            -- * self: Array object.
-            -- * orderedSet: OrderedSet containing the values to import.
-            --
-            loadFromOrderedSet = function(self, orderedSet)
-                local End = orderedSet.End
-                local forward = orderedSet.forward
-                local it = forward[orderedSet.Begin]
-                local count = 0
-                while it ~= End do
-                    count = count + 1
-                    self[count] = it
-                    it = forward[it]
-                end
-                self.count = count
-            end,
-
-            -- Adds a new value at the end of the array.
-            --
-            -- Args:
-            -- * self: Array object.
-            -- * value: Value to add at the end of the array.
-            --
-            pushBack = function(self, value)
-                local count = self.count + 1
-                self[count] = value
-                self.count = count
-            end,
-
-            -- Push back all remaining values from an iterator.
-            --
-            -- Args:
-            -- * self: Array object.
-            -- * iterator: Iterator holding the values to push.
-            --
-            pushBackIteratorAll = function(self, iterator)
-                local value = iterator.value
-                while value do
-                    self:pushBack(value)
-                    iterator:next()
-                    value = iterator.value
-                end
-            end,
-
-            -- Push back the current value of an iterator, and call next() once.
-            --
-            -- Args:
-            -- * self: Array object.
-            -- * iterator: Iterator holding the value to push back.
-            --
-            pushBackIteratorOnce = function(self, iterator)
-                self:pushBack(iterator.value)
-                iterator:next()
-            end,
-
-            -- Sorts this array in place.
-            --
-            -- Args:
-            -- * self: Array object to sort.
-            -- * weights[arrayValue]: a map giving a score for each value in the array. Values will be sorted
-            -- from lowest to greatest scores.
-            --
-            sort = function(self, weights)
-                local compare = function(a,b)
-                    local w = weights
-                    return w[a] < w[b]
-                end
-                table.sort(self, compare)
-            end,
-        },
-
-        __ipairs = nil, -- implemented later
-
-        __len = function(self)
-            return self.count
-        end,
-
-        __pairs = nil, -- implemented later
-    },
 }
 
-function Impl.Metatable.__ipairs(self)
-    return Impl.iteratorNext, self, 0
-end
+-- Metatable of the array class.
+Metatable = {
+    __eq = function(self, otherTable)
+        local result = rawequal(self, otherTable)
+        if not result then
+            local sCount = self.count
+            result = sCount == otherTable.count
+            local i = 1
+            while i <= sCount and result do
+                result = self[i] == otherTable[i]
+                i = i + 1
+            end
+        end
+        return result
+    end,
 
-function Impl.Metatable.__pairs(self)
-    return Impl.iteratorNext, self, 0
-end
+    __index = ErrorOnInvalidRead.new{
+        -- Replaces the content of this array with the values stored in an OrderedSet object.
+        --
+        -- Args:
+        -- * self: Array object.
+        -- * orderedSet: OrderedSet containing the values to import.
+        --
+        loadFromOrderedSet = function(self, orderedSet)
+            local End = orderedSet.End
+            local forward = orderedSet.forward
+            local it = forward[orderedSet.Begin]
+            local count = 0
+            while it ~= End do
+                count = count + 1
+                self[count] = it
+                it = forward[it]
+            end
+            self.count = count
+        end,
 
--- Creates a new Array object.
+        -- Adds a new value at the end of the array.
+        --
+        -- Args:
+        -- * self: Array object.
+        -- * value: Value to add at the end of the array.
+        --
+        pushBack = function(self, value)
+            local count = self.count + 1
+            self[count] = value
+            self.count = count
+        end,
+
+        -- Push back all remaining values from an iterator.
+        --
+        -- Args:
+        -- * self: Array object.
+        -- * iterator: Iterator holding the values to push.
+        --
+        pushBackIteratorAll = function(self, iterator)
+            local value = iterator.value
+            while value do
+                self:pushBack(value)
+                iterator:next()
+                value = iterator.value
+            end
+        end,
+
+        -- Push back the current value of an iterator, and call next() once.
+        --
+        -- Args:
+        -- * self: Array object.
+        -- * iterator: Iterator holding the value to push back.
+        --
+        pushBackIteratorOnce = function(self, iterator)
+            self:pushBack(iterator.value)
+            iterator:next()
+        end,
+
+        -- Sorts this array in place.
+        --
+        -- Args:
+        -- * self: Array object to sort.
+        -- * weights[arrayValue]: a map giving a score for each value in the array. Values will be sorted
+        -- from lowest to greatest scores.
+        --
+        sort = function(self, weights)
+            local compare = function(a,b)
+                local w = weights
+                return w[a] < w[b]
+            end
+            table.sort(self, compare)
+        end,
+    },
+
+    __ipairs = function(self)
+        return iteratorNext, self, 0
+    end,
+
+    __len = function(self)
+        return self.count
+    end,
+
+    __pairs = function(self)
+        return iteratorNext, self, 0
+    end,
+}
+
+-- Function used to iterate through an Array object.
 --
 -- Args:
--- * object: Table to turn into an Array object (or nil to create an empty one).
+-- * self: Array object.
+-- * index: Index of the element accessed in the previous iteration step.
 --
--- Returns: a new empty array.
+-- Returns:
+-- * The index of the next element (or nil if the end of the array was reached).
+-- * The value of the next element (or nil if the end of the array was reached).
 --
-function Array.new(object)
-    local result = object or {
-        count = 0,
-    }
-    if object then
-        result.count = result.count or #object
+iteratorNext = function(self,index)
+    local nextIndex = index + 1
+    local nextValue = nil
+    if nextIndex <= self.count then
+        nextValue = self[nextIndex]
+    else
+        nextIndex = nil
     end
-    setmetatable(result, Impl.Metatable)
-    return result
+    return nextIndex, nextValue
 end
 
 return Array
