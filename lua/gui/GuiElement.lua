@@ -30,6 +30,8 @@ local recursiveUnbind
 -- This wrapper aims at attaching callbacks for gui events (ex: on_gui_click) to each element, and any other data.
 -- The framework ensures that a LuaGuiElement has a unique wrapper object.
 --
+-- Implements Closeable.
+--
 -- Stored in global: yes
 --
 -- RO Fields:
@@ -175,11 +177,33 @@ local GuiElement = ErrorOnInvalidRead.new{
     on_player_created = function(event)
         GuiElementMap[event.player_index] = {}
     end,
+
+    -- Destroys a LuaGuiElement if it is still valid.
+    --
+    -- Args:
+    -- * rawElement: LuaGuiElement to destroy.
+    --
+    safeDestroy = function(rawElement)
+        if rawElement.valid then
+            rawElement.destroy()
+        end
+    end,
 }
 
 -- Metatable of the GuiElement class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Implements Closeable:close().
+        close = function(self)
+            local playerMap = GuiElementMap[self.rawPlayerIndex]
+            local boundElement = playerMap[self.rawElementIndex]
+            if boundElement == self then
+                playerMap[self.rawElementIndex] = nil
+            else
+                cLogger:warn("Invalid GuiElement:close() call.")
+            end
+        end,
+
         -- Callback used when Factorio's on_gui_checked_state_changed is called on the wrapped rawElement.
         --
         -- Args:
