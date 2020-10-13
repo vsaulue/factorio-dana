@@ -28,7 +28,7 @@ set -e
 # Name of the folder where the build sript will put the output & intermediates.
 BUILD_FOLDER=build
 # List of the files to exclude from the zip.
-EXCLUDE_LIST=( '.git/*' 'build.sh' 'lua/.busted' 'lua/*/tests/*' 'migrations/framework/tests/*' )
+EXCLUDE_LIST=( '.git/*' 'build.sh' 'lua/.busted' 'lua/*/tests/*' 'migrations/framework/tests/*' 'lua/testing/*')
 
 ########
 # Main #
