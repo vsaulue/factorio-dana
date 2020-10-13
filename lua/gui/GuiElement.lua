@@ -99,6 +99,13 @@ local GuiElement = ErrorOnInvalidRead.new{
             setmetatable = function(object)
                 setmetatable(object, subclassMetatable)
             end,
+
+            -- Restores the metatable of an object of the specified subclass, after a nil check.
+            safeSetmetatable = function(object)
+                if object then
+                    setmetatable(object, subclassMetatable)
+                end
+            end,
         }
         return result
     end,
