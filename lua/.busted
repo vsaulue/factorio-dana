@@ -25,6 +25,7 @@ return {
             "containers/tests",
             "graph/tests",
             "graph/algorithms/tests",
+            "gui/tests",
             "layouts/preprocess/algorithms/tests",
             "layouts/preprocess/tests",
             "hypergraph/algorithms/tests",
