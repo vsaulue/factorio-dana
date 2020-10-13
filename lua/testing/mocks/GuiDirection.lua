@@ -14,22 +14,24 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-return {
-    _all = {
-        lpath = "../?.lua",
-        pattern = ".*%.lua",
-        ROOT = {
-            "../migrations/framework/tests",
-            "canvas/objects/tests",
-            "class/tests",
-            "containers/tests",
-            "graph/tests",
-            "graph/algorithms/tests",
-            "layouts/preprocess/algorithms/tests",
-            "layouts/preprocess/tests",
-            "hypergraph/algorithms/tests",
-            "testing/mocks/tests",
-            "testing/tests",
-        },
-    },
+
+
+-- Mock of LuaGuiElement.direction subtype.
+--
+-- See https://lua-api.factorio.com/1.0.0/LuaGuiElement.html#LuaGuiElement.direction.
+--
+local GuiDirection = {
+    -- Checks if a value is a correct direction.
+    --
+    -- Args:
+    -- * value: string. Value to check.
+    --
+    -- Returns: The input value.
+    --
+    check = function(value)
+        assert(value == "horizontal" or value == "vertical", "Invalid direction: " .. tostring(value))
+        return value
+    end,
 }
+
+return GuiDirection
