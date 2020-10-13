@@ -52,6 +52,21 @@ local GuiElement = ErrorOnInvalidRead.new{
         rawElement.clear()
     end,
 
+    -- Counts the number of bound objects for a given player.
+    --
+    -- Args:
+    -- * playerIndex: Index of the player to check.
+    --
+    -- Returns: The number of bound GuiElement for the given player.
+    --
+    count = function(playerIndex)
+        local result = 0
+        for _ in pairs(GuiElementMap[playerIndex]) do
+            result = result + 1
+        end
+        return result
+    end,
+
     -- Destroy a LuaGuiElement, and unbinds all GuiElement objects associated to it or its children.
     --
     -- Args:
