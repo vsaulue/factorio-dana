@@ -66,6 +66,25 @@ describe("Array", function()
         end)
     end)
 
+    it(":close", function()
+        local count = 3
+        local makeCloseable = function()
+            return {
+                close = function(self)
+                    count = count - 1
+                    self.close = nil
+                end,
+            }
+        end
+        local array = Array.new()
+        for i=1,count do
+            array:pushBack(makeCloseable())
+        end
+        array:close()
+
+        assert.are.equals(count, 0)
+    end)
+
     it(":loadFromOrderedSet()", function()
         local orderedSet = OrderedSet.new()
         for i=4,1,-1 do

@@ -24,6 +24,8 @@ local Metatable
 --
 -- This class caches the length of the array, and errors when reading an nil value.
 --
+-- Implements Closeable only if values are Closeable.
+--
 -- Fields:
 -- * count: Number of element & index of the last element. Writing it can shrink/expand the array. After an expand,
 -- new values are not initialized (not necessarily nil -> "undefined behaviour" on read).
@@ -81,6 +83,22 @@ Metatable = {
     end,
 
     __index = ErrorOnInvalidRead.new{
+        -- Call close on all the values of this array.
+        --
+        -- The Array must contain only Closeable objects.
+        --
+        -- Args:
+        -- * self: Array object.
+        --
+        close = function(self)
+            for i=1,self.count do
+                local value = self[i]
+                if value then
+                    value:close()
+                end
+            end
+        end,
+
         -- Replaces the content of this array with the values stored in an OrderedSet object.
         --
         -- Args:
