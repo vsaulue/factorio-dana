@@ -35,12 +35,9 @@ local recursiveUnbind
 -- Stored in global: yes
 --
 -- RO Fields:
--- * rawElement: Wrapper LuaGuiElement object.
+-- * rawElement: Wrapped LuaGuiElement object.
 -- * rawElementIndex: Index of the wrapped rawElement.
 -- * rawPlayerIndex: Index of the player owning rawElement.
---
--- Abstract methods:
--- * on_click: method to execute when on_gui_click is triggered (can be nil).
 --
 local GuiElement = ErrorOnInvalidRead.new{
     -- Unbinds all child elements of a LuaGuiElement object, then clear all its children.
