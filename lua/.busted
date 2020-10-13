@@ -21,6 +21,7 @@ return {
         ROOT = {
             "../migrations/framework/tests",
             "canvas/objects/tests",
+            "class/tests",
             "containers/tests",
             "graph/tests",
             "graph/algorithms/tests",
