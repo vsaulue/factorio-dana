@@ -32,8 +32,10 @@ local recursiveUnbind
 --
 -- Stored in global: yes
 --
--- Fields:
+-- RO Fields:
 -- * rawElement: Wrapper LuaGuiElement object.
+-- * rawElementIndex: Index of the wrapped rawElement.
+-- * rawPlayerIndex: Index of the player owning rawElement.
 --
 -- Abstract methods:
 -- * on_click: method to execute when on_gui_click is triggered (can be nil).
@@ -241,6 +243,8 @@ GuiElementMap = {}
 --
 new = function(object, metatable)
     local rawElement = cLogger:assertField(object, "rawElement")
+    object.rawPlayerIndex = rawElement.player_index
+    object.rawElementIndex = rawElement.index
     setmetatable(object, metatable)
 
     -- Binding
