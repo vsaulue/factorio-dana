@@ -69,6 +69,12 @@ local AbstractGuiElement = {
             cLogger:assert(parent.player_index == player_index, "Parent & child have different player_index.")
         end
 
+        local style = {}
+        if args.style then
+            cLogger:assert(type(args.style) == "string", "Constructor: invalid style value (string required).")
+            style.name = args.style
+        end
+
         local result = {
             [DataIndex] = {
                 caption = args.caption,
@@ -77,7 +83,7 @@ local AbstractGuiElement = {
                 parent = parent,
                 player_index = player_index,
                 type = _type,
-                style = {},
+                style = style,
                 visible = not not args.visible,
             },
         }
@@ -262,6 +268,13 @@ Setters = {
     caption = function(data, value)
         -- Note: needs a LocalisedString check & a deep copy.
         data.caption = value
+    end,
+
+    style = function(data, value)
+        cLogger:assert(type(value) == "string", "Invalid write at 'style': string required.")
+        data.style = {
+            name = value,
+        }
     end,
 
     visible = function(data, value)

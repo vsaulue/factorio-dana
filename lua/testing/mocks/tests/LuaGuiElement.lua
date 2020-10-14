@@ -97,7 +97,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local element = LuaGuiElement.make({
                 type = "label",
                 caption = caption,
-			}, PlayerIndex)
+            }, PlayerIndex)
             assert.are.equals(AbstractGuiElement.getDataIfValid(element).caption, caption)
         end)
 
@@ -106,7 +106,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local element = LuaGuiElement.make({
                 type = "label",
                 caption = caption,
-			}, PlayerIndex)
+            }, PlayerIndex)
             assert.are.equals(element.caption, caption)
 
             element.destroy()
@@ -119,7 +119,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local caption = "MissingNo"
             local element = LuaGuiElement.make({
                 type = "label",
-			}, PlayerIndex)
+            }, PlayerIndex)
             element.caption = caption
             assert.are.equals(AbstractGuiElement.getDataIfValid(element).caption, caption)
 
@@ -175,7 +175,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local bro = root.add{
                 type = "flow",
                 direction = "vertical",
-			}
+            }
             local parent = root.add{
                 type = "flow",
                 direction = "vertical",
@@ -206,19 +206,68 @@ describe("--[[Mock]] LuaGuiElement", function()
         end)
     end)
 
+    describe(".style", function()
+        describe("-- constructor:", function()
+            it("valid", function()
+                local element = LuaGuiElement.make({
+                    type = "flow",
+                    direction = "vertical",
+                    style = "kilroy",
+                }, PlayerIndex)
+                assert.are.equals(AbstractGuiElement.getDataIfValid(element).style.name, "kilroy")
+            end)
+
+            it("invalid", function()
+                assert.error(function()
+                    LuaGuiElement.make({
+                        type = "flow",
+                        direction = "vertical",
+                        style = { name = "kilroy"},
+                    })
+                end)
+            end)
+        end)
+
+        describe("-- access:", function()
+            local element
+
+            before_each(function()
+                element = LuaGuiElement.make({
+                    type = "flow",
+                    direction = "horizontal",
+                }, PlayerIndex)
+            end)
+
+            it("-- valid read", function()
+                assert.are.equals(element.style, AbstractGuiElement.getDataIfValid(element).style)
+            end)
+
+            it("-- valid write", function()
+                element.style = "foobar"
+                assert.are.equals(element.style.name, "foobar")
+            end)
+
+            it("-- invalid write", function()
+                assert.error(function()
+                    element.style = {name = "foobar"}
+                end)
+            end)
+        end)
+    end)
+
     describe(".visible", function()
         it("-- constructor", function()
             local element = LuaGuiElement.make({
                 type = "label",
                 visible = true,
-			}, PlayerIndex)
+            }, PlayerIndex)
             assert.is_true(AbstractGuiElement.getDataIfValid(element).visible)
         end)
 
         it("-- read", function()
             local element = LuaGuiElement.make({
                 type = "label",
-			}, PlayerIndex)
+            }, PlayerIndex)
             assert.is_false(element.visible)
 
             element.destroy()
@@ -230,7 +279,7 @@ describe("--[[Mock]] LuaGuiElement", function()
         it("--write", function()
             local element = LuaGuiElement.make({
                 type = "label",
-			}, PlayerIndex)
+            }, PlayerIndex)
             element.visible = true
             assert.is_true(AbstractGuiElement.getDataIfValid(element).visible)
 
@@ -245,7 +294,7 @@ describe("--[[Mock]] LuaGuiElement", function()
         local flow = LuaGuiElement.make({
             type = "flow",
             direction = "vertical",
-		}, PlayerIndex)
+        }, PlayerIndex)
         assert.error(function()
             print(flow.DIRECTION)
         end)
