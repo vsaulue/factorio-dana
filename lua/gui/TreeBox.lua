@@ -33,6 +33,7 @@ local Metatable
 -- RO Fields:
 -- * roots: Array<TreeBoxNode>. Set of top-level nodes of the box.
 -- * gui (optional): TreeBoxGui. GUI owned by this controller (nil if no GUI is instanciated).
+-- * selection (optional): TreeBoxNode. Currently selected node (nil if no node is selected).
 --
 local TreeBox = ErrorOnInvalidRead.new{
     -- Creates a new TreeBox object.
@@ -48,6 +49,7 @@ local TreeBox = ErrorOnInvalidRead.new{
         for i=1,count do
             local node = roots[i]
             node.depth = 0
+            node.treeBox = object
             node.isLast = (i == count)
             TreeBoxNode.new(node)
         end
@@ -100,6 +102,26 @@ Metatable = {
                 treeBox = self,
                 parent = parent,
             }
+        end,
+
+        -- Sets which node is currently selected in this TreeBox.
+        --
+        -- Args:
+        -- * self: TreeBox.
+        -- * node: TreeBoxNode. New node being selected (nil to select none).
+        --
+        setSelection = function(self, node)
+            local oldSelection = rawget(self, "selection")
+            if oldSelection ~= node then
+                if oldSelection then
+                    oldSelection:setSelected(false)
+                end
+                cLogger:assert(node.treeBox == self, "Attempt to select a node from another tree.")
+                self.selection = node
+                if node then
+                    node:setSelected(true)
+                end
+            end
         end,
     }
 }

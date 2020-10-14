@@ -36,6 +36,8 @@ local _setmetatable
 -- * depth: int. Depth of this node in the tree (starts from 0).
 -- * expanded: boolean. Flag set to show/collapse the list of chilren nodes.
 -- * isLast: boolean. Flag set if this node is the last child of the parent node.
+-- * selected: boolean. Flag set if this node is currently selected.
+-- * treeBox: TreeBox. TreeBox object owning this node.
 --
 local TreeBoxNode = ErrorOnInvalidRead.new{
     -- Creates a new TreeBoxNode object.
@@ -47,9 +49,11 @@ local TreeBoxNode = ErrorOnInvalidRead.new{
     --
     new = function(object)
         local childDepth = 1 + cLogger:assertField(object, "depth")
+        local treeBox = cLogger:assertField(object, "treeBox")
         cLogger:assertField(object, "caption")
         cLogger:assertField(object, "isLast")
         object.expanded = object.expanded or false
+        object.selected = false
 
         local children = Array.new(object.children)
         local count = children.count
@@ -58,6 +62,7 @@ local TreeBoxNode = ErrorOnInvalidRead.new{
             local child = children[i]
             child.depth = childDepth
             child.isLast = (i == count)
+            child.treeBox = treeBox
             _new(child)
         end
 
@@ -107,7 +112,22 @@ Metatable = {
             self.gui = TreeBoxNodeGui.new{
                 treeBoxNode = self,
                 parent = parent,
-			}
+            }
+        end,
+
+        -- Sets the "selected" value of this object.
+        --
+        -- Args:
+        -- * self: TreeBoxNode.
+        --
+        setSelected = function(self, value)
+            local selected = not not value
+            self.selected = selected
+
+            local gui = rawget(self, "gui")
+            if gui then
+                gui:updateSelected(selected)
+            end
         end,
 
         -- Changes the "expanded" value of this object.
@@ -122,7 +142,7 @@ Metatable = {
                 gui:updateExpanded()
             end
         end,
-	}
+    }
 }
 
 

@@ -24,6 +24,9 @@ local cLogger = ClassLogger.new{className = "TreeBoxNodeGui"}
 local getExpandLabelCaption
 local Metatable
 local ExpandLabel
+local SelectedColor
+local SelectLabel
+local UnselectedColor
 
 -- GUI elements of a TreeBoxNode object.
 --
@@ -87,9 +90,13 @@ local TreeBoxNodeGui = ErrorOnInvalidRead.new{
                 caption = "─ ",
             }
         end
-        headerFlow.add{
-            type = "label",
-            caption = treeBoxNode.caption,
+        object.selectLabel = SelectLabel.new{
+            treeBoxNode = treeBoxNode,
+            rawElement = headerFlow.add{
+                type = "label",
+                caption = treeBoxNode.caption,
+                style = "clickable_label",
+            },
         }
 
         local childrenFlow = parent.add{
@@ -115,6 +122,7 @@ local TreeBoxNodeGui = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         setmetatable(object, Metatable)
         ExpandLabel.safeSetmetatable(rawget(object, "expandLabel"))
+        SelectLabel.setmetatable(object.selectLabel)
     end,
 }
 
@@ -126,6 +134,7 @@ Metatable = {
             GuiElement.safeDestroy(self.headerFlow)
             GuiElement.safeDestroy(self.childrenFlow)
             Closeable.safeCloseField(self, "expandLabel")
+            Closeable.safeCloseField(self, "selectLabel")
         end,
 
         -- Updates the "expanded" state of this GUI.
@@ -137,6 +146,23 @@ Metatable = {
             local expanded = self.treeBoxNode.expanded
             self.childrenFlow.visible = expanded
             self.expandLabel.rawElement.caption = getExpandLabelCaption(expanded)
+        end,
+
+        -- Updates the "selected" state of this GUI.
+        --
+        -- Args:
+        -- * self: TreeBoxNodeGui.
+        --
+        updateSelected = function(self)
+            local selected = self.treeBoxNode.selected
+            local labelStyle = self.selectLabel.rawElement.style
+            if selected then
+                labelStyle.font = "default-bold"
+                labelStyle.font_color = SelectedColor
+            else
+                labelStyle.font = "default"
+                labelStyle.font_color = UnselectedColor
+            end
         end,
     },
 }
@@ -164,5 +190,23 @@ getExpandLabelCaption = function(expanded)
     end
     return result
 end
+
+-- Color of the text label when the node is selected.
+SelectedColor = {0.98, 0.66, 0.22}
+
+-- Callback for the clickable label used to select a node.
+SelectLabel = GuiElement.newSubclass{
+    className = "TreeBoxNodeGui/SelectLabel",
+    mandatoryFields = {"treeBoxNode"},
+    __index = {
+        onClick = function(self, event)
+            local treeBoxNode = self.treeBoxNode
+            treeBoxNode.treeBox:setSelection(treeBoxNode)
+        end,
+    }
+}
+
+-- Color of the text label when the node is not selected.
+UnselectedColor = {1, 1, 1}
 
 return TreeBoxNodeGui

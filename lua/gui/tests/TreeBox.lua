@@ -66,6 +66,8 @@ describe("TreeBox", function()
                             depth = 1,
                             expanded = false,
                             isLast = false,
+                            selected = false,
+                            treeBox = treeBox,
                         },
                         [2] = {
                             caption = "child_1b",
@@ -73,11 +75,15 @@ describe("TreeBox", function()
                             depth = 1,
                             expanded = false,
                             isLast = true,
+                            selected = false,
+                            treeBox = treeBox,
                         },
                     },
                     depth = 0,
                     expanded = true,
                     isLast = false,
+                    selected = false,
+                    treeBox = treeBox,
                 },
                 [2] = {
                     caption = "top2",
@@ -85,6 +91,8 @@ describe("TreeBox", function()
                     depth = 0,
                     expanded = false,
                     isLast = true,
+                    selected = false,
+                    treeBox = treeBox,
                 },
             },
         })
@@ -216,39 +224,74 @@ describe("TreeBox", function()
 end)
 
 describe("TreeBoxNode", function()
+    local treeBox
+
     before_each(function()
         GuiElement.on_init()
+        treeBox = TreeBox.new{
+            roots = {
+                {
+                    caption = "first",
+                    children = {
+                        {
+                            caption = "first_1",
+                        },
+                    },
+                    expanded = true,
+                },{
+                    caption = "second",
+                    children = {
+                        {
+                            caption = "second_1",
+                        },{
+                            caption = "second_2",
+                        },
+                    },
+                    expanded = false,
+                },
+            },
+        }
+    end)
+
+    describe(":setSelected()", function()
+        it("-- no gui", function()
+            local node = treeBox.roots[1]
+            node:setSelected(true)
+            assert.is_true(node.selected)
+        end)
+
+        describe("-- gui", function()
+            local parent
+
+            before_each(function()
+                parent = LuaGuiElement.make({
+                    type = "flow",
+                    direction = "vertical",
+                }, PlayerIndex)
+                treeBox:makeGui(parent)
+            end)
+
+            it(", true", function()
+                local node = treeBox.roots[2]
+                node:setSelected(true)
+                assert.is_true(node.selected)
+                local selectStyle = node.gui.selectLabel.rawElement.style
+                assert.are.equals(selectStyle.font, "default-bold")
+                assert.are_not.equals(selectStyle.font_color[1], 1)
+            end)
+
+            it(", false", function()
+                local node = treeBox.roots[2]
+                node:setSelected(false)
+                assert.is_false(node.selected)
+                local selectStyle = node.gui.selectLabel.rawElement.style
+                assert.are.equals(selectStyle.font, "default")
+                assert.are.equals(selectStyle.font_color[1], 1)
+            end)
+        end)
     end)
 
     describe(":toggleExpanded()", function()
-        local treeBox
-
-        before_each(function()
-            treeBox = TreeBox.new{
-                roots = {
-                    {
-                        caption = "first",
-                        children = {
-                            {
-                                caption = "first_1",
-                            },
-                        },
-                        expanded = true,
-                    },{
-                        caption = "second",
-                        children = {
-                            {
-                                caption = "second_1",
-                            },{
-                                caption = "second_2",
-                            }
-                        },
-                        expanded = false,
-                    }
-                },
-            }
-        end)
-
         describe("-- no gui", function()
             it(", true -> false", function()
                 local node = treeBox.roots[1]
@@ -293,33 +336,9 @@ describe("TreeBoxNode", function()
     end)
 
     describe("-- GUI:", function()
-        local treeBox
         local parent
 
         before_each(function()
-            treeBox = TreeBox.new{
-                roots = {
-                    {
-                        caption = "first",
-                        children = {
-                            {
-                                caption = "first_1",
-                            },
-                        },
-                        expanded = true,
-                    },{
-                        caption = "second",
-                        children = {
-                            {
-                                caption = "second_1",
-                            },{
-                                caption = "second_2",
-                            }
-                        },
-                        expanded = false,
-                    }
-                },
-            }
             parent = LuaGuiElement.make({
                 type = "flow",
                 direction = "horizontal",
@@ -333,6 +352,21 @@ describe("TreeBoxNode", function()
                 element = treeBox.roots[1].gui.headerFlow.children[1],
             }
             assert.is_false(treeBox.roots[1].expanded)
+        end)
+
+        it("SelectLabel", function()
+            GuiElement.on_gui_click{
+                player_index = PlayerIndex,
+                element = treeBox.roots[2].gui.headerFlow.children[2],
+            }
+            assert.is_true(treeBox.roots[2].selected)
+
+            GuiElement.on_gui_click{
+                player_index = PlayerIndex,
+                element = treeBox.roots[1].gui.headerFlow.children[2]
+            }
+            assert.is_true(treeBox.roots[1].selected)
+            assert.is_false(treeBox.roots[2].selected)
         end)
     end)
 end)
