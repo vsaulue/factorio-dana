@@ -37,10 +37,22 @@ local ErrorOnInvalidRead = {
     -- Assigns ErrorOnInvalidRead's metatable to the argument.
     --
     -- Args:
-    -- * object: table to modify.
+    -- * object: table. Object to restore.
+    -- * keySetter (optional): function. Function to restore the metatable of keys.
+    -- * valueSetter (optional): function. Function to restore the metatable of values.
     --
-    setmetatable = function(object)
+    setmetatable = function(object, keySetter, valueSetter)
         setmetatable(object, Metatable)
+        if keySetter or valueSetter then
+            for k,v in pairs(object) do
+                if keySetter then
+                    keySetter(k)
+                end
+                if valueSetter then
+                    valueSetter(v)
+                end
+            end
+        end
     end,
 }
 

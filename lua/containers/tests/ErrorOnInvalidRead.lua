@@ -26,11 +26,51 @@ describe("ErrorOnInvalidRead", function()
         }
     end)
 
-    it(".setmetatable()", function()
-        SaveLoadTester.run{
-            objects = object,
-            metatableSetter = ErrorOnInvalidRead.setmetatable,
+    describe(".setmetatable()", function()
+        local Metatable = {
+            __index = {
+                madness = "Spartaaaaaaa",
+            },
         }
+
+        local makeObject = function()
+            local result = {}
+            setmetatable(result, Metatable)
+            return result
+        end
+
+        local resetMetatable = function(object)
+            setmetatable(object, Metatable)
+        end
+
+        it("-- no key/value metatable", function()
+            SaveLoadTester.run{
+                objects = object,
+                metatableSetter = ErrorOnInvalidRead.setmetatable,
+            }
+        end)
+
+        it("-- key metatable", function()
+            SaveLoadTester.run{
+                objects = ErrorOnInvalidRead.new{
+                    [makeObject()] = "wololo",
+                },
+                metatableSetter = function(object)
+                    ErrorOnInvalidRead.setmetatable(object, resetMetatable)
+                end,
+            }
+        end)
+
+        it("-- value metatable", function()
+            SaveLoadTester.run{
+                objects = ErrorOnInvalidRead.new{
+                    wololo = makeObject(),
+                },
+                metatableSetter = function(object)
+                    ErrorOnInvalidRead.setmetatable(object, nil, resetMetatable)
+                end,
+            }
+        end)
     end)
 
     it("-- invalid read", function()
