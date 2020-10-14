@@ -36,6 +36,7 @@ local _setmetatable
 -- * depth: int. Depth of this node in the tree (starts from 0).
 -- * expanded: boolean. Flag set to show/collapse the list of chilren nodes.
 -- * isLast: boolean. Flag set if this node is the last child of the parent node.
+-- * selectable: boolan. Flag set if this node can be selected.
 -- * selected: boolean. Flag set if this node is currently selected.
 -- * treeBox: TreeBox. TreeBox object owning this node.
 --
@@ -53,6 +54,7 @@ local TreeBoxNode = ErrorOnInvalidRead.new{
         cLogger:assertField(object, "caption")
         cLogger:assertField(object, "isLast")
         object.expanded = object.expanded or false
+        object.selectable = object.selectable or false
         object.selected = false
 
         local children = Array.new(object.children)
@@ -121,12 +123,14 @@ Metatable = {
         -- * self: TreeBoxNode.
         --
         setSelected = function(self, value)
-            local selected = not not value
-            self.selected = selected
+            if self.selectable then
+                local selected = not not value
+                self.selected = selected
 
-            local gui = rawget(self, "gui")
-            if gui then
-                gui:updateSelected(selected)
+                local gui = rawget(self, "gui")
+                if gui then
+                    gui:updateSelected(selected)
+                end
             end
         end,
 

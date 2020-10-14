@@ -50,6 +50,7 @@ describe("TreeBox", function()
                     expanded = true,
                 },{
                     caption = "top2",
+                    selectable = true,
                 }
             },
         }
@@ -66,6 +67,7 @@ describe("TreeBox", function()
                             depth = 1,
                             expanded = false,
                             isLast = false,
+                            selectable = false,
                             selected = false,
                             treeBox = treeBox,
                         },
@@ -75,6 +77,7 @@ describe("TreeBox", function()
                             depth = 1,
                             expanded = false,
                             isLast = true,
+                            selectable = false,
                             selected = false,
                             treeBox = treeBox,
                         },
@@ -82,6 +85,7 @@ describe("TreeBox", function()
                     depth = 0,
                     expanded = true,
                     isLast = false,
+                    selectable = false,
                     selected = false,
                     treeBox = treeBox,
                 },
@@ -91,6 +95,7 @@ describe("TreeBox", function()
                     depth = 0,
                     expanded = false,
                     isLast = true,
+                    selectable = true,
                     selected = false,
                     treeBox = treeBox,
                 },
@@ -221,6 +226,18 @@ describe("TreeBox", function()
             end)
         end)
     end)
+
+    describe(":setSelection() -- not selectable", function()
+        local treeBox = TreeBox.new{
+            roots = {
+                {
+                    caption = "foobar",
+                },
+            },
+        }
+        treeBox:setSelection(treeBox.roots[1])
+        assert.is_nil(rawget(treeBox, "selection"))
+    end)
 end)
 
 describe("TreeBoxNode", function()
@@ -235,6 +252,7 @@ describe("TreeBoxNode", function()
                     children = {
                         {
                             caption = "first_1",
+                            selectable = true,
                         },
                     },
                     expanded = true,
@@ -243,8 +261,10 @@ describe("TreeBoxNode", function()
                     children = {
                         {
                             caption = "second_1",
+                            selectable = true,
                         },{
                             caption = "second_2",
+                            selectable = true,
                         },
                     },
                     expanded = false,
@@ -255,7 +275,7 @@ describe("TreeBoxNode", function()
 
     describe(":setSelected()", function()
         it("-- no gui", function()
-            local node = treeBox.roots[1]
+            local node = treeBox.roots[1].children[1]
             node:setSelected(true)
             assert.is_true(node.selected)
         end)
@@ -271,8 +291,8 @@ describe("TreeBoxNode", function()
                 treeBox:makeGui(parent)
             end)
 
-            it(", true", function()
-                local node = treeBox.roots[2]
+            it(", true & selectable", function()
+                local node = treeBox.roots[2].children[1]
                 node:setSelected(true)
                 assert.is_true(node.selected)
                 local selectStyle = node.gui.selectLabel.rawElement.style
@@ -280,8 +300,14 @@ describe("TreeBoxNode", function()
                 assert.are_not.equals(selectStyle.font_color[1], 1)
             end)
 
+            it(", true & not selectable", function()
+                local node = treeBox.roots[1]
+                node:setSelected(true)
+                assert.is_false(node.selected)
+            end)
+
             it(", false", function()
-                local node = treeBox.roots[2]
+                local node = treeBox.roots[2].children[1]
                 node:setSelected(false)
                 assert.is_false(node.selected)
                 local selectStyle = node.gui.selectLabel.rawElement.style
@@ -357,16 +383,16 @@ describe("TreeBoxNode", function()
         it("SelectLabel", function()
             GuiElement.on_gui_click{
                 player_index = PlayerIndex,
-                element = treeBox.roots[2].gui.headerFlow.children[2],
+                element = treeBox.roots[2].children[1].gui.headerFlow.children[3],
             }
-            assert.is_true(treeBox.roots[2].selected)
+            assert.is_true(treeBox.roots[2].children[1].selected)
 
             GuiElement.on_gui_click{
                 player_index = PlayerIndex,
-                element = treeBox.roots[1].gui.headerFlow.children[2]
+                element = treeBox.roots[1].children[1].gui.headerFlow.children[3]
             }
-            assert.is_true(treeBox.roots[1].selected)
-            assert.is_false(treeBox.roots[2].selected)
+            assert.is_true(treeBox.roots[1].children[1].selected)
+            assert.is_false(treeBox.roots[2].children[1].selected)
         end)
     end)
 end)

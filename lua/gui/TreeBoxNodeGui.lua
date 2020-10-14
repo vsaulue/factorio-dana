@@ -26,7 +26,8 @@ local Metatable
 local ExpandLabel
 local SelectedColor
 local SelectLabel
-local UnselectedColor
+local SelectableColor
+local UnselectableColor
 
 -- GUI elements of a TreeBoxNode object.
 --
@@ -90,14 +91,19 @@ local TreeBoxNodeGui = ErrorOnInvalidRead.new{
                 caption = "─ ",
             }
         end
-        object.selectLabel = SelectLabel.new{
-            treeBoxNode = treeBoxNode,
-            rawElement = headerFlow.add{
-                type = "label",
-                caption = treeBoxNode.caption,
-                style = "clickable_label",
-            },
+        local captionLabel = headerFlow.add{
+            type = "label",
+            caption = treeBoxNode.caption,
         }
+        if treeBoxNode.selectable then
+            object.selectLabel = SelectLabel.new{
+                treeBoxNode = treeBoxNode,
+                rawElement = captionLabel,
+            }
+            captionLabel.style = "clickable_label"
+        else
+            captionLabel.style.font_color = UnselectableColor
+        end
 
         local childrenFlow = parent.add{
             type = "flow",
@@ -122,7 +128,7 @@ local TreeBoxNodeGui = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         setmetatable(object, Metatable)
         ExpandLabel.safeSetmetatable(rawget(object, "expandLabel"))
-        SelectLabel.setmetatable(object.selectLabel)
+        SelectLabel.safeSetmetatable(rawget(object, "selectLabel"))
     end,
 }
 
@@ -161,7 +167,7 @@ Metatable = {
                 labelStyle.font_color = SelectedColor
             else
                 labelStyle.font = "default"
-                labelStyle.font_color = UnselectedColor
+                labelStyle.font_color = SelectableColor
             end
         end,
     },
@@ -191,6 +197,9 @@ getExpandLabelCaption = function(expanded)
     return result
 end
 
+-- Color of the text label when the node is selectable.
+SelectableColor = {1, 1, 1}
+
 -- Color of the text label when the node is selected.
 SelectedColor = {0.98, 0.66, 0.22}
 
@@ -206,7 +215,7 @@ SelectLabel = GuiElement.newSubclass{
     }
 }
 
--- Color of the text label when the node is not selected.
-UnselectedColor = {1, 1, 1}
+-- Color of the text label when the node is not selectable.
+UnselectableColor = {0.7, 0.7, 0.7}
 
 return TreeBoxNodeGui

@@ -117,9 +117,11 @@ Metatable = {
                     oldSelection:setSelected(false)
                 end
                 cLogger:assert(node.treeBox == self, "Attempt to select a node from another tree.")
-                self.selection = node
-                if node then
+                if node and node.selectable then
+                    self.selection = node
                     node:setSelected(true)
+                else
+                    self.selection = nil
                 end
             end
         end,
