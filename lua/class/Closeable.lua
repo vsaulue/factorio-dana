@@ -24,6 +24,17 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 -- by this Closeable object.
 --
 local Closeable = ErrorOnInvalidRead.new{
+    -- Call close on all values in a map.
+    --
+    -- Args:
+    -- * map: Map<*,Closeable>. Map to close.
+    --
+    closeMapValues = function(map)
+        for _,value in pairs(map) do
+            value:close()
+        end
+    end,
+
     -- Closes a specific field of a table, and removes it.
     --
     -- Args:

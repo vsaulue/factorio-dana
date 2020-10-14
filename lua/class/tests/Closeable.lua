@@ -17,6 +17,25 @@
 local Closeable = require("lua/class/Closeable")
 
 describe("Closeable", function()
+    local newCloseable = function()
+        return {
+            flag = false,
+            close = function(self)
+                self.flag = true
+            end,
+        }
+    end
+
+    it(".closeMapValues()", function()
+        local map = {
+            o1 = newCloseable(),
+            o2 = newCloseable(),
+        }
+        Closeable.closeMapValues(map)
+        assert.is_true(map.o1.flag)
+        assert.is_true(map.o2.flag)
+    end)
+
     describe(".safeCloseField()", function()
         it("-- nil", function()
             local object = {}
@@ -26,12 +45,7 @@ describe("Closeable", function()
 
         it("-- not nil", function()
             local object = {
-                someField = {
-                    flag = false,
-                    close = function(self)
-                        self.flag = true
-                    end,
-                },
+                someField = newCloseable(),
             }
             local someField = object.someField
             Closeable.safeCloseField(object, "someField")
