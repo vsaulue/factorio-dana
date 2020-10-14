@@ -51,4 +51,5 @@ Metatable = {
     end,
 }
 
+setmetatable(ErrorOnInvalidRead, Metatable)
 return ErrorOnInvalidRead
