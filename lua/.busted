@@ -29,6 +29,7 @@ return {
             "layouts/preprocess/algorithms/tests",
             "layouts/preprocess/tests",
             "logger/tests",
+            "model/tests",
             "hypergraph/algorithms/tests",
             "testing/mocks/tests",
             "testing/tests",
