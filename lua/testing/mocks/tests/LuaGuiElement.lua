@@ -16,6 +16,7 @@
 
 local AbstractGuiElement = require("lua/testing/mocks/AbstractGuiElement")
 local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
+local MockObject = require("lua/testing/mocks/MockObject")
 
 local PlayerIndex = 1234
 
@@ -98,7 +99,7 @@ describe("--[[Mock]] LuaGuiElement", function()
                 type = "label",
                 caption = caption,
             }, PlayerIndex)
-            assert.are.equals(AbstractGuiElement.getDataIfValid(element).caption, caption)
+            assert.are.equals(MockObject.getData(element).caption, caption)
         end)
 
         it("-- read", function()
@@ -121,7 +122,7 @@ describe("--[[Mock]] LuaGuiElement", function()
                 type = "label",
             }, PlayerIndex)
             element.caption = caption
-            assert.are.equals(AbstractGuiElement.getDataIfValid(element).caption, caption)
+            assert.are.equals(MockObject.getData(element).caption, caption)
 
             element.destroy()
             assert.error(function()
@@ -214,7 +215,7 @@ describe("--[[Mock]] LuaGuiElement", function()
                     direction = "vertical",
                     style = "kilroy",
                 }, PlayerIndex)
-                assert.are.equals(AbstractGuiElement.getDataIfValid(element).style.name, "kilroy")
+                assert.are.equals(MockObject.getData(element).style.name, "kilroy")
             end)
 
             it("invalid", function()
@@ -239,7 +240,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             end)
 
             it("-- valid read", function()
-                assert.are.equals(element.style, AbstractGuiElement.getDataIfValid(element).style)
+                assert.are.equals(element.style, MockObject.getData(element).style)
             end)
 
             it("-- valid write", function()
@@ -261,7 +262,7 @@ describe("--[[Mock]] LuaGuiElement", function()
                 type = "label",
                 visible = true,
             }, PlayerIndex)
-            assert.is_true(AbstractGuiElement.getDataIfValid(element).visible)
+            assert.is_true(MockObject.getData(element).visible)
         end)
 
         it("-- read", function()
@@ -281,7 +282,7 @@ describe("--[[Mock]] LuaGuiElement", function()
                 type = "label",
             }, PlayerIndex)
             element.visible = true
-            assert.is_true(AbstractGuiElement.getDataIfValid(element).visible)
+            assert.is_true(MockObject.getData(element).visible)
 
             element.destroy()
             assert.error(function()

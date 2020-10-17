@@ -85,15 +85,6 @@ local AbstractGuiElement = {
         return CommonMockObject.make(data, metatable or Metatable)
     end,
 
-    -- Gets the internal table holding the unprotected values of the mock.
-    --
-    -- Args:
-    -- * self: AbstractGuiElement object.
-    --
-    -- Returns: The internal table containing the field's value of the given element (nil if invalid).
-    --
-    getDataIfValid = MockObject.getDataIfValid,
-
     -- Creates a new LuaGuiElement object (with the appropriate subtype).
     --
     -- Args:
