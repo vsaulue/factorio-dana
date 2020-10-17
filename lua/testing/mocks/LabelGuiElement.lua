@@ -18,8 +18,7 @@ local AbstractGuiElement = require("lua/testing/mocks/AbstractGuiElement")
 local ClassLogger = require("lua/logger/ClassLogger")
 local GuiDirection = require("lua/testing/mocks/GuiDirection")
 
-local cLogger = ClassLogger.new{className = "LabelGuiElement"}
-
+local cLogger
 local ElementType
 local Metatable
 
@@ -43,20 +42,19 @@ local LabelGuiElement = {
 
         return result
     end,
+
+    -- Metatable of the LabelGuiElement class.
+    Metatable = AbstractGuiElement.Metatable:makeSubclass{
+        className = "LabelGuiElement",
+    }
 }
+
+cLogger = LabelGuiElement.Metatable.cLogger
 
 -- Value in the "type" field.
 ElementType = "label"
 
--- Metatable of the LabelGuiElement class.
-Metatable = {
-    -- Flag for SaveLoadTester.
-    autoLoaded = true,
-
-    __index = AbstractGuiElement.Metatable.__index,
-
-    __newindex = AbstractGuiElement.Metatable.__newindex,
-}
+Metatable = LabelGuiElement.Metatable
 
 AbstractGuiElement.registerClass(ElementType, LabelGuiElement)
 return LabelGuiElement
