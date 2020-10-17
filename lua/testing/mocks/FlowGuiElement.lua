@@ -15,13 +15,12 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractGuiElement = require("lua/testing/mocks/AbstractGuiElement")
-local ClassLogger = require("lua/logger/ClassLogger")
 local GuiDirection = require("lua/testing/mocks/GuiDirection")
+local MockGetters = require("lua/testing/mocks/MockGetters")
+local MockObject = require("lua/testing/mocks/MockObject")
 
-local cLogger = ClassLogger.new{className = "FlowGuiElement"}
-
+local cLogger
 local ElementType
-local ForwardedIndex
 local Metatable
 
 -- Subtype for LuaGuiElement objects of type "flow".
@@ -41,41 +40,30 @@ local FlowGuiElement = {
     make = function(args, player_index, parent)
         local result = AbstractGuiElement.abstractMake(args, player_index, parent, Metatable)
         cLogger:assert(args.type == ElementType, "Incorrect type value: " .. tostring(args.type))
-        local data = AbstractGuiElement.getDataIfValid(result)
+        local data = MockObject.getData(result)
 
         local direction = cLogger:assertField(args, "direction")
         data.direction = GuiDirection.check(direction)
 
         return result
     end,
+
+    -- Metatable of the FlowGuiElement class.
+    Metatable = AbstractGuiElement.Metatable:makeSubclass{
+        className = "FlowGuiElement",
+
+        getters = {
+            direction = MockGetters.validTrivial("direction"),
+        },
+    },
 }
+
+cLogger = FlowGuiElement.Metatable.cLogger
 
 -- Value in the "type" field.
 ElementType = "flow"
 
--- Name of the fields which can directly be returned from the internal table via __index.
-ForwardedIndex = {
-    direction = true,
-}
-
--- Metatable of the FlowGuiElement class.
-Metatable = {
-    -- Flag for SaveLoadTester.
-    autoLoaded = true,
-
-    __index = function(self, index)
-        local data = AbstractGuiElement.getDataIfValid(self)
-        if data then
-            if ForwardedIndex[index] then
-                return data[index]
-            end
-        end
-
-        return AbstractGuiElement.Metatable.__index(self, index)
-    end,
-
-    __newindex = AbstractGuiElement.Metatable.__newindex,
-}
+Metatable = FlowGuiElement.Metatable
 
 AbstractGuiElement.registerClass(ElementType, FlowGuiElement)
 return FlowGuiElement
