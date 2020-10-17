@@ -14,24 +14,23 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ClassLogger = require("lua/logger/ClassLogger")
+local CommonMockObject = require("lua/testing/mocks/CommonMockObject")
+local MockGetters = require("lua/testing/mocks/MockGetters")
+local MockObject = require("lua/testing/mocks/MockObject")
 
-local cLogger = ClassLogger.new{className = "AbstractGuiElement"}
-
-local DataIndex
+local cLogger
 local destroyImpl
-local ForwardedIndex
-local getValidData
 local lastIndex
+local make
 local makeUniqueIndex
 local Metatable
-local MethodFactory
-local Setters
 local Subtypes
 
 -- Base class for mocks of LuaGuiElement.
 --
 -- See https://lua-api.factorio.com/1.0.0/LuaGuiElement.html.
+--
+-- Inherits from CommonMockObject.
 --
 -- Implemented fields & methods:
 -- * add()
@@ -45,11 +44,8 @@ local Subtypes
 -- * player_index
 -- * type
 -- * style
--- * valid
 -- * visible
---
--- The mock object doesn't store these values directly into the root table. They are "hidden"
--- in a subtable. This enables to perform some checking on all read/write operations with __index & __newindex.
+-- + CommonMockObject properties.
 --
 local AbstractGuiElement = {
     -- Base constructor for all types inheriting from AbstractGuiElement.
@@ -64,6 +60,7 @@ local AbstractGuiElement = {
     --
     abstractMake = function(args, player_index, parent, metatable)
         local _type = cLogger:assertField(args, "type")
+
         cLogger:assert(player_index, "Constructor: missing 'player_index' argument.")
         if parent then
             cLogger:assert(parent.player_index == player_index, "Parent & child have different player_index.")
@@ -75,20 +72,17 @@ local AbstractGuiElement = {
             style.name = args.style
         end
 
-        local result = {
-            [DataIndex] = {
-                caption = args.caption,
-                children = {},
-                index = makeUniqueIndex(),
-                parent = parent,
-                player_index = player_index,
-                type = _type,
-                style = style,
-                visible = not not args.visible,
-            },
+        local data = {
+            caption = args.caption,
+            children = {},
+            index = makeUniqueIndex(),
+            parent = parent,
+            player_index = player_index,
+            type = _type,
+            style = style,
+            visible = not not args.visible,
         }
-        setmetatable(result, metatable or Metatable)
-        return result
+        return CommonMockObject.make(data, metatable or Metatable)
     end,
 
     -- Gets the internal table holding the unprotected values of the mock.
@@ -98,9 +92,7 @@ local AbstractGuiElement = {
     --
     -- Returns: The internal table containing the field's value of the given element (nil if invalid).
     --
-    getDataIfValid = function(self)
-        return rawget(self, DataIndex)
-    end,
+    getDataIfValid = MockObject.getDataIfValid,
 
     -- Creates a new LuaGuiElement object (with the appropriate subtype).
     --
@@ -119,37 +111,81 @@ local AbstractGuiElement = {
     end,
 
     -- Metatable of the AbstractGuiElement class.
-    Metatable = {
-        -- Flag for SaveLoadTester.
-        autoLoaded = true,
+    Metatable = CommonMockObject.Metatable:makeSubclass{
+        className = "AbstractGuiElement",
 
-        __index = function(self, index)
-            if index == "valid" then
-                return rawget(self, DataIndex) ~= nil
-            end
+        getters = {
+            add = function(self)
+                return function(childArgs)
+                    local data = MockObject.getData(self, "add")
+                    local child = make(childArgs, data.player_index, self)
+                    table.insert(data.children, child)
+                    return child
+                end
+            end,
 
-            local data = getValidData(self)
+            -- Note: should return a deep-copy.
+            caption = MockGetters.validTrivial("caption"),
 
-            if ForwardedIndex[index] then
-                return data[index]
-            end
+            clear = function(self)
+                return function()
+                    local data = MockObject.getData(self, "clear")
+                    for _,child in ipairs(data.children) do
+                        destroyImpl(child)
+                    end
+                    data.children = {}
+                end
+            end,
 
-            local methodMaker = MethodFactory[index]
-            if methodMaker then
-                return methodMaker(self)
-            end
+            -- Note: should return a shallow-copy.
+            children = MockGetters.validTrivial("children"),
 
-            cLogger:error("Invalid read at: " .. tostring(index) .. ".")
-        end,
+            destroy = function(self)
+                return function()
+                    local data = MockObject.getData(self, "destroy")
+                    local parent = data.parent
+                    if parent then
+                        local index = 1
+                        local child = parent.children[1]
+                        while child and child ~= self do
+                            index = index + 1
+                            child = parent.children[index]
+                        end
+                        cLogger:assert(child, "Corrupted parent <-> child relationship.")
+                        table.remove(parent.children, index)
+                    end
+                    destroyImpl(self)
+                end
+            end,
 
-        __newindex = function(self, index, value)
-            local setter = Setters[index]
-            if setter then
-                setter(getValidData(self), value)
-            else
-                cLogger:error("Invalid write at: " .. tostring(index) .. ".")
-            end
-        end,
+            index = MockGetters.validTrivial("index"),
+            parent = MockGetters.validTrivial("parent"),
+            player_index = MockGetters.validTrivial("player_index"),
+            style = MockGetters.validTrivial("style"),
+            type = MockGetters.validTrivial("type"),
+            visible = MockGetters.validTrivial("visible"),
+        },
+
+        setters = {
+            caption = function(self, value)
+                local data = MockObject.getData(self, "caption")
+                -- Note: needs a LocalisedString check & a deep copy.
+                data.caption = value
+            end,
+
+            style = function(self, value)
+                local data = MockObject.getData(self, "style")
+                cLogger:assert(type(value) == "string", "Invalid write at 'style': string required.")
+                data.style = {
+                    name = value,
+                }
+            end,
+
+            visible = function(self, value)
+                local data = MockObject.getData(self, "visible")
+                data.visible = not not value
+            end,
+        },
     },
 
     -- Registers a new subtype for the factory.
@@ -164,8 +200,7 @@ local AbstractGuiElement = {
     end,
 }
 
--- Hidden key to access the table containing the element's fields.
-DataIndex = {}
+cLogger = AbstractGuiElement.Metatable.cLogger
 
 -- Invalidates an AbstractGuiElement, and all its children.
 --
@@ -173,37 +208,15 @@ DataIndex = {}
 -- * self: AbstractGuiElement object.
 --
 destroyImpl = function(self)
-    local children = self[DataIndex].children
+    local data = MockObject.getDataIfValid(self)
+    local children = data.children
     for _,child in ipairs(children) do
         destroyImpl(child)
     end
-    self[DataIndex] = nil
+    MockObject.invalidate(self)
 end
 
--- Name of the fields which can directly be returned from the internal table via __index.
-ForwardedIndex = {
-    caption = true,  -- Note: should return a deep-copy.
-    children = true, -- Note: should return a deep-copy.
-    index = true,
-    parent = true,
-    player_index = true,
-    style = true,
-    type = true,
-    visible = true,
-}
-
--- Gets the internal table if the object is valid.
---
--- Args:
--- * self: AbstractGuiElement object.
---
--- Returns: The internal table of the argument.
---
-getValidData = function(self)
-    local result = rawget(self, DataIndex)
-    cLogger:assert(result, "Object is not valid.")
-    return result
-end
+make = AbstractGuiElement.make
 
 -- Last generated index by the LuaGuiElement mock library.
 lastIndex = 0
@@ -218,69 +231,6 @@ makeUniqueIndex = function()
 end
 
 Metatable = AbstractGuiElement.Metatable
-
--- Map[methodName] -> function. Table containing callbacks used to generate methods.
---
--- Since methods are called as object.method(), and not object:method(), the mocking framework
--- must return a dedicated closure, instead of a generic method usable with any instance.
---
-MethodFactory = {
-    add = function(self)
-        return function(childArgs)
-            local data = getValidData(self)
-            local child = AbstractGuiElement.make(childArgs, data.player_index, self)
-            table.insert(data.children, child)
-            return child
-        end
-    end,
-
-    clear = function(self)
-        return function()
-            local data = getValidData(self)
-            for _,child in ipairs(data.children) do
-                destroyImpl(child)
-            end
-            data.children = {}
-        end
-    end,
-
-    destroy = function(self)
-        return function()
-            local data = getValidData(self)
-            local parent = data.parent
-            if parent then
-                local index = 1
-                local child = parent.children[1]
-                while child and child ~= self do
-                    index = index + 1
-                    child = parent.children[index]
-                end
-                cLogger:assert(child, "Corrupted parent <-> child relationship.")
-                table.remove(parent.children, index)
-            end
-            destroyImpl(self)
-        end
-    end,
-}
-
--- Map[fieldName] -> function. Setter to call in __newindex for a given field name.
-Setters = {
-    caption = function(data, value)
-        -- Note: needs a LocalisedString check & a deep copy.
-        data.caption = value
-    end,
-
-    style = function(data, value)
-        cLogger:assert(type(value) == "string", "Invalid write at 'style': string required.")
-        data.style = {
-            name = value,
-        }
-    end,
-
-    visible = function(data, value)
-        data.visible = not not value
-    end,
-}
 
 -- Map[type] -> ClassTable.
 --
