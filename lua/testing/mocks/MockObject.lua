@@ -51,6 +51,28 @@ local MockObject = {
         return rawget(self, DataIndex)
     end,
 
+    -- Gets the internal data table, or error if the object is not valid.
+    --
+    -- Args:
+    -- * self: AbstractGuiElement object.
+    -- * index (optional): any. Index being accessed (for logging purposes only).
+    --
+    -- Returns: table. The data table of this object.
+    --
+    getData = function(self, index)
+        local result = rawget(self, DataIndex)
+        if not result then
+            local msg
+            if index then
+                msg = "Attempt to access field '" .. tostring(index) .. "' of an invalid object."
+            else
+                msg = "Object is not valid."
+            end
+            getClassLogger(self):error(msg)
+        end
+        return result
+    end,
+
     -- Invalidates a MockObject.
     --
     -- This deletes the internal data table.
