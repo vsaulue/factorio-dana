@@ -46,12 +46,8 @@ local MockGetters = {
     --
     validTrivial = function(index)
         return function(self)
-            local data = MockObject.getDataIfValid(self)
-            if data then
-                return data[index]
-            else
-                MockObject.getClassLogger(self):error("Attempt to access field '" .. index .. "' of an invalid object.")
-            end
+            local data = MockObject.getData(self)
+            return data[index]
         end
     end,
 
@@ -66,12 +62,8 @@ local MockGetters = {
     --
     validReadOnly = function(index)
         return function(self)
-            local data = MockObject.getDataIfValid(self)
-            if data then
-                return MockReadOnlyWrapper.make(data[index])
-            else
-                MockObject.getClassLogger(self):error("Attempt to access field '" .. index .. "' of an invalid object.")
-            end
+            local data = MockObject.getData(self)
+            return MockReadOnlyWrapper.make(data[index])
         end
     end,
 }
