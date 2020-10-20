@@ -82,6 +82,7 @@ end
 LocalisedNamePrefix = {
     fluid = "fluid-name",
     item = "item-name",
+    recipe = "recipe-name",
 }
 
 Metatable = AbstractPrototype.Metatable
