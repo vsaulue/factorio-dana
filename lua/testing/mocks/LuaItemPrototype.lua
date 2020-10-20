@@ -15,6 +15,8 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractPrototype = require("lua/testing/mocks/AbstractPrototype")
+local MockGetters = require("lua/testing/mocks/MockGetters")
+local MockObject = require("lua/testing/mocks/MockObject")
 
 local checkType
 local cLogger
@@ -27,6 +29,7 @@ local Metatable
 -- Inherits from AbstractPrototype.
 --
 -- Implemented fields & methods:
+-- * burnt_result
 -- + AbstractPrototype.
 --
 local LuaItemPrototype = {
@@ -40,12 +43,23 @@ local LuaItemPrototype = {
     make = function(rawData)
         -- Note: too restrictive (there are valid subtypes).
         cLogger:assert(rawData.type == "item", "Unsupported type: " .. rawData.type)
-        return AbstractPrototype.make(rawData, Metatable)
+        local result = AbstractPrototype.make(rawData, Metatable)
+        local mockData = MockObject.getData(result)
+        local burnt_result = rawData.burnt_result
+        if burnt_result then
+            cLogger:assert(type(burnt_result) == "string", "burnt_result must be a string.")
+            mockData.burnt_result = burnt_result
+        end
+        return result
     end,
 
     -- Metatable of the LuaItemPrototype class.
     Metatable = AbstractPrototype.Metatable:makeSubclass{
         className = "LuaItemPrototype",
+
+        getters = {
+            burnt_result = MockGetters.validTrivial("burnt_result"),
+        },
     }
 }
 
