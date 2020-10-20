@@ -28,6 +28,7 @@ return {
             "gui/tests",
             "layouts/preprocess/algorithms/tests",
             "layouts/preprocess/tests",
+            "logger/tests",
             "hypergraph/algorithms/tests",
             "testing/mocks/tests",
             "testing/tests",

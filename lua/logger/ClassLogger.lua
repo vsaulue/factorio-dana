@@ -73,6 +73,26 @@ Metatable = {
             return result
         end,
 
+        -- Asserts that a field is properly set in an object.
+        --
+        -- Logs an error message & terminate if the field is not set.
+        --
+        -- Args:
+        -- * self: ClassLogger.
+        -- * object: table. Object whose field must be checked.
+        -- * index: any. Key of the field to check.
+        -- * typeName: string. Expected type.
+        --
+        -- Returns: The value of the field.
+        --
+        assertFieldType = function(self, object, index, typeName)
+            local result = self:assertField(object, index)
+            if type(result) ~= typeName then
+                Logger.error(self.className .. ": invalid type for field '" .. tostring(index) .. "' (" .. typeName .. " expected).")
+            end
+            return result
+        end,
+
         -- Logs an error message & and terminates the program.
         --
         -- Args:
