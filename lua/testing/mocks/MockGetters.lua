@@ -17,6 +17,8 @@
 local MockReadOnlyWrapper = require("lua/testing/mocks/MockReadOnlyWrapper")
 local MockObject = require("lua/testing/mocks/MockObject")
 
+local deepCopyImpl
+
 -- Library to generate some getters for MockMetatableParams.
 --
 local MockGetters = {
@@ -32,6 +34,19 @@ local MockGetters = {
     hide = function(index)
         return function(self)
             MockObject.Metatable.__index(self, index)
+        end
+    end,
+
+    -- Makes a getter which generates a deep copy of the field of the same name.
+    --
+    -- Args:
+    -- * index: Index of this getter.
+    --
+    -- Returns: function(object). The generated getter.
+    validDeepCopy = function(index)
+        return function(self)
+            local data = MockObject.getData(self, index)
+            return deepCopyImpl(data[index], {})
         end
     end,
 
@@ -67,5 +82,30 @@ local MockGetters = {
         end
     end,
 }
+
+-- Makes a deep copy of an object.
+--
+-- Args:
+-- * object: any. Object to copy.
+-- * cache: Map[table] -> table. Map of generated tables, indexed by their source tables.
+--
+-- Returns: The generated object.
+--
+deepCopyImpl = function(object, cache)
+    local result = object
+    if type(object) == "table" then
+        result = cache[object]
+        if not result then
+            result = {}
+            cache[object] = result
+            local k,v = next(object)
+            while k ~= nil do
+                result[deepCopyImpl(k,cache)] = deepCopyImpl(v,cache)
+                k,v = next(object, k)
+            end
+        end
+    end
+    return result
+end
 
 return MockGetters

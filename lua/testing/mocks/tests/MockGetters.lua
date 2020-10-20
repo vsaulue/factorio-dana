@@ -34,6 +34,51 @@ describe("MockGetters", function()
         end)
     end)
 
+    describe(".validDeepCopy()", function()
+        local Metatable
+        local object
+
+        before_each(function()
+            Metatable = MockObject.Metatable:makeSubclass{
+                className = "TheLieIsACake",
+                getters = {
+                    barfoo = MockGetters.validDeepCopy("barfoo"),
+                },
+            }
+            local data = {
+                barfoo = {
+                    someTable = {
+                        bar = "foo",
+                        [1] = true,
+                    },
+                    [false] = "wololo",
+                },
+            }
+            data.barfoo.someTable.moreTable = data.barfoo.someTable
+            object = MockObject.make(data, Metatable)
+        end)
+
+        it("-- valid", function()
+            local barfoo = object.barfoo
+            assert.are.same(barfoo, {
+                someTable = {
+                    bar = "foo",
+                    [1] = true,
+                    moreTable = barfoo.someTable,
+                },
+                [false] = "wololo",
+            })
+        end)
+
+        it("-- invalid", function()
+            MockObject.invalidate(object)
+            local barfoo
+            assert.error(function()
+                barfoo = object.barfoo
+            end)
+        end)
+    end)
+
     describe(".validReadOnly()", function()
         local Metatable
         local object
