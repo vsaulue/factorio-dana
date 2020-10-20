@@ -17,11 +17,14 @@
 local CommonMockObject = require("lua/testing/mocks/CommonMockObject")
 local LuaFluidPrototype = require("lua/testing/mocks/LuaFluidPrototype")
 local LuaItemPrototype = require("lua/testing/mocks/LuaItemPrototype")
+local LuaRecipePrototype = require("lua/testing/mocks/LuaRecipePrototype")
 local MockGetters = require("lua/testing/mocks/MockGetters")
 
 local cLogger
+local getIngredientOrProduct
 local Metatable
 local parse
+local TypeToIndex
 
 -- Mock implementation of Factorio's LuaGameScript.
 --
@@ -32,6 +35,7 @@ local parse
 -- Implemented fields & methods:
 -- * fluid_prototypes
 -- * item_prototypes
+-- * recipe_prototypes
 -- + AbstractPrototype.
 --
 local LuaGameScript = {
@@ -45,9 +49,28 @@ local LuaGameScript = {
         local selfData = {
             fluid_prototypes = {},
             item_prototypes = {},
+            recipe_prototypes = {},
         }
         parse(selfData.fluid_prototypes, rawData.fluid, LuaFluidPrototype.make)
         parse(selfData.item_prototypes, rawData.item, LuaItemPrototype.make)
+        parse(selfData.recipe_prototypes, rawData.recipe, function(rawPrototypeData)
+            local result = LuaRecipePrototype.make(rawPrototypeData)
+            for index,ingredientInfo in ipairs(result.ingredients) do
+                if not getIngredientOrProduct(selfData, ingredientInfo) then
+                    local msg = "Undeclared ingredient of recipe '" .. result.name .. "': " .. ingredientInfo.type
+                             .. " '" .. ingredientInfo.name .. "'."
+                    cLogger:error(msg)
+                end
+            end
+            for index,productInfo in ipairs(result.products) do
+                if not getIngredientOrProduct(selfData, productInfo) then
+                    local msg = "Undeclared product of recipe '" .. result.name .. "': " .. productInfo.type
+                             .. " '" .. productInfo.name .. "'."
+                    cLogger:error(msg)
+                end
+            end
+            return result
+        end)
         return CommonMockObject.make(selfData, Metatable)
     end,
 }
@@ -59,10 +82,28 @@ Metatable = CommonMockObject.Metatable:makeSubclass{
     getters = {
         fluid_prototypes = MockGetters.validReadOnly("fluid_prototypes"),
         item_prototypes = MockGetters.validReadOnly("item_prototypes"),
+        recipe_prototypes = MockGetters.validReadOnly("recipe_prototypes"),
     },
 }
 
 cLogger = Metatable.cLogger
+
+-- Gets the prototype of an item/fluid associated to a Ingredient/Product object.
+--
+-- Args:
+-- * selfData: table. Internal data table of the LuaGameScript containing the prototypes.
+-- * ingredientOrProduct: Ingredient or Product. Item/fluid to look for.
+--
+-- Returns: The corresponding LuaItemPrototype or LuaFluidPrototype. Nil if not found.
+--
+getIngredientOrProduct = function(selfData, ingredientOrProduct)
+    local result = nil
+    local mapIndex = TypeToIndex[ingredientOrProduct.type]
+    if mapIndex then
+        result = selfData[mapIndex][ingredientOrProduct.name]
+    end
+    return result
+end
 
 -- Generates prototypes from a specific map.
 --
@@ -83,5 +124,11 @@ parse = function(outputTable, inputTable, prototypeMaker)
         end
     end
 end
+
+-- Map[string]: string. Map of LuaGameScript field indices, indexed by their intermediate type.
+TypeToIndex = {
+    fluid = "fluid_prototypes",
+    item = "item_prototypes",
+}
 
 return LuaGameScript

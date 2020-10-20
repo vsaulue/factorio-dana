@@ -18,23 +18,42 @@ local LuaGameScript = require("lua/testing/mocks/LuaGameScript")
 local MockObject = require("lua/testing/mocks/MockObject")
 
 describe("LuaGameScript", function()
+    local rawData = {
+        fluid = {
+            steam = {
+                type = "fluid",
+                name = "steam",
+            },
+            water = {
+                type = "fluid",
+                name = "water",
+            },
+        },
+        item = {
+            wood = {
+                type = "item",
+                name = "wood",
+            },
+        },
+        recipe = {
+            boiling = {
+                type = "recipe",
+                name = "boiling",
+                expensive = {
+                    ingredients = {
+                        {type = "fluid", name = "water", amount = 10},
+                    },
+                    results = {
+                        {type = "fluid", name = "steam", amount = 10},
+                    },
+                },
+            },
+        },
+    }
     local gameScript
 
     before_each(function()
-        gameScript = LuaGameScript.make{
-            fluid = {
-                water = {
-                    type = "fluid",
-                    name = "water",
-                },
-            },
-            item = {
-                wood = {
-                    type = "item",
-                    name = "wood",
-                },
-            },
-        }
+        gameScript = LuaGameScript.make(rawData)
     end)
 
     describe(".make()", function()
@@ -48,6 +67,60 @@ describe("LuaGameScript", function()
             local wood = data.item_prototypes.wood
             assert.are.equals(wood.name, "wood")
             assert.are.equals(getmetatable(wood).className, "LuaItemPrototype")
+        end)
+
+        describe("-- recipe_prototypes", function()
+            it(", valid", function()
+                local data = MockObject.getData(gameScript)
+
+                local boiling = data.recipe_prototypes.boiling
+                assert.are.equals(boiling.name, "boiling")
+                assert.are.equals(getmetatable(boiling).className, "LuaRecipePrototype")
+                assert.are.equals(boiling.ingredients[1].name, "water")
+                assert.are.equals(boiling.products[1].name, "steam")
+            end)
+
+            it(", invalid ingredient", function()
+                assert.error(function()
+                    LuaGameScript.make{
+                        item = rawData.item,
+                        fluid = rawData.fluid,
+                        recipe = {
+                            wrongIngredient = {
+                                type = "recipe",
+                                name = "wrongIngredient",
+                                ingredients = {
+                                    {type = "item", name = "HTTP404", amount = 1},
+                                },
+                                results = {
+                                    {type = "item", name = "wood", amount = 2},
+                                },
+                            },
+                        },
+                    }
+                end)
+            end)
+
+            it(", invalid product", function()
+                assert.error(function()
+                    LuaGameScript.make{
+                        item = rawData.item,
+                        fluid = rawData.fluid,
+                        recipe = {
+                            wrongIngredient = {
+                                type = "recipe",
+                                name = "wrongIngredient",
+                                ingredients = {
+                                    {type = "item", name = "wood", amount = 2},
+                                },
+                                results = {
+                                    {type = "item", name = "HTTP404", amount = 1},
+                                },
+                            },
+                        },
+                    }
+                end)
+            end)
         end)
     end)
 
@@ -73,6 +146,19 @@ describe("LuaGameScript", function()
         it("-- write", function()
             assert.error(function()
                 gameScript.item_prototypes.wood = "denied"
+            end)
+        end)
+    end)
+
+    describe(":recipe_prototypes", function()
+        it("-- read", function()
+            local boiling = gameScript.recipe_prototypes.boiling
+            assert.are.equals(boiling.name, "boiling")
+        end)
+
+        it("-- write", function()
+            assert.error(function()
+                gameScript.recipe_prototypes.boiling = "denied"
             end)
         end)
     end)
