@@ -49,6 +49,17 @@ describe("LuaGameScript", function()
                 },
             },
         },
+        resource = {
+            ["wood-ore"] = {
+                type = "resource",
+                name = "wood-ore",
+                minable = {
+                    result = "wood",
+                    count = 5,
+                    required_fluid = "steam",
+                },
+            },
+        },
     }
     local gameScript
 
@@ -122,6 +133,62 @@ describe("LuaGameScript", function()
                 end)
             end)
         end)
+
+        describe("-- resource prototype", function()
+            it(", valid", function()
+                local data = MockObject.getData(gameScript)
+
+                local woodOre = data.entity_prototypes["wood-ore"]
+                assert.are.equals(woodOre.name, "wood-ore")
+                assert.are.equals(getmetatable(woodOre).className, "LuaEntityPrototype")
+                assert.are.same(woodOre.mineable_properties, {
+                    fluid_amount = 0,
+                    minable = true,
+                    products = {
+                        {type = "item", name = "wood", amount = 5},
+                    },
+                    required_fluid = "steam",
+                })
+            end)
+
+            it(", invalid mining fluid", function()
+                assert.error(function()
+                    LuaGameScript.make{
+                        item = rawData.item,
+                        fluid = rawData.fluid,
+                        resource = {
+                            sample = {
+                                type = "resource",
+                                name = "sample",
+                                minable = {
+                                    required_fluid = "HTTP404",
+                                },
+                            },
+                        },
+                    }
+                end)
+            end)
+
+            it(", invalid product", function()
+                assert.error(function()
+                    LuaGameScript.make{
+                        item = rawData.item,
+                        fluid = rawData.fluid,
+                        resource = {
+                            sample = {
+                                type = "resource",
+                                name = "sample",
+                                minable = {
+                                    results = {
+                                        {"HTTP404", 4},
+                                    },
+                                },
+                            },
+                        },
+                    }
+                end)
+            end)
+        end)
     end)
 
     describe(":fluid_prototypes", function()
@@ -159,6 +226,19 @@ describe("LuaGameScript", function()
         it("-- write", function()
             assert.error(function()
                 gameScript.recipe_prototypes.boiling = "denied"
+            end)
+        end)
+    end)
+
+    describe(":entity_prototypes", function()
+        it("-- read", function()
+            local woodOre = gameScript.entity_prototypes["wood-ore"]
+            assert.are.equals(woodOre.name, "wood-ore")
+        end)
+
+        it("-- write", function()
+            assert.error(function()
+                gameScript.entity_prototypes["wood-ore"] = "denied"
             end)
         end)
     end)

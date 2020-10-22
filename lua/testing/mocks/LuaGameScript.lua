@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local CommonMockObject = require("lua/testing/mocks/CommonMockObject")
+local LuaEntityPrototype = require("lua/testing/mocks/LuaEntityPrototype")
 local LuaFluidPrototype = require("lua/testing/mocks/LuaFluidPrototype")
 local LuaItemPrototype = require("lua/testing/mocks/LuaItemPrototype")
 local LuaRecipePrototype = require("lua/testing/mocks/LuaRecipePrototype")
@@ -33,6 +34,7 @@ local TypeToIndex
 -- Inherits from CommonMockObject.
 --
 -- Implemented fields & methods:
+-- * entity_prototypes (resource only).
 -- * fluid_prototypes
 -- * item_prototypes
 -- * recipe_prototypes
@@ -47,12 +49,14 @@ local LuaGameScript = {
     -- Returns: LuaGameScript. The new object.
     make = function(rawData)
         local selfData = {
+            entity_prototypes = {},
             fluid_prototypes = {},
             item_prototypes = {},
             recipe_prototypes = {},
         }
         parse(selfData.fluid_prototypes, rawData.fluid, LuaFluidPrototype.make)
         parse(selfData.item_prototypes, rawData.item, LuaItemPrototype.make)
+
         parse(selfData.recipe_prototypes, rawData.recipe, function(rawPrototypeData)
             local result = LuaRecipePrototype.make(rawPrototypeData)
             for index,ingredientInfo in ipairs(result.ingredients) do
@@ -71,6 +75,29 @@ local LuaGameScript = {
             end
             return result
         end)
+
+        parse(selfData.entity_prototypes, rawData.resource, function(rawPrototypeData)
+            local result = LuaEntityPrototype.make(rawPrototypeData)
+            local mineProps = result.mineable_properties
+            if mineProps.products then
+                for index,productInfo in ipairs(mineProps.products) do
+                    if not getIngredientOrProduct(selfData, productInfo) then
+                        local msg = "Undeclared mining product of entity '" .. result.name .. "': " .. productInfo.type
+                                 .. " '" .. productInfo.name .. "'."
+                        cLogger:error(msg)
+                    end
+                end
+            end
+            local requiredFluid = mineProps.required_fluid
+            if requiredFluid then
+                if not selfData.fluid_prototypes[requiredFluid] then
+                    local msg = "Undeclared mining fluid of entity '" .. result.name .. "': " .. requiredFluid .. "."
+                    cLogger:error(msg)
+                end
+            end
+            return result
+        end)
+
         return CommonMockObject.make(selfData, Metatable)
     end,
 }
@@ -80,6 +107,7 @@ Metatable = CommonMockObject.Metatable:makeSubclass{
     className = "LuaGameScript",
 
     getters = {
+        entity_prototypes = MockGetters.validReadOnly("entity_prototypes"),
         fluid_prototypes = MockGetters.validReadOnly("fluid_prototypes"),
         item_prototypes = MockGetters.validReadOnly("item_prototypes"),
         recipe_prototypes = MockGetters.validReadOnly("recipe_prototypes"),
