@@ -21,7 +21,7 @@ local MockObject = require("lua/testing/mocks/MockObject")
 
 local cLogger
 local Metatable
-local ValidTypes
+local Parsers
 
 -- Mock implementation of Factorio's LuaEntityPrototype.
 --
@@ -42,11 +42,16 @@ local LuaEntityPrototype = {
     -- Returns: LuaEntityPrototype. The new object.
     --
     make = function(rawData)
-        if not ValidTypes[rawData.type] then
-            cLogger:error("Unsupported entity type: " .. tostring(rawData.type))
-        end
         local result = AbstractPrototype.make(rawData, Metatable)
         local mockData = MockObject.getData(result)
+
+        local parser = Parsers[rawData.type]
+        if not parser then
+            cLogger:error("Unsupported entity type: " .. tostring(rawData.type))
+        elseif type(parser) == "function" then
+            parser(mockData, rawData)
+        end
+
         mockData.mineable_properties = MinableProperties.make(rawData.minable)
         return result
     end,
@@ -64,8 +69,8 @@ local LuaEntityPrototype = {
 cLogger = LuaEntityPrototype.Metatable.cLogger
 Metatable = LuaEntityPrototype.Metatable
 
--- Set<string>. Set of supported values for the "type" field.
-ValidTypes = {
+-- Map[string]: function or true. Specific parsing function, indexed by prototype type.
+Parsers = {
     resource = true,
 }
 

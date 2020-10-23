@@ -38,7 +38,7 @@ describe("LuaEntityPrototype", function()
         it("-- invalid type", function()
             assert.error(function()
                 LuaEntityPrototype.make{
-                    type = "turret",
+                    type = "item",
                     name = "minigun",
                 }
             end)
