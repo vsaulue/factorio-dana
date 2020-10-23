@@ -16,6 +16,7 @@
 
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local ProductAmount = require("lua/model/ProductAmount")
 
 local cLogger = ClassLogger.new{className = "ProductData"}
 
@@ -52,6 +53,9 @@ local ProductData = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
+        for index=1,object.count do
+            ProductAmount.setmetatable(object[index])
+        end
     end,
 }
 
