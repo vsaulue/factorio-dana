@@ -64,16 +64,12 @@ local LuaGameScript = {
             local result = LuaRecipePrototype.make(rawPrototypeData)
             for index,ingredientInfo in ipairs(result.ingredients) do
                 if not getIngredientOrProduct(selfData, ingredientInfo) then
-                    local msg = "Undeclared ingredient of recipe '" .. result.name .. "': " .. ingredientInfo.type
-                             .. " '" .. ingredientInfo.name .. "'."
-                    cLogger:error(msg)
+                    linkerError(result, "ingredients", ingredientInfo.type, ingredientInfo.name)
                 end
             end
             for index,productInfo in ipairs(result.products) do
                 if not getIngredientOrProduct(selfData, productInfo) then
-                    local msg = "Undeclared product of recipe '" .. result.name .. "': " .. productInfo.type
-                             .. " '" .. productInfo.name .. "'."
-                    cLogger:error(msg)
+                    linkerError(result, "products", productInfo.type, productInfo.name)
                 end
             end
             return result
@@ -85,17 +81,14 @@ local LuaGameScript = {
             if mineProps.products then
                 for index,productInfo in ipairs(mineProps.products) do
                     if not getIngredientOrProduct(selfData, productInfo) then
-                        local msg = "Undeclared mining product of entity '" .. result.name .. "': " .. productInfo.type
-                                 .. " '" .. productInfo.name .. "'."
-                        cLogger:error(msg)
+                        linkerError(result, "minable products", productInfo.type, productInfo.name)
                     end
                 end
             end
             local requiredFluid = mineProps.required_fluid
             if requiredFluid then
                 if not selfData.fluid_prototypes[requiredFluid] then
-                    local msg = "Undeclared mining fluid of entity '" .. result.name .. "': " .. requiredFluid .. "."
-                    cLogger:error(msg)
+                    linkerError(result, "mining fluid", "fluid", requiredFluid)
                 end
             end
             return result
