@@ -30,9 +30,14 @@ describe("LuaGameScript", function()
             },
         },
         item = {
+            ash = {
+                type = "item",
+                name = "ash",
+            },
             wood = {
                 type = "item",
                 name = "wood",
+                burnt_result = "ash",
             },
         },
         recipe = {
@@ -74,10 +79,31 @@ describe("LuaGameScript", function()
             local water = data.fluid_prototypes.water
             assert.are.equals(water.name, "water")
             assert.are.equals(getmetatable(water).className, "LuaFluidPrototype")
+        end)
 
-            local wood = data.item_prototypes.wood
-            assert.are.equals(wood.name, "wood")
-            assert.are.equals(getmetatable(wood).className, "LuaItemPrototype")
+        describe("-- item_prototypes", function()
+            it(", valid", function()
+                local data = MockObject.getDataIfValid(gameScript)
+
+                local wood = data.item_prototypes.wood
+                assert.are.equals(wood.name, "wood")
+                assert.are.equals(getmetatable(wood).className, "LuaItemPrototype")
+                assert.are.equals(wood.burnt_result, data.item_prototypes.ash)
+            end)
+
+            it(", invalid burnt_result", function()
+                assert.error(function()
+                    LuaGameScript.make{
+                        item = {
+                            wood = {
+                                type = "item",
+                                name = "wood",
+                                burnt_result = "smoke",
+                            },
+                        },
+                    }
+                end)
+            end)
         end)
 
         describe("-- recipe_prototypes", function()

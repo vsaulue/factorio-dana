@@ -20,9 +20,12 @@ local LuaFluidPrototype = require("lua/testing/mocks/LuaFluidPrototype")
 local LuaItemPrototype = require("lua/testing/mocks/LuaItemPrototype")
 local LuaRecipePrototype = require("lua/testing/mocks/LuaRecipePrototype")
 local MockGetters = require("lua/testing/mocks/MockGetters")
+local MockObject = require("lua/testing/mocks/MockObject")
 
 local cLogger
 local getIngredientOrProduct
+local linkerError
+local Linkers
 local Metatable
 local parse
 local TypeToIndex
@@ -98,6 +101,12 @@ local LuaGameScript = {
             return result
         end)
 
+        for index,linker in pairs(Linkers) do
+            for _,prototype in pairs(selfData[index]) do
+                linker(selfData, prototype)
+            end
+        end
+
         return CommonMockObject.make(selfData, Metatable)
     end,
 }
@@ -132,6 +141,39 @@ getIngredientOrProduct = function(selfData, ingredientOrProduct)
     end
     return result
 end
+
+-- Generates an error for invalid cross-prototype references.
+--
+-- Args:
+-- * basePrototype: AbstractPrototype. Prototype containing the reference.
+-- * propertyName: string. Name of the field in `basePrototype` containing the cross-reference.
+-- * searchedType: string. Type of the referenced prototype.
+-- * searchedName: string. Name of the referenced prototype.
+--
+linkerError = function(basePrototype, propertyName, searchedType, searchedName)
+    local msg = "In " .. basePrototype.type .. " '" .. basePrototype.name .. "': Undefined " .. propertyName
+             .. " (" .. searchedType .. " '" .. searchedName .. "')"
+    cLogger:error(msg)
+end
+
+-- Map[string] -> function(LuaGameScript.Data, AbstractPrototype).
+--
+-- Linkers are functions that sets the cross-prototype references in each prototypes.
+--
+-- This map gives the linker function to run on each prototype collection in LuaGameScript.
+Linkers = {
+    item_prototypes = function(selfData, itemPrototype)
+        local itemData = MockObject.getData(itemPrototype)
+        local burntName = itemData.burnt_result
+        if burntName then
+            local burntPrototype = selfData.item_prototypes[burntName]
+            if not burntPrototype then
+                linkerError(itemPrototype, "burnt_result", "item", burntName)
+            end
+            itemData.burnt_result = burntPrototype
+        end
+    end,
+}
 
 -- Generates prototypes from a specific map.
 --
