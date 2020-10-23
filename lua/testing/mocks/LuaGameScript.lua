@@ -59,21 +59,7 @@ local LuaGameScript = {
         }
         parse(selfData.fluid_prototypes, rawData.fluid, LuaFluidPrototype.make)
         parse(selfData.item_prototypes, rawData.item, LuaItemPrototype.make)
-
-        parse(selfData.recipe_prototypes, rawData.recipe, function(rawPrototypeData)
-            local result = LuaRecipePrototype.make(rawPrototypeData)
-            for index,ingredientInfo in ipairs(result.ingredients) do
-                if not getIngredientOrProduct(selfData, ingredientInfo) then
-                    linkerError(result, "ingredients", ingredientInfo.type, ingredientInfo.name)
-                end
-            end
-            for index,productInfo in ipairs(result.products) do
-                if not getIngredientOrProduct(selfData, productInfo) then
-                    linkerError(result, "products", productInfo.type, productInfo.name)
-                end
-            end
-            return result
-        end)
+        parse(selfData.recipe_prototypes, rawData.recipe, LuaRecipePrototype.make)
 
         parse(selfData.entity_prototypes, rawData.resource, function(rawPrototypeData)
             local result = LuaEntityPrototype.make(rawPrototypeData)
@@ -164,6 +150,19 @@ Linkers = {
                 linkerError(itemPrototype, "burnt_result", "item", burntName)
             end
             itemData.burnt_result = burntPrototype
+        end
+    end,
+
+    recipe_prototypes = function(selfData, recipePrototype)
+        for index,ingredientInfo in ipairs(recipePrototype.ingredients) do
+            if not getIngredientOrProduct(selfData, ingredientInfo) then
+                linkerError(recipePrototype, "ingredient", ingredientInfo.type, ingredientInfo.name)
+            end
+        end
+        for index,productInfo in ipairs(recipePrototype.products) do
+            if not getIngredientOrProduct(selfData, productInfo) then
+                linkerError(recipePrototype, "product", productInfo.type, productInfo.name)
+            end
         end
     end,
 }
