@@ -60,25 +60,7 @@ local LuaGameScript = {
         parse(selfData.fluid_prototypes, rawData.fluid, LuaFluidPrototype.make)
         parse(selfData.item_prototypes, rawData.item, LuaItemPrototype.make)
         parse(selfData.recipe_prototypes, rawData.recipe, LuaRecipePrototype.make)
-
-        parse(selfData.entity_prototypes, rawData.resource, function(rawPrototypeData)
-            local result = LuaEntityPrototype.make(rawPrototypeData)
-            local mineProps = result.mineable_properties
-            if mineProps.products then
-                for index,productInfo in ipairs(mineProps.products) do
-                    if not getIngredientOrProduct(selfData, productInfo) then
-                        linkerError(result, "minable products", productInfo.type, productInfo.name)
-                    end
-                end
-            end
-            local requiredFluid = mineProps.required_fluid
-            if requiredFluid then
-                if not selfData.fluid_prototypes[requiredFluid] then
-                    linkerError(result, "mining fluid", "fluid", requiredFluid)
-                end
-            end
-            return result
-        end)
+        parse(selfData.entity_prototypes, rawData.resource, LuaEntityPrototype.make)
 
         for index,linker in pairs(Linkers) do
             for _,prototype in pairs(selfData[index]) do
@@ -141,6 +123,23 @@ end
 --
 -- This map gives the linker function to run on each prototype collection in LuaGameScript.
 Linkers = {
+    entity_prototypes = function(selfData, entityPrototype)
+        local mineProps = entityPrototype.mineable_properties
+        if mineProps.products then
+            for index,productInfo in ipairs(mineProps.products) do
+                if not getIngredientOrProduct(selfData, productInfo) then
+                    linkerError(entityPrototype, "minable products", productInfo.type, productInfo.name)
+                end
+            end
+        end
+        local requiredFluid = mineProps.required_fluid
+        if requiredFluid then
+            if not selfData.fluid_prototypes[requiredFluid] then
+                linkerError(entityPrototype, "mining fluid", "fluid", requiredFluid)
+            end
+        end
+    end,
+
     item_prototypes = function(selfData, itemPrototype)
         local itemData = MockObject.getData(itemPrototype)
         local burntName = itemData.burnt_result
