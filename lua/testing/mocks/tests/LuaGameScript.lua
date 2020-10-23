@@ -40,6 +40,14 @@ describe("LuaGameScript", function()
                 burnt_result = "ash",
             },
         },
+        ["offshore-pump"] = {
+            ["water-pump"] = {
+                type = "offshore-pump",
+                name = "water-pump",
+                fluid = "water",
+                pumping_speed = 10,
+            },
+        },
         recipe = {
             boiling = {
                 type = "recipe",
@@ -99,6 +107,50 @@ describe("LuaGameScript", function()
                                 type = "item",
                                 name = "wood",
                                 burnt_result = "smoke",
+                            },
+                        },
+                    }
+                end)
+            end)
+        end)
+
+        describe("-- offshore-pump prototypes", function()
+            it(", valid", function()
+                local data = MockObject.getData(gameScript)
+
+                local waterPump = data.entity_prototypes["water-pump"]
+                assert.are.equals(waterPump.name, "water-pump")
+                assert.are.equals(getmetatable(waterPump).className, "LuaEntityPrototype")
+                assert.are.equals(waterPump.fluid, data.fluid_prototypes.water)
+                assert.are.equals(waterPump.pumping_speed, 10)
+            end)
+
+            it(", invalid fluid", function()
+                assert.error(function()
+                    LuaGameScript.make{
+                        fluid = rawData.fluid,
+                        ["offshore-pump"] = {
+                            ["water-pump"] = {
+                                type = "offshore-pump",
+                                name = "water-pump",
+                                fluid = "HTTP404",
+                                pumping_speed = 10,
+                            },
+                        },
+                    }
+                end)
+            end)
+
+            it(", invalid pumping_speed", function()
+                assert.error(function()
+                    LuaGameScript.make{
+                        fluid = rawData.fluid,
+                        ["offshore-pump"] = {
+                            ["water-pump"] = {
+                                type = "offshore-pump",
+                                name = "water-pump",
+                                fluid = "water",
+                                pumping_speed = "denied",
                             },
                         },
                     }

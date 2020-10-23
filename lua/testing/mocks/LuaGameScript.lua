@@ -61,6 +61,7 @@ local LuaGameScript = {
         parse(selfData.item_prototypes, rawData.item, LuaItemPrototype.make)
         parse(selfData.recipe_prototypes, rawData.recipe, LuaRecipePrototype.make)
         parse(selfData.entity_prototypes, rawData.resource, LuaEntityPrototype.make)
+        parse(selfData.entity_prototypes, rawData["offshore-pump"], LuaEntityPrototype.make)
 
         for index,linker in pairs(Linkers) do
             for _,prototype in pairs(selfData[index]) do
@@ -124,6 +125,8 @@ end
 -- This map gives the linker function to run on each prototype collection in LuaGameScript.
 Linkers = {
     entity_prototypes = function(selfData, entityPrototype)
+        local entityData = MockObject.getData(entityPrototype)
+        -- mineable_properties
         local mineProps = entityPrototype.mineable_properties
         if mineProps.products then
             for index,productInfo in ipairs(mineProps.products) do
@@ -137,6 +140,16 @@ Linkers = {
             if not selfData.fluid_prototypes[requiredFluid] then
                 linkerError(entityPrototype, "mining fluid", "fluid", requiredFluid)
             end
+        end
+
+        -- others
+        local fluid = entityData.fluid
+        if fluid then
+            local fluidPrototype = selfData.fluid_prototypes[fluid]
+            if not fluidPrototype then
+                linkerError(entityPrototype, "fluid", "fluid", fluid)
+            end
+            entityData.fluid = fluidPrototype
         end
     end,
 
