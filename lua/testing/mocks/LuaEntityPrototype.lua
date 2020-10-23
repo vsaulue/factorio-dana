@@ -30,7 +30,9 @@ local Parsers
 -- Inherits from AbstractPrototype.
 --
 -- Implemented fields & methods:
+-- * fluid
 -- * mineable_properties
+-- * pumping_speed
 -- + AbstractPrototype.
 --
 local LuaEntityPrototype = {
@@ -61,7 +63,9 @@ local LuaEntityPrototype = {
         className = "LuaEntityPrototype",
 
         getters = {
+            fluid = MockGetters.validTrivial("fluid"),
             mineable_properties = MockGetters.validDeepCopy("mineable_properties"),
+            pumping_speed = MockGetters.validTrivial("pumping_speed"),
         },
     },
 }
@@ -71,6 +75,11 @@ Metatable = LuaEntityPrototype.Metatable
 
 -- Map[string]: function or true. Specific parsing function, indexed by prototype type.
 Parsers = {
+    ["offshore-pump"] = function(mockData, rawData)
+        mockData.fluid = cLogger:assertFieldType(rawData, "fluid", "string")
+        mockData.pumping_speed = cLogger:assertFieldType(rawData, "pumping_speed", "number")
+    end,
+
     resource = true,
 }
 

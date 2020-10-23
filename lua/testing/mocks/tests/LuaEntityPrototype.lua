@@ -19,7 +19,50 @@ local MockObject = require("lua/testing/mocks/MockObject")
 
 describe("LuaEntityPrototype", function()
     describe(".make()", function()
-        it("-- valid", function()
+        describe("-- offshore-pump", function()
+            it(", valid", function()
+                local object = LuaEntityPrototype.make{
+                    type = "offshore-pump",
+                    name = "water-pump",
+                    fluid = "water",
+                    pumping_speed = 1200,
+                }
+                assert.are.same(MockObject.getData(object), {
+                    fluid = "water",
+                    localised_name = {"entity-name.water-pump"},
+                    mineable_properties = {
+                        minable = false,
+                    },
+                    name = "water-pump",
+                    pumping_speed = 1200,
+                    type = "offshore-pump",
+                })
+            end)
+
+            it(", missing fluid", function()
+                assert.error(function()
+                    LuaEntityPrototype.make{
+                        type = "offshore-pump",
+                        name = "water-pump",
+                        -- fluid = "water",
+                        pumping_speed = 1200,
+                    }
+                end)
+            end)
+
+            it(", missing pumping_speed", function()
+                assert.error(function()
+                    LuaEntityPrototype.make{
+                        type = "offshore-pump",
+                        name = "water-pump",
+                        fluid = "water",
+                        -- pumping_speed = 1200,
+                    }
+                end)
+            end)
+        end)
+
+        it("-- resource", function()
             local object = LuaEntityPrototype.make{
                 type = "resource",
                 name = "john-snow-knowledge",

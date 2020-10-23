@@ -82,6 +82,7 @@ end
 LocalisedNamePrefix = {
     fluid = "fluid-name",
     item = "item-name",
+    ["offshore-pump"] = "entity-name",
     recipe = "recipe-name",
     resource = "entity-name",
 }
