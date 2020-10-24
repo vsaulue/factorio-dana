@@ -31,6 +31,7 @@ local Parsers
 --
 -- Implemented fields & methods:
 -- * fluid
+-- * fluidbox_prototypes (not parsed)
 -- * mineable_properties
 -- * pumping_speed
 -- + AbstractPrototype.
@@ -55,6 +56,7 @@ local LuaEntityPrototype = {
         end
 
         mockData.mineable_properties = MinableProperties.make(rawData.minable)
+        mockData.fluidbox_prototypes = {}
         return result
     end,
 
@@ -64,6 +66,7 @@ local LuaEntityPrototype = {
 
         getters = {
             fluid = MockGetters.validTrivial("fluid"),
+            fluidbox_prototypes = MockGetters.validTrivial("fluidbox_prototypes"),
             mineable_properties = MockGetters.validDeepCopy("mineable_properties"),
             pumping_speed = MockGetters.validTrivial("pumping_speed"),
         },

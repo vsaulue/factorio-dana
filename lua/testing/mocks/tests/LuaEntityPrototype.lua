@@ -29,6 +29,7 @@ describe("LuaEntityPrototype", function()
                 }
                 assert.are.same(MockObject.getData(object), {
                     fluid = "water",
+                    fluidbox_prototypes = {},
                     localised_name = {"entity-name.water-pump"},
                     mineable_properties = {
                         minable = false,
@@ -69,6 +70,7 @@ describe("LuaEntityPrototype", function()
                 -- minable = nil,   for some reason, it yields nothing
             }
             assert.are.same(MockObject.getData(object),{
+                fluidbox_prototypes = {},
                 type = "resource",
                 name = "john-snow-knowledge",
                 localised_name = {"entity-name.john-snow-knowledge"},
@@ -84,6 +86,29 @@ describe("LuaEntityPrototype", function()
                     type = "item",
                     name = "minigun",
                 }
+            end)
+        end)
+    end)
+
+    describe(":fluidbox_prototypes", function()
+        local object
+        before_each(function()
+            object = LuaEntityPrototype.make{
+                type = "offshore-pump",
+                name = "waterPump",
+                fluid = "water",
+                pumping_speed = 5,
+
+            }
+        end)
+
+        it("-- read", function()
+            assert.are.same(MockObject.getData(object).fluidbox_prototypes, object.fluidbox_prototypes)
+        end)
+
+        it("-- write", function()
+            assert.error(function()
+                object.fluidbox_prototypes = "denied"
             end)
         end)
     end)
