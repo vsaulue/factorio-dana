@@ -15,10 +15,12 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractPrototype = require("lua/testing/mocks/AbstractPrototype")
+local LuaFluidBoxPrototype = require("lua/testing/mocks/LuaFluidBoxPrototype")
 local MinableProperties = require("lua/testing/mocks/MinableProperties")
 local MockGetters = require("lua/testing/mocks/MockGetters")
 local MockObject = require("lua/testing/mocks/MockObject")
 
+local addFluidbox
 local cLogger
 local Metatable
 local Parsers
@@ -47,6 +49,7 @@ local LuaEntityPrototype = {
     make = function(rawData)
         local result = AbstractPrototype.make(rawData, Metatable)
         local mockData = MockObject.getData(result)
+        mockData.fluidbox_prototypes = {}
 
         local parser = Parsers[rawData.type]
         if not parser then
@@ -56,7 +59,6 @@ local LuaEntityPrototype = {
         end
 
         mockData.mineable_properties = MinableProperties.make(rawData.minable)
-        mockData.fluidbox_prototypes = {}
         return result
     end,
 
@@ -73,6 +75,16 @@ local LuaEntityPrototype = {
     },
 }
 
+-- Adds a fluidbox to a prototype.
+--
+-- Args:
+-- * mockData: LuaEntityPrototype.data. Internal data of the entity prototype.
+-- * rawFluidboxData: table. The fluidbox's construction arguments from the data phase.
+--
+addFluidbox = function(mockData, rawFluidboxData)
+    table.insert(mockData.fluidbox_prototypes, LuaFluidBoxPrototype.make(rawFluidboxData))
+end
+
 cLogger = LuaEntityPrototype.Metatable.cLogger
 Metatable = LuaEntityPrototype.Metatable
 
@@ -81,6 +93,7 @@ Parsers = {
     ["offshore-pump"] = function(mockData, rawData)
         mockData.fluid = cLogger:assertFieldType(rawData, "fluid", "string")
         mockData.pumping_speed = cLogger:assertFieldType(rawData, "pumping_speed", "number")
+        addFluidbox(mockData, cLogger:assertFieldType(rawData, "fluid_box", "table"))
     end,
 
     resource = true,

@@ -25,11 +25,16 @@ describe("LuaEntityPrototype", function()
                     type = "offshore-pump",
                     name = "water-pump",
                     fluid = "water",
+                    fluid_box = {
+                        production_type = "output",
+                    },
                     pumping_speed = 1200,
                 }
                 assert.are.same(MockObject.getData(object), {
                     fluid = "water",
-                    fluidbox_prototypes = {},
+                    fluidbox_prototypes = {
+                        MockObject.make{production_type = "output"},
+                    },
                     localised_name = {"entity-name.water-pump"},
                     mineable_properties = {
                         minable = false,
@@ -98,7 +103,9 @@ describe("LuaEntityPrototype", function()
                 name = "waterPump",
                 fluid = "water",
                 pumping_speed = 5,
-
+                fluid_box = {
+                    production_type = "input-output",
+                }
             }
         end)
 

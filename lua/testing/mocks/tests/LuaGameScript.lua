@@ -45,6 +45,10 @@ describe("LuaGameScript", function()
                 type = "offshore-pump",
                 name = "water-pump",
                 fluid = "water",
+                fluid_box = {
+                    filter = "water",
+                    production_type = "output"
+                },
                 pumping_speed = 10,
             },
         },
@@ -123,6 +127,10 @@ describe("LuaGameScript", function()
                 assert.are.equals(getmetatable(waterPump).className, "LuaEntityPrototype")
                 assert.are.equals(waterPump.fluid, data.fluid_prototypes.water)
                 assert.are.equals(waterPump.pumping_speed, 10)
+                assert.are.same(waterPump.fluidbox_prototypes[1], MockObject.make{
+                    filter = data.fluid_prototypes.water,
+                    production_type = "output",
+                })
             end)
 
             it(", invalid fluid", function()
@@ -134,6 +142,10 @@ describe("LuaGameScript", function()
                                 type = "offshore-pump",
                                 name = "water-pump",
                                 fluid = "HTTP404",
+                                fluid_box = {
+                                    filter = "water",
+                                    production_type = "output"
+                                },
                                 pumping_speed = 10,
                             },
                         },
@@ -150,6 +162,10 @@ describe("LuaGameScript", function()
                                 type = "offshore-pump",
                                 name = "water-pump",
                                 fluid = "water",
+                                fluid_box = {
+                                    filter = "water",
+                                    production_type = "output"
+                                },
                                 pumping_speed = "denied",
                             },
                         },

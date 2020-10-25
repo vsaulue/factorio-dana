@@ -38,6 +38,10 @@ describe("OffshorePumpTransform", function()
                     type = "offshore-pump",
                     name = "waterPump",
                     fluid = "water",
+                    fluid_box = {
+                        production_type = "output",
+                        filter = "water",
+                    },
                     pumping_speed = 5,
                 },
             },

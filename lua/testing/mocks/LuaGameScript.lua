@@ -151,6 +151,18 @@ Linkers = {
             end
             entityData.fluid = fluidPrototype
         end
+
+        for _,fluidbox in ipairs(entityData.fluidbox_prototypes) do
+            local fluidboxData = MockObject.getData(fluidbox)
+            local filter = fluidboxData.filter
+            if filter then
+                local fluidPrototype = selfData.fluid_prototypes[filter]
+                if not fluidPrototype then
+                    linkerError(entityPrototype, "fluidbox_prototypes", "fluid", filter)
+                end
+                fluidboxData.filter = fluidPrototype
+            end
+        end
     end,
 
     item_prototypes = function(selfData, itemPrototype)
