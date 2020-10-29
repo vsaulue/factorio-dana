@@ -41,16 +41,14 @@ local Product = {
     -- Returns: Product. The new object.
     --
     make = function(rawData)
-        local type = rawData.type
-        local name
+        local type = rawData.type or "item"
+        cLogger:assert(ValidTypes[type], "Unknown type: " .. tostring(type))
+        local name = rawData.name
         local amount
         local amount_max
         local amount_min
         local probability
-        if type then
-            name = cLogger:assertFieldType(rawData, "name", "string")
-            cLogger:assert(ValidTypes[type], "Unknown type: " .. tostring(type))
-
+        if name then
             amount = rawData.amount
             if not amount then
                 amount_max = cLogger:assertFieldType(rawData, "amount_max", "number")

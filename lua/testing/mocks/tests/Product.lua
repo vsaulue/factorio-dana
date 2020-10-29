@@ -39,6 +39,18 @@ describe("Product.make()", function()
         })
     end)
 
+    it("-- valid long, implicit item", function()
+        local product = Product.make{
+            name = "wood",
+            amount = 3,
+        }
+        assert.are.same(product, {
+            type = "item",
+            name = "wood",
+            amount = 3,
+        })
+    end)
+
     it("-- valid long fluid + probability", function()
         local product = Product.make{
             type = "fluid",
