@@ -16,6 +16,7 @@
 
 local BoilerTransform = require("lua/model/BoilerTransform")
 local IntermediatesDatabase = require("lua/model/IntermediatesDatabase")
+local Logger = require("lua/logger/Logger")
 local LuaGameScript = require("lua/testing/mocks/LuaGameScript")
 local ProductAmount = require("lua/model/ProductAmount")
 local ProductData = require("lua/model/ProductData")
@@ -59,8 +60,28 @@ describe("BoilerTransform", function()
                     },
                     type = "boiler",
                 },
+                boilerC = {
+                    energy_source = {
+                        type = "fluid",
+                        fluid_box = {
+                            production_type = "input-output",
+                            filter = "gasoline",
+                        }
+                    },
+                    fluid_box = {
+                        production_type = "input",
+                        filter = "water",
+                    },
+                    name = "boilerC",
+                    output_fluid_box = {
+                        production_type = "output",
+                        filter = "steam",
+                    },
+                    type = "boiler",
+                },
             },
             fluid = {
+                gasoline = {type = "fluid", name = "gasoline"},
                 steam = {type = "fluid", name = "steam"},
                 water = {type = "fluid", name = "water"},
             },
@@ -95,6 +116,14 @@ describe("BoilerTransform", function()
         it("-- no filter", function()
             local prototype = gameScript.entity_prototypes.boilerB
             local transform = BoilerTransform.tryMake(prototype, intermediates)
+            assert.is_nil(transform)
+        end)
+
+        it("-- double input", function()
+            stub(Logger, "warn")
+            local prototype = gameScript.entity_prototypes.boilerC
+            local transform = BoilerTransform.tryMake(prototype, intermediates)
+            assert.stub(Logger.warn).was.called()
             assert.is_nil(transform)
         end)
     end)
