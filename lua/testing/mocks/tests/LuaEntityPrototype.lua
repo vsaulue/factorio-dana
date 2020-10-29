@@ -25,6 +25,9 @@ describe("LuaEntityPrototype", function()
                 cArgs = {
                     type = "boiler",
                     name = "boiler",
+                    energy_source = {
+                        type = "void",
+                    },
                     fluid_box = {
                         production_type = "input-output",
                         filter = "water",
@@ -52,6 +55,25 @@ describe("LuaEntityPrototype", function()
                 })
             end)
 
+            it(", valid + fluid energy_source", function()
+                cArgs.energy_source = {
+                    type = "fluid",
+                    fluid_box = {
+                        production_type = "input-output",
+                        filter = "light-oil",
+                    },
+                }
+                local object = LuaEntityPrototype.make(cArgs)
+                assert.are.same(MockObject.getData(object).fluidbox_prototypes, {
+                    MockObject.make{production_type = "input-output", filter = "water"},
+                    MockObject.make{production_type = "output", filter = "steam"},
+                    MockObject.make{production_type = "input-output", filter = "light-oil"},
+                })
+                assert.are.same(MockObject.getData(object).fluid_energy_source_prototype, MockObject.make{
+                    fluid_box = MockObject.make{production_type = "input-output", filter = "light-oil"},
+                })
+            end)
+
             it(", no fluid_box", function()
                 cArgs.fluid_box = nil
                 assert.error(function()
@@ -61,6 +83,13 @@ describe("LuaEntityPrototype", function()
 
             it(", no output_fluid_box", function()
                 cArgs.output_fluid_box = nil
+                assert.error(function()
+                    LuaEntityPrototype.make(cArgs)
+                end)
+            end)
+
+            it(", no energy_source", function()
+                cArgs.energy_source = nil
                 assert.error(function()
                     LuaEntityPrototype.make(cArgs)
                 end)
@@ -139,6 +168,38 @@ describe("LuaEntityPrototype", function()
                     type = "item",
                     name = "minigun",
                 }
+            end)
+        end)
+    end)
+
+    describe(":fluid_energy_source_prototype", function()
+        local object
+        before_each(function()
+            object = LuaEntityPrototype.make{
+                type = "boiler",
+                name = "boiler",
+                energy_source = {
+                    type = "void",
+                },
+                fluid_box = {
+                    production_type = "input-output",
+                    filter = "water",
+                },
+                output_fluid_box = {
+                    production_type = "output",
+                    filter = "steam",
+                },
+            }
+        end)
+
+        it("-- read", function()
+            local energySource = object.fluid_energy_source_prototype
+            assert.are.equals(energySource, MockObject.getData(object).fluid_energy_source_prototype)
+        end)
+
+        it("-- write", function()
+            assert.error(function()
+                object.fluid_energy_source_prototype = "denied"
             end)
         end)
     end)

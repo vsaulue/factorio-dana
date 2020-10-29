@@ -30,6 +30,9 @@ describe("BoilerTransform", function()
         rawData = {
             boiler = {
                 boilerA = {
+                    energy_source = {
+                        type = "void",
+                    },
                     fluid_box = {
                         production_type = "input",
                         filter = "water",
@@ -42,6 +45,9 @@ describe("BoilerTransform", function()
                     type = "boiler",
                 },
                 boilerB = {
+                    energy_source = {
+                        type = "burner",
+                    },
                     fluid_box = {
                         production_type = "input",
                         -- filter = "water",

@@ -23,6 +23,9 @@ describe("LuaGameScript", function()
             myBoiler = {
                 type = "boiler",
                 name = "myBoiler",
+                energy_source = {
+                    type = "void",
+                },
                 fluid_box = {
                     production_type = "input",
                     filter = "water",
@@ -120,6 +123,9 @@ describe("LuaGameScript", function()
                             myBoiler = {
                                 type = "boiler",
                                 name = "myBoiler",
+                                energy_source = {
+                                    type = "void",
+                                },
                                 fluid_box = {
                                     production_type = "input",
                                     filter = "HTTP404",

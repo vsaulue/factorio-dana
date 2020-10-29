@@ -16,13 +16,16 @@
 
 local AbstractPrototype = require("lua/testing/mocks/AbstractPrototype")
 local LuaFluidBoxPrototype = require("lua/testing/mocks/LuaFluidBoxPrototype")
+local LuaFluidEnergySourcePrototype = require("lua/testing/mocks/LuaFluidEnergySourcePrototype")
 local MinableProperties = require("lua/testing/mocks/MinableProperties")
 local MockGetters = require("lua/testing/mocks/MockGetters")
 local MockObject = require("lua/testing/mocks/MockObject")
 
 local addFluidbox
 local cLogger
+local EnergySourceParsers
 local Metatable
+local parseEnergySource
 local Parsers
 
 -- Mock implementation of Factorio's LuaEntityPrototype.
@@ -69,6 +72,7 @@ local LuaEntityPrototype = {
         getters = {
             fluid = MockGetters.validTrivial("fluid"),
             fluidbox_prototypes = MockGetters.validTrivial("fluidbox_prototypes"),
+            fluid_energy_source_prototype = MockGetters.validTrivial("fluid_energy_source_prototype"),
             mineable_properties = MockGetters.validDeepCopy("mineable_properties"),
             pumping_speed = MockGetters.validTrivial("pumping_speed"),
         },
@@ -86,13 +90,49 @@ addFluidbox = function(mockData, rawFluidboxData)
 end
 
 cLogger = LuaEntityPrototype.Metatable.cLogger
+
+-- Map[string]: function or true. Parsing function of energy_source, indexed by type.
+EnergySourceParsers = {
+    burner = true,
+
+    electric = true,
+
+    fluid = function(mockData, rawEnergyData)
+        local energyPrototype = LuaFluidEnergySourcePrototype.make(rawEnergyData)
+        mockData.fluid_energy_source_prototype = energyPrototype
+        table.insert(mockData.fluidbox_prototypes, energyPrototype.fluid_box)
+    end,
+
+    heat = true,
+
+    void = true,
+}
+
 Metatable = LuaEntityPrototype.Metatable
+
+-- Parses the energy_source field of the raw data.
+--
+-- Args:
+-- * mockData: LuaEntityPrototype.data. Internal data of the entity prototype.
+-- * rawData: table. The entity's construction arguments from the data phase.
+--
+parseEnergySource = function(mockData, rawData)
+    local rawEnergyData = cLogger:assertFieldType(rawData, "energy_source", "table")
+    local eType = rawEnergyData.type
+    cLogger:assert(type(eType) == "string", "Invalid energy_source type (string expected).")
+    local parser = EnergySourceParsers[eType]
+    cLogger:assert(parser, "Unknown energy_source type: " .. eType)
+    if type(parser) == "function" then
+        parser(mockData, rawEnergyData)
+    end
+end
 
 -- Map[string]: function or true. Specific parsing function, indexed by prototype type.
 Parsers = {
     boiler = function(mockData, rawData)
         addFluidbox(mockData, cLogger:assertFieldType(rawData, "fluid_box", "table"))
         addFluidbox(mockData, cLogger:assertFieldType(rawData, "output_fluid_box", "table"))
+        parseEnergySource(mockData, rawData)
     end,
 
     ["offshore-pump"] = function(mockData, rawData)
