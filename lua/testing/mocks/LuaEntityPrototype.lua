@@ -33,7 +33,7 @@ local Parsers
 --
 -- Implemented fields & methods:
 -- * fluid
--- * fluidbox_prototypes (not parsed)
+-- * fluidbox_prototypes (fluid energy source NOT parsed)
 -- * mineable_properties
 -- * pumping_speed
 -- + AbstractPrototype.
@@ -90,6 +90,11 @@ Metatable = LuaEntityPrototype.Metatable
 
 -- Map[string]: function or true. Specific parsing function, indexed by prototype type.
 Parsers = {
+    boiler = function(mockData, rawData)
+        addFluidbox(mockData, cLogger:assertFieldType(rawData, "fluid_box", "table"))
+        addFluidbox(mockData, cLogger:assertFieldType(rawData, "output_fluid_box", "table"))
+    end,
+
     ["offshore-pump"] = function(mockData, rawData)
         mockData.fluid = cLogger:assertFieldType(rawData, "fluid", "string")
         mockData.pumping_speed = cLogger:assertFieldType(rawData, "pumping_speed", "number")

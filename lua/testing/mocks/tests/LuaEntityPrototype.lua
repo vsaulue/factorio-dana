@@ -19,6 +19,54 @@ local MockObject = require("lua/testing/mocks/MockObject")
 
 describe("LuaEntityPrototype", function()
     describe(".make()", function()
+        describe("-- boiler", function()
+            local cArgs
+            before_each(function()
+                cArgs = {
+                    type = "boiler",
+                    name = "boiler",
+                    fluid_box = {
+                        production_type = "input-output",
+                        filter = "water",
+                    },
+                    output_fluid_box = {
+                        production_type = "output",
+                        filter = "steam",
+                    },
+                }
+            end)
+
+            it(", valid", function()
+                local object = LuaEntityPrototype.make(cArgs)
+                assert.are.same(MockObject.getData(object), {
+                    fluidbox_prototypes = {
+                        MockObject.make{production_type = "input-output", filter = "water"},
+                        MockObject.make{production_type = "output", filter = "steam"},
+                    },
+                    localised_name = {"entity-name.boiler"},
+                    mineable_properties = {
+                        minable = false,
+                    },
+                    name = "boiler",
+                    type = "boiler",
+                })
+            end)
+
+            it(", no fluid_box", function()
+                cArgs.fluid_box = nil
+                assert.error(function()
+                    LuaEntityPrototype.make(cArgs)
+                end)
+            end)
+
+            it(", no output_fluid_box", function()
+                cArgs.output_fluid_box = nil
+                assert.error(function()
+                    LuaEntityPrototype.make(cArgs)
+                end)
+            end)
+        end)
+
         describe("-- offshore-pump", function()
             it(", valid", function()
                 local object = LuaEntityPrototype.make{

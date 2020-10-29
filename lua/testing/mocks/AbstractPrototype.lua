@@ -45,6 +45,10 @@ local AbstractPrototype = {
     make = function(rawData, metatable)
         local pType = cLogger:assertField(rawData, "type")
         local name = cLogger:assertFieldType(rawData, "name", "string")
+        local locPrefix = LocalisedNamePrefix[pType]
+        if not locPrefix then
+            cLogger:error("Unsupported type: " .. tostring(pType))
+        end
 
         local result = CommonMockObject.make({
             localised_name = { LocalisedNamePrefix[pType] .. "." .. name },
@@ -80,6 +84,7 @@ end
 
 -- Map[string] -> string. Prefix used for localised_name, indexed by the prototype type.
 LocalisedNamePrefix = {
+    boiler = "entity-name",
     fluid = "fluid-name",
     item = "item-name",
     ["offshore-pump"] = "entity-name",
