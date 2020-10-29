@@ -19,6 +19,20 @@ local MockObject = require("lua/testing/mocks/MockObject")
 
 describe("LuaGameScript", function()
     local rawData = {
+        boiler = {
+            myBoiler = {
+                type = "boiler",
+                name = "myBoiler",
+                fluid_box = {
+                    production_type = "input",
+                    filter = "water",
+                },
+                output_fluid_box = {
+                    production_type = "output",
+                    filter = "steam",
+                },
+            },
+        },
         fluid = {
             steam = {
                 type = "fluid",
@@ -85,6 +99,43 @@ describe("LuaGameScript", function()
     end)
 
     describe(".make()", function()
+        describe("-- boiler prototypes", function()
+            it(", valid", function()
+                local data = MockObject.getData(gameScript)
+                local boiler = data.entity_prototypes.myBoiler
+                local water = data.fluid_prototypes.water
+                local steam = data.fluid_prototypes.steam
+                assert.are.equals(boiler.name, "myBoiler")
+                assert.are.equals(getmetatable(boiler).className, "LuaEntityPrototype")
+                assert.are.same(boiler.fluidbox_prototypes, {
+                    MockObject.make{production_type = "input", filter = water},
+                    MockObject.make{production_type = "output", filter = steam},
+                })
+            end)
+
+            it(", invalid filter", function()
+                assert.error(function()
+                    LuaGameScript.make{
+                        boiler = {
+                            myBoiler = {
+                                type = "boiler",
+                                name = "myBoiler",
+                                fluid_box = {
+                                    production_type = "input",
+                                    filter = "HTTP404",
+                                },
+                                output_fluid_box = {
+                                    production_type = "output",
+                                    filter = "steam",
+                                },
+                            },
+                        },
+                        fluid = rawData.fluid,
+                    }
+                end)
+            end)
+        end)
+
         it("-- fluid_prototypes", function()
             local data = MockObject.getDataIfValid(gameScript)
 

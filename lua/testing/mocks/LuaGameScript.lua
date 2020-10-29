@@ -37,7 +37,7 @@ local TypeToIndex
 -- Inherits from CommonMockObject.
 --
 -- Implemented fields & methods:
--- * entity_prototypes (resource only).
+-- * entity_prototypes (boiler, offshore-pump, resource).
 -- * fluid_prototypes
 -- * item_prototypes
 -- * recipe_prototypes
@@ -60,6 +60,7 @@ local LuaGameScript = {
         parse(selfData.fluid_prototypes, rawData.fluid, LuaFluidPrototype.make)
         parse(selfData.item_prototypes, rawData.item, LuaItemPrototype.make)
         parse(selfData.recipe_prototypes, rawData.recipe, LuaRecipePrototype.make)
+        parse(selfData.entity_prototypes, rawData.boiler, LuaEntityPrototype.make)
         parse(selfData.entity_prototypes, rawData.resource, LuaEntityPrototype.make)
         parse(selfData.entity_prototypes, rawData["offshore-pump"], LuaEntityPrototype.make)
 
