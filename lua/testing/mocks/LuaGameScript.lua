@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractPrototype = require("lua/testing/mocks/AbstractPrototype")
 local CommonMockObject = require("lua/testing/mocks/CommonMockObject")
 local LuaEntityPrototype = require("lua/testing/mocks/LuaEntityPrototype")
 local LuaFluidPrototype = require("lua/testing/mocks/LuaFluidPrototype")
@@ -58,7 +59,9 @@ local LuaGameScript = {
             recipe_prototypes = {},
         }
         parse(selfData.fluid_prototypes, rawData.fluid, LuaFluidPrototype.make)
-        parse(selfData.item_prototypes, rawData.item, LuaItemPrototype.make)
+        for pType in pairs(AbstractPrototype.ItemTypes) do
+            parse(selfData.item_prototypes, rawData[pType], LuaItemPrototype.make)
+        end
         parse(selfData.recipe_prototypes, rawData.recipe, LuaRecipePrototype.make)
         parse(selfData.entity_prototypes, rawData.boiler, LuaEntityPrototype.make)
         parse(selfData.entity_prototypes, rawData.resource, LuaEntityPrototype.make)
