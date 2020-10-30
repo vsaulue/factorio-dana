@@ -34,6 +34,30 @@ local Metatable
 -- * type
 --
 local AbstractPrototype = {
+    -- Set<string>. Values of the "type" field corresponding to an item.
+    ItemTypes = {
+        ammo = true,
+        armor = true,
+        blueprint = true,
+        ["blueprint-book"] = true,
+        capsule = true,
+        ["copy-paste-tool"] = true,
+        ["deconstruction-item"] = true,
+        gun = true,
+        item = true,
+        ["item-with-entity-data"] = true,
+        ["item-with-inventory"] = true,
+        ["item-with-label"] = true,
+        ["item-with-tags"] = true,
+        module = true,
+        ["rail-planner"] = true,
+        ["repair-tool"] = true,
+        ["selection-tool"] = true,
+        ["spidertron-remote"] = true,
+        tool = true,
+        ["upgrade-item"] = true,
+    },
+
     -- Creates a new AbstractPrototype object.
     --
     -- Args:
@@ -86,11 +110,13 @@ end
 LocalisedNamePrefix = {
     boiler = "entity-name",
     fluid = "fluid-name",
-    item = "item-name",
     ["offshore-pump"] = "entity-name",
     recipe = "recipe-name",
     resource = "entity-name",
 }
+for pType in pairs(AbstractPrototype.ItemTypes) do
+    LocalisedNamePrefix[pType] = "item-name"
+end
 
 Metatable = AbstractPrototype.Metatable
 

@@ -42,7 +42,7 @@ local LuaItemPrototype = {
     --
     make = function(rawData)
         -- Note: too restrictive (there are valid subtypes).
-        cLogger:assert(rawData.type == "item", "Unsupported type: " .. rawData.type)
+        cLogger:assert(AbstractPrototype.ItemTypes[rawData.type], "Unsupported type: " .. rawData.type)
         local result = AbstractPrototype.make(rawData, Metatable)
         local mockData = MockObject.getData(result)
         local burnt_result = rawData.burnt_result
