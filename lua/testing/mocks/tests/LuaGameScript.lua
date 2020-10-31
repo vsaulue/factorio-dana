@@ -342,6 +342,13 @@ describe("LuaGameScript", function()
         end)
     end)
 
+    it(":create_force()", function()
+        local force = gameScript.create_force("foobar")
+        assert.are.equals(getmetatable(force).className, "LuaForce")
+        assert.are.equals(force.recipes.boiling.prototype.name, "boiling")
+        assert.are.equals(MockObject.getData(gameScript).forces.foobar, force)
+    end)
+
     describe(":fluid_prototypes", function()
         it("-- read", function()
             local water = gameScript.fluid_prototypes.water
@@ -351,6 +358,19 @@ describe("LuaGameScript", function()
         it("-- write", function()
             assert.error(function()
                 gameScript.fluid_prototypes.water = "denied"
+            end)
+        end)
+    end)
+
+    describe(":forces", function()
+        it("-- read", function()
+            MockObject.getData(gameScript).forces.foo = "bar"
+            assert.are.equals(gameScript.forces.foo, "bar")
+        end)
+
+        it("-- write", function()
+            assert.error(function()
+                gameScript.forces.foobar = "denied"
             end)
         end)
     end)

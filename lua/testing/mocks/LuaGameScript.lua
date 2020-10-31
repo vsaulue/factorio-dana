@@ -18,6 +18,7 @@ local AbstractPrototype = require("lua/testing/mocks/AbstractPrototype")
 local CommonMockObject = require("lua/testing/mocks/CommonMockObject")
 local LuaEntityPrototype = require("lua/testing/mocks/LuaEntityPrototype")
 local LuaFluidPrototype = require("lua/testing/mocks/LuaFluidPrototype")
+local LuaForce = require("lua/testing/mocks/LuaForce")
 local LuaItemPrototype = require("lua/testing/mocks/LuaItemPrototype")
 local LuaRecipePrototype = require("lua/testing/mocks/LuaRecipePrototype")
 local MockGetters = require("lua/testing/mocks/MockGetters")
@@ -38,8 +39,10 @@ local TypeToIndex
 -- Inherits from CommonMockObject.
 --
 -- Implemented fields & methods:
+-- * create_force
 -- * entity_prototypes (boiler, offshore-pump, resource).
 -- * fluid_prototypes
+-- * forces
 -- * item_prototypes
 -- * recipe_prototypes
 -- + AbstractPrototype.
@@ -55,6 +58,7 @@ local LuaGameScript = {
         local selfData = {
             entity_prototypes = {},
             fluid_prototypes = {},
+            forces = {},
             item_prototypes = {},
             recipe_prototypes = {},
         }
@@ -82,8 +86,20 @@ Metatable = CommonMockObject.Metatable:makeSubclass{
     className = "LuaGameScript",
 
     getters = {
+        create_force = function(self)
+            return function(name)
+                local data = MockObject.getData(self)
+                local forces = data.forces
+                cLogger:assert(not forces[name], "Duplicate force index: " .. name)
+                local result = LuaForce.make(data.recipe_prototypes)
+                forces[name] = result
+                return result
+            end
+        end,
+
         entity_prototypes = MockGetters.validReadOnly("entity_prototypes"),
         fluid_prototypes = MockGetters.validReadOnly("fluid_prototypes"),
+        forces = MockGetters.validReadOnly("forces"),
         item_prototypes = MockGetters.validReadOnly("item_prototypes"),
         recipe_prototypes = MockGetters.validReadOnly("recipe_prototypes"),
     },
