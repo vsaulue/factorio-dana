@@ -22,7 +22,7 @@ local GuiElement = require("lua/gui/GuiElement")
 local GuiIntermediateSetEditor = require("lua/apps/query/gui/GuiIntermediateSetEditor")
 local ReversibleArray = require("lua/containers/ReversibleArray")
 
-local cLogger = ClassLogger.new{className = "IntermediateSetEditor"}
+local cLogger = ClassLogger.new{className = "CtrlIntermediateSetEditor"}
 
 local Metatable
 local removeIntermediate
@@ -36,13 +36,13 @@ local removeIntermediate
 -- * output: Set of Intermediate object to fill.
 -- + AbstractGuiController.
 --
-local IntermediateSetEditor = ErrorOnInvalidRead.new{
-    -- Creates a new IntermediateSetEditor object.
+local CtrlIntermediateSetEditor = ErrorOnInvalidRead.new{
+    -- Creates a new CtrlIntermediateSetEditor object.
     --
     -- Args:
-    -- * object: Table to turn into a IntermediateSetEditor object (required fields: force, parent, output).
+    -- * object: Table to turn into a CtrlIntermediateSetEditor object (required fields: force, parent, output).
     --
-    -- Returns: The argument turned into an IntermediateSetEditor object.
+    -- Returns: The argument turned into an CtrlIntermediateSetEditor object.
     --
     new = function(object)
         cLogger:assertField(object, "output")
@@ -50,7 +50,7 @@ local IntermediateSetEditor = ErrorOnInvalidRead.new{
         return AbstractGuiController.new(object, Metatable)
     end,
 
-    -- Restores the metatable of a IntermediateSetEditor object, and all its owned objects.
+    -- Restores the metatable of a CtrlIntermediateSetEditor object, and all its owned objects.
     --
     -- Args:
     -- * object: table to modify.
@@ -60,13 +60,13 @@ local IntermediateSetEditor = ErrorOnInvalidRead.new{
     end,
 }
 
--- Metatable of the IntermediateSetEditor class.
+-- Metatable of the CtrlIntermediateSetEditor class.
 Metatable = {
     __index = {
         -- Adds an intermediate to the set.
         --
         -- Args:
-        -- * self: IntermediateSetEditor.
+        -- * self: CtrlIntermediateSetEditor.
         -- * type: string. Type of the intermediate to add ("fluid" or "item").
         -- * name: string. Name of the intermediate to add.
         --
@@ -84,10 +84,10 @@ Metatable = {
 
         -- Creates the GUI defined in this controller.
         --
-        -- This IntermediateSetEditor must not have any GUI.
+        -- This CtrlIntermediateSetEditor must not have any GUI.
         --
         -- Args:
-        -- * self: IntermediateSetEditor.
+        -- * self: CtrlIntermediateSetEditor.
         -- * parent: LuaGuiElement. Element in which the GUI must be created.
         --
         makeGui = function(self, parent)
@@ -100,7 +100,7 @@ Metatable = {
         -- Removes an intermediate from the set.
         --
         -- Args:
-        -- * self: IntermediateSetEditor.
+        -- * self: CtrlIntermediateSetEditor.
         -- * intermediate: Intermediate. Intermediate to remove.
         --
         removeIntermediate = function(self, intermediate)
@@ -117,4 +117,4 @@ Metatable = {
 }
 setmetatable(Metatable.__index, {__index = AbstractGuiController.Metatable.__index})
 
-return IntermediateSetEditor
+return CtrlIntermediateSetEditor

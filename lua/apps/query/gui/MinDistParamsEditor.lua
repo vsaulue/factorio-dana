@@ -20,7 +20,7 @@ local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiAlign = require("lua/gui/GuiAlign")
 local GuiElement = require("lua/gui/GuiElement")
-local IntermediateSetEditor = require("lua/apps/query/gui/IntermediateSetEditor")
+local CtrlIntermediateSetEditor = require("lua/apps/query/gui/CtrlIntermediateSetEditor")
 
 local cLogger = ClassLogger.new{className = "MinDistParamsEditor"}
 
@@ -38,7 +38,7 @@ local LocalisedStrings
 -- * depthField: DepthField object setting the maxDepth value.
 -- * isForward: True to configure this editor for forward parsing (= looking for products).
 --              False to look for ingredients.
--- * setEditor: IntermediateSetEditor object used on the source set.
+-- * setEditor: CtrlIntermediateSetEditor object used on the source set.
 --
 local MinDistParamsEditor = ErrorOnInvalidRead.new{
     -- Creates a new MinDistParamsEditor object.
@@ -59,7 +59,7 @@ local MinDistParamsEditor = ErrorOnInvalidRead.new{
             caption = localisedStrings.intermediateSetTitle,
             style = "frame_title",
         }
-        object.setEditor = IntermediateSetEditor.new{
+        object.setEditor = CtrlIntermediateSetEditor.new{
             force = object.appResources.force,
             output = object.params.intermediateSet,
         }
@@ -118,7 +118,7 @@ local MinDistParamsEditor = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         ErrorOnInvalidRead.setmetatable(object)
-        IntermediateSetEditor.setmetatable(object.setEditor)
+        CtrlIntermediateSetEditor.setmetatable(object.setEditor)
         CheckboxUpdater.setmetatable(object.allowOtherCheckbox)
         DepthCheckbox.setmetatable(object.depthCheckbox)
         DepthField.setmetatable(object.depthField)
