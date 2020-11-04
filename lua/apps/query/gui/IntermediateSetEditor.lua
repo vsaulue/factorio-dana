@@ -14,6 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractGuiController = require("lua/gui/AbstractGuiController")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiAlign = require("lua/gui/GuiAlign")
@@ -28,9 +29,12 @@ local removeIntermediate
 
 -- GUI to edit a set of Intermediate.
 --
+-- Inherits from AbstractGuiController.
+--
 -- RO Fields:
 -- * force: IntermediateDatabase containing the Intermediate objects to use.
 -- * output: Set of Intermediate object to fill.
+-- + AbstractGuiController.
 --
 local IntermediateSetEditor = ErrorOnInvalidRead.new{
     -- Creates a new IntermediateSetEditor object.
@@ -43,8 +47,7 @@ local IntermediateSetEditor = ErrorOnInvalidRead.new{
     new = function(object)
         cLogger:assertField(object, "output")
         cLogger:assertField(object, "force")
-        setmetatable(object, Metatable)
-        return object
+        return AbstractGuiController.new(object, Metatable)
     end,
 
     -- Restores the metatable of a IntermediateSetEditor object, and all its owned objects.
@@ -53,12 +56,7 @@ local IntermediateSetEditor = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
-
-        local gui = rawget(object, "gui")
-        if gui then
-            GuiIntermediateSetEditor.setmetatable(gui)
-        end
+        AbstractGuiController.setmetatable(object, Metatable, GuiIntermediateSetEditor.setmetatable)
     end,
 }
 
@@ -84,14 +82,6 @@ Metatable = {
             end
         end,
 
-        -- Implements Closeable:close().
-        --
-        -- Resets the `gui` field to nil.
-        --
-        close = function(self)
-            Closeable.safeCloseField(self, "gui")
-        end,
-
         -- Creates the GUI defined in this controller.
         --
         -- This IntermediateSetEditor must not have any GUI.
@@ -101,10 +91,7 @@ Metatable = {
         -- * parent: LuaGuiElement. Element in which the GUI must be created.
         --
         makeGui = function(self, parent)
-            local gui = rawget(self, "gui")
-            cLogger:assert(not gui, "Attempt to make multiple GUIs.")
-
-            self.gui = GuiIntermediateSetEditor.new{
+            return GuiIntermediateSetEditor.new{
                 intermediateSetEditor = self,
                 parent = parent,
             }
@@ -128,5 +115,6 @@ Metatable = {
         end,
     }
 }
+setmetatable(Metatable.__index, {__index = AbstractGuiController.Metatable.__index})
 
 return IntermediateSetEditor
