@@ -62,8 +62,8 @@ local MinDistParamsEditor = ErrorOnInvalidRead.new{
         object.setEditor = IntermediateSetEditor.new{
             force = object.appResources.force,
             output = object.params.intermediateSet,
-            parent = object.root,
         }
+        object.setEditor:makeGui(object.root)
         ----------------
         object.root.add{
             type = "line",
