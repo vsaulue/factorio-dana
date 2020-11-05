@@ -17,6 +17,7 @@
 local AbstractGuiElement = require("lua/testing/mocks/AbstractGuiElement")
 
 -- Import all subtypes to populate the factory.
+require("lua/testing/mocks/ChooseElemGuiElement")
 require("lua/testing/mocks/EmptyGuiElement")
 require("lua/testing/mocks/FlowGuiElement")
 require("lua/testing/mocks/FrameGuiElement")
