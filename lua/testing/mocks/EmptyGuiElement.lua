@@ -15,28 +15,46 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractGuiElement = require("lua/testing/mocks/AbstractGuiElement")
+local ClassLogger = require("lua/logger/ClassLogger")
+local GuiDirection = require("lua/testing/mocks/GuiDirection")
 
--- Import all subtypes to populate the factory.
-require("lua/testing/mocks/EmptyGuiElement")
-require("lua/testing/mocks/FlowGuiElement")
-require("lua/testing/mocks/FrameGuiElement")
-require("lua/testing/mocks/LabelGuiElement")
+local cLogger
+local ElementType
+local Metatable
 
--- Helper to generate mocks for LuaGuiElement objects.
+-- Subtype for LuaGuiElement objects of type "empty-widget".
 --
-local LuaGuiElement = {
-    -- Creates a new LuaGuiElement object (with the appropriate subtype).
+-- Inherits from AbstractGuiElement.
+--
+local EmptyGuiElement = {
+    -- Creates a new EmptyGuiElement object.
     --
     -- Args:
     -- * args: table. Constructor argument of a LuaGuiElement in Factorio.
     -- * player_index: int. Index of the player owning the new element.
     -- * parent: AbstractGuiElement. Parent element that will own the new element (may be nil).
     --
-    -- Returns: The new LuaGuiElement object.
+    -- Returns: The new EmptyGuiElement object.
     --
     make = function(args, player_index, parent)
-        return AbstractGuiElement.make(args, player_index, parent)
+        local result = AbstractGuiElement.abstractMake(args, player_index, parent, Metatable)
+        cLogger:assert(args.type == ElementType, "Incorrect type value: " .. tostring(args.type))
+
+        return result
     end,
+
+    -- Metatable of the EmptyGuiElement class.
+    Metatable = AbstractGuiElement.Metatable:makeSubclass{
+        className = "EmptyGuiElement",
+    }
 }
 
-return LuaGuiElement
+cLogger = EmptyGuiElement.Metatable.cLogger
+
+-- Value in the "type" field.
+ElementType = "empty-widget"
+
+Metatable = EmptyGuiElement.Metatable
+
+AbstractGuiElement.registerClass(ElementType, EmptyGuiElement)
+return EmptyGuiElement
