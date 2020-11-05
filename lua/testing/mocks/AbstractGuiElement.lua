@@ -97,7 +97,7 @@ local AbstractGuiElement = {
     make = function(args, parent, player_index)
         local _type = cLogger:assertField(args, "type")
         local subtype = Subtypes[_type]
-        cLogger:assert(subtype, "Unknown type: " .. tostring(subtype))
+        cLogger:assert(subtype, "Unknown type: " .. tostring(_type))
         return subtype.make(args, parent, player_index)
     end,
 
