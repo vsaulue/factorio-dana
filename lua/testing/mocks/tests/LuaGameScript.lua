@@ -150,6 +150,12 @@ describe("LuaGameScript", function()
             assert.are.equals(getmetatable(water).className, "LuaFluidPrototype")
         end)
 
+        it("-- default forces", function()
+            local data = MockObject.getData(gameScript)
+            assert.is_not_nil(data.forces.player)
+            assert.are.equals(getmetatable(data.forces.player).className, "LuaForce")
+        end)
+
         describe("-- item_prototypes", function()
             it(", valid", function()
                 local data = MockObject.getDataIfValid(gameScript)

@@ -26,6 +26,8 @@ local MockObject = require("lua/testing/mocks/MockObject")
 
 local cLogger
 local getIngredientOrProduct
+local DefaultForceNames
+local doCreateForce
 local linkerError
 local Linkers
 local Metatable
@@ -76,6 +78,9 @@ local LuaGameScript = {
                 linker(selfData, prototype)
             end
         end
+        for forceName in pairs(DefaultForceNames) do
+            doCreateForce(selfData, forceName)
+        end
 
         return CommonMockObject.make(selfData, Metatable)
     end,
@@ -89,11 +94,7 @@ Metatable = CommonMockObject.Metatable:makeSubclass{
         create_force = function(self)
             return function(name)
                 local data = MockObject.getData(self)
-                local forces = data.forces
-                cLogger:assert(not forces[name], "Duplicate force index: " .. name)
-                local result = LuaForce.make(data.recipe_prototypes)
-                forces[name] = result
-                return result
+                return doCreateForce(data, name)
             end
         end,
 
@@ -106,6 +107,29 @@ Metatable = CommonMockObject.Metatable:makeSubclass{
 }
 
 cLogger = Metatable.cLogger
+
+-- Set<string>. Names of the default LuaForce of a game.
+DefaultForceNames = {
+    enemy = true,
+    neutral = true,
+    player = true,
+}
+
+-- Creates a new Force in a game.
+--
+-- Args:
+-- * selfData: table. Internal data of the LuaGameScript.
+-- * forceName: string. Name of the new force.
+--
+-- Returns: The new LuaForce.
+--
+doCreateForce = function(selfData, forceName)
+    local forces = selfData.forces
+    cLogger:assert(not forces[forceName], "Duplicate force index: " .. forceName)
+    local result = LuaForce.make(selfData.recipe_prototypes)
+    forces[forceName] = result
+    return result
+end
 
 -- Gets the prototype of an item/fluid associated to a Ingredient/Product object.
 --
