@@ -23,6 +23,7 @@ require("lua/testing/mocks/EmptyGuiElement")
 require("lua/testing/mocks/FlowGuiElement")
 require("lua/testing/mocks/FrameGuiElement")
 require("lua/testing/mocks/LabelGuiElement")
+require("lua/testing/mocks/SpriteGuiElement")
 
 -- Helper to generate mocks for LuaGuiElement objects.
 --
