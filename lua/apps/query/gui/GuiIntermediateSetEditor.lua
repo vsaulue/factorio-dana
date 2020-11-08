@@ -38,6 +38,7 @@ local RemoveButton
 -- * addFluidButton: AddElemButton. GuiElement to add fluid intermediates.
 -- * addItemButton: AddElemButton. GuiElement to add item intermediates.
 -- * intermediateSetEditor: IntermediateSetEditor. Owner of this GUI.
+-- * mainFlow: LuaGuiElement. Top-level flow of this GUI.
 -- * removeButtons: Map<Intermediate,RemoveButton>. All RemoveButton objects indexed by their intermediate.
 -- * parent: LuaGuiElement. Element in which this GUI is displaying.
 -- * selectedIntermediates: ReversibleArray<Intermediate>. Current selection of intermediates.
@@ -55,6 +56,7 @@ local GuiIntermediateSetEditor = ErrorOnInvalidRead.new{
             type = "flow",
             direction = "vertical",
         }
+        object.mainFlow = mainFlow
 
         -- Elem buttons
         local elemButtonFlow = mainFlow.add{
@@ -117,10 +119,10 @@ Metatable = {
 
         -- Implements Closeable:close().
         close = function(self)
-            GuiElement.safeClose(self.mainFlow)
-            object.addItemButton:close()
-            object.addFluidButton:close()
-            Closeable.closeMapValues(object.removeButtons)
+            GuiElement.safeDestroy(self.mainFlow)
+            self.addItemButton:close()
+            self.addFluidButton:close()
+            Closeable.closeMapValues(self.removeButtons)
         end,
 
         -- Removes an intermediate from the set.
