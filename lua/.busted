@@ -20,6 +20,7 @@ return {
         pattern = ".*%.lua",
         ROOT = {
             "../migrations/framework/tests",
+            "apps/query/gui/tests",
             "canvas/objects/tests",
             "class/tests",
             "containers/tests",
