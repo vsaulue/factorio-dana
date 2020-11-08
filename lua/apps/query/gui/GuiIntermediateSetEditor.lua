@@ -47,7 +47,7 @@ local RemoveButton
 local GuiIntermediateSetEditor = ErrorOnInvalidRead.new{
     new = function(object)
         local parent = cLogger:assertField(object, "parent")
-        cLogger:assertField(object, "intermediateSetEditor")
+        local controller = cLogger:assertField(object, "intermediateSetEditor")
 
         object.removeButtons = ErrorOnInvalidRead.new()
         object.selectedIntermediates = ReversibleArray.new()
@@ -79,6 +79,9 @@ local GuiIntermediateSetEditor = ErrorOnInvalidRead.new{
         object.selectionFlow.style.minimal_width = 295
 
         setmetatable(object, Metatable)
+        for intermediate in pairs(controller.output) do
+            object:addIntermediate(intermediate)
+        end
         return object
     end,
 
