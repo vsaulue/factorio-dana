@@ -20,6 +20,7 @@ local LuaEntityPrototype = require("lua/testing/mocks/LuaEntityPrototype")
 local LuaFluidPrototype = require("lua/testing/mocks/LuaFluidPrototype")
 local LuaForce = require("lua/testing/mocks/LuaForce")
 local LuaItemPrototype = require("lua/testing/mocks/LuaItemPrototype")
+local LuaPlayer = require("lua/testing/mocks/LuaPlayer")
 local LuaRecipePrototype = require("lua/testing/mocks/LuaRecipePrototype")
 local MockGetters = require("lua/testing/mocks/MockGetters")
 local MockObject = require("lua/testing/mocks/MockObject")
@@ -50,6 +51,26 @@ local TypeToIndex
 -- + AbstractPrototype.
 --
 local LuaGameScript = {
+    -- Adds a new player to a LuaGameScript.
+    --
+    -- Args:
+    -- * self: LuaGameScript.
+    -- * cArgs: table. May contain the following fields:
+    -- **  forceName: string. Name of the force of this player.
+    --
+    -- Returns: LuaPlayer. The new player.
+    --
+    createPlayer = function(self, cArgs)
+        local data = MockObject.getData(self)
+        local force = data.forces[cArgs.forceName]
+        cLogger:assert(force, "Invalid force name: " .. tostring(cArgs.forceName))
+        local result = LuaPlayer.make{
+            force = force,
+        }
+        data.players[result.index] = result
+        return result
+    end,
+
     -- Creates a new LuaGameScript object.
     --
     -- Args:
@@ -62,6 +83,7 @@ local LuaGameScript = {
             fluid_prototypes = {},
             forces = {},
             item_prototypes = {},
+            players = {},
             recipe_prototypes = {},
         }
         parse(selfData.fluid_prototypes, rawData.fluid, LuaFluidPrototype.make)
@@ -102,6 +124,7 @@ Metatable = CommonMockObject.Metatable:makeSubclass{
         fluid_prototypes = MockGetters.validReadOnly("fluid_prototypes"),
         forces = MockGetters.validReadOnly("forces"),
         item_prototypes = MockGetters.validReadOnly("item_prototypes"),
+        players = MockGetters.validReadOnly("players"),
         recipe_prototypes = MockGetters.validReadOnly("recipe_prototypes"),
     },
 }

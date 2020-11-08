@@ -101,6 +101,15 @@ describe("LuaGameScript", function()
         gameScript = LuaGameScript.make(rawData)
     end)
 
+    it(".createPlayer()", function()
+        local player = LuaGameScript.createPlayer(gameScript, {
+            forceName = "player",
+        })
+        local gameData = MockObject.getData(gameScript)
+        assert.are.equals(player.force, gameData.forces.player)
+        assert.are.equals(player, gameData.players[player.index])
+    end)
+
     describe(".make()", function()
         describe("-- boiler prototypes", function()
             it(", valid", function()
@@ -390,6 +399,18 @@ describe("LuaGameScript", function()
         it("-- write", function()
             assert.error(function()
                 gameScript.item_prototypes.wood = "denied"
+            end)
+        end)
+    end)
+
+    describe(":players", function()
+        it("-- read", function()
+            assert.are.equals(MockObject.getData(gameScript.players), MockObject.getData(gameScript).players)
+        end)
+
+        it("-- write", function()
+            assert.error(function()
+                gameScript.players.kilroy = "denied"
             end)
         end)
     end)
