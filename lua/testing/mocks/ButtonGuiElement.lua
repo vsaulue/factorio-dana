@@ -16,29 +16,44 @@
 
 local AbstractGuiElement = require("lua/testing/mocks/AbstractGuiElement")
 
--- Import all subtypes to populate the factory.
-require("lua/testing/mocks/ButtonGuiElement")
-require("lua/testing/mocks/ChooseElemGuiElement")
-require("lua/testing/mocks/EmptyGuiElement")
-require("lua/testing/mocks/FlowGuiElement")
-require("lua/testing/mocks/FrameGuiElement")
-require("lua/testing/mocks/LabelGuiElement")
+local cLogger
 
--- Helper to generate mocks for LuaGuiElement objects.
+local ElementType
+local Metatable
+
+-- Subtype for LuaGuiElement objects of type "button".
 --
-local LuaGuiElement = {
-    -- Creates a new LuaGuiElement object (with the appropriate subtype).
+-- Inherits from AbstractGuiElement.
+--
+local ButtonGuiElement = {
+    -- Creates a new ButtonGuiElement object.
     --
     -- Args:
     -- * args: table. Constructor argument of a LuaGuiElement in Factorio.
     -- * player_index: int. Index of the player owning the new element.
-    -- * parent: AbstractGuiElement. Parent element that will own the new element (may be nil).
+    -- * parent: ButtonGuiElement. Parent element that will own the new element (may be nil).
     --
-    -- Returns: The new LuaGuiElement object.
+    -- Returns: The new ButtonGuiElement object.
     --
     make = function(args, player_index, parent)
-        return AbstractGuiElement.make(args, player_index, parent)
+        local result = AbstractGuiElement.abstractMake(args, player_index, parent, Metatable)
+        cLogger:assert(args.type == ElementType, "Incorrect type value: " .. tostring(args.type))
+
+        return result
     end,
+
+    -- Metatable of the ButtonGuiElement class.
+    Metatable = AbstractGuiElement.Metatable:makeSubclass{
+        className = "ButtonGuiElement",
+    },
 }
 
-return LuaGuiElement
+cLogger = ButtonGuiElement.Metatable.cLogger
+
+-- Value in the "type" field.
+ElementType = "button"
+
+Metatable = ButtonGuiElement.Metatable
+
+AbstractGuiElement.registerClass(ElementType, ButtonGuiElement)
+return ButtonGuiElement
