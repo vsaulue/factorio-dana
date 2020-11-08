@@ -83,7 +83,9 @@ local ChooseElemGuiElement = {
 -- Returns: string. The argument.
 --
 checkElemValue = function(elemValue)
-    cLogger:assert(type(elemValue) == "string", "Invalid elem_value (string expected).")
+    if elemValue ~= nil then
+        cLogger:assert(type(elemValue) == "string", "Invalid elem_value (string expected).")
+    end
     return elemValue
 end
 

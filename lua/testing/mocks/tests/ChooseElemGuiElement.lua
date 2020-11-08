@@ -92,9 +92,14 @@ describe("ChooseElemGuiElement", function()
                 assert.are.equals(object.elem_value, "water")
             end)
 
-            it("-- valid write", function()
+            it("-- valid write (string)", function()
                 object.elem_value = "steam"
                 assert.are.equals(MockObject.getData(object).elem_value, "steam")
+            end)
+
+            it("-- valid write (nil)", function()
+                object.elem_value = nil
+                assert.is_nil(MockObject.getData(object).elem_value)
             end)
 
             it("-- invalid write", function()
