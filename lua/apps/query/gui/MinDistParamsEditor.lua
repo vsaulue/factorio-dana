@@ -15,7 +15,6 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractGuiController = require("lua/gui/AbstractGuiController")
-local AbstractParamsEditor = require("lua/apps/query/gui/AbstractParamsEditor")
 local ClassLogger = require("lua/logger/ClassLogger")
 local CtrlIntermediateSetEditor = require("lua/apps/query/gui/CtrlIntermediateSetEditor")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
@@ -30,7 +29,6 @@ local Metatable
 --
 -- Inherits from:
 -- * AbstractGuiController
--- * AbstractParamsEditor
 --
 -- RO Fields:
 -- * appResources: AppResources. Resources of the application owning this controller.
@@ -49,9 +47,10 @@ local MinDistParamsEditor = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a MinDistParamsEditor object.
     --
     new = function(object)
-        AbstractParamsEditor.new(object)
         AbstractGuiController.new(object, Metatable)
+        cLogger:assertField(object, "appResources")
         cLogger:assertField(object, "isForward")
+        cLogger:assertField(object, "params")
         object.setEditor = CtrlIntermediateSetEditor.new{
             force = object.appResources.force,
             output = object.params.intermediateSet,
