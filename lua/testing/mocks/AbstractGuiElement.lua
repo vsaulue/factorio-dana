@@ -72,9 +72,15 @@ local AbstractGuiElement = {
             style.name = args.style
         end
 
+        local enabled = true
+        if args.enabled ~= nil then
+            enabled = not not args.enabled
+        end
+
         local data = {
             caption = args.caption,
             children = {},
+            enabled = enabled,
             index = makeUniqueIndex(),
             parent = parent,
             player_index = player_index,
@@ -149,6 +155,7 @@ local AbstractGuiElement = {
                 end
             end,
 
+            enabled = MockGetters.validTrivial("enabled"),
             index = MockGetters.validTrivial("index"),
             parent = MockGetters.validTrivial("parent"),
             player_index = MockGetters.validTrivial("player_index"),
@@ -162,6 +169,11 @@ local AbstractGuiElement = {
                 local data = MockObject.getData(self, "caption")
                 -- Note: needs a LocalisedString check & a deep copy.
                 data.caption = value
+            end,
+
+            enabled = function(self, value)
+                local data = MockObject.getData(self, "enabled")
+                data.enabled = not not value
             end,
 
             style = function(self, value)

@@ -207,6 +207,32 @@ describe("--[[Mock]] LuaGuiElement", function()
         end)
     end)
 
+    describe(":enabled", function()
+        local element
+        before_each(function()
+            element = LuaGuiElement.make({
+                type = "flow",
+                direction = "vertical",
+                enabled = false,
+            }, PlayerIndex)
+        end)
+
+        it("-- constructor", function()
+            assert.is_false(MockObject.getData(element).enabled)
+        end)
+
+        it("-- read", function()
+            local data = MockObject.getData(element)
+            data.enabled = "Spartaaaa"
+            assert.are.equals(element.enabled, "Spartaaaa")
+        end)
+
+        it("-- write", function()
+            element.enabled = true
+            assert.is_true(MockObject.getData(element).enabled)
+        end)
+    end)
+
     describe(".style", function()
         describe("-- constructor:", function()
             it("valid", function()
