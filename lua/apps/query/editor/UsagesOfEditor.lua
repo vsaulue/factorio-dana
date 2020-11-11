@@ -42,8 +42,8 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
             appResources = object.appResources,
             isForward = true,
             params = object.query.sourceParams,
-            root = object.root,
         }
+        object.paramsEditor:open(object.root)
         return object
     end,
 

@@ -42,8 +42,8 @@ local HowToMakeEditor = ErrorOnInvalidRead.new{
             appResources = object.appResources,
             isForward = false,
             params = object.query.destParams,
-            root = object.root,
         }
+        object.paramsEditor:open(object.root)
         return object
     end,
 
