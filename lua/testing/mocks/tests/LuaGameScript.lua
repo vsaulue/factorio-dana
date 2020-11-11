@@ -364,6 +364,14 @@ describe("LuaGameScript", function()
         assert.are.equals(MockObject.getData(gameScript).forces.foobar, force)
     end)
 
+    it(":create_surface()", function()
+        local surface = gameScript.create_surface("Isengard", {})
+        assert.are.equals(getmetatable(surface).className, "LuaSurface")
+        assert.are.equals(MockObject.getData(gameScript).surfaces[surface.name], surface)
+        assert.are.equals(surface.index, 1)
+        assert.are.equals(surface.name, "Isengard")
+    end)
+
     describe(":fluid_prototypes", function()
         it("-- read", function()
             local water = gameScript.fluid_prototypes.water
@@ -439,5 +447,9 @@ describe("LuaGameScript", function()
                 gameScript.entity_prototypes["wood-ore"] = "denied"
             end)
         end)
+    end)
+
+    it(":surfaces", function()
+        assert.are.equals(MockObject.getData(gameScript).surfaces, MockObject.getData(gameScript.surfaces))
     end)
 end)

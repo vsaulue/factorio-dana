@@ -16,12 +16,14 @@
 
 local AbstractPrototype = require("lua/testing/mocks/AbstractPrototype")
 local CommonMockObject = require("lua/testing/mocks/CommonMockObject")
+local IndexGenerator = require("lua/testing/mocks/IndexGenerator")
 local LuaEntityPrototype = require("lua/testing/mocks/LuaEntityPrototype")
 local LuaFluidPrototype = require("lua/testing/mocks/LuaFluidPrototype")
 local LuaForce = require("lua/testing/mocks/LuaForce")
 local LuaItemPrototype = require("lua/testing/mocks/LuaItemPrototype")
 local LuaPlayer = require("lua/testing/mocks/LuaPlayer")
 local LuaRecipePrototype = require("lua/testing/mocks/LuaRecipePrototype")
+local LuaSurface = require("lua/testing/mocks/LuaSurface")
 local MockGetters = require("lua/testing/mocks/MockGetters")
 local MockObject = require("lua/testing/mocks/MockObject")
 
@@ -48,7 +50,11 @@ local TypeToIndex
 -- * forces
 -- * item_prototypes
 -- * recipe_prototypes
+-- * surfaces
 -- + AbstractPrototype.
+--
+-- Private fields:
+-- * surfaceIndexGenerator: IndexGenerator. Index generator for surfaces.
 --
 local LuaGameScript = {
     -- Adds a new player to a LuaGameScript.
@@ -85,6 +91,8 @@ local LuaGameScript = {
             item_prototypes = {},
             players = {},
             recipe_prototypes = {},
+            surfaceIndexGenerator = IndexGenerator.new(),
+            surfaces = {},
         }
         parse(selfData.fluid_prototypes, rawData.fluid, LuaFluidPrototype.make)
         for pType in pairs(AbstractPrototype.ItemTypes) do
@@ -120,12 +128,20 @@ Metatable = CommonMockObject.Metatable:makeSubclass{
             end
         end,
 
+        create_surface = function(self)
+            return function(name, settings)
+                local data = MockObject.getData(self)
+                return doCreateSurface(data, name, settings)
+            end
+        end,
+
         entity_prototypes = MockGetters.validReadOnly("entity_prototypes"),
         fluid_prototypes = MockGetters.validReadOnly("fluid_prototypes"),
         forces = MockGetters.validReadOnly("forces"),
         item_prototypes = MockGetters.validReadOnly("item_prototypes"),
         players = MockGetters.validReadOnly("players"),
         recipe_prototypes = MockGetters.validReadOnly("recipe_prototypes"),
+        surfaces = MockGetters.validReadOnly("surfaces"),
     },
 }
 
@@ -151,6 +167,26 @@ doCreateForce = function(selfData, forceName)
     cLogger:assert(not forces[forceName], "Duplicate force index: " .. forceName)
     local result = LuaForce.make(selfData.recipe_prototypes)
     forces[forceName] = result
+    return result
+end
+
+-- Creates a new surface in a game.
+--
+-- Args:
+-- * selfData: table. Internal data of the LuaGameScript.
+-- * name: string. Name of the new surface.
+-- * settings: table. Parameters for the creation of the surface.
+--
+-- Returns: LuaSurface.
+--
+doCreateSurface = function(selfData, name, settings)
+    local surfaces = selfData.surfaces
+    cLogger:assert(not surfaces[name], "Duplicate surface index: " .. name)
+    local result = LuaSurface.make{
+        index = selfData.surfaceIndexGenerator:newIndex(),
+        name = name,
+    }
+    surfaces[name] = result
     return result
 end
 
