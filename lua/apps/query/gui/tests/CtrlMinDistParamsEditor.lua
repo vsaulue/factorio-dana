@@ -19,12 +19,12 @@ local Force = require("lua/model/Force")
 local GuiElement = require("lua/gui/GuiElement")
 local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 local MinDistParams = require("lua/query/params/MinDistParams")
-local MinDistParamsEditor = require("lua/apps/query/gui/MinDistParamsEditor")
+local CtrlMinDistParamsEditor = require("lua/apps/query/gui/CtrlMinDistParamsEditor")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 
-describe("MinDistParamsEditor", function()
+describe("CtrlMinDistParamsEditor & GUI", function()
     local factorio
     local surface
     local player
@@ -87,7 +87,7 @@ describe("MinDistParamsEditor", function()
             type = "flow",
             direction = "horizontal",
         }, player.index)
-        controller = MinDistParamsEditor.new{
+        controller = CtrlMinDistParamsEditor.new{
             appResources = appResources,
             isForward = false,
             params = params,
@@ -110,7 +110,7 @@ describe("MinDistParamsEditor", function()
                 },
                 metatableSetter = function(objects)
                     AppResources.setmetatable(objects.appResources)
-                    MinDistParamsEditor.setmetatable(objects.controller)
+                    CtrlMinDistParamsEditor.setmetatable(objects.controller)
                     Force.setmetatable(objects.force)
                     MinDistParams.setmetatable(objects.params)
                     PrototypeDatabase.setmetatable(objects.prototypes)
