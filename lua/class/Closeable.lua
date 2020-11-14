@@ -35,6 +35,17 @@ local Closeable = ErrorOnInvalidRead.new{
         end
     end,
 
+    -- Closes the argument if not nil.
+    --
+    -- Args:
+    -- * object: Closeable or nil. Object to close.
+    --
+    safeClose = function(object)
+        if object then
+            object:close()
+        end
+    end,
+
     -- Closes a specific field of a table, and removes it.
     --
     -- Args:

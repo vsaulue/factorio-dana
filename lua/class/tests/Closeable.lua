@@ -36,6 +36,18 @@ describe("Closeable", function()
         assert.is_true(map.o2.flag)
     end)
 
+    describe(".safeClose()", function()
+        it("-- nil", function()
+            Closeable.safeClose(nil)
+        end)
+
+        it("--not nil", function()
+            local object = newCloseable()
+            Closeable.safeClose(object)
+            assert.is_true(object.flag)
+        end)
+    end)
+
     describe(".safeCloseField()", function()
         it("-- nil", function()
             local object = {}
