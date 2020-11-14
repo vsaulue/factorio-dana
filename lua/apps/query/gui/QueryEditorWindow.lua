@@ -22,7 +22,7 @@ local GuiElement = require("lua/gui/GuiElement")
 
 -- Importing all AbstractCtrlQueryEditor to populate its Factory.
 require("lua/apps/query/editor/CtrlHowToMakeEditor")
-require("lua/apps/query/editor/UsagesOfEditor")
+require("lua/apps/query/editor/CtrlUsagesOfEditor")
 
 local cLogger = ClassLogger.new{className = "QueryEditorWindow"}
 
