@@ -21,7 +21,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 
 -- Importing all AbstractCtrlQueryEditor to populate its Factory.
-require("lua/apps/query/editor/HowToMakeEditor")
+require("lua/apps/query/editor/CtrlHowToMakeEditor")
 require("lua/apps/query/editor/UsagesOfEditor")
 
 local cLogger = ClassLogger.new{className = "QueryEditorWindow"}
