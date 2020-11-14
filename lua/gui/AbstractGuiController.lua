@@ -17,6 +17,7 @@
 local ClassLogger = require("lua/logger/ClassLogger")
 local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local MetaUtils = require("lua/class/MetaUtils")
 
 local cLogger = ClassLogger.new{className = "AbstractGuiController"}
 
@@ -80,10 +81,7 @@ local AbstractGuiController = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object, metatable, guiMetatableSetter)
         setmetatable(object, metatable)
-        local gui = rawget(object, "gui")
-        if gui then
-            guiMetatableSetter(gui)
-        end
+        MetaUtils.safeSetField(object, "gui", guiMetatableSetter)
     end,
 }
 
