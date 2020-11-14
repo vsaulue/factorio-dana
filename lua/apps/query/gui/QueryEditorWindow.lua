@@ -14,13 +14,13 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractQueryEditor = require("lua/apps/query/editor/AbstractQueryEditor")
+local AbstractCtrlQueryEditor = require("lua/apps/query/editor/AbstractCtrlQueryEditor")
 local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 
--- Importing all AbstractQueryEditor to populate its Factory.
+-- Importing all AbstractCtrlQueryEditor to populate its Factory.
 require("lua/apps/query/editor/HowToMakeEditor")
 require("lua/apps/query/editor/UsagesOfEditor")
 
@@ -35,7 +35,7 @@ local StepName
 -- RO Fields:
 -- * backButton: BackButton object of this window.
 -- * drawButton: DrawButton of this window.
--- * queryEditor: AbstractQueryEditor of this window.
+-- * queryEditor: AbstractCtrlQueryEditor of this window.
 --
 local QueryEditorWindow = ErrorOnInvalidRead.new{
     -- Creates a new QueryEditorWindow object.
@@ -57,7 +57,7 @@ local QueryEditorWindow = ErrorOnInvalidRead.new{
             style = "inside_shallow_frame_with_padding",
             direction = "vertical",
         }
-        object.queryEditor = AbstractQueryEditor.Factory:make{
+        object.queryEditor = AbstractCtrlQueryEditor.Factory:make{
             appResources = app.appController.appResources,
             query = app.query,
             root = innerFrame,
@@ -99,7 +99,7 @@ local QueryEditorWindow = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         BackButton.setmetatable(object.backButton)
         DrawButton.setmetatable(object.drawButton)
-        AbstractQueryEditor.Factory:restoreMetatable(object.queryEditor)
+        AbstractCtrlQueryEditor.Factory:restoreMetatable(object.queryEditor)
         setmetatable(object, AbstractStepWindow.Metatable)
     end,
 }
