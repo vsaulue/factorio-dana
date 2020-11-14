@@ -36,14 +36,12 @@ local HowToMakeEditor = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a HowToMakeEditor object.
     --
     new = function(object)
-        AbstractQueryEditor.check(object, QueryType)
-        ErrorOnInvalidRead.setmetatable(object)
+        AbstractQueryEditor.make(object, QueryType)
         object.paramsEditor = CtrlMinDistParamsEditor.new{
             appResources = object.appResources,
             isForward = false,
             params = object.query.destParams,
         }
-        object.paramsEditor:open(object.root)
         return object
     end,
 
@@ -53,7 +51,7 @@ local HowToMakeEditor = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        ErrorOnInvalidRead.setmetatable(object)
+        AbstractQueryEditor.setmetatable(object)
         CtrlMinDistParamsEditor.setmetatable(object.paramsEditor)
     end,
 }

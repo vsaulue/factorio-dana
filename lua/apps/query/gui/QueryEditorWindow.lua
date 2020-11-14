@@ -62,6 +62,7 @@ local QueryEditorWindow = ErrorOnInvalidRead.new{
             query = app.query,
             root = innerFrame,
         }
+        object.queryEditor:open(innerFrame)
         local bottomFlow = object.frame.add{
             type = "flow",
             direction = "horizontal",
