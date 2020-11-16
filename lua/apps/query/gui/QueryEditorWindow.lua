@@ -50,7 +50,11 @@ local QueryEditorWindow = ErrorOnInvalidRead.new{
         AbstractStepWindow.new(object)
 
         local app = object.app
-        object.frame.caption = {"dana.apps.query.queryEditor.title"}
+        object.frame = app.appController.appResources.rawPlayer.gui.center.add{
+            type = "frame",
+            direction = "vertical",
+            caption = {"dana.apps.query.queryEditor.title"},
+        }
 
         local innerFrame = object.frame.add{
             type = "frame",

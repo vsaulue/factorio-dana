@@ -48,7 +48,12 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
         object.stepName = StepName
         AbstractStepWindow.new(object)
 
-        object.frame.caption = {"dana.apps.query.templateSelectWindow.title"}
+        object.frame = object.app.appController.appResources.rawPlayer.gui.center.add{
+            type = "frame",
+            direction = "vertical",
+            caption = {"dana.apps.query.templateSelectWindow.title"},
+        }
+
         local app = object.app
 
         local innerFrame = object.frame.add{

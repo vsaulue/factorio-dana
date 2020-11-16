@@ -63,11 +63,6 @@ local AbstractStepWindow = ErrorOnInvalidRead.new{
         local app = cLogger:assertField(object, "app")
         cLogger:assertField(object, "stepName")
 
-        object.frame = app.appController.appResources.rawPlayer.gui.center.add{
-            type = "frame",
-            direction = "vertical",
-        }
-
         setmetatable(object, metatable or Metatable)
         return object
     end,

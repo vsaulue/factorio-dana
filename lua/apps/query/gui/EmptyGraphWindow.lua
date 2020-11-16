@@ -40,7 +40,12 @@ local EmptyGraphWindow = ErrorOnInvalidRead.new{
         object.stepName = StepName
         AbstractStepWindow.new(object)
 
-        object.frame.caption = {"dana.apps.query.emptyGraphWindow.title"}
+        object.frame = object.app.appController.appResources.rawPlayer.gui.center.add{
+            type = "frame",
+            direction = "vertical",
+            caption = {"dana.apps.query.emptyGraphWindow.title"},
+        }
+
         object.frame.add{
             type = "label",
             caption = {"dana.apps.query.emptyGraphWindow.description"},
