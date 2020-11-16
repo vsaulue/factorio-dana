@@ -70,7 +70,15 @@ Metatable = {
         --
         make = function(self, object)
             cLogger:assert(self.enableMake, "make() can't be used with 'enableMake == false'")
-            return getClassOfObject(self, object).new(object)
+            local subclass = getClassOfObject(self, object)
+            local subfactory = rawget(subclass, "Factory")
+            local result
+            if subfactory then
+                result = subfactory:make(object)
+            else
+                result = subclass.new(object)
+            end
+            return result
         end,
 
         -- Registers a new class for this factory.
@@ -81,11 +89,19 @@ Metatable = {
         -- * classTable: Table of the class (= the table containing the appropriate setmetatable function).
         --
         registerClass = function(self, className, classTable)
-            cLogger:assert(not rawget(self.classes, className), "Duplicate class name: " .. className)
-            if self.enableMake then
-                assertClassField(classTable, "new")
+            local subfactory = rawget(classTable, "Factory")
+            if subfactory then
+                cLogger:assert(subfactory.restoreMetatable, "Invalid factory for class: " .. className)
+                if self.enableMake then
+                    cLogger:assert(subfactory.enableMake, "Subtype's factory must have enableMake set: " .. className)
+                end
+            else
+                cLogger:assert(not rawget(self.classes, className), "Duplicate class name: " .. className)
+                assertClassField(classTable, "setmetatable")
+                if self.enableMake then
+                    assertClassField(classTable, "new")
+                end
             end
-            assertClassField(classTable, "setmetatable")
             self.classes[className] = classTable
         end,
 
@@ -96,7 +112,13 @@ Metatable = {
         -- * object: table to modify.
         --
         restoreMetatable = function(self, object)
-            getClassOfObject(self, object).setmetatable(object)
+            local subclass = getClassOfObject(self, object)
+            local subfactory = rawget(subclass, "Factory")
+            if subfactory then
+                subfactory:restoreMetatable(object)
+            else
+                subclass.setmetatable(object)
+            end
         end,
     },
 }
