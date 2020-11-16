@@ -14,9 +14,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractGuiController = require("lua/gui/AbstractGuiController")
 local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GuiElement = require("lua/gui/GuiElement")
+local GuiEmptyGraphWindow = require("lua/apps/query/gui/GuiEmptyGraphWindow")
 
 local BackButton
 local Metatable
@@ -24,7 +25,7 @@ local StepName
 
 -- Window shown when a query generated an empty graph.
 --
--- Inherits from AbstractStepWindow.
+-- Inherits from AbstractGuiController, AbstractStepWindow.
 --
 -- RO Fields:
 -- * backButton: BackButton object of this window.
@@ -40,30 +41,7 @@ local EmptyGraphWindow = ErrorOnInvalidRead.new{
     new = function(object)
         object.stepName = StepName
         AbstractStepWindow.new(object, Metatable)
-
-        object.frame = object.app.appController.appResources.rawPlayer.gui.center.add{
-            type = "frame",
-            direction = "vertical",
-            caption = {"dana.apps.query.emptyGraphWindow.title"},
-        }
-
-        object.frame.add{
-            type = "label",
-            caption = {"dana.apps.query.emptyGraphWindow.description"},
-        }
-        object.frame.add{
-            type = "line",
-            direction = "horizontal",
-        }
-        object.backButton = BackButton.new{
-            app = object.app,
-                rawElement = object.frame.add{
-                type = "button",
-                caption = {"gui.cancel"},
-                style = "back_button",
-            },
-        }
-
+        object:open(object.app.appController.appResources.rawPlayer.gui.center)
         return object
     end,
 
@@ -73,7 +51,7 @@ local EmptyGraphWindow = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        AbstractGuiController.setmetatable(object, Metatable, GuiEmptyGraphWindow.setmetatable)
         BackButton.setmetatable(object.backButton)
     end,
 }
@@ -81,30 +59,30 @@ local EmptyGraphWindow = ErrorOnInvalidRead.new{
 -- Metatable of the EmptyGraphWindow class.
 Metatable = {
     __index = {
-        -- Implements EmptyGraphWindow:setVisible().
+        close = AbstractGuiController.Metatable.__index.close,
+
+        -- Implements AbstractGuiController:makeGui().
+        makeGui = function(self, parent)
+            return GuiEmptyGraphWindow.new{
+                controller = self,
+                parent = parent,
+            }
+        end,
+
+        open = AbstractGuiController.Metatable.__index.open,
+
+        -- Implements AbstractStepWindow:setVisible().
         setVisible = function(self, value)
-            self.frame.visible = value
+            local gui = rawget(self, "gui")
+            if value and not gui then
+                self:open(self.app.appController.appResources.rawPlayer.gui.center)
+            elseif (not value) and gui then
+                self:close()
+            end
         end,
     }
 }
 setmetatable(Metatable.__index, {__index = AbstractStepWindow.Metatable.__index})
-
--- Button to go back to the previous window.
---
--- Inherits from GuiElement.
---
--- RO Fields:
--- * app: QueryApp owning this button.
---
-BackButton = GuiElement.newSubclass{
-    className = "EmptyGraphWindow/BackButton",
-    mandatoryFields = {"app"},
-    __index = {
-        onClick = function(self, event)
-            self.app:popStepWindow()
-        end,
-    }
-}
 
 -- Unique name for this step.
 StepName = "emptyGraph"
