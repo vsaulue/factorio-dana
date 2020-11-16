@@ -26,6 +26,18 @@ describe("Closeable", function()
         }
     end
 
+    it(".closeMapKeys()", function()
+        local key1 = newCloseable()
+        local key2 = newCloseable()
+        local map = {
+            [key1] = true,
+            [key2] = true,
+        }
+        Closeable.closeMapKeys(map)
+        assert.is_true(key1.flag)
+        assert.is_true(key2.flag)
+    end)
+
     it(".closeMapValues()", function()
         local map = {
             o1 = newCloseable(),
