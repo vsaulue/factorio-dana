@@ -32,7 +32,9 @@ describe("LuaPlayer", function()
             local object = LuaPlayer.make{
                 force = force,
             }
-            assert.are.equals(MockObject.getData(object).force, force)
+            local data = MockObject.getData(object)
+            assert.are.equals(data.force, force)
+            assert.is_not_nil(data.gui)
             checkIndex(object)
         end)
 
@@ -61,6 +63,10 @@ describe("LuaPlayer", function()
                     object.force = "denied"
                 end)
             end)
+        end)
+
+        it(":gui", function()
+            assert.are.equals(MockObject.getData(object).gui, object.gui)
         end)
 
         describe(":index", function()

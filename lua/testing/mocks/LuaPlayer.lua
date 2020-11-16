@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local CommonMockObject = require("lua/testing/mocks/CommonMockObject")
+local LuaGui = require("lua/testing/mocks/LuaGui")
 local MockGetters = require("lua/testing/mocks/MockGetters")
 
 local cLogger
@@ -30,6 +31,7 @@ local Metatable
 --
 -- Implemented fields & methods:
 -- * force
+-- * gui
 -- * index
 -- + AbstractPrototype.
 --
@@ -47,7 +49,9 @@ local LuaPlayer = {
             force = cLogger:assertFieldType(cArgs, "force", "table"),
             index = makeIndex(),
         }
-        return CommonMockObject.make(selfData, Metatable)
+        local result = CommonMockObject.make(selfData, Metatable)
+        selfData.gui = LuaGui.make{player = result}
+        return result
     end,
 }
 
@@ -57,6 +61,7 @@ Metatable = CommonMockObject.Metatable:makeSubclass{
 
     getters = {
         force = MockGetters.validTrivial("force"),
+        gui = MockGetters.validTrivial("gui"),
         index = MockGetters.validTrivial("index"),
     },
 }
