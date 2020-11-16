@@ -158,7 +158,7 @@ AppName = "query"
 --
 setTopWindowVisible = function(self, value)
     local stack = self.stepWindows
-    stack[stack.topIndex].frame.visible = value
+    stack[stack.topIndex]:setVisible(value)
 end
 
 AbstractApp.Factory:registerClass(AppName, QueryApp)
