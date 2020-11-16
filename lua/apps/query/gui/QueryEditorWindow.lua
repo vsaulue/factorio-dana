@@ -28,6 +28,7 @@ local cLogger = ClassLogger.new{className = "QueryEditorWindow"}
 
 local BackButton
 local DrawButton
+local Metatable
 local StepName
 
 -- GUI Window to edit a the query of a QueryApp.
@@ -47,7 +48,7 @@ local QueryEditorWindow = ErrorOnInvalidRead.new{
     --
     new = function(object)
         object.stepName = StepName
-        AbstractStepWindow.new(object)
+        AbstractStepWindow.new(object, Metatable)
 
         local app = object.app
         object.frame = app.appController.appResources.rawPlayer.gui.center.add{
@@ -104,9 +105,20 @@ local QueryEditorWindow = ErrorOnInvalidRead.new{
         BackButton.setmetatable(object.backButton)
         DrawButton.setmetatable(object.drawButton)
         AbstractCtrlQueryEditor.Factory:restoreMetatable(object.queryEditor)
-        setmetatable(object, AbstractStepWindow.Metatable)
+        setmetatable(object, Metatable)
     end,
 }
+
+-- Metatable of the QueryEditorWindow class.
+Metatable = {
+    __index = {
+        -- Implements AbstractStepWindow:setVisible().
+        setVisible = function(self, value)
+            self.frame.visible = value
+        end,
+    },
+}
+setmetatable(Metatable.__index, {__index = AbstractStepWindow.Metatable.__index})
 
 -- Button to go back to the TemplateSelectWindow.
 --

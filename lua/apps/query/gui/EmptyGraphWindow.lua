@@ -19,6 +19,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 
 local BackButton
+local Metatable
 local StepName
 
 -- Window shown when a query generated an empty graph.
@@ -38,7 +39,7 @@ local EmptyGraphWindow = ErrorOnInvalidRead.new{
     --
     new = function(object)
         object.stepName = StepName
-        AbstractStepWindow.new(object)
+        AbstractStepWindow.new(object, Metatable)
 
         object.frame = object.app.appController.appResources.rawPlayer.gui.center.add{
             type = "frame",
@@ -72,10 +73,21 @@ local EmptyGraphWindow = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, AbstractStepWindow.Metatable)
+        setmetatable(object, Metatable)
         BackButton.setmetatable(object.backButton)
     end,
 }
+
+-- Metatable of the EmptyGraphWindow class.
+Metatable = {
+    __index = {
+        -- Implements EmptyGraphWindow:setVisible().
+        setVisible = function(self, value)
+            self.frame.visible = value
+        end,
+    }
+}
+setmetatable(Metatable.__index, {__index = AbstractStepWindow.Metatable.__index})
 
 -- Button to go back to the previous window.
 --

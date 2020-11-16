@@ -25,6 +25,7 @@ local QueryTemplates = require("lua/apps/query/QueryTemplates")
 local cLogger = ClassLogger.new{className = "queryApp/TemplateSelectWindow"}
 
 local FullGraphButton
+local Metatable
 local StepName
 local TemplateSelectButton
 
@@ -46,7 +47,7 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
     --
     new = function(object)
         object.stepName = StepName
-        AbstractStepWindow.new(object)
+        AbstractStepWindow.new(object, Metatable)
 
         object.frame = object.app.appController.appResources.rawPlayer.gui.center.add{
             type = "frame",
@@ -96,7 +97,7 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, AbstractStepWindow.Metatable)
+        setmetatable(object, Metatable)
         FullGraphButton.setmetatable(object.fullGraphButton)
 
         ErrorOnInvalidRead.setmetatable(object.templateButtons)
@@ -105,6 +106,17 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
         end
     end,
 }
+
+-- Metatable of the TemplateSelectWindow class.
+Metatable = {
+    __index = {
+        -- Implements AbstractStepWindow:setVisible().
+        setVisible = function(self, value)
+            self.frame.visible = value
+        end,
+    },
+}
+setmetatable(Metatable.__index, {__index = AbstractStepWindow.Metatable.__index})
 
 -- Button to display the full recipe graph.
 --
