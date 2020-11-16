@@ -14,11 +14,12 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractGuiController = require("lua/gui/AbstractGuiController")
 local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local FullGraphQuery = require("lua/query/FullGraphQuery")
-local GuiElement = require("lua/gui/GuiElement")
+local GuiTemplateSelectWindow = require("lua/apps/query/gui/GuiTemplateSelectWindow")
 local QueryEditorWindow = require("lua/apps/query/gui/QueryEditorWindow")
 local QueryTemplates = require("lua/apps/query/QueryTemplates")
 
@@ -31,11 +32,7 @@ local TemplateSelectButton
 
 -- A menu window with a button for each query template.
 --
--- Inherits from AbstractStepWindow.
---
--- RO Fields:
--- * fullGraphButton: FullGraphButton object.
--- * templateButtons: Set of TemplateSelectButton owned by this window.
+-- Inherits from AbstractGuiController, AbstractStepWindow.
 --
 local TemplateSelectWindow = ErrorOnInvalidRead.new{
     -- Creates a new TemplateSelectWindow object.
@@ -48,46 +45,7 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
     new = function(object)
         object.stepName = StepName
         AbstractStepWindow.new(object, Metatable)
-
-        object.frame = object.app.appController.appResources.rawPlayer.gui.center.add{
-            type = "frame",
-            direction = "vertical",
-            caption = {"dana.apps.query.templateSelectWindow.title"},
-        }
-
-        local app = object.app
-
-        local innerFrame = object.frame.add{
-            type = "frame",
-            style = "inside_deep_frame",
-        }
-        innerFrame.style.padding = 4
-        local flow = innerFrame.add{
-            type = "flow",
-            direction = "vertical",
-        }
-        flow.style.vertical_spacing = 4
-        object.fullGraphButton = FullGraphButton.new{
-            app = app,
-            rawElement = flow.add{
-                type = "button",
-                caption = {"dana.apps.query.templateSelectWindow.fullGraph"},
-                style = "menu_button",
-            },
-        }
-        object.templateButtons = ErrorOnInvalidRead.new()
-        for templateName,template in pairs(QueryTemplates) do
-            local newButton = TemplateSelectButton.new{
-                app = app,
-                rawElement = flow.add{
-                    type = "button",
-                    caption = template.caption,
-                    style = "menu_button",
-                },
-                templateName = templateName,
-            }
-            object.templateButtons[newButton] = true
-        end
+        object:open(object.app.appController.appResources.rawPlayer.gui.center)
         return object
     end,
 
@@ -97,62 +55,43 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
-        FullGraphButton.setmetatable(object.fullGraphButton)
-
-        ErrorOnInvalidRead.setmetatable(object.templateButtons)
-        for templateButton in pairs(object.templateButtons) do
-            TemplateSelectButton.setmetatable(templateButton)
-        end
+        AbstractGuiController.setmetatable(object, Metatable, GuiTemplateSelectWindow.setmetatable)
     end,
 }
 
 -- Metatable of the TemplateSelectWindow class.
 Metatable = {
     __index = {
-        -- Implements AbstractStepWindow:setVisible().
-        setVisible = function(self, value)
-            self.frame.visible = value
-        end,
-    },
-}
-setmetatable(Metatable.__index, {__index = AbstractStepWindow.Metatable.__index})
+        close = AbstractGuiController.Metatable.__index.close,
 
--- Button to display the full recipe graph.
---
--- Inherits from GuiElement.
---
--- RO Fields:
--- * app: QueryApp owning this button.
---
-FullGraphButton = GuiElement.newSubclass{
-    className = "queryApp/FullGraphButton",
-    mandatoryFields = {"app"},
-    __index = {
-        onClick = function(self, event)
+        -- Implements AbstractGuiController:makeGui().
+        makeGui = function(self, parent)
+            return GuiTemplateSelectWindow.new{
+                controller = self,
+                parent = parent,
+            }
+        end,
+
+        open = AbstractGuiController.Metatable.__index.open,
+
+        -- Selects the "Full graph" query.
+        --
+        -- Args:
+        -- * self: TemplateSelectWindow.
+        --
+        selectFullGraph = function(self)
             self.app.query = FullGraphQuery.new()
             self.app:runQueryAndDraw()
         end,
-    },
-}
 
--- Unique name for this step.
-StepName = "templateSelect"
-
--- Button to select a preset query template.
---
--- Inherits from GuiElement.
---
--- TO Fields:
--- * app: QueryApp owining this button.
--- * templateName: Name of the template to load from QueryTemplates.
---
-TemplateSelectButton = GuiElement.newSubclass{
-    className = "queryApp/TemplateSelectButton",
-    mandatoryFields = {"app", "templateName"},
-    __index = {
-        onClick = function(self, event)
-            local template = QueryTemplates[self.templateName]
+        -- Selects a query template.
+        --
+        -- Args:
+        -- * self: TemplateSelectWindow.
+        -- * templateName: string. Name of the template in QueryTemplates.
+        --
+        selectTemplate = function(self, templateName)
+            local template = QueryTemplates[templateName]
             local app = self.app
 
             template.applyTemplate(app)
@@ -160,8 +99,22 @@ TemplateSelectButton = GuiElement.newSubclass{
                 app = app,
             })
         end,
+
+        -- Implements AbstractStepWindow:setVisible().
+        setVisible = function(self, value)
+            local gui = rawget(self, "gui")
+            if value and not gui then
+                self:open(self.app.appController.appResources.rawPlayer.gui.center)
+            elseif (not value) and gui then
+                self:close()
+            end
+        end,
     },
 }
+setmetatable(Metatable.__index, {__index = AbstractStepWindow.Metatable.__index})
+
+-- Unique name for this step.
+StepName = "templateSelect"
 
 AbstractStepWindow.Factory:registerClass(StepName, TemplateSelectWindow)
 return TemplateSelectWindow
