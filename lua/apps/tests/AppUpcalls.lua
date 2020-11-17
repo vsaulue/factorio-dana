@@ -14,28 +14,13 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-return {
-    _all = {
-        lpath = "../?.lua",
-        pattern = ".*%.lua",
-        ROOT = {
-            "../migrations/framework/tests",
-            "apps/query/params/tests",
-            "apps/query/step/editor/tests",
-            "apps/tests",
-            "canvas/objects/tests",
-            "class/tests",
-            "containers/tests",
-            "graph/tests",
-            "graph/algorithms/tests",
-            "gui/tests",
-            "hypergraph/algorithms/tests",
-            "layouts/preprocess/algorithms/tests",
-            "layouts/preprocess/tests",
-            "logger/tests",
-            "model/tests",
-            "testing/mocks/tests",
-            "testing/tests",
-        },
-    },
-}
+local AppUpcalls = require("lua/apps/AppUpcalls")
+
+describe("AppUpcalls", function()
+    it(".check()", function()
+        AppUpcalls.check{
+            makeAndSwitchApp = function() end,
+            setPosition = function() end,
+        }
+    end)
+end)
