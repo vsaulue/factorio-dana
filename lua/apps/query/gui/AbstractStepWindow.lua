@@ -15,20 +15,21 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractFactory = require("lua/AbstractFactory")
+local AbstractGuiController = require("lua/gui/AbstractGuiController")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 
 local cLogger = ClassLogger.new{className = "queryApp/AbstractStepWindow"}
 
-local Metatable
-
 -- Base class for windows of the QueryApp.
+--
+-- Inherits from AbstractGuiController.
 --
 -- RO Fields:
 -- * app: QueryApp object owning this window.
--- * frame: Frame object from Factorio (LuaGuiElement).
 -- * stepName: String indicating the type of step window.
+-- + AbstractGuiController.
 --
 local AbstractStepWindow = ErrorOnInvalidRead.new{
     -- Factory instance able to restore metatables of AbstractStepWindow objects.
@@ -38,19 +39,7 @@ local AbstractStepWindow = ErrorOnInvalidRead.new{
         end,
     },
 
-    -- Metatable of the AbstractStepWindow class.
-    Metatable = {
-        __index = ErrorOnInvalidRead.new{
-            -- Releases all API resources of this object.
-            --
-            -- Args:
-            -- * self: QueryEditor object.
-            --
-            close = function(self)
-                GuiElement.destroy(self.frame)
-            end,
-        },
-    },
+    Metatable = AbstractGuiController.Metatable,
 
     -- Creates a new AbstractStepWindow object.
     --
@@ -63,11 +52,10 @@ local AbstractStepWindow = ErrorOnInvalidRead.new{
         local app = cLogger:assertField(object, "app")
         cLogger:assertField(object, "stepName")
 
-        setmetatable(object, metatable or Metatable)
-        return object
+        return AbstractGuiController.new(object, metatable)
     end,
-}
 
-Metatable = AbstractStepWindow.Metatable
+    setmetatable = AbstractGuiController.setmetatable,
+}
 
 return AbstractStepWindow

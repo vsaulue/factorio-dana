@@ -14,7 +14,6 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractGuiController = require("lua/gui/AbstractGuiController")
 local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
@@ -32,7 +31,7 @@ local TemplateSelectButton
 
 -- A menu window with a button for each query template.
 --
--- Inherits from AbstractGuiController, AbstractStepWindow.
+-- Inherits from AbstractStepWindow.
 --
 local TemplateSelectWindow = ErrorOnInvalidRead.new{
     -- Creates a new TemplateSelectWindow object.
@@ -55,15 +54,13 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        AbstractGuiController.setmetatable(object, Metatable, GuiTemplateSelectWindow.setmetatable)
+        AbstractStepWindow.setmetatable(object, Metatable, GuiTemplateSelectWindow.setmetatable)
     end,
 }
 
 -- Metatable of the TemplateSelectWindow class.
 Metatable = {
     __index = {
-        close = AbstractGuiController.Metatable.__index.close,
-
         -- Implements AbstractGuiController:makeGui().
         makeGui = function(self, parent)
             return GuiTemplateSelectWindow.new{
@@ -71,8 +68,6 @@ Metatable = {
                 parent = parent,
             }
         end,
-
-        open = AbstractGuiController.Metatable.__index.open,
 
         -- Selects the "Full graph" query.
         --

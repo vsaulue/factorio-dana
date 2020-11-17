@@ -14,7 +14,6 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractGuiController = require("lua/gui/AbstractGuiController")
 local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiEmptyGraphWindow = require("lua/apps/query/gui/GuiEmptyGraphWindow")
@@ -25,10 +24,11 @@ local StepName
 
 -- Window shown when a query generated an empty graph.
 --
--- Inherits from AbstractGuiController, AbstractStepWindow.
+-- Inherits from AbstractStepWindow.
 --
 -- RO Fields:
 -- * backButton: BackButton object of this window.
+-- + AbstractStepWindow.
 --
 local EmptyGraphWindow = ErrorOnInvalidRead.new{
     -- Creates a new EmptyGraphWindow object.
@@ -51,7 +51,7 @@ local EmptyGraphWindow = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        AbstractGuiController.setmetatable(object, Metatable, GuiEmptyGraphWindow.setmetatable)
+        AbstractStepWindow.setmetatable(object, Metatable, GuiEmptyGraphWindow.setmetatable)
         BackButton.setmetatable(object.backButton)
     end,
 }
@@ -59,17 +59,13 @@ local EmptyGraphWindow = ErrorOnInvalidRead.new{
 -- Metatable of the EmptyGraphWindow class.
 Metatable = {
     __index = {
-        close = AbstractGuiController.Metatable.__index.close,
-
-        -- Implements AbstractGuiController:makeGui().
+        -- Implements AbstractStepWindow:makeGui().
         makeGui = function(self, parent)
             return GuiEmptyGraphWindow.new{
                 controller = self,
                 parent = parent,
             }
         end,
-
-        open = AbstractGuiController.Metatable.__index.open,
     }
 }
 setmetatable(Metatable.__index, {__index = AbstractStepWindow.Metatable.__index})

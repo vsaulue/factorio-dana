@@ -14,8 +14,8 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractGuiController = require("lua/gui/AbstractGuiController")
 local AbstractFactory = require("lua/AbstractFactory")
+local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
 local ClassLogger = require("lua/logger/ClassLogger")
 local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
@@ -23,17 +23,20 @@ local GuiAbstractQueryEditor = require("lua/apps/query/editor/GuiAbstractQueryEd
 local MetaUtils = require("lua/class/MetaUtils")
 
 local cLogger = ClassLogger.new{className = "AbstractQueryEditor"}
-local super = AbstractGuiController.Metatable.__index
+local super = AbstractStepWindow.Metatable.__index
 
 local Metatable
 local StepName
 
 -- Class used to generate a GUI to edit an AbstractQuery.
 --
+-- Inherits from AbstractStepWindow.
+--
 -- RO Fields:
 -- * appResources: AppResources object of the owning application.
 -- * query: The edited AbstractQuery.
--- * paramsEditor (optional): AbstractGuiController.
+-- * paramsEditor: AbstractGuiController or nil. Current editor.
+-- + AbstractStepWindow.
 --
 local AbstractQueryEditor = ErrorOnInvalidRead.new{
     -- Factory instance able to restore metatables of AbstractQueryEditor objects.
@@ -63,7 +66,7 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
             cLogger:error("Invalid filter type (found: " .. query.queryType .. ", expected: " .. queryType .. ").")
         end
 
-        AbstractGuiController.new(object, Metatable)
+        AbstractStepWindow.new(object, Metatable)
         object:open(object.appResources.rawPlayer.gui.center)
         return object
     end,
@@ -74,20 +77,20 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
     -- * object: table.
     --
     setmetatable = function(object)
-        AbstractGuiController.setmetatable(object, Metatable, GuiAbstractQueryEditor.setmetatable)
+        AbstractStepWindow.setmetatable(object, Metatable, GuiAbstractQueryEditor.setmetatable)
     end,
 }
 
 -- Metatable of the AbstractQueryEditor class.
 Metatable = {
     __index = {
-        -- Implements AbstractGuiController:close().
+        -- Implements AbstractStepWindow:close().
         close = function(self)
             super.close(self)
             Closeable.safeClose(rawget(self, "paramsEditor"))
         end,
 
-        -- Implements AbstractGuiController:makeGui().
+        -- Implements AbstractStepWindow:makeGui().
         makeGui = function(self, parent)
             return GuiAbstractQueryEditor.new{
                 controller = self,
