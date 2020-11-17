@@ -14,7 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractCtrlQueryEditor = require("lua/apps/query/editor/AbstractCtrlQueryEditor")
+local AbstractQueryEditor = require("lua/apps/query/editor/AbstractQueryEditor")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local CtrlMinDistParamsEditor = require("lua/apps/query/gui/CtrlMinDistParamsEditor")
 
@@ -22,7 +22,7 @@ local QueryType
 
 -- Query editor for the UsagesOfQuery class.
 --
--- Inherits from AbstractCtrlQueryEditor.
+-- Inherits from AbstractQueryEditor.
 --
 -- RO Fields:
 -- * paramsEditor: CtrlMinDistParamsEditor object editing the sourceParams.
@@ -36,7 +36,7 @@ local CtrlUsagesOfEditor = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a CtrlUsagesOfEditor object.
     --
     new = function(object)
-        AbstractCtrlQueryEditor.make(object, QueryType)
+        AbstractQueryEditor.make(object, QueryType)
         object:setParamsEditor(CtrlMinDistParamsEditor.new{
             appResources = object.appResources,
             isForward = true,
@@ -51,7 +51,7 @@ local CtrlUsagesOfEditor = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        AbstractCtrlQueryEditor.setmetatable(object)
+        AbstractQueryEditor.setmetatable(object)
         CtrlMinDistParamsEditor.setmetatable(object.paramsEditor)
     end,
 }
@@ -59,5 +59,5 @@ local CtrlUsagesOfEditor = ErrorOnInvalidRead.new{
 -- Type of query handled by this editor.
 QueryType = "UsagesOfQuery"
 
-AbstractCtrlQueryEditor.Factory:registerClass(QueryType, CtrlUsagesOfEditor)
+AbstractQueryEditor.Factory:registerClass(QueryType, CtrlUsagesOfEditor)
 return CtrlUsagesOfEditor

@@ -14,24 +14,24 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractCtrlQueryEditor = require("lua/apps/query/editor/AbstractCtrlQueryEditor")
+local AbstractQueryEditor = require("lua/apps/query/editor/AbstractQueryEditor")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
--- Importing all AbstractCtrlQueryEditor to populate its Factory.
+-- Importing all AbstractQueryEditor to populate its Factory.
 require("lua/apps/query/editor/CtrlHowToMakeEditor")
 require("lua/apps/query/editor/CtrlUsagesOfEditor")
 
--- Wrapper of AbstractCtrlQueryEditor's factory.
+-- Wrapper of AbstractQueryEditor's factory.
 local QueryEditor = ErrorOnInvalidRead.new{
-    -- Creates a new AbstractCtrlQueryEditor object.
+    -- Creates a new AbstractQueryEditor object.
     --
     -- Args:
     -- * object: table. Required fields: app, query.
     --
-    -- Returns: AbstractCtrlQueryEditor. The `object` argument converted into the desired type.
+    -- Returns: AbstractQueryEditor. The `object` argument converted into the desired type.
     --
     new = function(object)
-        return AbstractCtrlQueryEditor.Factory:make(object)
+        return AbstractQueryEditor.Factory:make(object)
     end,
 
     -- Restores the metatable of an GuiAbstractQueryEditor object, and all its owned objects.
@@ -40,7 +40,7 @@ local QueryEditor = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        AbstractCtrlQueryEditor.Factory:restoreMetatable(object)
+        AbstractQueryEditor.Factory:restoreMetatable(object)
     end,
 }
 

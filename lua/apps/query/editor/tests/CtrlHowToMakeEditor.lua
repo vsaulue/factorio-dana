@@ -14,7 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractCtrlQueryEditor = require("lua/apps/query/editor/AbstractCtrlQueryEditor")
+local AbstractQueryEditor = require("lua/apps/query/editor/AbstractQueryEditor")
 local AppResources = require("lua/apps/AppResources")
 local CtrlHowToMakeEditor = require("lua/apps/query/editor/CtrlHowToMakeEditor")
 local CtrlMinDistParamsEditor = require("lua/apps/query/gui/CtrlMinDistParamsEditor")
@@ -137,7 +137,7 @@ describe("CtrlHowToMakeEditor + Abstract + GUI", function()
                         Force.setmetatable(objects.force)
                         AppResources.setmetatable(objects.appResources)
                         HowToMakeQuery.setmetatable(objects.query)
-                        AbstractCtrlQueryEditor.Factory:restoreMetatable(objects.controller)
+                        AbstractQueryEditor.Factory:restoreMetatable(objects.controller)
                     end,
                 }
             end
