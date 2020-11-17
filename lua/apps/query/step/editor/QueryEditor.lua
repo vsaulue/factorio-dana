@@ -14,12 +14,12 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractQueryEditor = require("lua/apps/query/editor/AbstractQueryEditor")
+local AbstractQueryEditor = require("lua/apps/query/step/editor/AbstractQueryEditor")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 -- Importing all AbstractQueryEditor to populate its Factory.
-require("lua/apps/query/editor/HowToMakeEditor")
-require("lua/apps/query/editor/UsagesOfEditor")
+require("lua/apps/query/step/editor/HowToMakeEditor")
+require("lua/apps/query/step/editor/UsagesOfEditor")
 
 -- Wrapper of AbstractQueryEditor's factory.
 local QueryEditor = ErrorOnInvalidRead.new{

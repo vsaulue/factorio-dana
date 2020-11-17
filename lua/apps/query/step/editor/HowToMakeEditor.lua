@@ -14,38 +14,38 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractQueryEditor = require("lua/apps/query/editor/AbstractQueryEditor")
+local AbstractQueryEditor = require("lua/apps/query/step/editor/AbstractQueryEditor")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local MinDistEditor = require("lua/apps/query/params/MinDistEditor")
 
 local QueryType
 
--- Query editor for the UsagesOfQuery class.
+-- Query editor for the HowToMakeQuery class.
 --
 -- Inherits from AbstractQueryEditor.
 --
 -- RO Fields:
--- * paramsEditor: MinDistEditor object editing the sourceParams.
+-- * paramsEditor: MinDistEditor object editing the destParams.
 --
-local UsagesOfEditor = ErrorOnInvalidRead.new{
-    -- Creates a new UsagesOfEditor object.
+local HowToMakeEditor = ErrorOnInvalidRead.new{
+    -- Creates a new HowToMakeEditor object.
     --
     -- Args:
-    -- * object: Table to turn into a UsagesOfEditor object.
+    -- * object: Table to turn into a HowToMakeEditor object.
     --
-    -- Returns: The argument turned into a UsagesOfEditor object.
+    -- Returns: The argument turned into a HowToMakeEditor object.
     --
     new = function(object)
         AbstractQueryEditor.make(object, QueryType)
         object:setParamsEditor(MinDistEditor.new{
             appResources = object.appResources,
-            isForward = true,
-            params = object.query.sourceParams,
+            isForward = false,
+            params = object.query.destParams,
         })
         return object
     end,
 
-    -- Restores the metatable of an UsagesOfEditor object, and all its owned objects.
+    -- Restores the metatable of an HowToMakeEditor object, and all its owned objects.
     --
     -- Args:
     -- * object: table to modify.
@@ -57,7 +57,7 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
 }
 
 -- Type of query handled by this editor.
-QueryType = "UsagesOfQuery"
+QueryType = "HowToMakeQuery"
 
-AbstractQueryEditor.Factory:registerClass(QueryType, UsagesOfEditor)
-return UsagesOfEditor
+AbstractQueryEditor.Factory:registerClass(QueryType, HowToMakeEditor)
+return HowToMakeEditor

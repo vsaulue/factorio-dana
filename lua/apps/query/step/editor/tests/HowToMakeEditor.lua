@@ -14,11 +14,11 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractQueryEditor = require("lua/apps/query/editor/AbstractQueryEditor")
+local AbstractQueryEditor = require("lua/apps/query/step/editor/AbstractQueryEditor")
 local AppResources = require("lua/apps/AppResources")
 local Force = require("lua/model/Force")
 local GuiElement = require("lua/gui/GuiElement")
-local HowToMakeEditor = require("lua/apps/query/editor/HowToMakeEditor")
+local HowToMakeEditor = require("lua/apps/query/step/editor/HowToMakeEditor")
 local HowToMakeQuery = require("lua/query/HowToMakeQuery")
 local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 local MinDistEditor = require("lua/apps/query/params/MinDistEditor")

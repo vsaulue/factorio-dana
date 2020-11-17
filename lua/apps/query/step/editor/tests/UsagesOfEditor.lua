@@ -21,7 +21,7 @@ local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
-local UsagesOfEditor = require("lua/apps/query/editor/UsagesOfEditor")
+local UsagesOfEditor = require("lua/apps/query/step/editor/UsagesOfEditor")
 local UsagesOfQuery = require("lua/query/UsagesOfQuery")
 
 describe("UsagesOfEditor", function()

@@ -19,7 +19,7 @@ local AbstractStepWindow = require("lua/apps/query/step/AbstractStepWindow")
 local ClassLogger = require("lua/logger/ClassLogger")
 local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GuiQueryEditor = require("lua/apps/query/editor/GuiQueryEditor")
+local GuiQueryEditor = require("lua/apps/query/step/editor/GuiQueryEditor")
 local MetaUtils = require("lua/class/MetaUtils")
 
 local cLogger = ClassLogger.new{className = "AbstractQueryEditor"}
