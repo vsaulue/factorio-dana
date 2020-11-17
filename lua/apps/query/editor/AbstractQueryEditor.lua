@@ -19,7 +19,7 @@ local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
 local ClassLogger = require("lua/logger/ClassLogger")
 local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GuiAbstractQueryEditor = require("lua/apps/query/editor/GuiAbstractQueryEditor")
+local GuiQueryEditor = require("lua/apps/query/editor/GuiQueryEditor")
 local MetaUtils = require("lua/class/MetaUtils")
 
 local cLogger = ClassLogger.new{className = "AbstractQueryEditor"}
@@ -77,7 +77,7 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
     -- * object: table.
     --
     setmetatable = function(object)
-        AbstractStepWindow.setmetatable(object, Metatable, GuiAbstractQueryEditor.setmetatable)
+        AbstractStepWindow.setmetatable(object, Metatable, GuiQueryEditor.setmetatable)
     end,
 }
 
@@ -92,7 +92,7 @@ Metatable = {
 
         -- Implements AbstractStepWindow:makeGui().
         makeGui = function(self, parent)
-            return GuiAbstractQueryEditor.new{
+            return GuiQueryEditor.new{
                 controller = self,
                 parent = parent,
             }

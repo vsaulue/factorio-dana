@@ -18,7 +18,7 @@ local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 
-local cLogger = ClassLogger.new{className = "GuiAbstractQueryEditor"}
+local cLogger = ClassLogger.new{className = "GuiQueryEditor"}
 
 local BackButton
 local DrawButton
@@ -32,13 +32,13 @@ local Metatable
 -- * paramsFrame: LuaGuiElement. Frame containing the paramsEditor GUI.
 -- * parent: LuaGuiElement. Element containing this GUI.
 --
-local GuiAbstractQueryEditor = ErrorOnInvalidRead.new{
-    -- Creates a new GuiAbstractQueryEditor object.
+local GuiQueryEditor = ErrorOnInvalidRead.new{
+    -- Creates a new GuiQueryEditor object.
     --
     -- Args:
     -- * object: table. Required fields: controller, parent.
     --
-    -- Returns: GuiAbstractQueryEditor. `object` turned into the desired type.
+    -- Returns: GuiQueryEditor. `object` turned into the desired type.
     --
     new = function(object)
         local controller = cLogger:assertField(object, "controller")
@@ -87,7 +87,7 @@ local GuiAbstractQueryEditor = ErrorOnInvalidRead.new{
         return object
     end,
 
-    -- Restores the metatable of an GuiAbstractQueryEditor object, and all its owned objects.
+    -- Restores the metatable of an GuiQueryEditor object, and all its owned objects.
     --
     -- Args:
     -- * object: table to modify.
@@ -99,7 +99,7 @@ local GuiAbstractQueryEditor = ErrorOnInvalidRead.new{
     end,
 }
 
--- Metatable of the GuiAbstractQueryEditor class.
+-- Metatable of the GuiQueryEditor class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements Closeable:close().
@@ -112,7 +112,7 @@ Metatable = {
         -- Updates this GUI to use the current "paramsEditor" of the controller.
         --
         -- Args:
-        -- * self: GuiAbstractQueryEditor.
+        -- * self: GuiQueryEditor.
         --
         updateParamsEditor = function(self)
             local paramsEditor = rawget(self.controller, "paramsEditor")
@@ -157,4 +157,4 @@ DrawButton = GuiElement.newSubclass{
     },
 }
 
-return GuiAbstractQueryEditor
+return GuiQueryEditor
