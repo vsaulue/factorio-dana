@@ -20,6 +20,7 @@ local AppUpcalls = require("lua/apps/AppUpcalls")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
+local PositionController = require("lua/apps/PositionController")
 
 -- Require all apps here, so that AbstractApp.Factory gets properly initialized.
 local GraphApp = require("lua/apps/graph/GraphApp")
@@ -33,6 +34,8 @@ local setApp
 local setDefaultApp
 
 -- Class booting & switching applications for a Player.
+--
+-- Implements AppUpcalls.
 --
 -- RO Fields:
 -- * app: AbstractApp currently running.
@@ -52,6 +55,10 @@ local AppController = ErrorOnInvalidRead.new{
         appResources.upcalls = object
         AppResources.new(appResources)
         object.opened = false
+        object.positionController = PositionController.new{
+            appSurface = appResources.surface,
+            rawPlayer = appResources.rawPlayer,
+        }
         setmetatable(object, Metatable)
 
         setDefaultApp(object)
@@ -68,6 +75,7 @@ local AppController = ErrorOnInvalidRead.new{
         setmetatable(object, Metatable)
         AbstractApp.Factory:restoreMetatable(object.app)
         AppResources.setmetatable(object.appResources)
+        PositionController.setmetatable(object.positionController)
     end,
 }
 
@@ -85,9 +93,9 @@ Metatable = {
             cLogger:assert(self.opened, "invalid hide() call (GUI is already hidden).")
             self.opened = false
             if keepPosition then
-                self.appResources.positionController:restoreController()
+                self.positionController:restoreController()
             else
-                self.appResources.positionController:teleportBack()
+                self.positionController:teleportBack()
             end
             self.app:hide()
         end,
@@ -101,7 +109,7 @@ Metatable = {
 
         -- Implements AppUpcalls:setPosition().
         setPosition = function(self, position)
-            self.appResources.positionController:setPosition(position)
+            self.positionController:setPosition(position)
         end,
 
         -- Shows the current app, and moves the player to the drawing surface.
@@ -112,7 +120,7 @@ Metatable = {
         show = function(self)
             cLogger:assert(not self.opened, "invalid show() call (GUI is already visible).")
             self.opened = true
-            self.appResources.positionController:teleportToApp()
+            self.positionController:teleportToApp()
             self.app:show()
         end,
 

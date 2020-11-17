@@ -17,13 +17,14 @@
 local AppUpcalls = require("lua/apps/AppUpcalls")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local PositionController = require("lua/apps/PositionController")
 
 local cLogger = ClassLogger.new{className = "AppResources"}
 
 local Metatable
 
 -- Object holding shared resources for all the applications owned by the same player.
+--
+-- Implements AppUpcalls.
 --
 -- RO Field:
 -- * force: Force object, corresponding to the force this player belongs to.
@@ -47,11 +48,6 @@ local AppResources = ErrorOnInvalidRead.new{
         local surface = cLogger:assertField(object, "surface")
         cLogger:assertField(object, "upcalls")
 
-        object.positionController = PositionController.new{
-            appSurface = surface,
-            rawPlayer = rawPlayer,
-        }
-
         setmetatable(object, Metatable)
         return object
     end,
@@ -63,7 +59,6 @@ local AppResources = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
-        PositionController.setmetatable(object.positionController)
     end,
 }
 
