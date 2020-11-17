@@ -27,13 +27,13 @@ local QueryType
 -- RO Fields:
 -- * paramsEditor: CtrlMinDistParamsEditor object editing the sourceParams.
 --
-local CtrlUsagesOfEditor = ErrorOnInvalidRead.new{
-    -- Creates a new CtrlUsagesOfEditor object.
+local UsagesOfEditor = ErrorOnInvalidRead.new{
+    -- Creates a new UsagesOfEditor object.
     --
     -- Args:
-    -- * object: Table to turn into a CtrlUsagesOfEditor object.
+    -- * object: Table to turn into a UsagesOfEditor object.
     --
-    -- Returns: The argument turned into a CtrlUsagesOfEditor object.
+    -- Returns: The argument turned into a UsagesOfEditor object.
     --
     new = function(object)
         AbstractQueryEditor.make(object, QueryType)
@@ -45,7 +45,7 @@ local CtrlUsagesOfEditor = ErrorOnInvalidRead.new{
         return object
     end,
 
-    -- Restores the metatable of an CtrlUsagesOfEditor object, and all its owned objects.
+    -- Restores the metatable of an UsagesOfEditor object, and all its owned objects.
     --
     -- Args:
     -- * object: table to modify.
@@ -59,5 +59,5 @@ local CtrlUsagesOfEditor = ErrorOnInvalidRead.new{
 -- Type of query handled by this editor.
 QueryType = "UsagesOfQuery"
 
-AbstractQueryEditor.Factory:registerClass(QueryType, CtrlUsagesOfEditor)
-return CtrlUsagesOfEditor
+AbstractQueryEditor.Factory:registerClass(QueryType, UsagesOfEditor)
+return UsagesOfEditor

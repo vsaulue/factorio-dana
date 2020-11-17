@@ -19,7 +19,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 -- Importing all AbstractQueryEditor to populate its Factory.
 require("lua/apps/query/editor/HowToMakeEditor")
-require("lua/apps/query/editor/CtrlUsagesOfEditor")
+require("lua/apps/query/editor/UsagesOfEditor")
 
 -- Wrapper of AbstractQueryEditor's factory.
 local QueryEditor = ErrorOnInvalidRead.new{

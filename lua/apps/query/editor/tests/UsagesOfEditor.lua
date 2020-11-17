@@ -21,10 +21,10 @@ local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
-local CtrlUsagesOfEditor = require("lua/apps/query/editor/CtrlUsagesOfEditor")
+local UsagesOfEditor = require("lua/apps/query/editor/UsagesOfEditor")
 local UsagesOfQuery = require("lua/query/UsagesOfQuery")
 
-describe("CtrlUsagesOfEditor", function()
+describe("UsagesOfEditor", function()
     local factorio
     local surface
     local player
@@ -81,7 +81,7 @@ describe("CtrlUsagesOfEditor", function()
                 appResources = appResources,
             }
         }
-        controller = CtrlUsagesOfEditor.new{
+        controller = UsagesOfEditor.new{
             app = app,
             query = UsagesOfQuery.new(),
         }
@@ -107,7 +107,7 @@ describe("CtrlUsagesOfEditor", function()
                     Force.setmetatable(objects.force)
                     AppResources.setmetatable(objects.appResources)
                     UsagesOfQuery.setmetatable(objects.query)
-                    CtrlUsagesOfEditor.setmetatable(objects.controller)
+                    UsagesOfEditor.setmetatable(objects.controller)
                 end,
             }
         end
