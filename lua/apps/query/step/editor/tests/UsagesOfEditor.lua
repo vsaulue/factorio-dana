@@ -78,9 +78,7 @@ describe("UsagesOfEditor", function()
             upcalls = {},
         }
         app = {
-            appController = {
-                appResources = appResources,
-            }
+            appResources = appResources,
         }
         controller = UsagesOfEditor.new{
             app = app,

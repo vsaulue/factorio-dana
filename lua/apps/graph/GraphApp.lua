@@ -62,7 +62,7 @@ local GraphApp = ErrorOnInvalidRead.new{
 
         AbstractApp.new(object, Metatable)
 
-        local rawPlayer = object.appController.appResources.rawPlayer
+        local rawPlayer = object.appResources.rawPlayer
         local prepGraph,prepDists = HyperPreprocessor.run(graph, vertexDists)
         local layout = LayerLayout.new{
             prepGraph = prepGraph,
@@ -70,7 +70,7 @@ local GraphApp = ErrorOnInvalidRead.new{
         }
         local canvas = Canvas.new{
             players = {rawPlayer},
-            surface = object.appController.appResources.surface,
+            surface = object.appResources.surface,
         }
         object.canvas = canvas
         object.renderer = SimpleRenderer.new{
@@ -81,7 +81,7 @@ local GraphApp = ErrorOnInvalidRead.new{
             rawPlayer = rawPlayer,
         }
 
-        local menuFlow = object.appController.appResources.menuFlow
+        local menuFlow = object.appResources.menuFlow
         object.newQueryButton = NewQueryButton.new{
             app = object,
             rawElement = GuiAlign.makeVerticallyCentered(menuFlow, {
@@ -151,7 +151,7 @@ Metatable = {
         viewGraphCenter = function(self)
             local lc = self.renderer.layoutCoordinates
             if lc.xMin ~= math.huge then
-                self.appController.appResources:setPosition{
+                self.appResources:setPosition{
                     x = (lc.xMin + lc.xMax) / 2,
                     y = (lc.yMin + lc.yMax) / 2,
                 }
@@ -188,7 +188,7 @@ Metatable = {
         viewLegend = function(self)
             local legendPos = rawget(self.renderer, "legendCenter")
             if legendPos then
-                self.appController.appResources:setPosition(self.renderer.legendCenter)
+                self.appResources:setPosition(self.renderer.legendCenter)
             end
         end,
     },
@@ -205,7 +205,7 @@ NewQueryButton = GuiElement.newSubclass{
     mandatoryFields = {"app"},
     __index = {
         onClick = function(self)
-            self.app.appController.appResources:makeAndSwitchApp{
+            self.app.appResources:makeAndSwitchApp{
                 appName = "query",
             }
         end,

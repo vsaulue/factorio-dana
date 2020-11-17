@@ -95,7 +95,7 @@ Metatable = {
         -- Implements AppUpcalls:makeAndSwitchApp().
         makeAndSwitchApp = function(self, newApp)
             closeApp(self)
-            newApp.appController = self
+            newApp.appResources = self.appResources
             setApp(self, AbstractApp.Factory:make(newApp))
         end,
 
@@ -162,7 +162,7 @@ end
 --
 setDefaultApp = function(self)
     setApp(self, QueryApp.new{
-        appController = self
+        appResources = self.appResources,
     })
 end
 

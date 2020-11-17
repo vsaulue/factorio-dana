@@ -119,7 +119,7 @@ Metatable = {
         --
         runQueryAndDraw = function(self)
             local query = self.query
-            local force = self.appController.appResources.force
+            local force = self.appResources.force
             local graph,vertexDists = query:execute(force)
 
             local vertexCount = 0
@@ -128,7 +128,7 @@ Metatable = {
             end
 
             if vertexCount > 0 then
-                self.appController.appResources:makeAndSwitchApp{
+                self.appResources:makeAndSwitchApp{
                     appName = "graph",
                     graph = graph,
                     vertexDists = vertexDists,
@@ -145,7 +145,7 @@ Metatable = {
             local stack = self.stepWindows
             local stepWindow = stack[stack.topIndex]
             if not rawget(stepWindow, "gui") then
-                stepWindow:open(self.appController.appResources.rawPlayer.gui.center)
+                stepWindow:open(self.appResources.rawPlayer.gui.center)
             end
         end,
     },

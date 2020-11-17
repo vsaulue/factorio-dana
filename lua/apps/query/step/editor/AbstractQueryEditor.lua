@@ -59,7 +59,7 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
     make = function(object, queryType)
         object.stepName = StepName
         local app = cLogger:assertField(object, "app")
-        object.appResources = app.appController.appResources
+        object.appResources = app.appResources
 
         local query = cLogger:assertField(object, "query")
         if query.queryType ~= queryType then

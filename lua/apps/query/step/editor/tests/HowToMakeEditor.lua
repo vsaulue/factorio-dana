@@ -75,9 +75,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
             upcalls = {},
         }
         app = {
-            appController = {
-                appResources = appResources,
-            },
+            appResources = appResources,
         }
     end)
 
@@ -174,7 +172,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
             local newEditor
             before_each(function()
                 newEditor = MinDistEditor.new{
-                    appResources = controller.app.appController.appResources,
+                    appResources = controller.app.appResources,
                     isForward = false,
                     params = controller.query.destParams,
                 }
