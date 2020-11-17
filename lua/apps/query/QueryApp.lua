@@ -128,7 +128,7 @@ Metatable = {
             end
 
             if vertexCount > 0 then
-                self.appController:makeAndSwitchApp{
+                self.appController.appResources:makeAndSwitchApp{
                     appName = "graph",
                     graph = graph,
                     vertexDists = vertexDists,

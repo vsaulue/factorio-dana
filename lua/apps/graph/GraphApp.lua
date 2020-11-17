@@ -205,7 +205,7 @@ NewQueryButton = GuiElement.newSubclass{
     mandatoryFields = {"app"},
     __index = {
         onClick = function(self)
-            self.app.appController:makeAndSwitchApp{
+            self.app.appController.appResources:makeAndSwitchApp{
                 appName = "query",
             }
         end,
