@@ -16,6 +16,7 @@
 
 local AbstractApp = require("lua/apps/AbstractApp")
 local AppResources = require("lua/apps/AppResources")
+local AppUpcalls = require("lua/apps/AppUpcalls")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
@@ -89,16 +90,16 @@ Metatable = {
             self.app:hide()
         end,
 
-        -- Creates a new application, and runs it in place of the current one.
-        --
-        -- Args:
-        -- * self: AppController object.
-        -- * newApp: table used to build the new application.
-        --
+        -- Implements AppUpcalls:makeAndSwitchApp().
         makeAndSwitchApp = function(self, newApp)
             closeApp(self)
             newApp.appController = self
             setApp(self, AbstractApp.Factory:make(newApp))
+        end,
+
+        -- Implements AppUpcalls:setPosition().
+        setPosition = function(self, position)
+            self.appResources.positionController:setPosition(position)
         end,
 
         -- Shows the current app, and moves the player to the drawing surface.
@@ -124,6 +125,7 @@ Metatable = {
         end
     }
 }
+AppUpcalls.check(Metatable.__index)
 
 -- Closes the running application.
 --
