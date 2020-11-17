@@ -110,16 +110,6 @@ Metatable = {
                 gui:updateParamsEditor()
             end
         end,
-
-        -- Implements AbstractStepWindow:setVisible().
-        setVisible = function(self, value)
-            local gui = rawget(self, "gui")
-            if value and not gui then
-                self:open(self.app.appController.appResources.rawPlayer.gui.center)
-            elseif (not value) and gui then
-                self:close()
-            end
-        end,
     },
 }
 setmetatable(Metatable.__index, {__index = super})

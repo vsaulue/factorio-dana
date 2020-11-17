@@ -49,13 +49,6 @@ local AbstractStepWindow = ErrorOnInvalidRead.new{
             close = function(self)
                 GuiElement.destroy(self.frame)
             end,
-
-            -- Shows/hides the window.
-            --
-            -- * self: AbstractStepWindow.
-            -- * value: boolean. True to show, false to hide.
-            --
-            -- setVisible = function(self, value) end,
         },
     },
 
