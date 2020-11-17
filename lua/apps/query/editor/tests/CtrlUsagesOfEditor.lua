@@ -57,6 +57,7 @@ describe("CtrlUsagesOfEditor", function()
         }
     end)
 
+    local app
     local appResources
     local controller
     local parent
@@ -75,8 +76,13 @@ describe("CtrlUsagesOfEditor", function()
             rawPlayer = player,
             surface = surface,
         }
+        app = {
+            appController = {
+                appResources = appResources,
+            }
+        }
         controller = CtrlUsagesOfEditor.new{
-            appResources = appResources,
+            app = app,
             query = UsagesOfQuery.new(),
         }
     end)
@@ -107,11 +113,11 @@ describe("CtrlUsagesOfEditor", function()
         end
 
         it("-- no gui", function()
+            controller:close()
             runTest()
         end)
 
         it("-- with gui", function()
-            controller:open(parent)
             runTest()
         end)
     end)

@@ -20,7 +20,7 @@ local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local FullGraphQuery = require("lua/query/FullGraphQuery")
 local GuiTemplateSelectWindow = require("lua/apps/query/gui/GuiTemplateSelectWindow")
-local QueryEditorWindow = require("lua/apps/query/gui/QueryEditorWindow")
+local QueryEditor = require("lua/apps/query/editor/QueryEditor")
 local QueryTemplates = require("lua/apps/query/QueryTemplates")
 
 local cLogger = ClassLogger.new{className = "queryApp/TemplateSelectWindow"}
@@ -95,8 +95,9 @@ Metatable = {
             local app = self.app
 
             template.applyTemplate(app)
-            app:pushStepWindow(QueryEditorWindow.new{
+            app:pushStepWindow(QueryEditor.new{
                 app = app,
+                query = app.query,
             })
         end,
 

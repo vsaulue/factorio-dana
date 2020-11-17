@@ -26,6 +26,7 @@ local cLogger = ClassLogger.new{className = "AbstractQueryEditor"}
 local super = AbstractGuiController.Metatable.__index
 
 local Metatable
+local StepName
 
 -- Class used to generate a GUI to edit an AbstractQuery.
 --
@@ -53,13 +54,18 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
     -- Returns: AbstractQueryEditor. The `object` argument.
     --
     make = function(object, queryType)
-        cLogger:assertField(object, "appResources")
+        object.stepName = StepName
+        local app = cLogger:assertField(object, "app")
+        object.appResources = app.appController.appResources
 
         local query = cLogger:assertField(object, "query")
         if query.queryType ~= queryType then
             cLogger:error("Invalid filter type (found: " .. query.queryType .. ", expected: " .. queryType .. ").")
         end
-        return AbstractGuiController.new(object, Metatable)
+
+        AbstractGuiController.new(object, Metatable)
+        object:open(object.appResources.rawPlayer.gui.center)
+        return object
     end,
 
     -- Restores the metatable of a AbstractQueryEditor object, and all its owned objects.
@@ -68,8 +74,7 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
     -- * object: table.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
-        MetaUtils.safeSetField(object, "gui", GuiAbstractQueryEditor.setmetatable)
+        AbstractGuiController.setmetatable(object, Metatable, GuiAbstractQueryEditor.setmetatable)
     end,
 }
 
@@ -89,8 +94,38 @@ Metatable = {
                 parent = parent,
             }
         end,
+
+        -- Sets the "paramsEditor" field.
+        --
+        -- Args:
+        -- * self: AbstractQueryEditor.
+        -- * value: AbstractGuiController. The new paramsEditor.
+        --
+        setParamsEditor = function(self, value)
+            Closeable.safeClose(rawget(self, "paramsEditor"))
+            self.paramsEditor = value
+
+            local gui = rawget(self, "gui")
+            if gui then
+                gui:updateParamsEditor()
+            end
+        end,
+
+        -- Implements AbstractStepWindow:setVisible().
+        setVisible = function(self, value)
+            local gui = rawget(self, "gui")
+            if value and not gui then
+                self:open(self.app.appController.appResources.rawPlayer.gui.center)
+            elseif (not value) and gui then
+                self:close()
+            end
+        end,
     },
 }
 setmetatable(Metatable.__index, {__index = super})
 
+-- Unique name for this step.
+StepName = "queryEditor"
+
+AbstractStepWindow.Factory:registerClass(StepName, AbstractQueryEditor)
 return AbstractQueryEditor

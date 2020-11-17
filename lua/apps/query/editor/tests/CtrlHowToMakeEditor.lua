@@ -17,6 +17,7 @@
 local AbstractCtrlQueryEditor = require("lua/apps/query/editor/AbstractCtrlQueryEditor")
 local AppResources = require("lua/apps/AppResources")
 local CtrlHowToMakeEditor = require("lua/apps/query/editor/CtrlHowToMakeEditor")
+local CtrlMinDistParamsEditor = require("lua/apps/query/gui/CtrlMinDistParamsEditor")
 local Force = require("lua/model/Force")
 local GuiElement = require("lua/gui/GuiElement")
 local HowToMakeQuery = require("lua/query/HowToMakeQuery")
@@ -60,6 +61,7 @@ describe("CtrlHowToMakeEditor + Abstract + GUI", function()
     end)
 
     local appResources
+    local app
     before_each(function()
         GuiElement.on_init()
         appResources = AppResources.new{
@@ -71,13 +73,18 @@ describe("CtrlHowToMakeEditor + Abstract + GUI", function()
             rawPlayer = player,
             surface = surface,
         }
+        app = {
+            appController = {
+                appResources = appResources,
+            },
+        }
     end)
 
     describe(".make()", function()
         local cArgs
         before_each(function()
             cArgs = {
-                appResources = appResources,
+                app = app,
                 query = HowToMakeQuery.new(),
             }
         end)
@@ -110,7 +117,7 @@ describe("CtrlHowToMakeEditor + Abstract + GUI", function()
             query.destParams.maxDepth = 8
 
             controller = CtrlHowToMakeEditor.new{
-                appResources = appResources,
+                app = app,
                 query = query,
             }
         end)
@@ -136,18 +143,17 @@ describe("CtrlHowToMakeEditor + Abstract + GUI", function()
             end
 
             it("-- no gui", function()
+                controller:close()
                 runTest()
             end)
 
             it("-- with gui", function()
-                controller:open(parent)
                 runTest()
             end)
         end)
 
         it(":close()", function()
             local wood = prototypes.intermediates.item.wood
-            controller:open(parent)
             controller:close()
             assert.is_nil(rawget(controller, "gui"))
             assert.is_nil(rawget(controller.paramsEditor, "gui"))
@@ -158,8 +164,53 @@ describe("CtrlHowToMakeEditor + Abstract + GUI", function()
 
         it(":open()", function()
             local wood = prototypes.intermediates.item.wood
-            controller:open(parent)
             assert.is_not_nil(rawget(controller.paramsEditor.setEditor.gui.selectedIntermediates.reverse, wood))
+        end)
+
+        it(":setParamsEditor()", function()
+            local newEditor = CtrlMinDistParamsEditor.new{
+                appResources = controller.app.appController.appResources,
+                isForward = false,
+                params = controller.query.destParams,
+            }
+            controller:setParamsEditor(newEditor)
+            assert.are.equals(controller.paramsEditor, newEditor)
+            assert.is_not_nil(controller.paramsEditor.gui)
+        end)
+
+        describe(":setVisible()", function()
+            it("-- true -> false", function()
+                controller:setVisible(false)
+                assert.is_nil(rawget(controller, "gui"))
+                assert.is_nil(rawget(controller.paramsEditor, "gui"))
+            end)
+
+            it("-- false -> true", function()
+                controller:setVisible(false)
+                controller:setVisible(true)
+                assert.is_not_nil(controller.gui)
+                assert.is_not_nil(controller.paramsEditor.gui)
+            end)
+        end)
+
+        describe("-- GUI:", function()
+            it("BackButton", function()
+                stub(app, "popStepWindow")
+                GuiElement.on_gui_click{
+                    element = controller.gui.backButton.rawElement,
+                    player_index = player.index,
+                }
+                assert.stub(app.popStepWindow).was.called()
+            end)
+
+            it("DrawButton", function()
+                stub(app, "runQueryAndDraw")
+                GuiElement.on_gui_click{
+                    element = controller.gui.drawButton.rawElement,
+                    player_index = player.index,
+                }
+                assert.stub(app.runQueryAndDraw).was.called()
+            end)
         end)
     end)
 end)

@@ -37,11 +37,11 @@ local CtrlUsagesOfEditor = ErrorOnInvalidRead.new{
     --
     new = function(object)
         AbstractCtrlQueryEditor.make(object, QueryType)
-        object.paramsEditor = CtrlMinDistParamsEditor.new{
+        object:setParamsEditor(CtrlMinDistParamsEditor.new{
             appResources = object.appResources,
             isForward = true,
             params = object.query.sourceParams,
-        }
+        })
         return object
     end,
 
