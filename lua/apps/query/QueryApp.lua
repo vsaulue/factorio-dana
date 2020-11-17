@@ -25,7 +25,6 @@ local TemplateSelectWindow = require("lua/apps/query/gui/TemplateSelectWindow")
 
 local AppName
 local Metatable
-local setTopWindowVisible
 
 -- Application to build crafting hypergraphs from a Force's database.
 --
@@ -87,7 +86,8 @@ Metatable = {
 
         -- Implements AbstractApp:hide().
         hide = function(self)
-            setTopWindowVisible(self, false)
+            local stack = self.stepWindows
+            stack[stack.topIndex]:close()
         end,
 
         -- Closes the top window, and shows the previous one.
@@ -98,7 +98,7 @@ Metatable = {
         popStepWindow = function(self)
             local window = self.stepWindows:pop()
             window:close()
-            setTopWindowVisible(self, true)
+            self:show()
         end,
 
         -- Hides the current window, and shows a new one.
@@ -107,7 +107,7 @@ Metatable = {
         -- * self: QueryApp object.
         --
         pushStepWindow = function(self, newWindow)
-            setTopWindowVisible(self, false)
+            self:hide()
             self.stepWindows:push(newWindow)
         end,
 
@@ -141,7 +141,11 @@ Metatable = {
 
         -- Implements AbstractApp:show().
         show = function(self)
-            setTopWindowVisible(self, true)
+            local stack = self.stepWindows
+            local stepWindow = stack[stack.topIndex]
+            if not rawget(stepWindow, "gui") then
+                stepWindow:open(self.appController.appResources.rawPlayer.gui.center)
+            end
         end,
     },
 }
@@ -149,17 +153,6 @@ setmetatable(Metatable.__index, {__index = AbstractApp.Metatable.__index})
 
 -- Unique name for this application.
 AppName = "query"
-
--- Shows (or hide) the frame of the AbstractStepWindow on top of the stack.
---
--- Args:
--- * self: QueryApp object.
--- * value: True for visible, false to hide.
---
-setTopWindowVisible = function(self, value)
-    local stack = self.stepWindows
-    stack[stack.topIndex]:setVisible(value)
-end
 
 AbstractApp.Factory:registerClass(AppName, QueryApp)
 return QueryApp
