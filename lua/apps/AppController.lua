@@ -49,6 +49,8 @@ local AppController = ErrorOnInvalidRead.new{
     --
     new = function(object)
         local appResources = cLogger:assertField(object, "appResources")
+        appResources.upcalls = object
+        AppResources.new(appResources)
         object.opened = false
         setmetatable(object, Metatable)
 

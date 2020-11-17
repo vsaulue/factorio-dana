@@ -75,6 +75,7 @@ describe("UsagesOfEditor", function()
             }, player.index),
             rawPlayer = player,
             surface = surface,
+            upcalls = {},
         }
         app = {
             appController = {

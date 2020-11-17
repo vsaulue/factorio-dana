@@ -72,6 +72,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
             }, player.index),
             rawPlayer = player,
             surface = surface,
+            upcalls = {},
         }
         app = {
             appController = {

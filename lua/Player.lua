@@ -79,7 +79,7 @@ local Player = ErrorOnInvalidRead.new{
         }
         --
         object.appController = AppController.new{
-            appResources = AppResources.new{
+            appResources = {
                 menuFlow = object.menuFrame.add{
                     type = "flow",
                     direction = "horizontal",

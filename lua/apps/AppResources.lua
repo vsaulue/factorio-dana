@@ -14,11 +14,14 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AppUpcalls = require("lua/apps/AppUpcalls")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local PositionController = require("lua/apps/PositionController")
 
 local cLogger = ClassLogger.new{className = "AppResources"}
+
+local Metatable
 
 -- Object holding shared resources for all the applications owned by the same player.
 --
@@ -28,6 +31,7 @@ local cLogger = ClassLogger.new{className = "AppResources"}
 -- * positionController: PositionController object.
 -- * rawPlayer: LuaPlayer object from Factorio.
 -- * surface: LuaSurface that this application can use to draw.
+-- * upcalls: AppUpcalls. List of callbacks to the upper controller.
 --
 local AppResources = ErrorOnInvalidRead.new{
     -- Creates a new AppResources object.
@@ -41,13 +45,14 @@ local AppResources = ErrorOnInvalidRead.new{
         cLogger:assertField(object, "menuFlow")
         local rawPlayer = cLogger:assertField(object, "rawPlayer")
         local surface = cLogger:assertField(object, "surface")
+        cLogger:assertField(object, "upcalls")
 
         object.positionController = PositionController.new{
             appSurface = surface,
             rawPlayer = rawPlayer,
         }
 
-        ErrorOnInvalidRead.setmetatable(object)
+        setmetatable(object, Metatable)
         return object
     end,
 
@@ -57,9 +62,25 @@ local AppResources = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        ErrorOnInvalidRead.setmetatable(object)
+        setmetatable(object, Metatable)
         PositionController.setmetatable(object.positionController)
     end,
 }
+
+-- Metatable of the AppResources class.
+Metatable = {
+    __index = ErrorOnInvalidRead.new{
+        -- Implements AppUpcalls:makeAndSwitchApp().
+        makeAndSwitchApp = function(self, newApp)
+            self.upcalls:makeAndSwitchApp(newApp)
+        end,
+
+        -- Implements AppUpcalls:setPosition().
+        setPosition = function(self, position)
+            self.upcalls:setPosition(position)
+        end,
+    },
+}
+AppUpcalls.check(Metatable.__index)
 
 return AppResources

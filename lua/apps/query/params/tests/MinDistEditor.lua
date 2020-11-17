@@ -75,6 +75,7 @@ describe("MinDistEditor & GUI", function()
             }, player.index),
             rawPlayer = player,
             surface = surface,
+            upcalls = {},
         }
         params = MinDistParams.new{
             allowOtherIntermediates = true,
