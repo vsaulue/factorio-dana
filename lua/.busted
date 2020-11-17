@@ -22,6 +22,7 @@ return {
             "../migrations/framework/tests",
             "apps/query/editor/tests",
             "apps/query/gui/tests",
+            "apps/query/params/tests",
             "canvas/objects/tests",
             "class/tests",
             "containers/tests",

@@ -16,9 +16,9 @@
 
 local AbstractGuiController = require("lua/gui/AbstractGuiController")
 local ClassLogger = require("lua/logger/ClassLogger")
-local CtrlIntermediateSetEditor = require("lua/apps/query/gui/CtrlIntermediateSetEditor")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiMinDistParamsEditor = require("lua/apps/query/gui/GuiMinDistParamsEditor")
+local IntermediateSetEditor = require("lua/apps/query/params/IntermediateSetEditor")
 
 local cLogger = ClassLogger.new{className = "MinDistParamsEditor"}
 local super = AbstractGuiController.Metatable.__index
@@ -35,7 +35,7 @@ local Metatable
 -- * isForward: True to configure this editor for forward parsing (= looking for products).
 --              False to look for ingredients.
 -- * params: MinDistParams. Parameters to edit.
--- * setEditor: CtrlIntermediateSetEditor object used on the source set.
+-- * setEditor: IntermediateSetEditor object used on the source set.
 -- + AbstractGuiController
 --
 local CtrlMinDistParamsEditor = ErrorOnInvalidRead.new{
@@ -51,7 +51,7 @@ local CtrlMinDistParamsEditor = ErrorOnInvalidRead.new{
         cLogger:assertField(object, "appResources")
         cLogger:assertField(object, "isForward")
         cLogger:assertField(object, "params")
-        object.setEditor = CtrlIntermediateSetEditor.new{
+        object.setEditor = IntermediateSetEditor.new{
             force = object.appResources.force,
             output = object.params.intermediateSet,
         }
@@ -65,7 +65,7 @@ local CtrlMinDistParamsEditor = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         AbstractGuiController.setmetatable(object, Metatable, GuiMinDistParamsEditor.setmetatable)
-        CtrlIntermediateSetEditor.setmetatable(object.setEditor)
+        IntermediateSetEditor.setmetatable(object.setEditor)
     end,
 }
 

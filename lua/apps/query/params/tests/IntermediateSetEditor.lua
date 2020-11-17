@@ -14,15 +14,15 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local CtrlIntermediateSetEditor = require("lua/apps/query/gui/CtrlIntermediateSetEditor")
 local Force = require("lua/model/Force")
 local GuiElement = require("lua/gui/GuiElement")
+local IntermediateSetEditor = require("lua/apps/query/params/IntermediateSetEditor")
 local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 
-describe("CtrlIntermediateSetEditor (& GUI)", function()
+describe("IntermediateSetEditor (& GUI)", function()
     local factorio
     local player
     local prototypes
@@ -80,7 +80,7 @@ describe("CtrlIntermediateSetEditor (& GUI)", function()
             output[prototypes.intermediates.item["item"..i]] = true
         end
 
-        object = CtrlIntermediateSetEditor.new{
+        object = IntermediateSetEditor.new{
             force = force,
             output = output,
         }
@@ -104,7 +104,7 @@ describe("CtrlIntermediateSetEditor (& GUI)", function()
                 metatableSetter = function(objects)
                     PrototypeDatabase.setmetatable(objects.prototypes)
                     Force.setmetatable(objects.force)
-                    CtrlIntermediateSetEditor.setmetatable(objects.object)
+                    IntermediateSetEditor.setmetatable(objects.object)
                 end,
             }
         end
