@@ -151,7 +151,7 @@ Metatable = {
         viewGraphCenter = function(self)
             local lc = self.renderer.layoutCoordinates
             if lc.xMin ~= math.huge then
-                self.appController.appResources.positionController:setPosition{
+                self.appController.appResources:setPosition{
                     x = (lc.xMin + lc.xMax) / 2,
                     y = (lc.yMin + lc.yMax) / 2,
                 }
@@ -188,7 +188,7 @@ Metatable = {
         viewLegend = function(self)
             local legendPos = rawget(self.renderer, "legendCenter")
             if legendPos then
-                self.appController.appResources.positionController:setPosition(self.renderer.legendCenter)
+                self.appController.appResources:setPosition(self.renderer.legendCenter)
             end
         end,
     },
