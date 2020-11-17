@@ -16,10 +16,10 @@
 
 local AbstractQueryEditor = require("lua/apps/query/editor/AbstractQueryEditor")
 local AppResources = require("lua/apps/AppResources")
-local CtrlHowToMakeEditor = require("lua/apps/query/editor/CtrlHowToMakeEditor")
 local CtrlMinDistParamsEditor = require("lua/apps/query/gui/CtrlMinDistParamsEditor")
 local Force = require("lua/model/Force")
 local GuiElement = require("lua/gui/GuiElement")
+local HowToMakeEditor = require("lua/apps/query/editor/HowToMakeEditor")
 local HowToMakeQuery = require("lua/query/HowToMakeQuery")
 local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
@@ -27,7 +27,7 @@ local PrototypeDatabase = require("lua/model.PrototypeDatabase")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 local UsagesOfQuery = require("lua/query/UsagesOfQuery")
 
-describe("CtrlHowToMakeEditor + Abstract + GUI", function()
+describe("HowToMakeEditor + Abstract + GUI", function()
     local factorio
     local surface
     local player
@@ -90,7 +90,7 @@ describe("CtrlHowToMakeEditor + Abstract + GUI", function()
         end)
 
         it("-- valid", function()
-            local controller = CtrlHowToMakeEditor.new(cArgs)
+            local controller = HowToMakeEditor.new(cArgs)
             assert.is_not_nil(controller.paramsEditor)
             assert.is_false(controller.paramsEditor.isForward)
         end)
@@ -98,7 +98,7 @@ describe("CtrlHowToMakeEditor + Abstract + GUI", function()
         it("-- wrong query", function()
             cArgs.query = UsagesOfQuery.new()
             assert.error(function()
-                CtrlHowToMakeEditor.new(cArgs)
+                HowToMakeEditor.new(cArgs)
             end)
         end)
     end)
@@ -116,7 +116,7 @@ describe("CtrlHowToMakeEditor + Abstract + GUI", function()
             query.destParams.intermediateSet[prototypes.intermediates.item.wood] = true
             query.destParams.maxDepth = 8
 
-            controller = CtrlHowToMakeEditor.new{
+            controller = HowToMakeEditor.new{
                 app = app,
                 query = query,
             }
