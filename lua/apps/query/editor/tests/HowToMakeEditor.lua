@@ -16,12 +16,12 @@
 
 local AbstractQueryEditor = require("lua/apps/query/editor/AbstractQueryEditor")
 local AppResources = require("lua/apps/AppResources")
-local CtrlMinDistParamsEditor = require("lua/apps/query/gui/CtrlMinDistParamsEditor")
 local Force = require("lua/model/Force")
 local GuiElement = require("lua/gui/GuiElement")
 local HowToMakeEditor = require("lua/apps/query/editor/HowToMakeEditor")
 local HowToMakeQuery = require("lua/query/HowToMakeQuery")
 local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
+local MinDistEditor = require("lua/apps/query/params/MinDistEditor")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local PrototypeDatabase = require("lua/model.PrototypeDatabase")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
@@ -168,7 +168,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
         end)
 
         it(":setParamsEditor()", function()
-            local newEditor = CtrlMinDistParamsEditor.new{
+            local newEditor = MinDistEditor.new{
                 appResources = controller.app.appController.appResources,
                 isForward = false,
                 params = controller.query.destParams,

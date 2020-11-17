@@ -17,7 +17,7 @@
 local AbstractGuiController = require("lua/gui/AbstractGuiController")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GuiMinDistParamsEditor = require("lua/apps/query/gui/GuiMinDistParamsEditor")
+local GuiMinDistEditor = require("lua/apps/query/params/GuiMinDistEditor")
 local IntermediateSetEditor = require("lua/apps/query/params/IntermediateSetEditor")
 
 local cLogger = ClassLogger.new{className = "MinDistParamsEditor"}
@@ -64,7 +64,7 @@ local CtrlMinDistParamsEditor = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        AbstractGuiController.setmetatable(object, Metatable, GuiMinDistParamsEditor.setmetatable)
+        AbstractGuiController.setmetatable(object, Metatable, GuiMinDistEditor.setmetatable)
         IntermediateSetEditor.setmetatable(object.setEditor)
     end,
 }
@@ -80,7 +80,7 @@ Metatable = {
 
         -- Implements AbstractGuiController:makeGui().
         makeGui = function(self, parent)
-            return GuiMinDistParamsEditor.new{
+            return GuiMinDistEditor.new{
                 controller = self,
                 parent = parent,
             }

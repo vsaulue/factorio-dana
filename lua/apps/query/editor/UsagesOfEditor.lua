@@ -16,7 +16,7 @@
 
 local AbstractQueryEditor = require("lua/apps/query/editor/AbstractQueryEditor")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local CtrlMinDistParamsEditor = require("lua/apps/query/gui/CtrlMinDistParamsEditor")
+local MinDistEditor = require("lua/apps/query/params/MinDistEditor")
 
 local QueryType
 
@@ -25,7 +25,7 @@ local QueryType
 -- Inherits from AbstractQueryEditor.
 --
 -- RO Fields:
--- * paramsEditor: CtrlMinDistParamsEditor object editing the sourceParams.
+-- * paramsEditor: MinDistEditor object editing the sourceParams.
 --
 local UsagesOfEditor = ErrorOnInvalidRead.new{
     -- Creates a new UsagesOfEditor object.
@@ -37,7 +37,7 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
     --
     new = function(object)
         AbstractQueryEditor.make(object, QueryType)
-        object:setParamsEditor(CtrlMinDistParamsEditor.new{
+        object:setParamsEditor(MinDistEditor.new{
             appResources = object.appResources,
             isForward = true,
             params = object.query.sourceParams,
@@ -52,7 +52,7 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         AbstractQueryEditor.setmetatable(object)
-        CtrlMinDistParamsEditor.setmetatable(object.paramsEditor)
+        MinDistEditor.setmetatable(object.paramsEditor)
     end,
 }
 
