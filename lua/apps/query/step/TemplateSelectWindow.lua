@@ -44,7 +44,6 @@ local TemplateSelectWindow = ErrorOnInvalidRead.new{
     new = function(object)
         object.stepName = StepName
         AbstractStepWindow.new(object, Metatable)
-        object:open(object.app.appController.appResources.rawPlayer.gui.center)
         return object
     end,
 

@@ -143,17 +143,18 @@ describe("HowToMakeEditor + Abstract + GUI", function()
             end
 
             it("-- no gui", function()
-                controller:close()
                 runTest()
             end)
 
             it("-- with gui", function()
+                controller:open(parent)
                 runTest()
             end)
         end)
 
         it(":close()", function()
             local wood = prototypes.intermediates.item.wood
+            controller:open(parent)
             controller:close()
             assert.is_nil(rawget(controller, "gui"))
             assert.is_nil(rawget(controller.paramsEditor, "gui"))
@@ -163,22 +164,42 @@ describe("HowToMakeEditor + Abstract + GUI", function()
         end)
 
         it(":open()", function()
+            controller:open(parent)
             local wood = prototypes.intermediates.item.wood
             assert.is_not_nil(rawget(controller.paramsEditor.setEditor.gui.selectedIntermediates.reverse, wood))
         end)
 
-        it(":setParamsEditor()", function()
-            local newEditor = MinDistEditor.new{
-                appResources = controller.app.appController.appResources,
-                isForward = false,
-                params = controller.query.destParams,
-            }
-            controller:setParamsEditor(newEditor)
-            assert.are.equals(controller.paramsEditor, newEditor)
-            assert.is_not_nil(controller.paramsEditor.gui)
+        describe(":setParamsEditor()", function()
+            local newEditor
+            before_each(function()
+                newEditor = MinDistEditor.new{
+                    appResources = controller.app.appController.appResources,
+                    isForward = false,
+                    params = controller.query.destParams,
+                }
+            end)
+
+            it("-- no GUI", function()
+                controller:setParamsEditor(newEditor)
+                assert.are.equals(controller.paramsEditor, newEditor)
+                assert.is_nil(rawget(controller.paramsEditor, "gui"))
+            end)
+
+            it("-- with GUI", function()
+                local oldEditor = controller.paramsEditor
+                controller:open(parent)
+                controller:setParamsEditor(newEditor)
+                assert.is_nil(rawget(oldEditor, "gui"))
+                assert.are.equals(controller.paramsEditor, newEditor)
+                assert.is_not_nil(controller.paramsEditor.gui)
+            end)
         end)
 
         describe("-- GUI:", function()
+            before_each(function()
+                controller:open(parent)
+            end)
+
             it("BackButton", function()
                 stub(app, "popStepWindow")
                 GuiElement.on_gui_click{

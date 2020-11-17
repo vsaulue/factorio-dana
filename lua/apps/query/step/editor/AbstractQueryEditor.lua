@@ -67,7 +67,6 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
         end
 
         AbstractStepWindow.new(object, Metatable)
-        object:open(object.appResources.rawPlayer.gui.center)
         return object
     end,
 

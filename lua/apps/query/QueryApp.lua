@@ -109,6 +109,7 @@ Metatable = {
         pushStepWindow = function(self, newWindow)
             self:hide()
             self.stepWindows:push(newWindow)
+            self:show()
         end,
 
         -- Runs the query, and switch to the Graph app.
