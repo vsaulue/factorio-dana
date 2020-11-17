@@ -14,9 +14,9 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
+local AbstractStepWindow = require("lua/apps/query/step/AbstractStepWindow")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GuiEmptyGraphWindow = require("lua/apps/query/gui/GuiEmptyGraphWindow")
+local GuiEmptyGraphWindow = require("lua/apps/query/step/GuiEmptyGraphWindow")
 
 local BackButton
 local Metatable

@@ -14,14 +14,14 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
+local AbstractStepWindow = require("lua/apps/query/step/AbstractStepWindow")
 local AbstractApp = require("lua/apps/AbstractApp")
 local AbstractQuery = require("lua/query/AbstractQuery")
-local EmptyGraphWindow = require("lua/apps/query/gui/EmptyGraphWindow")
+local EmptyGraphWindow = require("lua/apps/query/step/EmptyGraphWindow")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local FullGraphQuery = require("lua/query/FullGraphQuery")
 local Stack = require("lua/containers/Stack")
-local TemplateSelectWindow = require("lua/apps/query/gui/TemplateSelectWindow")
+local TemplateSelectWindow = require("lua/apps/query/step/TemplateSelectWindow")
 
 local AppName
 local Metatable

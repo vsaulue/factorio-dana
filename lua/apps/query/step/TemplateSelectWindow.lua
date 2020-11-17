@@ -14,11 +14,11 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
+local AbstractStepWindow = require("lua/apps/query/step/AbstractStepWindow")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local FullGraphQuery = require("lua/query/FullGraphQuery")
-local GuiTemplateSelectWindow = require("lua/apps/query/gui/GuiTemplateSelectWindow")
+local GuiTemplateSelectWindow = require("lua/apps/query/step/GuiTemplateSelectWindow")
 local QueryEditor = require("lua/apps/query/editor/QueryEditor")
 local QueryTemplates = require("lua/apps/query/QueryTemplates")
 

@@ -15,7 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractFactory = require("lua/AbstractFactory")
-local AbstractStepWindow = require("lua/apps/query/gui/AbstractStepWindow")
+local AbstractStepWindow = require("lua/apps/query/step/AbstractStepWindow")
 local ClassLogger = require("lua/logger/ClassLogger")
 local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
