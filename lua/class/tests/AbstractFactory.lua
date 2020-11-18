@@ -131,6 +131,31 @@ describe("AbstractFactory", function()
         end)
     end)
 
+    describe(":makeClassTable()", function()
+        local classTable
+        setup(function()
+            classTable = factory:makeClassTable()
+        end)
+
+        it(".new()", function()
+            local object = {
+                classIndex = "2",
+            }
+            local result = classTable.new(object)
+            assert.are.equals(object, result)
+            assert.are.equals(object.metaName, "class2")
+        end)
+
+        it(".setmetatable()", function()
+            local object = {
+                classIndex = "1",
+                subclassIndex = "b",
+            }
+            classTable.setmetatable(object)
+            assert.are.equals(object.metaName, "class1b")
+        end)
+    end)
+
     it(":restoreMetatable()", function()
         local object = {
             classIndex = "1",

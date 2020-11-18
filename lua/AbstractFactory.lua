@@ -81,6 +81,26 @@ Metatable = {
             return result
         end,
 
+        -- Creates a "class table" wrapping this factory.
+        --
+        -- Args:
+        -- * self: AbstractFactory.
+        --
+        -- Returns: ErrorOnInvalidRead. HAs the following fields:
+        -- * new: function(table) -> table. Creates a new instance of one of the wrapped types.
+        -- * setmetatable: function(table). Restores the metatable of an object.
+        makeClassTable = function(self)
+            return ErrorOnInvalidRead.new{
+                new = function(object)
+                    return self:make(object)
+                end,
+
+                setmetatable = function(object)
+                    self:restoreMetatable(object)
+                end,
+            }
+        end,
+
         -- Registers a new class for this factory.
         --
         -- Args:
