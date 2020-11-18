@@ -22,26 +22,11 @@ require("lua/apps/query/step/editor/HowToMakeEditor")
 require("lua/apps/query/step/editor/UsagesOfEditor")
 
 -- Wrapper of AbstractQueryEditor's factory.
-local QueryEditor = ErrorOnInvalidRead.new{
-    -- Creates a new AbstractQueryEditor object.
-    --
-    -- Args:
-    -- * object: table. Required fields: app, query.
-    --
-    -- Returns: AbstractQueryEditor. The `object` argument converted into the desired type.
-    --
-    new = function(object)
-        return AbstractQueryEditor.Factory:make(object)
-    end,
-
-    -- Restores the metatable of an GuiAbstractQueryEditor object, and all its owned objects.
-    --
-    -- Args:
-    -- * object: table to modify.
-    --
-    setmetatable = function(object)
-        AbstractQueryEditor.Factory:restoreMetatable(object)
-    end,
-}
+--
+-- Static fields:
+-- * new: function(table) -> table.
+-- * setmetatable: function(table).
+--
+local QueryEditor = AbstractQueryEditor.Factory:makeClassTable()
 
 return QueryEditor
