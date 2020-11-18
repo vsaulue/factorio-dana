@@ -19,7 +19,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiAlign = require("lua/gui/GuiAlign")
 local GuiElement = require("lua/gui/GuiElement")
 
-local cLogger = ClassLogger.new{className = "GuiMinDistParamsEditor"}
+local cLogger = ClassLogger.new{className = "GuiMinDistEditor"}
 
 local AllowCheckbox
 local DepthCheckbox
@@ -29,20 +29,20 @@ local Metatable
 local updateDepthValue
 local updateEnableDepth
 
--- Instanciated GUI of an GuiMinDistParamsEditor.
+-- Instanciated GUI of an GuiMinDistEditor.
 --
 -- RO Fields:
 -- * controller: MinDistParamsEditor. Controller owning this GUI.
 -- * mainFlow: LuaGuiElement. Top-level flow owned by this GUI.
 -- * parent: LuaGuiElement. Element containing this GUI.
 --
-local GuiMinDistParamsEditor = ErrorOnInvalidRead.new{
-    -- Creates a new GuiMinDistParamsEditor object.
+local GuiMinDistEditor = ErrorOnInvalidRead.new{
+    -- Creates a new GuiMinDistEditor object.
     --
     -- Args:
     -- * object: table. Required fields: controller, parent.
     --
-    -- Returns: The argument turned into a GuiMinDistParamsEditor class.
+    -- Returns: The argument turned into a GuiMinDistEditor class.
     --
     new = function(object)
         local controller = cLogger:assertField(object, "controller")
@@ -112,7 +112,7 @@ local GuiMinDistParamsEditor = ErrorOnInvalidRead.new{
         return object
     end,
 
-    -- Restores the metatable of a GuiMinDistParamsEditor object, and all its owned objects.
+    -- Restores the metatable of a GuiMinDistEditor object, and all its owned objects.
     --
     -- Args:
     -- * object: table to modify.
@@ -125,7 +125,7 @@ local GuiMinDistParamsEditor = ErrorOnInvalidRead.new{
     end,
 }
 
--- Metatable of the GuiMinDistParamsEditor class.
+-- Metatable of the GuiMinDistEditor class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements Closeable:close().
@@ -139,7 +139,7 @@ Metatable = {
         -- Checks the "Allow other intermediates" box.
         --
         -- Args:
-        -- * self: GuiMinDistParamsEditor.
+        -- * self: GuiMinDistEditor.
         -- * value: boolean. New checked state.
         --
         setAllowOther = function(self, value)
@@ -149,7 +149,7 @@ Metatable = {
         -- Updates the depth checkbox & field.
         --
         -- Args:
-        -- * self: GuiMinDistParamsEditor.
+        -- * self: GuiMinDistEditor.
         -- * value: int or nil. The new depth value.
         --
         setDepth = function(self, value)
@@ -171,10 +171,10 @@ Metatable = {
 -- Checkbox to enable the allowOther parameter.
 --
 -- RO Fields:
--- * gui: GuiMinDistParamsEditor. Owner of this element.
+-- * gui: GuiMinDistEditor. Owner of this element.
 --
 AllowCheckbox = GuiElement.newSubclass{
-    className = "GuiMinDistParamsEditor/AllowCheckbox",
+    className = "GuiMinDistEditor/AllowCheckbox",
     mandatoryFields = {"gui"},
     __index = {
         onCheckedStateChanged = function(self, event)
@@ -186,10 +186,10 @@ AllowCheckbox = GuiElement.newSubclass{
 -- Checkbox to enable the maxDepth parameter.
 --
 -- RO Fields:
--- * gui: GuiMinDistParamsEditor. Owner of this element.
+-- * gui: GuiMinDistEditor. Owner of this element.
 --
 DepthCheckbox = GuiElement.newSubclass{
-    className = "GuiMinDistParamsEditor/DepthCheckbox",
+    className = "GuiMinDistEditor/DepthCheckbox",
     mandatoryFields = {"gui"},
     __index = {
         onCheckedStateChanged = function(self, event)
@@ -201,10 +201,10 @@ DepthCheckbox = GuiElement.newSubclass{
 -- Textfield to set the maxDepth value.
 --
 -- RO Fields:
--- * gui: GuiMinDistParamsEditor. Owner of this element.
+-- * gui: GuiMinDistEditor. Owner of this element.
 --
 DepthField = GuiElement.newSubclass{
-    className = "GuiMinDistParamsEditor/DepthField",
+    className = "GuiMinDistEditor/DepthField",
     mandatoryFields = {"gui"},
     __index = {
         onTextChanged = function(self, event)
@@ -244,7 +244,7 @@ LocalisedStrings = ErrorOnInvalidRead.new{
 -- Handles changes to depthField.text.
 --
 -- Args:
--- * self: GuiMinDistParamsEditor.
+-- * self: GuiMinDistEditor.
 --
 updateDepthValue = function(self)
     local value = tonumber(self.depthField.rawElement.text)
@@ -256,7 +256,7 @@ end
 -- Handles changes to depthCheckbox.state.
 --
 -- Args:
--- * self: GuiMinDistParamsEditor.
+-- * self: GuiMinDistEditor.
 --
 updateEnableDepth = function(self)
     local enabled = self.depthCheckbox.rawElement.state
@@ -273,4 +273,4 @@ updateEnableDepth = function(self)
     end
 end
 
-return GuiMinDistParamsEditor
+return GuiMinDistEditor
