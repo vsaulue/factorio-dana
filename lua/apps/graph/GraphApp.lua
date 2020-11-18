@@ -38,19 +38,19 @@ local Metatable
 -- Implements GraphAppInterface.
 --
 -- RO fields:
--- * canvas: Canvas object on which the graph is drawn.
--- * graph: Displayed DirectedHypergraph.
--- * guiSelection: SelectionWindow object, displaying the result of selections on the graph surface.
+-- * canvas: Canvas. Object on which the graph is drawn.
+-- * graph: DirectedHypergraph. Displayed graph.
+-- * guiSelection: SelectionWindow. Window displaying the selected items of the graph.
 -- * menuFlow: GraphMenuFlow. Controller of the menu buttons.
--- * renderer: SimpleRenderer object displaying the graph.
--- * vertexDists[vertexIndex] -> int: suggested partial order of vertices.
+-- * renderer: SimpleRenderer. Renderer displaying the graph.
+-- * vertexDists: Map[vertexIndex] -> int. suggested partial order of vertices.
 -- + inherited from AbstractApp.
 --
 local GraphApp = ErrorOnInvalidRead.new{
     -- Creates a new GraphApp object.
     --
     -- Args:
-    -- * object: Table to turn into a GraphApp object (required fields: graph, rawPlayer, vertexDists, surface).
+    -- * object: table. Required fields: appResources, graph, vertexDists.
     --
     -- Returns: The argument turned into a GraphApp object.
     --
@@ -94,7 +94,7 @@ local GraphApp = ErrorOnInvalidRead.new{
     -- Restores the metatable of a GraphApp object, and all its owned objects.
     --
     -- Args:
-    -- * object: table to modify.
+    -- * object: table.
     --
     setmetatable = function(object)
         Canvas.setmetatable(object.canvas)
