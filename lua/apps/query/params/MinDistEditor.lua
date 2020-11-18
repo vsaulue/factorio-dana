@@ -38,13 +38,13 @@ local Metatable
 -- * setEditor: IntermediateSetEditor object used on the source set.
 -- + AbstractGuiController
 --
-local CtrlMinDistParamsEditor = ErrorOnInvalidRead.new{
-    -- Creates a new CtrlMinDistParamsEditor object.
+local MinDistEditor = ErrorOnInvalidRead.new{
+    -- Creates a new MinDistEditor object.
     --
     -- Args:
     -- * object: table. Required fields: appResources, isForward, params.
     --
-    -- Returns: The argument turned into a CtrlMinDistParamsEditor object.
+    -- Returns: The argument turned into a MinDistEditor object.
     --
     new = function(object)
         AbstractGuiController.new(object, Metatable)
@@ -58,7 +58,7 @@ local CtrlMinDistParamsEditor = ErrorOnInvalidRead.new{
         return object
     end,
 
-    -- Restores the metatable of a CtrlMinDistParamsEditor object, and all its owned objects.
+    -- Restores the metatable of a MinDistEditor object, and all its owned objects.
     --
     -- Args:
     -- * object: table to modify.
@@ -69,7 +69,7 @@ local CtrlMinDistParamsEditor = ErrorOnInvalidRead.new{
     end,
 }
 
--- Metatable of the CtrlMinDistParamsEditor class.
+-- Metatable of the MinDistEditor class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Overrides AbstractGuiController:close().
@@ -89,7 +89,7 @@ Metatable = {
         -- Sets the "allowOtherIntermediates" value in params.
         --
         -- Args:
-        -- * self: CtrlMinDistParamsEditor.
+        -- * self: MinDistEditor.
         -- * value: boolean. New value.
         --
         setAllowOther = function(self, value)
@@ -104,7 +104,7 @@ Metatable = {
         -- Sets the "maxDepth" value in params.
         --
         -- Args:
-        -- * self: CtrlMinDistParamsEditor.
+        -- * self: MinDistEditor.
         -- * value: int or nil. New value.
         --
         setDepth = function(self, value)
@@ -119,4 +119,4 @@ Metatable = {
 }
 setmetatable(Metatable.__index, {__index = super})
 
-return CtrlMinDistParamsEditor
+return MinDistEditor
