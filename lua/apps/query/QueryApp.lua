@@ -122,12 +122,7 @@ Metatable = {
             local force = self.appResources.force
             local graph,vertexDists = query:execute(force)
 
-            local vertexCount = 0
-            for _ in pairs(graph.vertices) do
-                vertexCount = vertexCount + 1
-            end
-
-            if vertexCount > 0 then
+            if next(graph.vertices) then
                 self.appResources:makeAndSwitchApp{
                     appName = "graph",
                     graph = graph,
