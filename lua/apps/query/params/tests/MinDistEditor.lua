@@ -206,6 +206,22 @@ describe("MinDistEditor & GUI", function()
                 player_index = depthCheckbox.player_index,
             }
             assert.is_nil(rawget(params, "maxDepth"))
+
+            local depthField = controller.gui.depthField.rawElement
+            depthField.text = ""
+            depthCheckbox.state = true
+            GuiElement.on_gui_checked_state_changed{
+                element = depthCheckbox,
+                player_index = depthCheckbox.player_index,
+            }
+            assert.are.equals(params.maxDepth, 1)
+
+            depthField.text = "5"
+            GuiElement.on_gui_checked_state_changed{
+                element = depthCheckbox,
+                player_index = depthCheckbox.player_index,
+            }
+            assert.are.equals(params.maxDepth, 5)
         end)
 
         it("DepthField", function()

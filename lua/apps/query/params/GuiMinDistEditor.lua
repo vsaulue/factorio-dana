@@ -22,11 +22,12 @@ local GuiElement = require("lua/gui/GuiElement")
 local cLogger = ClassLogger.new{className = "GuiMinDistParamsEditor"}
 
 local AllowCheckbox
-local changeDepth
 local DepthCheckbox
 local DepthField
 local LocalisedStrings
 local Metatable
+local updateDepthValue
+local updateEnableDepth
 
 -- Instanciated GUI of an GuiMinDistParamsEditor.
 --
@@ -154,7 +155,9 @@ Metatable = {
         setDepth = function(self, value)
             local rawDepthField = self.depthField.rawElement
             if value then
-                rawDepthField.text = tostring(value)
+                if tonumber(rawDepthField.text) ~= value then
+                    rawDepthField.text = tostring(value)
+                end
                 rawDepthField.enabled = true
                 self.depthCheckbox.rawElement.state = true
             else
@@ -180,20 +183,6 @@ AllowCheckbox = GuiElement.newSubclass{
     }
 }
 
--- Updates the GUI elements associated to the maxDepth parameter.
---
--- Args:
--- * self: GuiMinDistParamsEditor.
---
-changeDepth = function(self)
-    local enabled = self.depthCheckbox.rawElement.state
-    local value = nil
-    if enabled then
-        value = tonumber(self.depthField.rawElement.text)
-    end
-    self.controller:setDepth(value)
-end
-
 -- Checkbox to enable the maxDepth parameter.
 --
 -- RO Fields:
@@ -204,7 +193,7 @@ DepthCheckbox = GuiElement.newSubclass{
     mandatoryFields = {"gui"},
     __index = {
         onCheckedStateChanged = function(self, event)
-            changeDepth(self.gui)
+            updateEnableDepth(self.gui)
         end,
     },
 }
@@ -219,7 +208,7 @@ DepthField = GuiElement.newSubclass{
     mandatoryFields = {"gui"},
     __index = {
         onTextChanged = function(self, event)
-            changeDepth(self.gui)
+            updateDepthValue(self.gui)
         end,
     },
 }
@@ -251,5 +240,37 @@ LocalisedStrings = ErrorOnInvalidRead.new{
         intermediateSetTitle = makeLocalisedString("backward.intermediateSetTitle"),
     },
 }
+
+-- Handles changes to depthField.text.
+--
+-- Args:
+-- * self: GuiMinDistParamsEditor.
+--
+updateDepthValue = function(self)
+    local value = tonumber(self.depthField.rawElement.text)
+    if value then
+        self.controller:setDepth(value)
+    end
+end
+
+-- Handles changes to depthCheckbox.state.
+--
+-- Args:
+-- * self: GuiMinDistParamsEditor.
+--
+updateEnableDepth = function(self)
+    local enabled = self.depthCheckbox.rawElement.state
+    if enabled then
+        local rawDepthField = self.depthField.rawElement
+        local value = tonumber(rawDepthField.text)
+        if value then
+            self.controller:setDepth(value)
+        else
+            self.controller:setDepth(1)
+        end
+    else
+        self.controller:setDepth(nil)
+    end
+end
 
 return GuiMinDistParamsEditor
