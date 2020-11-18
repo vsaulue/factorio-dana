@@ -20,8 +20,7 @@ local Canvas = require("lua/canvas/Canvas")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GuiAlign = require("lua/gui/GuiAlign")
-local GuiElement = require("lua/gui/GuiElement")
+local GraphMenuFlow = require("lua/apps/graph/gui/GraphMenuFlow")
 local HyperPreprocessor = require("lua/layouts/preprocess/HyperPreprocessor")
 local SelectionWindow = require("lua/apps/graph/gui/SelectionWindow")
 local LayerLayout = require("lua/layouts/layer/LayerLayout")
@@ -32,9 +31,6 @@ local cLogger = ClassLogger.new{className = "GraphApp"}
 local AppName
 local makeEdge
 local Metatable
-local NewQueryButton
-local ViewGraphButton
-local ViewLegendButton
 
 -- Application to display a crafting hypergraph.
 --
@@ -42,7 +38,7 @@ local ViewLegendButton
 -- * canvas: Canvas object on which the graph is drawn.
 -- * graph: Displayed DirectedHypergraph.
 -- * guiSelection: SelectionWindow object, displaying the result of selections on the graph surface.
--- * newQueryButton: NewQueryButton object (top menu button to switch to the query app).
+-- * menuFlow: GraphMenuFlow. Controller of the menu buttons.
 -- * renderer: SimpleRenderer object displaying the graph.
 -- * vertexDists[vertexIndex] -> int: suggested partial order of vertices.
 -- + inherited from AbstractApp.
@@ -81,28 +77,11 @@ local GraphApp = ErrorOnInvalidRead.new{
             rawPlayer = rawPlayer,
         }
 
-        local menuFlow = object.appResources.menuFlow
-        object.newQueryButton = NewQueryButton.new{
-            app = object,
-            rawElement = GuiAlign.makeVerticallyCentered(menuFlow, {
-                type = "button",
-                caption = {"dana.apps.graph.newQuery"},
-            })
+        object.menuFlow = GraphMenuFlow.new{
+            appInterface = object,
         }
-        object.viewGraphButton = ViewGraphButton.new{
-            app = object,
-            rawElement = GuiAlign.makeVerticallyCentered(menuFlow, {
-                type = "button",
-                caption = {"dana.apps.graph.moveToGraph"},
-            })
-        }
-        object.viewLegendButton = ViewLegendButton.new{
-            app = object,
-            rawElement = GuiAlign.makeVerticallyCentered(menuFlow, {
-                type = "button",
-                caption = {"dana.apps.graph.moveToLegend"},
-            })
-        }
+        object.menuFlow:open(object.appResources.menuFlow)
+
 
         object:viewGraphCenter()
 
@@ -117,9 +96,7 @@ local GraphApp = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         Canvas.setmetatable(object.canvas)
         DirectedHypergraph.setmetatable(object.graph)
-        NewQueryButton.setmetatable(object.newQueryButton)
-        ViewGraphButton.setmetatable(object.viewGraphButton)
-        ViewLegendButton.setmetatable(object.viewLegendButton)
+        GraphMenuFlow.setmetatable(object.menuFlow)
         SelectionWindow.setmetatable(object.guiSelection)
         SimpleRenderer.setmetatable(object.renderer)
         setmetatable(object, Metatable)
@@ -141,6 +118,17 @@ Metatable = {
         -- Overrides AbstractApp:hide().
         hide = function(self)
             self.guiSelection.frame.visible = false
+        end,
+
+        -- Switches to the QueryApp.
+        --
+        -- Args:
+        -- * self: GraphApp.
+        --
+        newQuery = function(self)
+            self.appResources:makeAndSwitchApp{
+                appName = "query",
+            }
         end,
 
         -- Moves the view to the center of the graph.
@@ -194,53 +182,6 @@ Metatable = {
     },
 }
 setmetatable(Metatable.__index, AbstractApp.Metatable.__index)
-
--- Button to switch to the query app.
---
--- RO Fields:
--- * app: GraphApp owning this button.
---
-NewQueryButton = GuiElement.newSubclass{
-    className = "GraphApp/NewQueryButton",
-    mandatoryFields = {"app"},
-    __index = {
-        onClick = function(self)
-            self.app.appResources:makeAndSwitchApp{
-                appName = "query",
-            }
-        end,
-    },
-}
-
--- Button to move the player to the center of the graph.
---
--- RO Fields:
--- * app: GraphApp owning this button.
---
-ViewGraphButton = GuiElement.newSubclass{
-    className = "GraphApp/ViewGraphButton",
-    mandatoryFields = {"app"},
-    __index = {
-        onClick = function(self, event)
-            self.app:viewGraphCenter()
-        end,
-    },
-}
-
--- Button to move the player to the legend of the graph.
---
--- RO Fields:
--- * app: GraphApp owning this button.
---
-ViewLegendButton = GuiElement.newSubclass{
-    className = "GraphApp/ViewLegendButton",
-    mandatoryFields = {"app"},
-    __index = {
-        onClick = function(self, event)
-            self.app:viewLegend()
-        end,
-    }
-}
 
 AbstractApp.Factory:registerClass(AppName, GraphApp)
 return GraphApp
