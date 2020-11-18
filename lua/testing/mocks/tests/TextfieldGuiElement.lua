@@ -40,7 +40,7 @@ describe("TextfieldGuiElement", function()
         it("-- valid, no text", function()
             cArgs.text = nil
             local object = TextfieldGuiElement.make(cArgs, 1234)
-            assert.are.equals(MockObject.getData(object).text, "0")
+            assert.are.equals(MockObject.getData(object).text, "")
         end)
     end)
 
@@ -66,7 +66,7 @@ describe("TextfieldGuiElement", function()
                 data.numeric = true
                 object.allow_negative = false
                 assert.is_false(data.allow_negative)
-                assert.are.equals(data.text, "0")
+                assert.are.equals(data.text, "")
             end)
         end)
 
@@ -81,7 +81,7 @@ describe("TextfieldGuiElement", function()
                 local data = MockObject.getData(object)
                 object.numeric = true
                 assert.is_true(data.numeric)
-                assert.are.equals(data.text, "0")
+                assert.are.equals(data.text, "")
             end)
         end)
 
@@ -98,14 +98,14 @@ describe("TextfieldGuiElement", function()
             it("-- write, invalid numeric", function()
                 object.numeric = true
                 object.text = "nope"
-                assert.are.equals(MockObject.getData(object).text, "0")
+                assert.are.equals(MockObject.getData(object).text, "")
             end)
 
             it("-- write, invalid negative", function()
                 object.allow_negative = false
                 object.numeric = true
                 object.text = "-5"
-                assert.are.equals(MockObject.getData(object).text, "0")
+                assert.are.equals(MockObject.getData(object).text, "")
             end)
         end)
     end)

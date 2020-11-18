@@ -104,10 +104,10 @@ setText = function(selfData, value)
         local number = tonumber(value)
         if number then
             if (not selfData.allow_negative) and (number < 0) then
-                finalValue = "0"
+                finalValue = ""
             end
         else
-            finalValue = "0"
+            finalValue = ""
         end
     end
     selfData.text = finalValue
