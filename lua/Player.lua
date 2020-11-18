@@ -14,13 +14,18 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AppController = require("lua/apps/AppController")
+local App = require("lua/apps/App")
 local AppResources = require("lua/apps/AppResources")
+local AppUpcalls = require("lua/apps/AppUpcalls")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
+local PositionController = require("lua/apps/PositionController")
 
+local closeApp
 local Metatable
 local HideButton
+local setApp
+local setDefaultApp
 local ShowButton
 
 -- Class holding data associated to a player in this mod.
@@ -28,12 +33,14 @@ local ShowButton
 -- Stored in global: yes
 --
 -- Fields:
--- * appController: AppController object of this player.
+-- * app: AbstractApp or false. Running application.
+-- * appResources: AppResources. Resources used by this player's applications.
 -- * force: Force this player belongs to.
 -- * rawPlayer: Associated LuaPlayer instance.
 -- * graphSurface: LuaSurface used to display graphs to this player.
 -- * hideButton: HideButton of this player (in menuFrame).
 -- * menuFrame: Top menu displayed when the application is opened.
+-- * positionController: PositionController.
 -- * showButton: ShowButton object owned by this player.
 --
 -- RO properties:
@@ -78,18 +85,22 @@ local Player = ErrorOnInvalidRead.new{
             direction = "vertical",
         }
         --
-        object.appController = AppController.new{
-            appResources = {
-                menuFlow = object.menuFrame.add{
-                    type = "flow",
-                    direction = "horizontal",
-                    name = "appFlow",
-                },
-                rawPlayer = object.rawPlayer,
-                surface = object.graphSurface,
-                force = object.force,
-            },
+        object.positionController = PositionController.new{
+            appSurface = object.graphSurface,
+            rawPlayer = object.rawPlayer,
         }
+        object.appResources = AppResources.new{
+            force = object.force,
+            menuFlow = object.menuFrame.add{
+                type = "flow",
+                direction = "horizontal",
+                name = "appFlow",
+            },
+            rawPlayer = object.rawPlayer,
+            surface = object.graphSurface,
+            upcalls = object,
+        }
+        setDefaultApp(object)
         return object
     end,
 
@@ -100,15 +111,26 @@ local Player = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
+        if object.app then
+            App.setmetatable(object.app)
+        end
+        AppResources.setmetatable(object.appResources)
         HideButton.setmetatable(object.hideButton)
+        PositionController.setmetatable(object.positionController)
         ShowButton.setmetatable(object.showButton)
-        AppController.setmetatable(object.appController)
     end,
 }
 
 -- Metatable of the Player class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Implements AppUpcalls:makeAndSwitchApp().
+        makeAndSwitchApp = function(self, newApp)
+            closeApp(self)
+            newApp.appResources = self.appResources
+            setApp(self, App.new(newApp))
+        end,
+
         -- Function to call when Factorio's on_player_changed_surface is triggered for this player.
         --
         -- Args:
@@ -128,7 +150,12 @@ Metatable = {
         -- * event: Factorio event.
         --
         onSelectedArea = function(self, event)
-            self.appController.app:onSelectedArea(event)
+            self.app:onSelectedArea(event)
+        end,
+
+        -- Implements AppUpcalls:setPosition().
+        setPosition = function(self, position)
+            self.positionController:setPosition(position)
         end,
 
         -- Shows Dana's GUI, and moves the player to the drawing surface.
@@ -137,11 +164,12 @@ Metatable = {
         -- * self: Player object.
         --
         show = function(self)
-            if not self.opened then
+            if self.app and not self.opened then
                 self.opened = true
                 self.menuFrame.visible = true
                 self.showButton.rawElement.visible = false
-                self.appController:show()
+                self.positionController:teleportToApp()
+                self.app:show()
             end
         end,
 
@@ -157,7 +185,14 @@ Metatable = {
                 self.opened = false
                 self.menuFrame.visible = false
                 self.showButton.rawElement.visible = true
-                self.appController:hide(keepPosition)
+                if keepPosition then
+                    self.positionController:restoreController()
+                else
+                    self.positionController:teleportBack()
+                end
+                if self.app then
+                    self.app:hide()
+                end
             end
         end,
 
@@ -167,11 +202,26 @@ Metatable = {
         -- * self: Player object.
         --
         reset = function(self)
-            self.appController:switchToDefaultApp()
+            closeApp(self)
             self:hide(false)
+            setDefaultApp(self)
         end,
     },
 }
+AppUpcalls.check(Metatable.__index)
+
+-- Closes the running application.
+--
+-- Args:
+-- * self: AppController object.
+--
+closeApp = function(self)
+    if self.app then
+        self.app:close()
+        GuiElement.clear(self.appResources.menuFlow)
+        self.app = false
+    end
+end
 
 -- Button to show the application of a player.
 --
@@ -206,5 +256,32 @@ HideButton = GuiElement.newSubclass{
         end,
     }
 }
+
+-- Sets a new application.
+--
+-- Args:
+-- * self: AppController object.
+-- * newApp: The new AbstractApp owned by this controller.
+--
+setApp = function(self, newApp)
+    self.app = newApp
+    if self.opened then
+        self.app:show()
+    else
+        self.app:hide()
+    end
+end
+
+-- Sets the default application.
+--
+-- Args:
+-- * self: AppController object.
+--
+setDefaultApp = function(self)
+    setApp(self, App.new{
+        appName = "query",
+        appResources = self.appResources,
+    })
+end
 
 return Player
