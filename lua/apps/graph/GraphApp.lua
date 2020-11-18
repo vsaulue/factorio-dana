@@ -20,6 +20,7 @@ local Canvas = require("lua/canvas/Canvas")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local GraphAppInterface = require("lua/apps/graph/GraphAppInterface")
 local GraphMenuFlow = require("lua/apps/graph/gui/GraphMenuFlow")
 local HyperPreprocessor = require("lua/layouts/preprocess/HyperPreprocessor")
 local SelectionWindow = require("lua/apps/graph/gui/SelectionWindow")
@@ -33,6 +34,8 @@ local makeEdge
 local Metatable
 
 -- Application to display a crafting hypergraph.
+--
+-- Implements GraphAppInterface.
 --
 -- RO fields:
 -- * canvas: Canvas object on which the graph is drawn.
@@ -120,30 +123,11 @@ Metatable = {
             self.guiSelection.frame.visible = false
         end,
 
-        -- Switches to the QueryApp.
-        --
-        -- Args:
-        -- * self: GraphApp.
-        --
+        -- Implements GraphAppInterface:newQuery().
         newQuery = function(self)
             self.appResources:makeAndSwitchApp{
                 appName = "query",
             }
-        end,
-
-        -- Moves the view to the center of the graph.
-        --
-        -- Args:
-        -- * self: GraphApp object.
-        --
-        viewGraphCenter = function(self)
-            local lc = self.renderer.layoutCoordinates
-            if lc.xMin ~= math.huge then
-                self.appResources:setPosition{
-                    x = (lc.xMin + lc.xMax) / 2,
-                    y = (lc.yMin + lc.yMax) / 2,
-                }
-            end
         end,
 
         -- Overrides AbstractApp:show().
@@ -168,11 +152,18 @@ Metatable = {
             end
         end,
 
-        -- Moves the view to the legend of the graph.
-        --
-        -- Args:
-        -- * self: GraphApp object.
-        --
+        -- Implements GraphAppInterface:viewGraphCenter().
+        viewGraphCenter = function(self)
+            local lc = self.renderer.layoutCoordinates
+            if lc.xMin ~= math.huge then
+                self.appResources:setPosition{
+                    x = (lc.xMin + lc.xMax) / 2,
+                    y = (lc.yMin + lc.yMax) / 2,
+                }
+            end
+        end,
+
+        -- Implements GraphAppInterface:viewLegend().
         viewLegend = function(self)
             local legendPos = rawget(self.renderer, "legendCenter")
             if legendPos then
@@ -182,6 +173,7 @@ Metatable = {
     },
 }
 setmetatable(Metatable.__index, AbstractApp.Metatable.__index)
+GraphAppInterface.check(Metatable.__index)
 
 AbstractApp.Factory:registerClass(AppName, GraphApp)
 return GraphApp
