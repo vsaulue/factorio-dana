@@ -17,7 +17,7 @@
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Force = require("lua/model/Force")
 local PrototypeDatabase = require("lua/model/PrototypeDatabase")
-local Player = require("lua/Player")
+local PlayerController = require("lua/PlayerController")
 
 local getModVersion
 local Metatable
@@ -32,7 +32,7 @@ local newSurface
 -- Fields:
 -- * forces[forceIndex]: Map of Force objects, indexed by the index of the wrapped LuaForce.
 -- * graphSurface: surface used to draw graphs.
--- * players: map of Player objects, indexed by their Factorio index.
+-- * players: map of PlayerController objects, indexed by their Factorio index.
 -- * prototypes: PrototypeDatabase wrapping all useful prototypes from Factorio.
 -- * version: String representing the version of the mod's persisted data (format: "a.b.c").
 --
@@ -63,7 +63,7 @@ local Dana = ErrorOnInvalidRead.new{
         end
 
         for _,rawPlayer in pairs(game.players) do
-            result.players[rawPlayer.index] = Player.new({
+            result.players[rawPlayer.index] = PlayerController.new({
                 force = result.forces[rawPlayer.force.index],
                 graphSurface = result.graphSurface,
                 rawPlayer = rawPlayer,
@@ -89,7 +89,7 @@ local Dana = ErrorOnInvalidRead.new{
         end
 
         for _,player in pairs(object.players) do
-            Player.setmetatable(player)
+            PlayerController.setmetatable(player)
         end
     end,
 }
@@ -147,7 +147,7 @@ Metatable = {
         on_player_created = function(self, event)
             local playerIndex = event.player_index
             local rawPlayer = game.players[playerIndex]
-            self.players[playerIndex] = Player.new{
+            self.players[playerIndex] = PlayerController.new{
                 force = self.forces[rawPlayer.force.index],
                 graphSurface = self.graphSurface,
                 rawPlayer = rawPlayer,

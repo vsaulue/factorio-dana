@@ -45,11 +45,11 @@ local ShowButton
 -- RO properties:
 -- * opened: true if the GUI is opened.
 --
-local Player = ErrorOnInvalidRead.new{
-    -- Creates a new Player object.
+local PlayerController = ErrorOnInvalidRead.new{
+    -- Creates a new PlayerController object.
     --
     -- Args:
-    -- * object: table to turn into the Player object (required fields: force, graphSurface, rawPlayer).
+    -- * object: table to turn into the PlayerController object (required fields: force, graphSurface, rawPlayer).
     --
     new = function(object)
         setmetatable(object, Metatable)
@@ -82,7 +82,7 @@ local Player = ErrorOnInvalidRead.new{
         return object
     end,
 
-    -- Restores the metatable of a Player instance, and all its owned objects.
+    -- Restores the metatable of a PlayerController instance, and all its owned objects.
     --
     -- Args:
     -- * object: Table to modify.
@@ -99,7 +99,7 @@ local Player = ErrorOnInvalidRead.new{
     end,
 }
 
--- Metatable of the Player class.
+-- Metatable of the PlayerController class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AppUpcalls:makeAndSwitchApp().
@@ -112,7 +112,7 @@ Metatable = {
         -- Function to call when Factorio's on_player_changed_surface is triggered for this player.
         --
         -- Args:
-        -- * self: Player object.
+        -- * self: PlayerController object.
         -- * event: Factorio event.
         --
         onChangedSurface = function(self, event)
@@ -124,7 +124,7 @@ Metatable = {
         -- Function to call when Factorio's on_player_selected_area is triggered for this player.
         --
         -- Args:
-        -- * self: Player object.
+        -- * self: PlayerController object.
         -- * event: Factorio event.
         --
         onSelectedArea = function(self, event)
@@ -144,7 +144,7 @@ Metatable = {
         -- Shows Dana's GUI, and moves the player to the drawing surface.
         --
         -- Args:
-        -- * self: Player object.
+        -- * self: PlayerController object.
         --
         show = function(self)
             if self.app and not self.opened then
@@ -159,7 +159,7 @@ Metatable = {
         -- Hides Dana's GUI, and moves the player back to its last position/surface.
         --
         -- Args:
-        -- * self: Player object.
+        -- * self: PlayerController object.
         -- * keepPosition: false to teleport the player at the the position he had while opening Dana.
         --   true to stay at the current position.
         --
@@ -182,7 +182,7 @@ Metatable = {
         -- Leaves Dana mode, and switches to the default application.
         --
         -- Args:
-        -- * self: Player object.
+        -- * self: PlayerController object.
         --
         reset = function(self)
             closeApp(self)
@@ -211,7 +211,7 @@ end
 -- Inherits from GuiElement.
 --
 -- RO field:
--- * player: Player object attached to this GUI.
+-- * player: PlayerController object attached to this GUI.
 --
 ShowButton = GuiElement.newSubclass{
     className = "Player/ShowButton",
@@ -250,4 +250,4 @@ setDefaultApp = function(self)
     })
 end
 
-return Player
+return PlayerController
