@@ -1,4 +1,4 @@
 build/
-lua/luacov.report.out
-lua/luacov.stats.out
+luacov.report.out
+luacov.stats.out
 
