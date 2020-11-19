@@ -28,6 +28,7 @@ return {
             "canvas/objects/tests",
             "class/tests",
             "containers/tests",
+            "controller/tests",
             "graph/tests",
             "graph/algorithms/tests",
             "gui/tests",
