@@ -244,6 +244,55 @@ describe("-- LuaGuiElement", function()
         end)
     end)
 
+    describe(":location", function()
+        local parent
+        local child
+        before_each(function()
+            parent = LuaGuiElement.make({
+                type = "empty-widget",
+            }, {
+                player_index = PlayerIndex,
+                childrenHasLocation = true,
+            })
+
+            child = parent.add{
+                type = "frame",
+                direction = "vertical",
+            }
+        end)
+
+        it("-- constructor", function()
+            assert.is_nil(MockObject.getData(parent).location)
+            assert.are.same(MockObject.getData(child).location, {x=0,y=0})
+        end)
+
+        it("-- read", function()
+            assert.is_nil(parent.location)
+            assert.are.same(child.location, {x=0,y=0})
+        end)
+
+        it("-- write (no location)", function()
+            parent.location = {5,5}
+            assert.is_nil(MockObject.getData(parent).location)
+        end)
+
+        it("-- write (array)", function()
+            child.location = {8,9}
+            assert.are.same(MockObject.getData(child).location, {
+                x = 8,
+                y = 9,
+            })
+        end)
+
+        it("-- write (x=,y=)", function()
+            child.location = {x=-7,y=4}
+            assert.are.same(MockObject.getData(child).location, {
+                x = -7,
+                y = 4,
+            })
+        end)
+    end)
+
     describe(".style", function()
         describe("-- constructor:", function()
             it("valid", function()

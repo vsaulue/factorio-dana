@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local CommonMockObject = require("lua/testing/mocks/CommonMockObject")
+local GuiLocation = require("lua/testing/mocks/GuiLocation")
 local MockGetters = require("lua/testing/mocks/MockGetters")
 local MockObject = require("lua/testing/mocks/MockObject")
 
@@ -40,6 +41,7 @@ local Subtypes
 -- * destroy()
 -- * direction
 -- * index
+-- * location
 -- * parent
 -- * player_index
 -- * type
@@ -47,14 +49,18 @@ local Subtypes
 -- * visible
 -- + CommonMockObject properties.
 --
+-- Other internal fields:
+-- * childrenHasLocation: boolean. True if children have a `location` field (like LuaGui:screen).
+--
 local AbstractGuiElement = {
     -- Base constructor for all types inheriting from AbstractGuiElement.
     --
     -- Args:
     -- * args: table. Constructor argument of a LuaGuiElement from Factorio.
     -- * mockArgs: table. May contain the following fields:
-    -- **  player_index: int or nil. Index of the player owning the new element.
-    -- **  parent: AbstractGuiElement or nil. Parent element that will own the new element (may be nil).
+    -- **  childrenHasLocation: boolean.
+    -- **  player_index: int. Ignored if parent is set.
+    -- **  parent: AbstractGuiElement. If not set, player_index is mandatory.
     -- * metatable: Metatable to set to the new object.
     --
     -- Returns: The new AbstractGuiElement object.
@@ -82,11 +88,18 @@ local AbstractGuiElement = {
             enabled = not not args.enabled
         end
 
+        local location = nil
+        if parent and MockObject.getData(parent).childrenHasLocation then
+            location = {x=0, y=0}
+        end
+
         local data = {
             caption = args.caption,
             children = {},
+            childrenHasLocation = not not mockArgs.childrenHasLocation,
             enabled = enabled,
             index = makeUniqueIndex(),
+            location = location,
             parent = parent,
             player_index = player_index,
             type = _type,
@@ -164,6 +177,7 @@ local AbstractGuiElement = {
 
             enabled = MockGetters.validTrivial("enabled"),
             index = MockGetters.validTrivial("index"),
+            location = MockGetters.validDeepCopy("location"),
             parent = MockGetters.validTrivial("parent"),
             player_index = MockGetters.validTrivial("player_index"),
             style = MockGetters.validTrivial("style"),
@@ -181,6 +195,14 @@ local AbstractGuiElement = {
             enabled = function(self, value)
                 local data = MockObject.getData(self, "enabled")
                 data.enabled = not not value
+            end,
+
+            location = function(self, value)
+                local data = MockObject.getData(self, "location")
+                local location = data.location
+                if location then
+                    GuiLocation.parse(data.location, value)
+                end
             end,
 
             style = function(self, value)
