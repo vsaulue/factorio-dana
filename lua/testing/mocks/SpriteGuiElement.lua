@@ -37,13 +37,12 @@ local SpriteGuiElement = {
     --
     -- Args:
     -- * args: table. Constructor argument of a LuaGuiElement in Factorio.
-    -- * player_index: int. Index of the player owning the new element.
-    -- * parent: AbstractGuiElement. Parent element that will own the new element (may be nil).
+    -- * mockArgs: table. Same as AbstractGuiElement.abstractMake().
     --
     -- Returns: The new SpriteGuiElement object.
     --
-    make = function(args, player_index, parent)
-        local result = AbstractGuiElement.abstractMake(args, player_index, parent, Metatable)
+    make = function(args, mockArgs)
+        local result = AbstractGuiElement.abstractMake(args, mockArgs, Metatable)
         cLogger:assert(args.type == ElementType, "Incorrect type value: " .. tostring(args.type))
         local data = MockObject.getData(result)
 

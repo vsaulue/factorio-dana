@@ -16,15 +16,15 @@
 
 local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 
-local PlayerIndex = 5678
-
 describe("--[[Mock]] FlowGuiElement", function()
+    local MockArgs = {player_index = 5678}
+
     describe(".make", function()
         it("-- error (no direction)", function()
             assert.error(function()
                 LuaGuiElement.make({
                     type = "flow",
-                }, PlayerIndex)
+                }, MockArgs)
             end)
         end)
 
@@ -33,7 +33,7 @@ describe("--[[Mock]] FlowGuiElement", function()
                 LuaGuiElement.make({
                     type = "flow",
                     direction = "kilroy",
-                }, PlayerIndex)
+                }, MockArgs)
             end)
         end)
     end)
@@ -43,7 +43,7 @@ describe("--[[Mock]] FlowGuiElement", function()
             local flow = LuaGuiElement.make({
                 type = "flow",
                 direction = "vertical",
-            }, PlayerIndex)
+            }, MockArgs)
             assert.are.equals(flow.direction, "vertical")
         end)
 
@@ -51,7 +51,7 @@ describe("--[[Mock]] FlowGuiElement", function()
             local flow = LuaGuiElement.make({
                 type = "flow",
                 direction = "horizontal",
-            }, PlayerIndex)
+            }, MockArgs)
             assert.error(function()
                 flow.direction = "vertical"
             end)

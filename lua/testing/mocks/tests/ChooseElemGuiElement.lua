@@ -18,6 +18,8 @@ local ChooseElemGuiElement = require("lua/testing/mocks/ChooseElemGuiElement")
 local MockObject = require("lua/testing/mocks/MockObject")
 
 describe("ChooseElemGuiElement", function()
+    local MockArgs = {player_index = 1234}
+
     describe(".make()", function()
         local cArgs
         before_each(function()
@@ -28,7 +30,7 @@ describe("ChooseElemGuiElement", function()
         end)
 
         it("-- valid, no value", function()
-            local object = ChooseElemGuiElement.make(cArgs, 1234)
+            local object = ChooseElemGuiElement.make(cArgs, MockArgs)
             local data = MockObject.getData(object)
             assert.are.equals(data.elem_type, "item")
             assert.are.equals(data.type, "choose-elem-button")
@@ -36,7 +38,7 @@ describe("ChooseElemGuiElement", function()
 
         it("-- valid, value", function()
             cArgs.elem_value = "coal"
-            local object = ChooseElemGuiElement.make(cArgs, 1234)
+            local object = ChooseElemGuiElement.make(cArgs, MockArgs)
             local data = MockObject.getData(object)
             assert.are.equals(data.elem_type, "item")
             assert.are.equals(data.elem_value, "coal")
@@ -46,21 +48,21 @@ describe("ChooseElemGuiElement", function()
         it("-- missing elem_type", function()
             cArgs.elem_type = nil
             assert.error(function()
-                ChooseElemGuiElement.make(cArgs, 1234)
+                ChooseElemGuiElement.make(cArgs, MockArgs)
             end)
         end)
 
         it("-- invalid elem_type", function()
             cArgs.elem_type = "foobar"
             assert.error(function()
-                ChooseElemGuiElement.make(cArgs, 1234)
+                ChooseElemGuiElement.make(cArgs, MockArgs)
             end)
         end)
 
         it("-- invalid elem_value", function()
             cArgs.elem_value = 1234
             assert.error(function()
-                ChooseElemGuiElement.make(cArgs, 1234)
+                ChooseElemGuiElement.make(cArgs, MockArgs)
             end)
         end)
     end)
@@ -72,7 +74,7 @@ describe("ChooseElemGuiElement", function()
                 type = "choose-elem-button",
                 elem_type = "fluid",
                 elem_value = "water",
-            }, 1234)
+            }, MockArgs)
         end)
 
         describe(":elem_type", function()

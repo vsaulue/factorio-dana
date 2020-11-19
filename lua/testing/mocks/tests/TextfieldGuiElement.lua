@@ -18,6 +18,8 @@ local MockObject = require("lua/testing/mocks/MockObject")
 local TextfieldGuiElement = require("lua/testing/mocks/TextfieldGuiElement")
 
 describe("TextfieldGuiElement", function()
+    local MockArgs = {player_index = 1234}
+
     describe(".make()", function()
         local cArgs
         before_each(function()
@@ -30,7 +32,7 @@ describe("TextfieldGuiElement", function()
         end)
 
         it("-- valid", function()
-            local object = TextfieldGuiElement.make(cArgs, 1234)
+            local object = TextfieldGuiElement.make(cArgs, MockArgs)
             local data = MockObject.getData(object)
             assert.are.equals(data.text, "12345")
             assert.is_true(data.numeric)
@@ -39,7 +41,7 @@ describe("TextfieldGuiElement", function()
 
         it("-- valid, no text", function()
             cArgs.text = nil
-            local object = TextfieldGuiElement.make(cArgs, 1234)
+            local object = TextfieldGuiElement.make(cArgs, MockArgs)
             assert.are.equals(MockObject.getData(object).text, "")
         end)
     end)
@@ -50,7 +52,7 @@ describe("TextfieldGuiElement", function()
             object = TextfieldGuiElement.make({
                 type = "textfield",
                 text = "foobar",
-            }, 1234)
+            }, MockArgs)
         end)
 
         describe(":allow_negative", function()

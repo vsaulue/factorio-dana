@@ -16,15 +16,15 @@
 
 local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 
-local PlayerIndex = 9876
-
 describe("--[[Mock]] FrameGuiElement", function()
+    local MockArgs = {player_index = 5678}
+
     describe(".make", function()
         it("-- error (no direction)", function()
             assert.error(function()
                 LuaGuiElement.make({
                     type = "frame",
-                }, PlayerIndex)
+                }, MockArgs)
             end)
         end)
 
@@ -33,7 +33,7 @@ describe("--[[Mock]] FrameGuiElement", function()
                 LuaGuiElement.make({
                     type = "frame",
                     direction = "kilroy",
-                }, PlayerIndex)
+                }, MockArgs)
             end)
         end)
     end)
@@ -43,7 +43,7 @@ describe("--[[Mock]] FrameGuiElement", function()
             local frame = LuaGuiElement.make({
                 type = "frame",
                 direction = "vertical",
-            }, PlayerIndex)
+            }, MockArgs)
             assert.are.equals(frame.direction, "vertical")
         end)
 
@@ -51,7 +51,7 @@ describe("--[[Mock]] FrameGuiElement", function()
             local frame = LuaGuiElement.make({
                 type = "frame",
                 direction = "horizontal",
-            }, PlayerIndex)
+            }, MockArgs)
             assert.error(function()
                 frame.direction = "vertical"
             end)
@@ -63,7 +63,7 @@ describe("--[[Mock]] FrameGuiElement", function()
             type = "frame",
             direction = "vertical",
             caption = "AYBABTU",
-        }, PlayerIndex)
+        }, MockArgs)
         assert.are.equals(frame.caption, "AYBABTU")
     end)
 end)

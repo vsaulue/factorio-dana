@@ -17,7 +17,6 @@
 local AppResources = require("lua/apps/AppResources")
 local Force = require("lua/model/Force")
 local GuiElement = require("lua/gui/GuiElement")
-local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
@@ -29,6 +28,7 @@ describe("UsagesOfEditor", function()
     local surface
     local player
     local prototypes
+    local parent
     local force
     setup(function()
         local rawData = {
@@ -47,6 +47,7 @@ describe("UsagesOfEditor", function()
         player = factorio:createPlayer{
             forceName = "player",
         }
+        parent = player.gui.center
         surface = factorio.game.create_surface("dana", {})
         factorio:setup()
 
@@ -60,19 +61,13 @@ describe("UsagesOfEditor", function()
     local app
     local appResources
     local controller
-    local parent
     before_each(function()
+        parent.clear()
         GuiElement.on_init()
-        parent = LuaGuiElement.make({
-            type = "flow",
-            direction = "horizontal",
-        }, player.index)
+
         appResources = AppResources.new{
             force = force,
-            menuFlow = LuaGuiElement.make({
-                type = "flow",
-                direction = "horizontal",
-            }, player.index),
+            menuFlow = {},
             rawPlayer = player,
             surface = surface,
             upcalls = {},
@@ -112,11 +107,11 @@ describe("UsagesOfEditor", function()
         end
 
         it("-- no gui", function()
-            controller:close()
             runTest()
         end)
 
         it("-- with gui", function()
+            controller:open(parent)
             runTest()
         end)
     end)

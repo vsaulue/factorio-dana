@@ -18,7 +18,7 @@ local GuiMaker = require("lua/gui/GuiMaker")
 local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 
 describe("GuiMaker", function()
-    local PlayerIndex = 1234
+    local MockArgs = {player_index = 1234}
     local checkClassName = function(object, className)
         assert.are.equals(getmetatable(object).className, className)
     end
@@ -28,7 +28,7 @@ describe("GuiMaker", function()
         parent = LuaGuiElement.make({
             type = "flow",
             direction = "horizontal",
-        }, PlayerIndex)
+        }, MockArgs)
     end)
 
     it(".run()", function()

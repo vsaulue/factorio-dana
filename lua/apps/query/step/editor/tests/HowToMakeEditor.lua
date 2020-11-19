@@ -20,7 +20,6 @@ local Force = require("lua/model/Force")
 local GuiElement = require("lua/gui/GuiElement")
 local HowToMakeEditor = require("lua/apps/query/step/editor/HowToMakeEditor")
 local HowToMakeQuery = require("lua/query/HowToMakeQuery")
-local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 local MinDistEditor = require("lua/apps/query/params/MinDistEditor")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local PrototypeDatabase = require("lua/model.PrototypeDatabase")
@@ -31,6 +30,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
     local factorio
     local surface
     local player
+    local parent
     local prototypes
     local force
     setup(function()
@@ -50,6 +50,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
         player = factorio:createPlayer{
             forceName = "player",
         }
+        parent = player.gui.center
         surface = factorio.game.create_surface("dana", {})
         factorio:setup()
 
@@ -63,13 +64,12 @@ describe("HowToMakeEditor + Abstract + GUI", function()
     local appResources
     local app
     before_each(function()
+        parent.clear()
         GuiElement.on_init()
+
         appResources = AppResources.new{
             force = force,
-            menuFlow = LuaGuiElement.make({
-                type = "flow",
-                direction = "horizontal",
-            }, player.index),
+            menuFlow = {},
             rawPlayer = player,
             surface = surface,
             upcalls = {},
@@ -104,13 +104,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
 
     describe("", function()
         local controller
-        local parent
         before_each(function()
-            parent = LuaGuiElement.make({
-                type = "flow",
-                direction = "horizontal",
-            }, player.index)
-
             local query = HowToMakeQuery.new()
             query.destParams.intermediateSet[prototypes.intermediates.item.wood] = true
             query.destParams.maxDepth = 8

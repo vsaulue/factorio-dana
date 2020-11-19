@@ -35,13 +35,12 @@ local LuaGuiElement = {
     --
     -- Args:
     -- * args: table. Constructor argument of a LuaGuiElement in Factorio.
-    -- * player_index: int. Index of the player owning the new element.
-    -- * parent: AbstractGuiElement. Parent element that will own the new element (may be nil).
+    -- * mockArgs: table. Same as AbstractGuiElement.abstractMake().
     --
     -- Returns: The new LuaGuiElement object.
     --
-    make = function(args, player_index, parent)
-        return AbstractGuiElement.make(args, player_index, parent)
+    make = function(args, mockArgs)
+        return AbstractGuiElement.make(args, mockArgs)
     end,
 }
 

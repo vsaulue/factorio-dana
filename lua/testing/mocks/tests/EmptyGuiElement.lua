@@ -21,7 +21,7 @@ describe("EmptyGuiElement", function()
     it(".new()", function()
         local object = EmptyGuiElement.make({
             type = "empty-widget",
-        }, 1234)
+        }, {player_index = 1234})
         assert.are.equals(MockObject.getData(object).type, "empty-widget")
     end)
 end)

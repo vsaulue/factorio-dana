@@ -20,7 +20,6 @@ local Force = require("lua/model/Force")
 local GraphAppInterface = require("lua/apps/graph/GraphAppInterface")
 local GraphMenuFlow = require("lua/apps/graph/gui/GraphMenuFlow")
 local GuiElement = require("lua/gui/GuiElement")
-local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
@@ -30,6 +29,7 @@ describe("GraphMenuFlow", function()
     local factorio
     local surface
     local player
+    local parent
     local prototypes
     local force
     setup(function()
@@ -46,6 +46,7 @@ describe("GraphMenuFlow", function()
         player = factorio:createPlayer{
             forceName = "player",
         }
+        parent = player.gui.center
         surface = factorio.game.create_surface("dana", {})
         factorio:setup()
 
@@ -57,24 +58,18 @@ describe("GraphMenuFlow", function()
     end)
 
     local appResources
-    local parent
     local controller
     before_each(function()
+        parent.clear()
         GuiElement.on_init()
+
         appResources = AppResources.new{
             force = force,
-            menuFlow = LuaGuiElement.make({
-                type = "flow",
-                direction = "horizontal",
-            }, player.index),
+            menuFlow = {},
             rawPlayer = player,
             surface = surface,
             upcalls = {},
         }
-        parent = LuaGuiElement.make({
-            type = "flow",
-            direction = "horizontal",
-        }, player.index)
         controller = GraphMenuFlow.new{
             appInterface = appInterface,
         }

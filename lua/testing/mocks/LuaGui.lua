@@ -49,8 +49,9 @@ local LuaGui = {
         local data = {
             player = cLogger:assertFieldType(cArgs, "player", "table"),
         }
+        local GuiMockData = {player_index = data.player.index}
         for rootName,rootInfo in pairs(Roots) do
-            data[rootName] = LuaGuiElement.make(rootInfo, data.player.index)
+            data[rootName] = LuaGuiElement.make(rootInfo, GuiMockData)
         end
         return CommonMockObject.make(data, Metatable)
     end,

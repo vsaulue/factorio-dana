@@ -18,9 +18,10 @@ local AbstractGuiElement = require("lua/testing/mocks/AbstractGuiElement")
 local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 local MockObject = require("lua/testing/mocks/MockObject")
 
-local PlayerIndex = 1234
+describe("-- LuaGuiElement", function()
+    local PlayerIndex = 1234
+    local MockArgs = {player_index = PlayerIndex}
 
-describe("--[[Mock]] LuaGuiElement", function()
     describe(".make()", function()
         it("-- invalid (no args)", function()
             assert.error(LuaGuiElement.make)
@@ -28,7 +29,7 @@ describe("--[[Mock]] LuaGuiElement", function()
 
         it("-- invalid (no type field)", function()
             assert.error(function()
-                LuaGuiElement.make({}, PlayerIndex)
+                LuaGuiElement.make({}, MockArgs)
             end)
         end)
 
@@ -36,7 +37,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             assert.error(function()
                 LuaGuiElement.make({
                     type = "foobar",
-                }, PlayerIndex)
+                }, MockArgs)
             end)
         end)
 
@@ -44,7 +45,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local element = LuaGuiElement.make({
                 type = "flow",
                 direction = "vertical",
-            }, PlayerIndex)
+            }, MockArgs)
             assert.are.equals(element.player_index, PlayerIndex)
         end)
     end)
@@ -54,7 +55,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local parent = LuaGuiElement.make({
                 type = "flow",
                 direction = "vertical",
-            }, PlayerIndex)
+            }, MockArgs)
             local child = parent.add{
                 type = "flow",
                 direction = "vertical",
@@ -69,7 +70,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local parent = LuaGuiElement.make({
                 type = "flow",
                 direction = "vertical",
-            }, PlayerIndex)
+            }, MockArgs)
             assert.error(function()
                 parent.add{
                     type = "compilatron",
@@ -81,7 +82,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local parent = LuaGuiElement.make({
                 type = "flow",
                 direction = "vertical",
-            }, PlayerIndex)
+            }, MockArgs)
             parent.destroy()
             assert.error(function()
                 parent.add{
@@ -98,7 +99,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local element = LuaGuiElement.make({
                 type = "label",
                 caption = caption,
-            }, PlayerIndex)
+            }, MockArgs)
             assert.are.equals(MockObject.getData(element).caption, caption)
         end)
 
@@ -107,7 +108,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local element = LuaGuiElement.make({
                 type = "label",
                 caption = caption,
-            }, PlayerIndex)
+            }, MockArgs)
             assert.are.equals(element.caption, caption)
 
             element.destroy()
@@ -120,7 +121,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local caption = "MissingNo"
             local element = LuaGuiElement.make({
                 type = "label",
-            }, PlayerIndex)
+            }, MockArgs)
             element.caption = caption
             assert.are.equals(MockObject.getData(element).caption, caption)
 
@@ -136,7 +137,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local root = LuaGuiElement.make({
                 type = "flow",
                 direction = "vertical",
-            }, PlayerIndex)
+            }, MockArgs)
             local parent = root.add{
                 type = "flow",
                 direction = "vertical",
@@ -158,7 +159,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local parent = LuaGuiElement.make({
                 type = "flow",
                 direction = "vertical",
-            }, PlayerIndex)
+            }, MockArgs)
             parent.destroy()
 
             assert.error(function()
@@ -172,7 +173,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local root = LuaGuiElement.make({
                 type = "flow",
                 direction = "vertical",
-            }, PlayerIndex)
+            }, MockArgs)
             local bro = root.add{
                 type = "flow",
                 direction = "vertical",
@@ -198,7 +199,7 @@ describe("--[[Mock]] LuaGuiElement", function()
             local parent = LuaGuiElement.make({
                 type = "flow",
                 direction = "vertical",
-            }, PlayerIndex)
+            }, MockArgs)
             parent.destroy()
 
             assert.error(function()
@@ -214,7 +215,7 @@ describe("--[[Mock]] LuaGuiElement", function()
                 type = "flow",
                 direction = "vertical",
                 enabled = false,
-            }, PlayerIndex)
+            }, MockArgs)
         end)
 
         it("-- constructor", function()
@@ -240,7 +241,7 @@ describe("--[[Mock]] LuaGuiElement", function()
                     type = "flow",
                     direction = "vertical",
                     style = "kilroy",
-                }, PlayerIndex)
+                }, MockArgs)
                 assert.are.equals(MockObject.getData(element).style.name, "kilroy")
             end)
 
@@ -262,7 +263,7 @@ describe("--[[Mock]] LuaGuiElement", function()
                 element = LuaGuiElement.make({
                     type = "flow",
                     direction = "horizontal",
-                }, PlayerIndex)
+                }, MockArgs)
             end)
 
             it("-- valid read", function()
@@ -287,14 +288,14 @@ describe("--[[Mock]] LuaGuiElement", function()
             local element = LuaGuiElement.make({
                 type = "label",
                 visible = true,
-            }, PlayerIndex)
+            }, MockArgs)
             assert.is_true(MockObject.getData(element).visible)
         end)
 
         it("-- read", function()
             local element = LuaGuiElement.make({
                 type = "label",
-            }, PlayerIndex)
+            }, MockArgs)
             assert.is_false(element.visible)
 
             element.destroy()
@@ -306,7 +307,7 @@ describe("--[[Mock]] LuaGuiElement", function()
         it("--write", function()
             local element = LuaGuiElement.make({
                 type = "label",
-            }, PlayerIndex)
+            }, MockArgs)
             element.visible = true
             assert.is_true(MockObject.getData(element).visible)
 
@@ -321,7 +322,7 @@ describe("--[[Mock]] LuaGuiElement", function()
         local flow = LuaGuiElement.make({
             type = "flow",
             direction = "vertical",
-        }, PlayerIndex)
+        }, MockArgs)
         assert.error(function()
             print(flow.DIRECTION)
         end)

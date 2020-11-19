@@ -15,23 +15,27 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local GuiElement = require("lua/gui/GuiElement")
-local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
+local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 local TreeBox = require("lua/gui/TreeBox")
 
-local PlayerIndex = 5656
-
-_G.game = {
-    players = {
-        [PlayerIndex] =  {
-            index = PlayerIndex,
-        },
-    },
-}
-_G.global = {}
-
 describe("TreeBox", function()
+    local factorio
+    local player
+    local parent
+    setup(function()
+        factorio = MockFactorio.make{
+            rawData = {},
+        }
+        player = factorio:createPlayer{
+            forceName = "player",
+        }
+        parent = player.gui.center
+        factorio:setup()
+    end)
+
     before_each(function()
+        parent.clear()
         GuiElement.on_init()
     end)
 
@@ -134,10 +138,6 @@ describe("TreeBox", function()
         end)
 
         it("-- with gui", function()
-            local parent = LuaGuiElement.make({
-                type = "flow",
-                direction = "horizontal",
-            }, PlayerIndex)
             treeBox:makeGui(parent)
 
             SaveLoadTester.run{
@@ -148,14 +148,8 @@ describe("TreeBox", function()
     end)
 
     describe(":close()", function()
-        local parent
         local treeBox
-
         before_each(function()
-            parent = LuaGuiElement.make({
-                type = "flow",
-                direction = "horizontal",
-            }, PlayerIndex)
             treeBox = TreeBox.new{
                 roots = {
                     {
@@ -182,20 +176,13 @@ describe("TreeBox", function()
             assert.is_false(gui.flow.valid)
             assert.is_nil(rawget(treeBox, "gui"))
             assert.is_nil(rawget(treeBox.roots[1], "gui"))
-            assert.are.equals(GuiElement.count(PlayerIndex), 0)
+            assert.are.equals(GuiElement.count(player.index), 0)
         end)
     end)
 
     describe(":makeGui()", function()
-
-        local parent
         local treeBox
-
         before_each(function()
-            parent = LuaGuiElement.make({
-                type = "flow",
-                direction = "horizontal",
-            }, PlayerIndex)
             treeBox = TreeBox.new{
                 roots = {
                     caption = "top1",
@@ -241,10 +228,25 @@ describe("TreeBox", function()
 end)
 
 describe("TreeBoxNode", function()
-    local treeBox
+    local factorio
+    local player
+    local parent
+    setup(function()
+        factorio = MockFactorio.make{
+            rawData = {},
+        }
+        player = factorio:createPlayer{
+            forceName = "player",
+        }
+        parent = player.gui.center
+        factorio:setup()
+    end)
 
+    local treeBox
     before_each(function()
+        parent.clear()
         GuiElement.on_init()
+
         treeBox = TreeBox.new{
             roots = {
                 {
@@ -281,13 +283,7 @@ describe("TreeBoxNode", function()
         end)
 
         describe("-- gui", function()
-            local parent
-
             before_each(function()
-                parent = LuaGuiElement.make({
-                    type = "flow",
-                    direction = "vertical",
-                }, PlayerIndex)
                 treeBox:makeGui(parent)
             end)
 
@@ -333,13 +329,7 @@ describe("TreeBoxNode", function()
         end)
 
         describe("-- with gui", function()
-            local parent
-
             before_each(function()
-                parent = LuaGuiElement.make({
-                    type = "flow",
-                    direction = "horizontal",
-                }, PlayerIndex)
                 treeBox:makeGui(parent)
             end)
 
@@ -362,19 +352,13 @@ describe("TreeBoxNode", function()
     end)
 
     describe("-- GUI:", function()
-        local parent
-
         before_each(function()
-            parent = LuaGuiElement.make({
-                type = "flow",
-                direction = "horizontal",
-            }, PlayerIndex)
             treeBox:makeGui(parent)
         end)
 
         it("ExpandLabel", function()
             GuiElement.on_gui_click{
-                player_index = PlayerIndex,
+                player_index = player.index,
                 element = treeBox.roots[1].gui.headerFlow.children[1],
             }
             assert.is_false(treeBox.roots[1].expanded)
@@ -382,13 +366,13 @@ describe("TreeBoxNode", function()
 
         it("SelectLabel", function()
             GuiElement.on_gui_click{
-                player_index = PlayerIndex,
+                player_index = player.index,
                 element = treeBox.roots[2].children[1].gui.headerFlow.children[3],
             }
             assert.is_true(treeBox.roots[2].children[1].selected)
 
             GuiElement.on_gui_click{
-                player_index = PlayerIndex,
+                player_index = player.index,
                 element = treeBox.roots[1].children[1].gui.headerFlow.children[3]
             }
             assert.is_true(treeBox.roots[1].children[1].selected)

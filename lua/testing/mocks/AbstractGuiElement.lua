@@ -52,18 +52,23 @@ local AbstractGuiElement = {
     --
     -- Args:
     -- * args: table. Constructor argument of a LuaGuiElement from Factorio.
-    -- * player_index: int. Index of the player owning the new element.
-    -- * parent: AbstractGuiElement. Parent element that will own the new element (may be nil).
+    -- * mockArgs: table. May contain the following fields:
+    -- **  player_index: int or nil. Index of the player owning the new element.
+    -- **  parent: AbstractGuiElement or nil. Parent element that will own the new element (may be nil).
     -- * metatable: Metatable to set to the new object.
     --
     -- Returns: The new AbstractGuiElement object.
     --
-    abstractMake = function(args, player_index, parent, metatable)
+    abstractMake = function(args, mockArgs, metatable)
         local _type = cLogger:assertField(args, "type")
 
-        cLogger:assert(player_index, "Constructor: missing 'player_index' argument.")
+        local player_index
+        local parent = mockArgs.parent
         if parent then
-            cLogger:assert(parent.player_index == player_index, "Parent & child have different player_index.")
+            player_index = parent.player_index
+        else
+            player_index = mockArgs.player_index
+            cLogger:assert(player_index, "mockArgs must contain either 'player_index' or 'parent'.")
         end
 
         local style = {}
@@ -115,7 +120,7 @@ local AbstractGuiElement = {
             add = function(self)
                 return function(childArgs)
                     local data = MockObject.getData(self, "add")
-                    local child = make(childArgs, data.player_index, self)
+                    local child = make(childArgs, {parent = self})
                     table.insert(data.children, child)
                     return child
                 end

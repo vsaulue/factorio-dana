@@ -17,7 +17,6 @@
 local Force = require("lua/model/Force")
 local GuiElement = require("lua/gui/GuiElement")
 local IntermediateSetEditor = require("lua/apps/query/params/IntermediateSetEditor")
-local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
@@ -25,6 +24,7 @@ local SaveLoadTester = require("lua/testing/SaveLoadTester")
 describe("IntermediateSetEditor (& GUI)", function()
     local factorio
     local player
+    local parent
     local prototypes
     local force
     setup(function()
@@ -48,6 +48,7 @@ describe("IntermediateSetEditor (& GUI)", function()
         player = factorio:createPlayer{
             forceName = "player",
         }
+        parent = player.gui.center
         factorio:setup()
 
         prototypes = PrototypeDatabase.new(factorio.game)
@@ -65,15 +66,11 @@ describe("IntermediateSetEditor (& GUI)", function()
         return prototypes.intermediates.item[itemName]
     end
 
-    local parent
     local object
     local output
     before_each(function()
+        parent.clear()
         GuiElement.on_init()
-        parent = LuaGuiElement.make({
-            type = "flow",
-            direction = "horizontal",
-        }, player.index)
 
         output = {}
         for i=1,5 do

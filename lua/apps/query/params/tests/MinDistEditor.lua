@@ -17,7 +17,6 @@
 local AppResources = require("lua/apps/AppResources")
 local Force = require("lua/model/Force")
 local GuiElement = require("lua/gui/GuiElement")
-local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
 local MinDistEditor = require("lua/apps/query/params/MinDistEditor")
 local MinDistParams = require("lua/query/params/MinDistParams")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
@@ -28,6 +27,7 @@ describe("MinDistEditor & GUI", function()
     local factorio
     local surface
     local player
+    local parent
     local prototypes
     local force
     setup(function()
@@ -51,6 +51,7 @@ describe("MinDistEditor & GUI", function()
         player = factorio:createPlayer{
             forceName = "player",
         }
+        parent = player.gui.center
         surface = factorio.game.create_surface("dana", {})
         factorio:setup()
 
@@ -63,16 +64,14 @@ describe("MinDistEditor & GUI", function()
 
     local appResources
     local params
-    local parent
     local controller
     before_each(function()
+        parent.clear()
         GuiElement.on_init()
+
         appResources = AppResources.new{
             force = force,
-            menuFlow = LuaGuiElement.make({
-                type = "flow",
-                direction = "horizontal",
-            }, player.index),
+            menuFlow = {},
             rawPlayer = player,
             surface = surface,
             upcalls = {},
@@ -84,10 +83,6 @@ describe("MinDistEditor & GUI", function()
             },
             maxDepth = 5,
         }
-        parent = LuaGuiElement.make({
-            type = "flow",
-            direction = "horizontal",
-        }, player.index)
         controller = MinDistEditor.new{
             appResources = appResources,
             isForward = false,

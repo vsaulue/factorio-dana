@@ -24,7 +24,7 @@ describe("SpriteGuiElement", function()
         object = SpriteGuiElement.make({
             type = "sprite",
             sprite = "foobar",
-        }, 1234)
+        }, {player_index = 1234})
     end)
 
     it(".make()", function()
