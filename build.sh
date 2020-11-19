@@ -47,7 +47,7 @@ mkdir -p "${zip_folder_path}"
 
 (
     cd "${project_dir}"
-    for filename in * /.[^.]*; do
+    for filename in * .[^.]*; do
         if [ "${filename}" != "${BUILD_FOLDER}" ]; then
             ln -s "../../${filename}" "${build_path}/dana/${filename}"
         fi
