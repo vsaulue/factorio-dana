@@ -51,11 +51,15 @@ describe("-- LuaGuiElement", function()
     end)
 
     describe(":add()", function()
-        it("-- valid", function()
-            local parent = LuaGuiElement.make({
+        local parent
+        before_each(function()
+            parent = LuaGuiElement.make({
                 type = "flow",
                 direction = "vertical",
             }, MockArgs)
+        end)
+
+        it("-- valid", function()
             local child = parent.add{
                 type = "flow",
                 direction = "vertical",
@@ -66,11 +70,31 @@ describe("-- LuaGuiElement", function()
             assert.are_not.equals(parent.index, child.index)
         end)
 
-        it("-- error (wrong constructor arguments)", function()
-            local parent = LuaGuiElement.make({
+        it("-- valid + name", function()
+            local child = parent.add{
                 type = "flow",
                 direction = "vertical",
-            }, MockArgs)
+                name = "barfoo",
+            }
+            assert.are.equals(child.type, "flow")
+            assert.are.equals(child.parent, parent)
+            assert.are.equals(parent.children[1], child)
+            assert.are_not.equals(parent.index, child.index)
+            assert.are.equals(MockObject.getData(parent).childrenByName.barfoo, child)
+        end)
+
+        it("-- error (duplicate name)", function()
+            local cArgs = {
+                type = "button",
+                name = "wololo",
+            }
+            parent.add(cArgs)
+            assert.error(function()
+                parent.add(cArgs)
+            end)
+        end)
+
+        it("-- error (wrong constructor arguments)", function()
             assert.error(function()
                 parent.add{
                     type = "compilatron",
@@ -79,17 +103,13 @@ describe("-- LuaGuiElement", function()
         end)
 
         it("-- error (invalid parent)", function()
-            local root = LuaGuiElement.make({
-                type = "flow",
-                direction = "vertical",
-            }, MockArgs)
-            local parent = root.add{
+            local child = parent.add{
                 type = "frame",
                 direction = "horizontal",
             }
-            parent.destroy()
+            child.destroy()
             assert.error(function()
-                parent.add{
+                child.add{
                     type = "flow",
                     direction = "vertical",
                 }
@@ -135,6 +155,7 @@ describe("-- LuaGuiElement", function()
             local parent = root.add{
                 type = "flow",
                 direction = "vertical",
+                name = "wololo"
             }
             local child = parent.add{
                 type = "flow",
@@ -147,6 +168,7 @@ describe("-- LuaGuiElement", function()
             assert.is_false(child.valid)
             assert.is_true(root.valid)
             assert.is_nil(root.children[1])
+            assert.is_nil(next(MockObject.getData(root).childrenByName))
         end)
 
         it("-- error (invalid self)", function()
@@ -191,6 +213,21 @@ describe("-- LuaGuiElement", function()
             assert.is_true(root.valid)
             assert.are.equals(root.children[1], bro)
             assert.is_nil(root.children[2])
+        end)
+
+        it("-- valid + name", function()
+            local root = LuaGuiElement.make({
+                type = "flow",
+                direction = "vertical",
+            }, MockArgs)
+            local child = root.add{
+                type = "button",
+                name = "barfoo",
+            }
+            child.destroy()
+
+            assert.is_false(child.valid)
+            assert.is_nil(MockObject.getData(root).childrenByName.barfoo)
         end)
 
         it("-- error (invalid self)", function()
@@ -293,6 +330,35 @@ describe("-- LuaGuiElement", function()
         end)
     end)
 
+    describe(":name", function()
+        local cArgs
+        before_each(function()
+            cArgs = {
+                type = "button",
+                name = "kilroy",
+            }
+        end)
+
+        describe("-- constructor:", function()
+            it("valid", function()
+                local element = LuaGuiElement.make(cArgs, MockArgs)
+                assert.are.equals(MockObject.getData(element).name, "kilroy")
+            end)
+
+            it("invalid", function()
+                cArgs.name = 7
+                assert.error(function()
+                    LuaGuiElement.make(cArgs, MockArgs)
+                end)
+            end)
+        end)
+
+        it("-- read", function()
+            local element = LuaGuiElement.make(cArgs, MockArgs)
+            assert.are.equals(element.name, "kilroy")
+        end)
+    end)
+
     describe(".style", function()
         describe("-- constructor:", function()
             it("valid", function()
@@ -367,13 +433,36 @@ describe("-- LuaGuiElement", function()
         end)
     end)
 
-    it(".?? -- invalid field", function()
+    describe(":?? -- string,", function()
+        local parent
+        local child
+        before_each(function()
+            parent = LuaGuiElement.make({
+                type = "flow",
+                direction = "vertical",
+            }, MockArgs)
+            child = parent.add{
+                type = "label",
+                name = "PraiseTheSun",
+            }
+        end)
+
+        it("valid child", function()
+            assert.are.equals(parent.PraiseTheSun, child)
+        end)
+
+        it("unknown name", function()
+            assert.is_nil(parent.PraiseTheMoon)
+        end)
+    end)
+
+    it(":?? -- invalid field", function()
         local flow = LuaGuiElement.make({
             type = "flow",
             direction = "vertical",
         }, MockArgs)
         assert.error(function()
-            print(flow.DIRECTION)
+            print(flow[1])
         end)
     end)
 end)

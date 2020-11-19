@@ -42,6 +42,7 @@ local Subtypes
 -- * direction
 -- * index
 -- * location
+-- * name
 -- * parent
 -- * player_index
 -- * type
@@ -50,6 +51,7 @@ local Subtypes
 -- + CommonMockObject properties.
 --
 -- Other internal fields:
+-- * childrenByName[string]: AbstractGuiElement. Map of child elements, indexed by their names.
 -- * childrenHasLocation: boolean. True if children have a `location` field (like LuaGui:screen).
 --
 local AbstractGuiElement = {
@@ -93,13 +95,20 @@ local AbstractGuiElement = {
             location = {x=0, y=0}
         end
 
+        local name = args.name
+        if name then
+            cLogger:assert(type(name) == "string", "Constructor: invalid name (string required).")
+        end
+
         local data = {
             caption = args.caption,
             children = {},
+            childrenByName = {},
             childrenHasLocation = not not mockArgs.childrenHasLocation,
             enabled = enabled,
             index = makeUniqueIndex(),
             location = location,
+            name = name,
             parent = parent,
             player_index = player_index,
             type = _type,
@@ -134,6 +143,12 @@ local AbstractGuiElement = {
                 return function(childArgs)
                     local data = MockObject.getData(self, "add")
                     local child = make(childArgs, {parent = self})
+                    local childName = child.name
+                    if childName then
+                        local childrenByName = data.childrenByName
+                        cLogger:assert(not childrenByName[childName], "Duplicate name in parent: " .. childName)
+                        data.childrenByName[childName] = child
+                    end
                     table.insert(data.children, child)
                     return child
                 end
@@ -149,6 +164,7 @@ local AbstractGuiElement = {
                         destroyImpl(child)
                     end
                     data.children = {}
+                    data.childrenByName = {}
                 end
             end,
 
@@ -160,14 +176,18 @@ local AbstractGuiElement = {
                     local data = MockObject.getData(self, "destroy")
                     local parent = data.parent
                     if parent then
+                        local parentData = MockObject.getData(parent)
                         local index = 1
-                        local child = parent.children[1]
+                        local child = parentData.children[1]
                         while child and child ~= self do
                             index = index + 1
-                            child = parent.children[index]
+                            child = parentData.children[index]
                         end
                         cLogger:assert(child, "Corrupted parent <-> child relationship.")
-                        table.remove(parent.children, index)
+                        table.remove(parentData.children, index)
+                        if data.name then
+                            parentData.childrenByName[data.name] = nil
+                        end
                         destroyImpl(self)
                     else
                         cLogger:error("Can't destroy root element.")
@@ -178,12 +198,23 @@ local AbstractGuiElement = {
             enabled = MockGetters.validTrivial("enabled"),
             index = MockGetters.validTrivial("index"),
             location = MockGetters.validDeepCopy("location"),
+            name = MockGetters.validTrivial("name"),
             parent = MockGetters.validTrivial("parent"),
             player_index = MockGetters.validTrivial("player_index"),
             style = MockGetters.validTrivial("style"),
             type = MockGetters.validTrivial("type"),
             visible = MockGetters.validTrivial("visible"),
         },
+
+        fallbackGetter = function(self, index)
+            local success = (type(index) == "string") and index ~= "valid"
+            local result = nil
+            if success then
+                local data = MockObject.getData(self, index)
+                result = data.childrenByName[index]
+            end
+            return success,result
+        end,
 
         setters = {
             caption = function(self, value)
