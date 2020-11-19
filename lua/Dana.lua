@@ -17,7 +17,7 @@
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Force = require("lua/model/Force")
 local PrototypeDatabase = require("lua/model/PrototypeDatabase")
-local PlayerController = require("lua/PlayerController")
+local PlayerController = require("lua/controller/PlayerController")
 
 local getModVersion
 local Metatable
