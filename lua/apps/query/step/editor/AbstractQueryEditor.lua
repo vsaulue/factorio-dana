@@ -14,7 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractFactory = require("lua/AbstractFactory")
+local AbstractFactory = require("lua/class/AbstractFactory")
 local AbstractStepWindow = require("lua/apps/query/step/AbstractStepWindow")
 local ClassLogger = require("lua/logger/ClassLogger")
 local Closeable = require("lua/class/Closeable")

@@ -14,7 +14,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractFactory = require("lua/AbstractFactory")
+local AbstractFactory = require("lua/class/AbstractFactory")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
