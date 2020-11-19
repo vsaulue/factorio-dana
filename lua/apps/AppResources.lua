@@ -28,8 +28,6 @@ local Metatable
 --
 -- RO Field:
 -- * force: Force object, corresponding to the force this player belongs to.
--- * menuFlow: GUI Flow usable by this application in the top menu.
--- * positionController: PositionController object.
 -- * rawPlayer: LuaPlayer object from Factorio.
 -- * surface: LuaSurface that this application can use to draw.
 -- * upcalls: AppUpcalls. List of callbacks to the upper controller.
@@ -43,7 +41,6 @@ local AppResources = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into an AppResources object.
     new = function(object)
         cLogger:assertField(object, "force")
-        cLogger:assertField(object, "menuFlow")
         local rawPlayer = cLogger:assertField(object, "rawPlayer")
         local surface = cLogger:assertField(object, "surface")
         cLogger:assertField(object, "upcalls")
@@ -68,6 +65,11 @@ Metatable = {
         -- Implements AppUpcalls:makeAndSwitchApp().
         makeAndSwitchApp = function(self, newApp)
             self.upcalls:makeAndSwitchApp(newApp)
+        end,
+
+        -- Implements AppUpcalls:setAppMenu
+        setAppMenu = function(self, appMenu)
+            self.upcalls:setAppMenu(appMenu)
         end,
 
         -- Implements AppUpcalls:setPosition().

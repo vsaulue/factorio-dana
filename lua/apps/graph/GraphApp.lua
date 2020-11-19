@@ -83,7 +83,7 @@ local GraphApp = ErrorOnInvalidRead.new{
         object.menuFlow = GraphMenuFlow.new{
             appInterface = object,
         }
-        object.menuFlow:open(object.appResources.menuFlow)
+        object.appResources:setAppMenu(object.menuFlow)
 
 
         object:viewGraphCenter()

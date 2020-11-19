@@ -20,6 +20,7 @@ describe("AppUpcalls", function()
     it(".check()", function()
         AppUpcalls.check{
             makeAndSwitchApp = function() end,
+            setAppMenu = function() end,
             setPosition = function() end,
         }
     end)

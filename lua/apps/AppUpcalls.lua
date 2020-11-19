@@ -29,6 +29,7 @@ local AppUpcalls = ErrorOnInvalidRead.new{
     --
     check = function(object)
         cLogger:assertField(object, "makeAndSwitchApp")
+        cLogger:assertField(object, "setAppMenu")
         cLogger:assertField(object, "setPosition")
     end,
 }
@@ -43,6 +44,14 @@ Metatable = {
         -- * newApp: table. Used to build the new AbstractApp.
         --
         makeAndSwitchApp = function(self, newApp) end,
+
+        -- Sets the new application controller for the top-left menu.
+        --
+        -- Args:
+        -- * self: AppUpcalls.
+        -- * appMenu: AbstractGuiController. The new controller to use.
+        --
+        setAppMenu = function(self, appMenu) end,
 
         -- Sets the player's position on the app surface.
         --

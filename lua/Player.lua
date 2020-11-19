@@ -19,11 +19,11 @@ local AppResources = require("lua/apps/AppResources")
 local AppUpcalls = require("lua/apps/AppUpcalls")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
+local MenuWindow = require("lua/controller/MenuWindow")
 local PositionController = require("lua/apps/PositionController")
 
 local closeApp
 local Metatable
-local HideButton
 local setApp
 local setDefaultApp
 local ShowButton
@@ -38,8 +38,7 @@ local ShowButton
 -- * force: Force this player belongs to.
 -- * rawPlayer: Associated LuaPlayer instance.
 -- * graphSurface: LuaSurface used to display graphs to this player.
--- * hideButton: HideButton of this player (in menuFrame).
--- * menuFrame: Top menu displayed when the application is opened.
+-- * menuWindow: MenuWindow. Top-left menu window of this player.
 -- * positionController: PositionController.
 -- * showButton: ShowButton object owned by this player.
 --
@@ -65,24 +64,8 @@ local Player = ErrorOnInvalidRead.new{
             player = object,
         }
         -- Top menu
-        object.menuFrame = object.rawPlayer.gui.screen.add{
-            type = "frame",
-            direction = "horizontal",
-            visible = false,
-        }
-        object.menuFrame.location = {0,0}
-        object.menuFrame.style.maximal_height = 50
-        object.hideButton = HideButton.new{
-            rawElement = object.menuFrame.add{
-                type = "button",
-                caption = {"dana.player.leave"},
-                style = "red_back_button",
-            },
-            player = object,
-        }
-        object.menuFrame.add{
-            type = "line",
-            direction = "vertical",
+        object.menuWindow = MenuWindow.new{
+            playerCtrlInterface = object,
         }
         --
         object.positionController = PositionController.new{
@@ -91,11 +74,6 @@ local Player = ErrorOnInvalidRead.new{
         }
         object.appResources = AppResources.new{
             force = object.force,
-            menuFlow = object.menuFrame.add{
-                type = "flow",
-                direction = "horizontal",
-                name = "appFlow",
-            },
             rawPlayer = object.rawPlayer,
             surface = object.graphSurface,
             upcalls = object,
@@ -115,8 +93,8 @@ local Player = ErrorOnInvalidRead.new{
             App.setmetatable(object.app)
         end
         AppResources.setmetatable(object.appResources)
-        HideButton.setmetatable(object.hideButton)
         PositionController.setmetatable(object.positionController)
+        MenuWindow.setmetatable(object.menuWindow)
         ShowButton.setmetatable(object.showButton)
     end,
 }
@@ -153,6 +131,11 @@ Metatable = {
             self.app:onSelectedArea(event)
         end,
 
+        -- Implements AppUpcalls:setAppMenu().
+        setAppMenu = function(self, appMenu)
+            self.menuWindow:setAppMenu(appMenu)
+        end,
+
         -- Implements AppUpcalls:setPosition().
         setPosition = function(self, position)
             self.positionController:setPosition(position)
@@ -166,7 +149,7 @@ Metatable = {
         show = function(self)
             if self.app and not self.opened then
                 self.opened = true
-                self.menuFrame.visible = true
+                self.menuWindow:open(self.rawPlayer.gui.screen)
                 self.showButton.rawElement.visible = false
                 self.positionController:teleportToApp()
                 self.app:show()
@@ -183,7 +166,7 @@ Metatable = {
         hide = function(self, keepPosition)
             if self.opened then
                 self.opened = false
-                self.menuFrame.visible = false
+                self.menuWindow:close()
                 self.showButton.rawElement.visible = true
                 if keepPosition then
                     self.positionController:restoreController()
@@ -218,7 +201,7 @@ AppUpcalls.check(Metatable.__index)
 closeApp = function(self)
     if self.app then
         self.app:close()
-        GuiElement.clear(self.appResources.menuFlow)
+        self.menuWindow:setAppMenu(nil)
         self.app = false
     end
 end
@@ -238,23 +221,6 @@ ShowButton = GuiElement.newSubclass{
             self.player:show()
         end,
     },
-}
-
--- Button to hide the application of a player.
---
--- Inherits from GuiElement.
---
--- RO field:
--- * player: Player object attached to this GUI.
---
-HideButton = GuiElement.newSubclass{
-    className = "Player/HideButton",
-    mandatoryFields = {"player"},
-    __index = {
-        onClick = function(self, event)
-            self.player:hide(false)
-        end,
-    }
 }
 
 -- Sets a new application.
