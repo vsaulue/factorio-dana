@@ -79,10 +79,14 @@ describe("-- LuaGuiElement", function()
         end)
 
         it("-- error (invalid parent)", function()
-            local parent = LuaGuiElement.make({
+            local root = LuaGuiElement.make({
                 type = "flow",
                 direction = "vertical",
             }, MockArgs)
+            local parent = root.add{
+                type = "frame",
+                direction = "horizontal",
+            }
             parent.destroy()
             assert.error(function()
                 parent.add{
@@ -110,11 +114,6 @@ describe("-- LuaGuiElement", function()
                 caption = caption,
             }, MockArgs)
             assert.are.equals(element.caption, caption)
-
-            element.destroy()
-            assert.error(function()
-                print(element.caption)
-            end)
         end)
 
         it("--write", function()
@@ -124,11 +123,6 @@ describe("-- LuaGuiElement", function()
             }, MockArgs)
             element.caption = caption
             assert.are.equals(MockObject.getData(element).caption, caption)
-
-            element.destroy()
-            assert.error(function()
-                element.caption = caption
-            end)
         end)
     end)
 
@@ -156,10 +150,14 @@ describe("-- LuaGuiElement", function()
         end)
 
         it("-- error (invalid self)", function()
-            local parent = LuaGuiElement.make({
+            local root = LuaGuiElement.make({
                 type = "flow",
                 direction = "vertical",
             }, MockArgs)
+            local parent = root.add{
+                type = "flow",
+                direction = "horizontal",
+            }
             parent.destroy()
 
             assert.error(function()
@@ -196,14 +194,26 @@ describe("-- LuaGuiElement", function()
         end)
 
         it("-- error (invalid self)", function()
-            local parent = LuaGuiElement.make({
+            local root = LuaGuiElement.make({
                 type = "flow",
                 direction = "vertical",
             }, MockArgs)
+            local parent = root.add{type = "button"}
             parent.destroy()
 
             assert.error(function()
                 parent.destroy()
+            end)
+        end)
+
+        it("-- error (root element)", function()
+            local root = LuaGuiElement.make({
+                type = "flow",
+                direction = "vertical",
+            }, MockArgs)
+
+            assert.error(function()
+                root.destroy()
             end)
         end)
     end)
@@ -297,11 +307,6 @@ describe("-- LuaGuiElement", function()
                 type = "label",
             }, MockArgs)
             assert.is_false(element.visible)
-
-            element.destroy()
-            assert.error(function()
-                print(element.visible)
-            end)
         end)
 
         it("--write", function()
@@ -310,11 +315,6 @@ describe("-- LuaGuiElement", function()
             }, MockArgs)
             element.visible = true
             assert.is_true(MockObject.getData(element).visible)
-
-            element.destroy()
-            assert.error(function()
-                element.visible = visible
-            end)
         end)
     end)
 

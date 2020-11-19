@@ -155,8 +155,10 @@ local AbstractGuiElement = {
                         end
                         cLogger:assert(child, "Corrupted parent <-> child relationship.")
                         table.remove(parent.children, index)
+                        destroyImpl(self)
+                    else
+                        cLogger:error("Can't destroy root element.")
                     end
-                    destroyImpl(self)
                 end
             end,
 
