@@ -50,6 +50,13 @@ describe("MockMetatable", function()
                         return {self, "derived", "foo"}
                     end,
                 },
+                fallbackGetter = function(self, index)
+                    local result = nil
+                    if index == "fallback" then
+                        result = {self, "derived", "back"}
+                    end
+                    return (result ~= nil), result
+                end,
                 setters = {
                     barfoo = function(self, value)
                         rawset(self, "barfoo", {self, "derived", value})
@@ -71,6 +78,7 @@ describe("MockMetatable", function()
         it("-- __index", function()
             assert.are.same(derived.kilroy, {derived, "base", "kilroy"})
             assert.are.same(derived.foobar, {derived, "derived", "foo"})
+            assert.are.same(derived.fallback, {derived, "derived", "back"})
         end)
 
         it("-- __setindex", function()

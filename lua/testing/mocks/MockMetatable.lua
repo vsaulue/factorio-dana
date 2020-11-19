@@ -86,11 +86,18 @@ Metatable = {
 makeSubclassIndex = function(base, params)
     local baseIndex = base.__index
     local getters = params.getters
+    local fallbackGetter = params.fallbackGetter
     return function(self, index)
         if getters then
             local getter = getters[index]
             if getter then
                 return getter(self)
+            end
+        end
+        if fallbackGetter then
+            local success,result = fallbackGetter(self, index)
+            if success then
+                return result
             end
         end
         return baseIndex(self, index)

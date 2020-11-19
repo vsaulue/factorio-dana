@@ -24,8 +24,9 @@ local checkMap
 --
 -- Fields:
 -- * className: string. Name of the new class.
+-- * fallbackGetter: function(object, any) -> boolean,any. Function called when `index` is not in `getters`.
 -- * getters[any]: function(object) -> *. Map of getter methods, indexed by the key to read.
--- * getters[any]: function(object, value). Map of setter methods, indexed by the key to write.
+-- * setters[any]: function(object, value). Map of setter methods, indexed by the key to write.
 --
 local MockMetatableParams = {
     -- Checks if a MockMetatableParams object has correct values.
@@ -40,6 +41,10 @@ local MockMetatableParams = {
 
         checkMap(object, "getters", "string", "function")
         checkMap(object, "setters", "string", "function")
+
+        if object.fallbackGetter then
+            cLogger:assert(type(object.fallbackGetter) == "function", "Invalid fallbackGetter (function expected).")
+        end
 
         return object
     end,

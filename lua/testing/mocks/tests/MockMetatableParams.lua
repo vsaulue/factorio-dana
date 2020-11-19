@@ -18,8 +18,9 @@ local MockMetatableParams = require("lua/testing/mocks/MockMetatableParams")
 
 describe("MockMetatableParams", function()
     describe(".check()", function()
-        it("-- valid", function()
-            local object = MockMetatableParams.check{
+        local cArgs
+        before_each(function()
+            cArgs = {
                 className = "foobar",
                 getters = {
                     was = function() end,
@@ -30,25 +31,34 @@ describe("MockMetatableParams", function()
             }
         end)
 
+        it("-- valid", function()
+            local object = MockMetatableParams.check(cArgs)
+            assert.are.equals(object, cArgs)
+        end)
+
+        it("-- valid + fallbackGetter", function()
+            cArgs.fallbackGetter = function() end,
+            MockMetatableParams.check(cArgs)
+        end)
+
         it("-- invalid (wrong key type)", function()
+            cArgs.getters[1] = true
             assert.error(function()
-                MockMetatableParams.check{
-                    className = "foobar",
-                    getters = {
-                        [1] = true,
-                    }
-                }
+                MockMetatableParams.check(cArgs)
             end)
         end)
 
         it("-- invalid (wrong value type)", function()
+            cArgs.setters.foobar = "wololo"
             assert.error(function()
-                MockMetatableParams.check{
-                    className = "foobar",
-                    setters = {
-                        barfoo = "wololo",
-                    }
-                }
+                MockMetatableParams.check(cArgs)
+            end)
+        end)
+
+        it("-- invalid (wrong fallbackGetter)", function()
+            cArgs.fallbackGetter = "denied"
+            assert.error(function()
+                MockMetatableParams.check(cArgs)
             end)
         end)
     end)
