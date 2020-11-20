@@ -15,17 +15,17 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local LuaGuiElement = require("lua/testing/mocks/LuaGuiElement")
+local MockObject = require("lua/testing/mocks/MockObject")
 
 describe("--[[Mock]] FlowGuiElement", function()
     local MockArgs = {player_index = 5678}
 
     describe(".make", function()
-        it("-- error (no direction)", function()
-            assert.error(function()
-                LuaGuiElement.make({
-                    type = "flow",
-                }, MockArgs)
-            end)
+        it("-- valid", function()
+            local flow = LuaGuiElement.make({
+                type = "flow",
+            }, MockArgs)
+            assert.are.equals(MockObject.getData(flow).direction, "horizontal")
         end)
 
         it("-- error (invalid direction)", function()
