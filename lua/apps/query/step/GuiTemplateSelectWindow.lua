@@ -33,7 +33,7 @@ local TemplateSelectButton
 -- * frame: LuaGuiElement. Top-level frame owned by this GUI.
 -- * fullGraphButton: FullGraphButton. Button owned by this GUI.
 -- * parent: LuaGuiElement. Element containing this GUI.
--- * templateButtons: Set<TemplateSelectButton>. Buttons owned by this GUI.
+-- * templateButtons[string]: TemplateSelectButton. Template selection button, indexed by template name.
 --
 local GuiTemplateSelectWindow = ErrorOnInvalidRead.new{
     -- Creates a new GuiTemplateSelectWindow object.
@@ -81,7 +81,7 @@ local GuiTemplateSelectWindow = ErrorOnInvalidRead.new{
                 },
                 templateName = templateName,
             }
-            object.templateButtons[newButton] = true
+            object.templateButtons[templateName] = newButton
         end
 
         setmetatable(object, Metatable)
@@ -96,7 +96,7 @@ local GuiTemplateSelectWindow = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         setmetatable(object, Metatable)
         FullGraphButton.setmetatable(object.fullGraphButton)
-        ErrorOnInvalidRead.setmetatable(object.templateButtons, TemplateSelectButton.setmetatable)
+        ErrorOnInvalidRead.setmetatable(object.templateButtons, nil, TemplateSelectButton.setmetatable)
     end,
 }
 
@@ -107,7 +107,7 @@ Metatable = {
         close = function(self)
             GuiElement.safeDestroy(self.frame)
             self.fullGraphButton:close()
-            Closeable.closeMapKeys(self.templateButtons)
+            Closeable.closeMapValues(self.templateButtons)
         end,
     }
 }
