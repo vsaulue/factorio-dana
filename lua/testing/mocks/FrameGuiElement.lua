@@ -42,7 +42,7 @@ local FrameGuiElement = {
         cLogger:assert(args.type == ElementType, "Incorrect type value: " .. tostring(args.type))
         local data = MockObject.getData(result)
 
-        local direction = cLogger:assertField(args, "direction")
+        local direction = args.direction or "horizontal"
         data.direction = GuiDirection.check(direction)
 
         return result
