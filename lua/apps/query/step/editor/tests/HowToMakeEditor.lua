@@ -123,13 +123,11 @@ describe("HowToMakeEditor + Abstract + GUI", function()
                         controller = controller,
                         force = force,
                         prototypes = prototypes,
-                        query = controller.query,
                     },
                     metatableSetter = function(objects)
                         PrototypeDatabase.setmetatable(objects.prototypes)
                         Force.setmetatable(objects.force)
                         AppResources.setmetatable(objects.appResources)
-                        HowToMakeQuery.setmetatable(objects.query)
                         AbstractQueryEditor.Factory:restoreMetatable(objects.controller)
                     end,
                 }

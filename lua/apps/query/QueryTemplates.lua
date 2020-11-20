@@ -21,26 +21,20 @@ local UsagesOfQuery = require("lua/query/UsagesOfQuery")
 -- Map of QueryTemplate object (= preset queries), indexed by names.
 --
 -- RO Fields:
--- * applyTemplate: Function to configure the query app.
--- * caption: Caption of the button in the TemplateSelectWindow.
+-- * caption: LocalisedString. Caption of the button in the TemplateSelectWindow.
+-- * queryClass: table. Class table of the query.
 --
 local QueryTemplates = ErrorOnInvalidRead.new{
     -- Query to see how to craft a given set of intermediates.
     HowToMake = ErrorOnInvalidRead.new{
-        applyTemplate = function(app)
-            app.query = HowToMakeQuery.new()
-        end,
-
         caption = {"dana.apps.query.templateSelectWindow.howToMake"},
+        queryClass = HowToMakeQuery,
     },
 
     -- Query to see what can be crafted from a given set of intermediates.
     UsagesOf = ErrorOnInvalidRead.new{
-        applyTemplate = function(app)
-            app.query = UsagesOfQuery.new()
-        end,
-
         caption = {"dana.apps.query.templateSelectWindow.usagesOf"},
+        queryClass = UsagesOfQuery,
     },
 }
 

@@ -94,13 +94,11 @@ describe("UsagesOfEditor", function()
                     controller = controller,
                     force = force,
                     prototypes = prototypes,
-                    query = controller.query,
                 },
                 metatableSetter = function(objects)
                     PrototypeDatabase.setmetatable(objects.prototypes)
                     Force.setmetatable(objects.force)
                     AppResources.setmetatable(objects.appResources)
-                    UsagesOfQuery.setmetatable(objects.query)
                     UsagesOfEditor.setmetatable(objects.controller)
                 end,
             }

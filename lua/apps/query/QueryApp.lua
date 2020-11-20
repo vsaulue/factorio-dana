@@ -33,7 +33,6 @@ local Metatable
 -- Implements QueryAppInterface.
 --
 -- RO Fields:
--- * query: Query object being built and run.
 -- * stepWindows: Stack of AbstractStepWindow objects (the top one is the only active).
 --
 local QueryApp = ErrorOnInvalidRead.new{
@@ -46,7 +45,6 @@ local QueryApp = ErrorOnInvalidRead.new{
     --
     new = function(object)
         object.appName = AppName
-        object.query = FullGraphQuery.new()
 
         AbstractApp.new(object, Metatable)
 
@@ -65,7 +63,6 @@ local QueryApp = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
-        AbstractQuery.Factory:restoreMetatable(object.query)
 
         local stack = object.stepWindows
         Stack.setmetatable(stack)
@@ -107,8 +104,7 @@ Metatable = {
         end,
 
         -- Implements QueryAppInterface:runQueryAndDraw().
-        runQueryAndDraw = function(self)
-            local query = self.query
+        runQueryAndDraw = function(self, query)
             local force = self.appResources.force
             local graph,vertexDists = query:execute(force)
 

@@ -74,8 +74,7 @@ Metatable = {
         -- * self: TemplateSelectWindow.
         --
         selectFullGraph = function(self)
-            self.app.query = FullGraphQuery.new()
-            self.app:runQueryAndDraw()
+            self.app:runQueryAndDraw(FullGraphQuery.new())
         end,
 
         -- Selects a query template.
@@ -88,10 +87,9 @@ Metatable = {
             local template = QueryTemplates[templateName]
             local app = self.app
 
-            template.applyTemplate(app)
             app:pushStepWindow(QueryEditor.new{
                 app = app,
-                query = app.query,
+                query = template.queryClass.new(),
             })
         end,
     },

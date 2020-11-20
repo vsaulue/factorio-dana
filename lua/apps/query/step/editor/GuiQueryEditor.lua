@@ -44,7 +44,6 @@ local GuiQueryEditor = ErrorOnInvalidRead.new{
         local controller = cLogger:assertField(object, "controller")
         local parent = cLogger:assertField(object, "parent")
 
-        local app = controller.app
         object.frame = parent.add{
             type = "frame",
             direction = "vertical",
@@ -61,7 +60,7 @@ local GuiQueryEditor = ErrorOnInvalidRead.new{
             direction = "horizontal",
         }
         object.backButton = BackButton.new{
-            app = app,
+            controller = controller,
             rawElement = bottomFlow.add{
                 type = "button",
                 caption = {"gui.cancel"},
@@ -74,7 +73,7 @@ local GuiQueryEditor = ErrorOnInvalidRead.new{
         }
         pusher.style.horizontally_stretchable = true
         object.drawButton = DrawButton.new{
-            app = app,
+            controller = controller,
             rawElement = bottomFlow.add{
                 type = "button",
                 caption = {"dana.apps.query.queryEditor.draw"},
@@ -132,10 +131,10 @@ Metatable = {
 --
 BackButton = GuiElement.newSubclass{
     className = "QueryEditorWindow/BackButton",
-    mandatoryFields = {"app"},
+    mandatoryFields = {"controller"},
     __index = {
         onClick = function(self, event)
-            self.app:popStepWindow()
+            self.controller.app:popStepWindow()
         end,
     },
 }
@@ -145,14 +144,14 @@ BackButton = GuiElement.newSubclass{
 -- Inherits from GuiElement.
 --
 -- RO Fields:
--- * app: QueryApp owning this button.
+-- * controller: QueryApp owning this button.
 --
 DrawButton = GuiElement.newSubclass{
     className = "QueryEditorWindow/DrawButton",
-    mandatoryFields = {"app"},
+    mandatoryFields = {"controller"},
     __index = {
         onClick = function(self, event)
-            self.app:runQueryAndDraw()
+            self.controller:runQueryAndDraw()
         end,
     },
 }

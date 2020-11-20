@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractFactory = require("lua/class/AbstractFactory")
+local AbstractQuery = require("lua/query/AbstractQuery")
 local AbstractStepWindow = require("lua/apps/query/step/AbstractStepWindow")
 local ClassLogger = require("lua/logger/ClassLogger")
 local Closeable = require("lua/class/Closeable")
@@ -77,6 +78,7 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         AbstractStepWindow.setmetatable(object, Metatable, GuiQueryEditor.setmetatable)
+        AbstractQuery.Factory:restoreMetatable(object.query)
     end,
 }
 
@@ -95,6 +97,15 @@ Metatable = {
                 controller = self,
                 parent = parent,
             }
+        end,
+
+        -- Runs the query in the application.
+        --
+        -- Args:
+        -- * self: QueryAppInterface object.
+        --
+        runQueryAndDraw = function(self)
+            self.app:runQueryAndDraw(self.query)
         end,
 
         -- Sets the "paramsEditor" field.

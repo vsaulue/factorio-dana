@@ -55,8 +55,9 @@ Metatable = {
         --
         -- Args:
         -- * self: QueryAppInterface object.
+        -- * query: AbstractQuery. Query to execute.
         --
-        runQueryAndDraw = function(self) end,
+        runQueryAndDraw = function(self, query) end,
     },
 }
 --]]
