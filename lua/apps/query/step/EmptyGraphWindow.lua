@@ -18,17 +18,12 @@ local AbstractStepWindow = require("lua/apps/query/step/AbstractStepWindow")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiEmptyGraphWindow = require("lua/apps/query/step/GuiEmptyGraphWindow")
 
-local BackButton
 local Metatable
 local StepName
 
 -- Window shown when a query generated an empty graph.
 --
 -- Inherits from AbstractStepWindow.
---
--- RO Fields:
--- * backButton: BackButton object of this window.
--- + AbstractStepWindow.
 --
 local EmptyGraphWindow = ErrorOnInvalidRead.new{
     -- Creates a new EmptyGraphWindow object.
@@ -51,7 +46,6 @@ local EmptyGraphWindow = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         AbstractStepWindow.setmetatable(object, Metatable, GuiEmptyGraphWindow.setmetatable)
-        BackButton.setmetatable(object.backButton)
     end,
 }
 
