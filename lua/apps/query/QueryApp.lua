@@ -20,6 +20,7 @@ local AbstractQuery = require("lua/query/AbstractQuery")
 local EmptyGraphWindow = require("lua/apps/query/step/EmptyGraphWindow")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local FullGraphQuery = require("lua/query/FullGraphQuery")
+local QueryAppInterface = require("lua/apps/query/QueryAppInterface")
 local Stack = require("lua/containers/Stack")
 local TemplateSelectWindow = require("lua/apps/query/step/TemplateSelectWindow")
 
@@ -29,6 +30,7 @@ local Metatable
 -- Application to build crafting hypergraphs from a Force's database.
 --
 -- Inherits from AbstractApp.
+-- Implements QueryAppInterface.
 --
 -- RO Fields:
 -- * query: Query object being built and run.
@@ -90,33 +92,21 @@ Metatable = {
             stack[stack.topIndex]:close()
         end,
 
-        -- Closes the top window, and shows the previous one.
-        --
-        -- Args:
-        -- * self: QueryApp object.
-        --
+        -- Implements QueryAppInterface:popStepWindow().
         popStepWindow = function(self)
             local window = self.stepWindows:pop()
             window:close()
             self:show()
         end,
 
-        -- Hides the current window, and shows a new one.
-        --
-        -- Args:
-        -- * self: QueryApp object.
-        --
+        -- Implements QueryAppInterface:pushStepWindow().
         pushStepWindow = function(self, newWindow)
             self:hide()
             self.stepWindows:push(newWindow)
             self:show()
         end,
 
-        -- Runs the query, and switch to the Graph app.
-        --
-        -- Args:
-        -- * self: QueryApp object.
-        --
+        -- Implements QueryAppInterface:runQueryAndDraw().
         runQueryAndDraw = function(self)
             local query = self.query
             local force = self.appResources.force
@@ -146,6 +136,7 @@ Metatable = {
     },
 }
 setmetatable(Metatable.__index, {__index = AbstractApp.Metatable.__index})
+QueryAppInterface.check(Metatable.__index)
 
 -- Unique name for this application.
 AppName = "query"
