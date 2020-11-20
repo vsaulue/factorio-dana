@@ -19,9 +19,24 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "QueryAppInterface"}
 
+local checkMethods
+
 -- Interface containing callbacks from top-level controller of the query application.
 --
+-- RO Fields:
+-- * appResources: AppResources. Resources available to this application.
+--
 local QueryAppInterface = ErrorOnInvalidRead.new{
+    -- Checks all methods & fields.
+    --
+    -- Args:
+    -- * object: QueryAppInterface.
+    --
+    check = function(object)
+        cLogger:assertField(object, "appResources")
+        checkMethods(object)
+    end,
+
     -- Checks that all methods are implemented.
     --
     -- Args:
@@ -61,5 +76,7 @@ Metatable = {
     },
 }
 --]]
+
+checkMethods = QueryAppInterface.checkMethods
 
 return QueryAppInterface

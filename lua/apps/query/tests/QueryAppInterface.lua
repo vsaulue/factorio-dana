@@ -16,8 +16,9 @@
 
 local QueryAppInterface = require("lua/apps/query/QueryAppInterface")
 
-it("QueryAppInterface.checkMethods()", function()
-    QueryAppInterface.checkMethods{
+describe("QueryAppInterface", function()
+    QueryAppInterface.check{
+        appResources = {},
         popStepWindow = function() end,
         pushStepWindow = function() end,
         runQueryAndDraw = function() end,
