@@ -132,7 +132,7 @@ Metatable = {
     },
 }
 setmetatable(Metatable.__index, {__index = AbstractApp.Metatable.__index})
-QueryAppInterface.check(Metatable.__index)
+QueryAppInterface.checkMethods(Metatable.__index)
 
 -- Unique name for this application.
 AppName = "query"

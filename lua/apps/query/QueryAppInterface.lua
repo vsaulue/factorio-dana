@@ -27,7 +27,7 @@ local QueryAppInterface = ErrorOnInvalidRead.new{
     -- Args:
     -- * object: QueryAppInterface.
     --
-    check = function(object)
+    checkMethods = function(object)
         cLogger:assertField(object, "popStepWindow")
         cLogger:assertField(object, "pushStepWindow")
         cLogger:assertField(object, "runQueryAndDraw")
