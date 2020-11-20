@@ -16,13 +16,15 @@
 
 local AbstractQueryEditor = require("lua/apps/query/step/editor/AbstractQueryEditor")
 local AppResources = require("lua/apps/AppResources")
+local AutoLoaded = require("lua/testing/AutoLoaded")
 local Force = require("lua/model/Force")
 local GuiElement = require("lua/gui/GuiElement")
 local HowToMakeEditor = require("lua/apps/query/step/editor/HowToMakeEditor")
 local HowToMakeQuery = require("lua/query/HowToMakeQuery")
 local MinDistEditor = require("lua/apps/query/params/MinDistEditor")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
-local PrototypeDatabase = require("lua/model.PrototypeDatabase")
+local PrototypeDatabase = require("lua/model/PrototypeDatabase")
+local QueryAppInterface = require("lua/apps/query/QueryAppInterface")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 local UsagesOfQuery = require("lua/query/UsagesOfQuery")
 
@@ -62,7 +64,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
     end)
 
     local appResources
-    local app
+    local appInterface
     before_each(function()
         parent.clear()
         GuiElement.on_init()
@@ -74,16 +76,20 @@ describe("HowToMakeEditor + Abstract + GUI", function()
             surface = surface,
             upcalls = {},
         }
-        app = {
+        appInterface = AutoLoaded.new{
             appResources = appResources,
+            pushStepWindow = function() end,
+            popStepWindow = function() end,
+            runQueryAndDraw = function() end,
         }
+        QueryAppInterface.check(appInterface)
     end)
 
     describe(".make()", function()
         local cArgs
         before_each(function()
             cArgs = {
-                app = app,
+                appInterface = appInterface,
                 query = HowToMakeQuery.new(),
             }
         end)
@@ -110,7 +116,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
             query.destParams.maxDepth = 8
 
             controller = HowToMakeEditor.new{
-                app = app,
+                appInterface = appInterface,
                 query = query,
             }
         end)
@@ -164,7 +170,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
             local newEditor
             before_each(function()
                 newEditor = MinDistEditor.new{
-                    appResources = controller.app.appResources,
+                    appResources = appResources,
                     isForward = false,
                     params = controller.query.destParams,
                 }
@@ -192,21 +198,21 @@ describe("HowToMakeEditor + Abstract + GUI", function()
             end)
 
             it("BackButton", function()
-                stub(app, "popStepWindow")
+                stub(appInterface, "popStepWindow")
                 GuiElement.on_gui_click{
                     element = controller.gui.backButton.rawElement,
                     player_index = player.index,
                 }
-                assert.stub(app.popStepWindow).was.called()
+                assert.stub(appInterface.popStepWindow).was.called()
             end)
 
             it("DrawButton", function()
-                stub(app, "runQueryAndDraw")
+                stub(appInterface, "runQueryAndDraw")
                 GuiElement.on_gui_click{
                     element = controller.gui.drawButton.rawElement,
                     player_index = player.index,
                 }
-                assert.stub(app.runQueryAndDraw).was.called()
+                assert.stub(appInterface.runQueryAndDraw).was.called()
             end)
         end)
     end)

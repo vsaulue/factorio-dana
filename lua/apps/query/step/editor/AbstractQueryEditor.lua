@@ -34,8 +34,7 @@ local StepName
 -- Inherits from AbstractStepWindow.
 --
 -- RO Fields:
--- * appResources: AppResources object of the owning application.
--- * query: The edited AbstractQuery.
+-- * query: AbstractQuery. The edited query.
 -- * paramsEditor: AbstractGuiController or nil. Current editor.
 -- + AbstractStepWindow.
 --
@@ -59,8 +58,6 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
     --
     make = function(object, queryType)
         object.stepName = StepName
-        local app = cLogger:assertField(object, "app")
-        object.appResources = app.appResources
 
         local query = cLogger:assertField(object, "query")
         if query.queryType ~= queryType then
@@ -105,7 +102,7 @@ Metatable = {
         -- * self: QueryAppInterface object.
         --
         runQueryAndDraw = function(self)
-            self.app:runQueryAndDraw(self.query)
+            self.appInterface:runQueryAndDraw(self.query)
         end,
 
         -- Sets the "paramsEditor" field.

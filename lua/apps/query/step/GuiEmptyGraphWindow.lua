@@ -59,8 +59,8 @@ local GuiEmptyGraphWindow = ErrorOnInvalidRead.new{
             direction = "horizontal",
         }
         object.backButton = BackButton.new{
-            app = controller.app,
-                rawElement = object.frame.add{
+            controller = controller,
+            rawElement = object.frame.add{
                 type = "button",
                 caption = {"gui.cancel"},
                 style = "back_button",
@@ -98,14 +98,14 @@ Metatable = {
 -- Inherits from GuiElement.
 --
 -- RO Fields:
--- * app: QueryApp owning this button.
+-- * controller: EmptyGraphWindow. Controller owning this button.
 --
 BackButton = GuiElement.newSubclass{
     className = "EmptyGraphWindow/BackButton",
-    mandatoryFields = {"app"},
+    mandatoryFields = {"controller"},
     __index = {
         onClick = function(self, event)
-            self.app:popStepWindow()
+            self.controller.appInterface:popStepWindow()
         end,
     }
 }

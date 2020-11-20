@@ -50,7 +50,7 @@ local QueryApp = ErrorOnInvalidRead.new{
 
         object.stepWindows = Stack.new()
         object.stepWindows:push(TemplateSelectWindow.new{
-            app = object,
+            appInterface = object,
         })
 
         return object
@@ -116,7 +116,7 @@ Metatable = {
                 }
             else
                 self:pushStepWindow(EmptyGraphWindow.new{
-                    app = self,
+                    appInterface = self,
                 })
             end
         end,

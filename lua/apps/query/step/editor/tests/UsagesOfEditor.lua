@@ -15,10 +15,12 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AppResources = require("lua/apps/AppResources")
+local AutoLoaded = require("lua/testing/AutoLoaded")
 local Force = require("lua/model/Force")
 local GuiElement = require("lua/gui/GuiElement")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local PrototypeDatabase = require("lua/model/PrototypeDatabase")
+local QueryAppInterface = require("lua/apps/query/QueryAppInterface")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 local UsagesOfEditor = require("lua/apps/query/step/editor/UsagesOfEditor")
 local UsagesOfQuery = require("lua/query/UsagesOfQuery")
@@ -58,7 +60,7 @@ describe("UsagesOfEditor", function()
         }
     end)
 
-    local app
+    local appInterface
     local appResources
     local controller
     before_each(function()
@@ -72,11 +74,17 @@ describe("UsagesOfEditor", function()
             surface = surface,
             upcalls = {},
         }
-        app = {
+
+        appInterface = AutoLoaded.new{
             appResources = appResources,
+            pushStepWindow = function() end,
+            popStepWindow = function() end,
+            runQueryAndDraw = function() end,
         }
+        QueryAppInterface.check(appInterface)
+
         controller = UsagesOfEditor.new{
-            app = app,
+            appInterface = appInterface,
             query = UsagesOfQuery.new(),
         }
     end)

@@ -27,8 +27,8 @@ local cLogger = ClassLogger.new{className = "queryApp/AbstractStepWindow"}
 -- Inherits from AbstractGuiController.
 --
 -- RO Fields:
--- * app: QueryApp object owning this window.
--- * stepName: String indicating the type of step window.
+-- * appInterface: QueryAppInterface. Callbacks to the upper controller.
+-- * stepName: string. Class identifier of this AbstractStepWindow.
 -- + AbstractGuiController.
 --
 local AbstractStepWindow = ErrorOnInvalidRead.new{
@@ -44,14 +44,14 @@ local AbstractStepWindow = ErrorOnInvalidRead.new{
     -- Creates a new AbstractStepWindow object.
     --
     -- Args:
-    -- * object: Table to turn into an AbstractStepWindow object (required fields: app, stepName).
+    -- * object: table. Required fields: appInterface, stepName.
+    -- * metatable:
     --
     -- Returns: The argument turned into an AbstractStepWindow object.
     --
     new = function(object, metatable)
-        local app = cLogger:assertField(object, "app")
+        cLogger:assertField(object, "appInterface")
         cLogger:assertField(object, "stepName")
-
         return AbstractGuiController.new(object, metatable)
     end,
 

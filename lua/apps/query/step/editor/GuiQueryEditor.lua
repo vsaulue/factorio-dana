@@ -134,7 +134,7 @@ BackButton = GuiElement.newSubclass{
     mandatoryFields = {"controller"},
     __index = {
         onClick = function(self, event)
-            self.controller.app:popStepWindow()
+            self.controller.appInterface:popStepWindow()
         end,
     },
 }

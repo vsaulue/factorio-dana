@@ -38,7 +38,7 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
     new = function(object)
         AbstractQueryEditor.make(object, QueryType)
         object:setParamsEditor(MinDistEditor.new{
-            appResources = object.appResources,
+            appResources = object.appInterface.appResources,
             isForward = true,
             params = object.query.sourceParams,
         })
