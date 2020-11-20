@@ -23,6 +23,7 @@ return {
             "lua/apps/graph/tests",
             "lua/apps/query/params/tests",
             "lua/apps/query/step/editor/tests",
+            "lua/apps/query/step/tests",
             "lua/apps/query/tests",
             "lua/apps/tests",
             "lua/canvas/objects/tests",
