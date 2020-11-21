@@ -126,7 +126,7 @@ Metatable = {
             local stack = self.stepWindows
             local stepWindow = stack[stack.topIndex]
             if not rawget(stepWindow, "gui") then
-                stepWindow:open(self.appResources.rawPlayer.gui.center)
+                stepWindow:open(self.appResources.rawPlayer.gui.screen)
             end
         end,
     },

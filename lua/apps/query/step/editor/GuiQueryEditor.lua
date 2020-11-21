@@ -44,18 +44,19 @@ local GuiQueryEditor = ErrorOnInvalidRead.new{
         local controller = cLogger:assertField(object, "controller")
         local parent = cLogger:assertField(object, "parent")
 
-        object.frame = parent.add{
+        local frame = parent.add{
             type = "frame",
             direction = "vertical",
             caption = {"dana.apps.query.queryEditor.title"},
         }
-        object.paramsFrame = object.frame.add{
+        object.frame = frame
+        object.paramsFrame = frame.add{
             type = "frame",
             style = "inside_shallow_frame_with_padding",
             direction = "vertical",
         }
 
-        local bottomFlow = object.frame.add{
+        local bottomFlow = frame.add{
             type = "flow",
             direction = "horizontal",
         }
@@ -80,6 +81,9 @@ local GuiQueryEditor = ErrorOnInvalidRead.new{
                 style = "confirm_button",
             },
         }
+        if frame.location then
+            frame.force_auto_center()
+        end
 
         setmetatable(object, Metatable)
         object:updateParamsEditor()

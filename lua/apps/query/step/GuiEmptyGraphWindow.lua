@@ -44,20 +44,24 @@ local GuiEmptyGraphWindow = ErrorOnInvalidRead.new{
         local controller = cLogger:assertField(object, "controller")
         local parent = cLogger:assertField(object, "parent")
 
-        object.frame = parent.add{
+        local frame = parent.add{
             type = "frame",
             direction = "vertical",
             caption = {"dana.apps.query.emptyGraphWindow.title"},
         }
+        object.frame = frame
 
-        object.frame.add{
+        frame.add{
             type = "label",
             caption = {"dana.apps.query.emptyGraphWindow.description"},
         }
-        object.frame.add{
+        frame.add{
             type = "line",
             direction = "horizontal",
         }
+        if frame.location then
+            frame.force_auto_center()
+        end
         object.backButton = BackButton.new{
             controller = controller,
             rawElement = object.frame.add{

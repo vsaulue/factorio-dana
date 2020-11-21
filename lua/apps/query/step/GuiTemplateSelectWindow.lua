@@ -47,11 +47,12 @@ local GuiTemplateSelectWindow = ErrorOnInvalidRead.new{
         local controller = cLogger:assertField(object, "controller")
         local parent = cLogger:assertField(object, "parent")
 
-        object.frame = parent.add{
+        local frame = parent.add{
             type = "frame",
             direction = "vertical",
             caption = {"dana.apps.query.templateSelectWindow.title"},
         }
+        object.frame = frame
         local innerFrame = object.frame.add{
             type = "frame",
             style = "inside_deep_frame",
@@ -82,6 +83,9 @@ local GuiTemplateSelectWindow = ErrorOnInvalidRead.new{
                 templateName = templateName,
             }
             object.templateButtons[templateName] = newButton
+        end
+        if frame.location then
+            frame.force_auto_center()
         end
 
         setmetatable(object, Metatable)
