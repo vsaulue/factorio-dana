@@ -46,6 +46,8 @@ local MockFactorio = ErrorOnInvalidRead.new{
 
 -- Metatable of the MockFactorio class.
 Metatable = {
+    autoLoaded = true,
+
     __index = ErrorOnInvalidRead.new{
         -- Creates a new player in the game.
         --
