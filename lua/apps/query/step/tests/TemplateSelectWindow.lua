@@ -16,11 +16,9 @@
 
 local AbstractStepWindow = require("lua/apps/query/step/AbstractStepWindow")
 local AppResources = require("lua/apps/AppResources")
+local AppTestbench = require("lua/testing/AppTestbench")
 local AutoLoaded = require("lua/testing/AutoLoaded")
-local Force = require("lua/model/Force")
 local GuiElement = require("lua/gui/GuiElement")
-local MockFactorio = require("lua/testing/mocks/MockFactorio")
-local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local QueryAppInterface = require("lua/apps/query/QueryAppInterface")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 local TemplateSelectWindow = require("lua/apps/query/step/TemplateSelectWindow")
@@ -39,61 +37,40 @@ assert:register("matcher", "isQueryEditor", function(state, args)
 end)
 
 describe("TemplateSelectWindow", function()
-    local factorio
-    local surface
-    local player
     local parent
-    local prototypes
     local force
-    setup(function()
-        local rawData = {
-            fluid = {
-                steam = {type = "fluid", name = "steam"},
-                water = {type = "fluid", name = "water"},
-            },
-            item = {
-                coal = {type = "item", name = "coal"},
-                wood = {type = "item", name = "wood"},
-            },
-        }
-        factorio = MockFactorio.make{
-            rawData = rawData,
-        }
-        player = factorio:createPlayer{
-            forceName = "player",
-        }
-        parent = player.gui.center
-        surface = factorio.game.create_surface("dana", {})
-        factorio:setup()
-
-        prototypes = PrototypeDatabase.new(factorio.game)
-        force = Force.new{
-            prototypes = prototypes,
-            rawForce = factorio.game.forces.player,
-        }
-    end)
-
-    local appResources
+    local appTestbench
     local appInterface
-    local controller
-    before_each(function()
-        parent.clear()
-        GuiElement.on_init()
-
-        appResources = AppResources.new{
-            force = force,
-            menuFlow = {},
-            rawPlayer = player,
-            surface = surface,
-            upcalls = {},
+    setup(function()
+        appTestbench = AppTestbench.make{
+            rawData = {
+                fluid = {
+                    steam = {type = "fluid", name = "steam"},
+                    water = {type = "fluid", name = "water"},
+                },
+                item = {
+                    coal = {type = "item", name = "coal"},
+                    wood = {type = "item", name = "wood"},
+                },
+            },
         }
+        appTestbench:setup()
+
         appInterface = AutoLoaded.new{
-            appResources = appResources,
+            appResources = appTestbench.appResources,
             pushStepWindow = function() end,
             popStepWindow = function() end,
             runQueryAndDraw = function() end,
         }
         QueryAppInterface.check(appInterface)
+
+        parent = appTestbench.player.gui.center
+    end)
+
+    local controller
+    before_each(function()
+        parent.clear()
+        GuiElement.on_init()
 
         controller = TemplateSelectWindow.new{
             appInterface = appInterface,
@@ -108,15 +85,11 @@ describe("TemplateSelectWindow", function()
         local runTest = function()
             SaveLoadTester.run{
                 objects = {
-                    appResources = appResources,
+                    appTestbench = appTestbench,
                     controller = controller,
-                    force = force,
-                    prototypes = prototypes,
                 },
                 metatableSetter = function(objects)
-                    PrototypeDatabase.setmetatable(objects.prototypes)
-                    Force.setmetatable(objects.force)
-                    AppResources.setmetatable(objects.appResources)
+                    AppTestbench.setmetatable(objects.appTestbench)
                     AbstractStepWindow.Factory:restoreMetatable(objects.controller)
                 end,
             }
@@ -137,7 +110,7 @@ describe("TemplateSelectWindow", function()
         controller:close()
         assert.is_nil(parent.children[1])
         assert.is_nil(rawget(controller, "gui"))
-        assert.are.equals(GuiElement.count(player.index), 0)
+        assert.are.equals(GuiElement.count(appTestbench.player.index), 0)
         controller:close()
     end)
 
@@ -155,7 +128,7 @@ describe("TemplateSelectWindow", function()
             stub(appInterface, "runQueryAndDraw")
             GuiElement.on_gui_click{
                 element = controller.gui.fullGraphButton.rawElement,
-                player_index = player.index,
+                player_index = appTestbench.player.index,
             }
             assert.stub(appInterface.runQueryAndDraw).was.called_with(match.ref(appInterface), match.isFullGraphQuery())
         end)
@@ -164,7 +137,7 @@ describe("TemplateSelectWindow", function()
             stub(appInterface, "pushStepWindow")
             GuiElement.on_gui_click{
                 element = controller.gui.templateButtons.UsagesOf.rawElement,
-                player_index = player.index,
+                player_index = appTestbench.player.index,
             }
             assert.stub(appInterface.pushStepWindow).was.called_with(match.ref(appInterface), match.isQueryEditor("UsagesOfQuery"))
         end)
@@ -173,7 +146,7 @@ describe("TemplateSelectWindow", function()
             stub(appInterface, "pushStepWindow")
             GuiElement.on_gui_click{
                 element = controller.gui.templateButtons.HowToMake.rawElement,
-                player_index = player.index,
+                player_index = appTestbench.player.index,
             }
             assert.stub(appInterface.pushStepWindow).was.called_with(match.ref(appInterface), match.isQueryEditor("HowToMakeQuery"))
         end)

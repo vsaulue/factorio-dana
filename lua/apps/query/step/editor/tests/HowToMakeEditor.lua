@@ -15,74 +15,52 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractQueryEditor = require("lua/apps/query/step/editor/AbstractQueryEditor")
-local AppResources = require("lua/apps/AppResources")
+local AppTestbench = require("lua/testing/AppTestbench")
 local AutoLoaded = require("lua/testing/AutoLoaded")
-local Force = require("lua/model/Force")
 local GuiElement = require("lua/gui/GuiElement")
 local HowToMakeEditor = require("lua/apps/query/step/editor/HowToMakeEditor")
 local HowToMakeQuery = require("lua/query/HowToMakeQuery")
 local MinDistEditor = require("lua/apps/query/params/MinDistEditor")
-local MockFactorio = require("lua/testing/mocks/MockFactorio")
-local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local QueryAppInterface = require("lua/apps/query/QueryAppInterface")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 local UsagesOfQuery = require("lua/query/UsagesOfQuery")
 
 describe("HowToMakeEditor + Abstract + GUI", function()
-    local factorio
-    local surface
-    local player
-    local parent
-    local prototypes
-    local force
-    setup(function()
-        local rawData = {
-            fluid = {
-                steam = {type = "fluid", name = "steam"},
-                water = {type = "fluid", name = "water"},
-            },
-            item = {
-                coal = {type = "item", name = "coal"},
-                wood = {type = "item", name = "wood"},
-            },
-        }
-        factorio = MockFactorio.make{
-            rawData = rawData,
-        }
-        player = factorio:createPlayer{
-            forceName = "player",
-        }
-        parent = player.gui.center
-        surface = factorio.game.create_surface("dana", {})
-        factorio:setup()
-
-        prototypes = PrototypeDatabase.new(factorio.game)
-        force = Force.new{
-            prototypes = prototypes,
-            rawForce = factorio.game.forces.player,
-        }
-    end)
-
-    local appResources
     local appInterface
-    before_each(function()
-        parent.clear()
-        GuiElement.on_init()
-
-        appResources = AppResources.new{
-            force = force,
-            menuFlow = {},
-            rawPlayer = player,
-            surface = surface,
-            upcalls = {},
+    local appTestbench
+    local items
+    local parent
+    setup(function()
+        appTestbench = AppTestbench.make{
+            rawData = {
+                fluid = {
+                    steam = {type = "fluid", name = "steam"},
+                    water = {type = "fluid", name = "water"},
+                },
+                item = {
+                    coal = {type = "item", name = "coal"},
+                    wood = {type = "item", name = "wood"},
+                },
+            },
         }
+        appTestbench:setup()
+
         appInterface = AutoLoaded.new{
-            appResources = appResources,
+            appResources = appTestbench.appResources,
             pushStepWindow = function() end,
             popStepWindow = function() end,
             runQueryAndDraw = function() end,
         }
         QueryAppInterface.check(appInterface)
+
+        items = appTestbench.prototypes.intermediates.item
+
+        parent = appTestbench.player.gui.center
+    end)
+
+    before_each(function()
+        parent.clear()
+        GuiElement.on_init()
     end)
 
     describe(".make()", function()
@@ -112,7 +90,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
         local controller
         before_each(function()
             local query = HowToMakeQuery.new()
-            query.destParams.intermediateSet[prototypes.intermediates.item.wood] = true
+            query.destParams.intermediateSet[items.wood] = true
             query.destParams.maxDepth = 8
 
             controller = HowToMakeEditor.new{
@@ -125,15 +103,11 @@ describe("HowToMakeEditor + Abstract + GUI", function()
             local runTest = function()
                 SaveLoadTester.run{
                     objects = {
-                        appResources = appResources,
+                        appTestbench = appTestbench,
                         controller = controller,
-                        force = force,
-                        prototypes = prototypes,
                     },
                     metatableSetter = function(objects)
-                        PrototypeDatabase.setmetatable(objects.prototypes)
-                        Force.setmetatable(objects.force)
-                        AppResources.setmetatable(objects.appResources)
+                        AppTestbench.setmetatable(objects.appTestbench)
                         AbstractQueryEditor.Factory:restoreMetatable(objects.controller)
                     end,
                 }
@@ -150,19 +124,19 @@ describe("HowToMakeEditor + Abstract + GUI", function()
         end)
 
         it(":close()", function()
-            local wood = prototypes.intermediates.item.wood
+            local wood = items.wood
             controller:open(parent)
             controller:close()
             assert.is_nil(rawget(controller, "gui"))
             assert.is_nil(rawget(controller.paramsEditor, "gui"))
-            assert.are.equals(GuiElement.count(player.index), 0)
+            assert.are.equals(GuiElement.count(appTestbench.player.index), 0)
             assert.is_nil(parent.children[1])
             controller:close()
         end)
 
         it(":open()", function()
             controller:open(parent)
-            local wood = prototypes.intermediates.item.wood
+            local wood = items.wood
             assert.is_not_nil(rawget(controller.paramsEditor.setEditor.gui.selectedIntermediates.reverse, wood))
         end)
 
@@ -170,7 +144,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
             local newEditor
             before_each(function()
                 newEditor = MinDistEditor.new{
-                    appResources = appResources,
+                    appResources = appTestbench.appResources,
                     isForward = false,
                     params = controller.query.destParams,
                 }
@@ -201,7 +175,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
                 stub(appInterface, "popStepWindow")
                 GuiElement.on_gui_click{
                     element = controller.gui.backButton.rawElement,
-                    player_index = player.index,
+                    player_index = appTestbench.player.index,
                 }
                 assert.stub(appInterface.popStepWindow).was.called()
             end)
@@ -210,7 +184,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
                 stub(appInterface, "runQueryAndDraw")
                 GuiElement.on_gui_click{
                     element = controller.gui.drawButton.rawElement,
-                    player_index = player.index,
+                    player_index = appTestbench.player.index,
                 }
                 assert.stub(appInterface.runQueryAndDraw).was.called()
             end)

@@ -14,19 +14,16 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local Force = require("lua/model/Force")
+local AppTestbench = require("lua/testing/AppTestbench")
 local GuiElement = require("lua/gui/GuiElement")
 local IntermediateSetEditor = require("lua/apps/query/params/IntermediateSetEditor")
-local MockFactorio = require("lua/testing/mocks/MockFactorio")
-local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 
 describe("IntermediateSetEditor (& GUI)", function()
-    local factorio
-    local player
+    local appTestbench
+    local fluids
+    local items
     local parent
-    local prototypes
-    local force
     setup(function()
         local rawData = {
             fluid = {
@@ -42,29 +39,16 @@ describe("IntermediateSetEditor (& GUI)", function()
             local itemName = "item" .. i
             rawData.item[itemName] = {type = "item", name = itemName}
         end
-        factorio = MockFactorio.make{
+
+        appTestbench = AppTestbench.make{
             rawData = rawData,
         }
-        player = factorio:createPlayer{
-            forceName = "player",
-        }
-        parent = player.gui.center
-        factorio:setup()
+        appTestbench:setup()
 
-        prototypes = PrototypeDatabase.new(factorio.game)
-        force = Force.new{
-            prototypes = prototypes,
-            rawForce = factorio.game.forces.player,
-        }
+        fluids = appTestbench.prototypes.intermediates.fluid
+        items = appTestbench.prototypes.intermediates.item
+        parent = appTestbench.player.gui.center
     end)
-
-    local getFluid = function(fluidName)
-        return prototypes.intermediates.fluid[fluidName]
-    end
-
-    local getItem = function(itemName)
-        return prototypes.intermediates.item[itemName]
-    end
 
     local object
     local output
@@ -74,11 +58,11 @@ describe("IntermediateSetEditor (& GUI)", function()
 
         output = {}
         for i=1,5 do
-            output[prototypes.intermediates.item["item"..i]] = true
+            output[items["item"..i]] = true
         end
 
         object = IntermediateSetEditor.new{
-            force = force,
+            force = appTestbench.force,
             output = output,
         }
     end)
@@ -86,7 +70,7 @@ describe("IntermediateSetEditor (& GUI)", function()
     it(".new()", function()
         assert.are.same(object, {
             output = output,
-            force = force,
+            force = appTestbench.force,
         })
     end)
 
@@ -94,13 +78,11 @@ describe("IntermediateSetEditor (& GUI)", function()
          local runTest = function()
             SaveLoadTester.run{
                 objects = {
-                    force = force,
+                    appTestbench = appTestbench,
                     object = object,
-                    prototypes = prototypes,
                 },
                 metatableSetter = function(objects)
-                    PrototypeDatabase.setmetatable(objects.prototypes)
-                    Force.setmetatable(objects.force)
+                    AppTestbench.setmetatable(objects.appTestbench)
                     IntermediateSetEditor.setmetatable(objects.object)
                 end,
             }
@@ -119,13 +101,13 @@ describe("IntermediateSetEditor (& GUI)", function()
     describe(":addIntermediate()", function()
         it("-- no GUI", function()
             object:addIntermediate("item", "coal")
-            assert.is_true(output[prototypes.intermediates.item.coal])
+            assert.is_true(output[items.coal])
         end)
 
         it("-- with GUI", function()
             object:open(parent)
             object:addIntermediate("fluid", "water")
-            local water = prototypes.intermediates.fluid.water
+            local water = fluids.water
             local intermediateFrame = object.gui.selectionFlow.children[2].children[1]
             assert.is_true(output[water])
             assert.are.equals(intermediateFrame.children[1].sprite, water.spritePath)
@@ -147,32 +129,32 @@ describe("IntermediateSetEditor (& GUI)", function()
         it(":close()", function()
             object:close()
             assert.is_nil(rawget(object, "gui"))
-            assert.are.equals(GuiElement.count(player.index), 0)
+            assert.are.equals(GuiElement.count(appTestbench.player.index), 0)
             assert.is_nil(parent.children[1])
         end)
     end)
 
     describe(":removeIntermediate()", function()
         it("-- no GUI", function()
-            object:removeIntermediate(getItem("item1"))
+            object:removeIntermediate(items.item1)
             assert.are.same(output, {
-                [getItem("item2")] = true,
-                [getItem("item3")] = true,
-                [getItem("item4")] = true,
-                [getItem("item5")] = true,
+                [items.item2] = true,
+                [items.item3] = true,
+                [items.item4] = true,
+                [items.item5] = true,
             })
         end)
 
         it("-- with GUI", function()
             object:open(parent)
             object:addIntermediate("item", "wood")
-            object:removeIntermediate(getItem("item3"))
+            object:removeIntermediate(items.item3)
             assert.are.same(output, {
-                [getItem("item1")] = true,
-                [getItem("item2")] = true,
-                [getItem("item4")] = true,
-                [getItem("item5")] = true,
-                [getItem("wood")] = true,
+                [items.item1] = true,
+                [items.item2] = true,
+                [items.item4] = true,
+                [items.item5] = true,
+                [items.wood] = true,
             })
             local selectionFlow = object.gui.selectionFlow
             assert.is_nil(selectionFlow.children[2])
@@ -201,31 +183,31 @@ describe("IntermediateSetEditor (& GUI)", function()
             local rawElement = object.gui.addFluidButton.rawElement
             rawElement.elem_value = "steam"
             GuiElement.on_gui_elem_changed{
-                player_index = player.index,
+                player_index = appTestbench.player.index,
                 element = rawElement,
             }
             assert.are.same(output, {
-                [getItem("item1")] = true,
-                [getItem("item2")] = true,
-                [getItem("item3")] = true,
-                [getItem("item4")] = true,
-                [getItem("item5")] = true,
-                [getFluid("steam")] = true,
+                [items.item1] = true,
+                [items.item2] = true,
+                [items.item3] = true,
+                [items.item4] = true,
+                [items.item5] = true,
+                [fluids.steam] = true,
             })
             assert.is_nil(rawElement.elem_value)
         end)
 
         it("RemoveIntermediateButton", function()
-            local rawElement = object.gui.removeButtons[getItem("item4")].rawElement
+            local rawElement = object.gui.removeButtons[items.item4].rawElement
             GuiElement.on_gui_click{
-                player_index = player.index,
+                player_index = appTestbench.player.index,
                 element = rawElement,
             }
             assert.are.same(output, {
-                [getItem("item1")] = true,
-                [getItem("item2")] = true,
-                [getItem("item3")] = true,
-                [getItem("item5")] = true,
+                [items.item1] = true,
+                [items.item2] = true,
+                [items.item3] = true,
+                [items.item5] = true,
             })
         end)
     end)

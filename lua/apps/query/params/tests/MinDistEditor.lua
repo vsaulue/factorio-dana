@@ -14,22 +14,16 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AppResources = require("lua/apps/AppResources")
-local Force = require("lua/model/Force")
+local AppTestbench = require("lua/testing/AppTestbench")
 local GuiElement = require("lua/gui/GuiElement")
 local MinDistEditor = require("lua/apps/query/params/MinDistEditor")
 local MinDistParams = require("lua/query/params/MinDistParams")
-local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 
 describe("MinDistEditor & GUI", function()
-    local factorio
-    local surface
-    local player
+    local appTestbench
     local parent
-    local prototypes
-    local force
     setup(function()
         local rawData = {
             fluid = {
@@ -45,46 +39,30 @@ describe("MinDistEditor & GUI", function()
             local itemName = "item" .. i
             rawData.item[itemName] = {type = "item", name = itemName}
         end
-        factorio = MockFactorio.make{
+
+        appTestbench = AppTestbench.make{
             rawData = rawData,
         }
-        player = factorio:createPlayer{
-            forceName = "player",
-        }
-        parent = player.gui.center
-        surface = factorio.game.create_surface("dana", {})
-        factorio:setup()
+        appTestbench:setup()
 
-        prototypes = PrototypeDatabase.new(factorio.game)
-        force = Force.new{
-            prototypes = prototypes,
-            rawForce = factorio.game.forces.player,
-        }
+        parent = appTestbench.player.gui.center
     end)
 
-    local appResources
     local params
     local controller
     before_each(function()
         parent.clear()
         GuiElement.on_init()
 
-        appResources = AppResources.new{
-            force = force,
-            menuFlow = {},
-            rawPlayer = player,
-            surface = surface,
-            upcalls = {},
-        }
         params = MinDistParams.new{
             allowOtherIntermediates = true,
             intermediateSet = {
-                [prototypes.intermediates.item.wood] = true,
+                [appTestbench.prototypes.intermediates.item.wood] = true,
             },
             maxDepth = 5,
         }
         controller = MinDistEditor.new{
-            appResources = appResources,
+            appResources = appTestbench.appResources,
             isForward = false,
             params = params,
         }
@@ -98,18 +76,14 @@ describe("MinDistEditor & GUI", function()
         local runTest = function()
             SaveLoadTester.run{
                 objects = {
-                    appResources = appResources,
+                    appTestbench = appTestbench,
                     controller = controller,
-                    force = force,
                     params = params,
-                    prototypes = prototypes,
                 },
                 metatableSetter = function(objects)
-                    AppResources.setmetatable(objects.appResources)
+                    AppTestbench.setmetatable(objects.appTestbench)
                     MinDistEditor.setmetatable(objects.controller)
-                    Force.setmetatable(objects.force)
                     MinDistParams.setmetatable(objects.params)
-                    PrototypeDatabase.setmetatable(objects.prototypes)
                 end,
             }
         end
@@ -128,7 +102,7 @@ describe("MinDistEditor & GUI", function()
         controller:open(parent)
         local mainFlow = controller.gui.mainFlow
         controller:close()
-        assert.are.equals(GuiElement.count(player.index), 0)
+        assert.are.equals(GuiElement.count(appTestbench.player.index), 0)
         assert.is_false(mainFlow.valid)
         assert.is_nil(rawget(controller, "gui"))
         assert.is_nil(parent.children[1])
