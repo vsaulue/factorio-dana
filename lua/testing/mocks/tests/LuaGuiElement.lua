@@ -117,6 +117,44 @@ describe("-- LuaGuiElement", function()
         end)
     end)
 
+    describe(":auto_center", function()
+        it("-- read", function()
+            local flow = LuaGuiElement.make({
+                type = "flow",
+            }, MockArgs)
+            local data = MockObject.getData(flow)
+            local value = {}
+            data.auto_center = value
+            assert.are.equals(flow.auto_center, value)
+        end)
+
+        it("-- valid write", function()
+            local screen = LuaGuiElement.make({
+                type = "empty-widget",
+            },{
+                player_index = PlayerIndex,
+                childrenHasLocation = true,
+            })
+            local child = screen.add{
+                type = "frame",
+            }
+            child.auto_center = true
+            assert.is_true(MockObject.getData(child).auto_center)
+        end)
+
+        it("-- invalid write", function()
+            local screen = LuaGuiElement.make({
+                type = "empty-widget",
+            }, MockArgs)
+            local child = screen.add{
+                type = "frame",
+            }
+            assert.error(function()
+                child.auto_center = true
+            end)
+        end)
+    end)
+
     describe(":caption", function()
         it("-- constructor", function()
             local caption = {"foobar"}
@@ -267,10 +305,12 @@ describe("-- LuaGuiElement", function()
                 type = "frame",
             }
             frame.force_auto_center()
-            assert.are.same(MockObject.getData(frame).location, {
+            local data = MockObject.getData(frame)
+            assert.are.same(data.location, {
                 x = 12,
                 y = 12,
             })
+            assert.is_true(data.auto_center)
         end)
 
         it("-- invalid (not a frame)", function()

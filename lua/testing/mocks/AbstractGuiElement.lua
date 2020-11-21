@@ -20,6 +20,7 @@ local MockGetters = require("lua/testing/mocks/MockGetters")
 local MockObject = require("lua/testing/mocks/MockObject")
 
 local cLogger
+local checkAutoCenterConditions
 local destroyImpl
 local lastIndex
 local make
@@ -35,6 +36,7 @@ local Subtypes
 --
 -- Implemented fields & methods:
 -- * add()
+-- * auto_center
 -- * caption
 -- * children
 -- * clear()
@@ -102,6 +104,7 @@ local AbstractGuiElement = {
         end
 
         local data = {
+            auto_center = false,
             caption = args.caption,
             children = {},
             childrenByName = {},
@@ -155,6 +158,8 @@ local AbstractGuiElement = {
                 end
             end,
 
+            auto_center = MockGetters.validTrivial("auto_center"),
+
             -- Note: should return a deep-copy.
             caption = MockGetters.validTrivial("caption"),
 
@@ -199,12 +204,12 @@ local AbstractGuiElement = {
             force_auto_center = function(self)
                 return function()
                     local data = MockObject.getData(self, "force_auto_center")
-                    cLogger:assert(data.location, "Cannot call force_auto_center(): parent does not allow location.")
-                    cLogger:assert(data.type == "frame", "Cannot call force_auto_center(): requires type == 'frame'.")
+                    checkAutoCenterConditions(data)
                     -- Note: the Mock API doesn't have the concept of screen yet.
                     -- Just throwing some non-zero position for now.
                     data.location.x = 12
                     data.location.y = 12
+                    data.auto_center = true
                 end
             end,
 
@@ -230,6 +235,12 @@ local AbstractGuiElement = {
         end,
 
         setters = {
+            auto_center = function(self, value)
+                local data = MockObject.getData(self, "auto_center")
+                checkAutoCenterConditions(data)
+                data.auto_center = not not value
+            end,
+
             caption = function(self, value)
                 local data = MockObject.getData(self, "caption")
                 -- Note: needs a LocalisedString check & a deep copy.
@@ -277,6 +288,16 @@ local AbstractGuiElement = {
 }
 
 cLogger = AbstractGuiElement.Metatable.cLogger
+
+-- Checks that an AbstractGuiElement can be auto centered.
+--
+-- Args:
+-- * selfData: table. Mock data of the AbstractGuiElement.
+--
+checkAutoCenterConditions = function(selfData)
+    cLogger:assert(selfData.location, "Cannot call force_auto_center(): parent does not allow location.")
+    cLogger:assert(selfData.type == "frame", "Cannot call force_auto_center(): requires type == 'frame'.")
+end
 
 -- Invalidates an AbstractGuiElement, and all its children.
 --
