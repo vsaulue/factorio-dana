@@ -51,6 +51,7 @@ local LuaGui = {
         }
         local GuiMockData = {player_index = data.player.index}
         for rootName,rootInfo in pairs(Roots) do
+            GuiMockData.childrenHasLocation = rootInfo.childrenHasLocation
             data[rootName] = LuaGuiElement.make(rootInfo, GuiMockData)
         end
         return CommonMockObject.make(data, Metatable)
@@ -62,7 +63,7 @@ Roots = {
     center = {type = "flow", direction = "horizontal"},
     goal = {type = "flow", direction = "horizontal"},
     left = {type = "flow", direction = "horizontal"},
-    screen = {type = "empty-widget"},
+    screen = {type = "empty-widget", childrenHasLocation = true},
     top = {type = "flow", direction = "horizontal"},
 }
 

@@ -40,19 +40,26 @@ describe("LuaGui", function()
     end)
 
     local runFieldTest = function(index)
-        assert.are.equals(MockObject.getData(object)[index], object[index])
+        local data = MockObject.getData(object)
+        assert.are.equals(data[index], object[index])
+    end
+
+    local runElementFieldTest = function(index)
+        runFieldTest(index)
+        local elementData = MockObject.getData(object[index])
+        assert.are.equals(elementData.childrenHasLocation, index == "screen")
     end
 
     it(":center", function()
-        runFieldTest("center")
+        runElementFieldTest("center")
     end)
 
     it(":goal", function()
-        runFieldTest("goal")
+        runElementFieldTest("goal")
     end)
 
     it(":left", function()
-        runFieldTest("left")
+        runElementFieldTest("left")
     end)
 
     it(":player", function()
@@ -60,10 +67,10 @@ describe("LuaGui", function()
     end)
 
     it(":screen", function()
-        runFieldTest("screen")
+        runElementFieldTest("screen")
     end)
 
     it(":top", function()
-        runFieldTest("top")
+        runElementFieldTest("top")
     end)
 end)
