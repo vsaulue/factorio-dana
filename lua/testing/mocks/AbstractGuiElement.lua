@@ -40,6 +40,7 @@ local Subtypes
 -- * clear()
 -- * destroy()
 -- * direction
+-- * force_auto_center()
 -- * index
 -- * location
 -- * name
@@ -192,6 +193,18 @@ local AbstractGuiElement = {
                     else
                         cLogger:error("Can't destroy root element.")
                     end
+                end
+            end,
+
+            force_auto_center = function(self)
+                return function()
+                    local data = MockObject.getData(self, "force_auto_center")
+                    cLogger:assert(data.location, "Cannot call force_auto_center(): parent does not allow location.")
+                    cLogger:assert(data.type == "frame", "Cannot call force_auto_center(): requires type == 'frame'.")
+                    -- Note: the Mock API doesn't have the concept of screen yet.
+                    -- Just throwing some non-zero position for now.
+                    data.location.x = 12
+                    data.location.y = 12
                 end
             end,
 

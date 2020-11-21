@@ -255,6 +255,52 @@ describe("-- LuaGuiElement", function()
         end)
     end)
 
+    describe(":force_auto_center()", function()
+        it("-- valid", function()
+            local root = LuaGuiElement.make({
+                type = "empty-widget",
+            },{
+                player_index = PlayerIndex,
+                childrenHasLocation = true,
+            })
+            local frame = root.add{
+                type = "frame",
+            }
+            frame.force_auto_center()
+            assert.are.same(MockObject.getData(frame).location, {
+                x = 12,
+                y = 12,
+            })
+        end)
+
+        it("-- invalid (not a frame)", function()
+            local root = LuaGuiElement.make({
+                type = "empty-widget",
+            },{
+                player_index = PlayerIndex,
+                childrenHasLocation = true,
+            })
+            local flow = root.add{
+                type = "flow",
+            }
+            assert.error(function()
+                flow.force_auto_center()
+            end)
+        end)
+
+        it("-- invalid (no location)", function()
+            local root = LuaGuiElement.make({
+                type = "empty-widget",
+            }, MockArgs)
+            local frame = root.add{
+                type = "frame",
+            }
+            assert.error(function()
+                frame.force_auto_center()
+            end)
+        end)
+    end)
+
     describe(":enabled", function()
         local element
         before_each(function()
