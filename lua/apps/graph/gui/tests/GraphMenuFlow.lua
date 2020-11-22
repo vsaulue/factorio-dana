@@ -15,24 +15,23 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AppResources = require("lua/apps/AppResources")
+local AppTestbench = require("lua/testing/AppTestbench")
 local AutoLoaded = require("lua/testing/AutoLoaded")
-local Force = require("lua/model/Force")
 local GraphAppInterface = require("lua/apps/graph/GraphAppInterface")
 local GraphMenuFlow = require("lua/apps/graph/gui/GraphMenuFlow")
 local GuiElement = require("lua/gui/GuiElement")
-local MockFactorio = require("lua/testing/mocks/MockFactorio")
-local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 
 describe("GraphMenuFlow", function()
     local appInterface
-    local factorio
-    local surface
-    local player
+    local appTestbench
     local parent
-    local prototypes
-    local force
     setup(function()
+        appTestbench = AppTestbench.make{
+            rawData = {},
+        }
+        appTestbench:setup()
+
         appInterface = AutoLoaded.new{
             newQuery = function() end,
             viewGraphCenter = function() end,
@@ -40,36 +39,14 @@ describe("GraphMenuFlow", function()
         }
         GraphAppInterface.check(appInterface)
 
-        factorio = MockFactorio.make{
-            rawData = {},
-        }
-        player = factorio:createPlayer{
-            forceName = "player",
-        }
-        parent = player.gui.center
-        surface = factorio.game.create_surface("dana", {})
-        factorio:setup()
-
-        prototypes = PrototypeDatabase.new(factorio.game)
-        force = Force.new{
-            prototypes = prototypes,
-            rawForce = factorio.game.forces.player,
-        }
+        parent = appTestbench.player.gui.center
     end)
 
-    local appResources
     local controller
     before_each(function()
         parent.clear()
         GuiElement.on_init()
 
-        appResources = AppResources.new{
-            force = force,
-            menuFlow = {},
-            rawPlayer = player,
-            surface = surface,
-            upcalls = {},
-        }
         controller = GraphMenuFlow.new{
             appInterface = appInterface,
         }
@@ -79,15 +56,11 @@ describe("GraphMenuFlow", function()
         local runTest = function()
             SaveLoadTester.run{
                 objects = {
-                    appResources = appResources,
+                    appTestbench = appTestbench,
                     controller = controller,
-                    force = force,
-                    prototypes = prototypes,
                 },
                 metatableSetter = function(objects)
-                    AppResources.setmetatable(objects.appResources)
-                    PrototypeDatabase.setmetatable(objects.prototypes)
-                    Force.setmetatable(objects.force)
+                    AppTestbench.setmetatable(objects.appTestbench)
                     GraphMenuFlow.setmetatable(objects.controller)
                 end,
             }
@@ -107,7 +80,7 @@ describe("GraphMenuFlow", function()
         controller:open(parent)
         controller:close()
         assert.is_nil(parent.children[1])
-        assert.are.equals(GuiElement.count(player.index), 0)
+        assert.are.equals(GuiElement.count(appTestbench.player.index), 0)
     end)
 
     describe("-- GUI:", function()
@@ -119,27 +92,27 @@ describe("GraphMenuFlow", function()
             stub(appInterface, "newQuery")
             GuiElement.on_gui_click{
                 element = controller.gui.newQueryButton.rawElement,
-                player_index = player.index,
+                player_index = appTestbench.player.index,
             }
-            assert.stub(appInterface.newQuery).was.called_with(appInterface)
+            assert.stub(appInterface.newQuery).was.called_with(match.ref(appInterface))
         end)
 
         it("ViewGraphButton", function()
             stub(appInterface, "viewGraphCenter")
             GuiElement.on_gui_click{
                 element = controller.gui.viewGraphButton.rawElement,
-                player_index = player.index,
+                player_index = appTestbench.player.index,
             }
-            assert.stub(appInterface.viewGraphCenter).was.called_with(appInterface)
+            assert.stub(appInterface.viewGraphCenter).was.called_with(match.ref(appInterface))
         end)
 
         it("ViewLegend", function()
             stub(appInterface, "viewLegend")
             GuiElement.on_gui_click{
                 element = controller.gui.viewLegendButton.rawElement,
-                player_index = player.index,
+                player_index = appTestbench.player.index,
             }
-            assert.stub(appInterface.viewLegend).was.called_with(appInterface)
+            assert.stub(appInterface.viewLegend).was.called_with(match.ref(appInterface))
         end)
     end)
 end)
