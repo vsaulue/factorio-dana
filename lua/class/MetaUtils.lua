@@ -39,6 +39,13 @@ local MetaUtils = ErrorOnInvalidRead.new{
         end
     end,
 
+    -- Restores the metatable of a field (if not nil).
+    --
+    -- Args:
+    -- * container: table. Table containing the field to modify.
+    -- * index: any. Index of the field to modify in `container`.
+    -- * setter: function(any). Metatable setter to use.
+    --
     safeSetField = function(container, index, setter)
         local value = rawget(container, index)
         if value then
