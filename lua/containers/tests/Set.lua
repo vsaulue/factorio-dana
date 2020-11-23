@@ -107,4 +107,12 @@ describe("Set",function()
             assert.is_false(Set.checkSingleton({z = true, a = true}, "z"))
         end)
     end)
+
+    it(".count()", function()
+        local result = Set.count{}
+        assert.are.equals(result, 0)
+
+        result = Set.count{foo = true, bar = true}
+        assert.are.equals(result, 2)
+    end)
 end)

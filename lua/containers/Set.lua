@@ -74,6 +74,21 @@ local Set = ErrorOnInvalidRead.new{
         local v2 = next(set, v1)
         return (v1 == value) and (v2 == nil)
     end,
+
+    -- Counts the number of elements in a set.
+    --
+    -- Args:
+    -- * set: Set<any>.
+    --
+    -- Returns: int. The number of elements of the set.
+    --
+    count = function(set)
+        local result = 0
+        for _ in pairs(set) do
+            result = result + 1
+        end
+        return result
+    end,
 }
 
 checkCount = Set.checkCount
