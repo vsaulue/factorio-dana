@@ -17,14 +17,32 @@
 local MetaUtils = require("lua/class/MetaUtils")
 
 describe("MetaUtils", function()
-    local MyMetatable = {
-        __index = {
-            flag = "Spartaaa",
-        },
-    }
-    local mySetter = function(object)
-        setmetatable(object, MyMetatable)
-    end
+    local MyMetatable
+    local mySetter
+    before_each(function()
+        MyMetatable = {
+            __index = {
+                flag = "Spartaaa",
+            },
+        }
+        mySetter = function(object)
+            setmetatable(object, MyMetatable)
+        end
+    end)
+
+    it(".derive()", function()
+        local DerivedMetatable = {
+            __index = {
+                flag2 = "Madness",
+            },
+        }
+        MetaUtils.derive(MyMetatable, DerivedMetatable)
+        local object = setmetatable({}, DerivedMetatable)
+        assert.are.equals(object.flag, "Spartaaa")
+        assert.are.equals(object.flag2, "Madness")
+        assert.is_nil(getmetatable(MyMetatable.__index))
+        assert.is_nil(MyMetatable.__index.flag2)
+    end)
 
     describe(".safeSetField()", function()
         it("-- nil", function()
