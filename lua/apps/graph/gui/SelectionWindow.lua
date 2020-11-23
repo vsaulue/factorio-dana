@@ -14,15 +14,19 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local Array = require("lua/containers/Array")
 local ClassLogger = require("lua/logger/ClassLogger")
+local Closeable = require("lua/class/Closeable")
+local EdgeSelectionPanel = require("lua/apps/graph/gui/EdgeSelectionPanel")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
-local SelectionCategory = require("lua/apps/graph/gui/SelectionCategory")
+local LinkSelectionPanel = require("lua/apps/graph/gui/LinkSelectionPanel")
+local OneToOneSelectionPanel = require("lua/apps/graph/gui/OneToOneSelectionPanel")
+local VertexSelectionPanel = require("lua/apps/graph/gui/VertexSelectionPanel")
 
 local cLogger = ClassLogger.new{className = "graphApp/SelectionWindow"}
 
 local Categories
-local CategoriesOrder
 local Metatable
 local SelectToolButton
 
@@ -53,7 +57,6 @@ local SelectionWindow = ErrorOnInvalidRead.new{
         }
         object.frame.location = {0,50}
         object.frame.style.maximal_height = rawPlayer.display_resolution.height - 50
-        object.maxCategoryHeight = object.frame.style.maximal_height - 20 - (1+#CategoriesOrder)*32
 
         object.selectToolButton = SelectToolButton.new{
             rawElement = object.frame.add{
@@ -64,11 +67,15 @@ local SelectionWindow = ErrorOnInvalidRead.new{
         }
         object.selectToolButton.rawElement.style.horizontally_stretchable = true
 
-        local categoryHeight = object.frame.style.maximal_height - (1+#CategoriesOrder)*20
-
+        local categoryHeight = object.frame.style.maximal_height - (1+Categories.count)*20
         object.categories = ErrorOnInvalidRead.new()
-        for _,name in ipairs(CategoriesOrder) do
-            object.categories[name] = SelectionCategory.make(object, name)
+        for index,categoryClass in ipairs(Categories) do
+            local category = categoryClass.new{
+                maxHeight = categoryHeight,
+                selectionWindow = object,
+            }
+            object.categories[index] = category
+            category:open(object.frame)
         end
 
         object.noSelection = object.frame.add{
@@ -88,10 +95,9 @@ local SelectionWindow = ErrorOnInvalidRead.new{
     setmetatable = function(object)
         setmetatable(object, Metatable)
         SelectToolButton.setmetatable(object.selectToolButton)
-
         ErrorOnInvalidRead.setmetatable(object.categories)
-        for _,category in pairs(object.categories) do
-            SelectionCategory.setmetatable(category)
+        for index,classTable in ipairs(Categories) do
+            classTable.setmetatable(object.categories[index])
         end
     end
 }
@@ -105,7 +111,8 @@ Metatable = {
         -- * self: SelectionWindow object.
         --
         close = function(self)
-            GuiElement.destroy(self.frame)
+            GuiElement.safeDestroy(self.frame)
+            Closeable.closeMapValues(self.categories)
             self.frame = nil
         end,
 
@@ -128,20 +135,26 @@ Metatable = {
         -- * selection: RendererSelection object to display.
         --
         setSelection = function(self, selection)
-            local total = 0
-            for name,category in pairs(self.categories) do
-                    local count = category:setElements(selection)
-                    self.categories[name]:setVisible(count > 0)
-                    self.categories[name]:setExpanded(count > 0 and total == 0)
-                    total = total + count
+            local noExpanded = true
+            for _,category in ipairs(self.categories) do
+                category:updateElements(selection)
+                if noExpanded and category:hasElements() then
+                    category:setExpanded(true)
+                    noExpanded = false
+                end
             end
-            self.noSelection.visible = (total == 0)
+            self.noSelection.visible = noExpanded
         end,
     },
 }
 
--- Array of category names, holding the order in which they are displayed.
-CategoriesOrder = {"vertices", "oneToOne", "edges", "links"}
+-- Array<table>. Classes of AbstractSelectionPanel to instanciate.
+Categories = Array.new{
+    VertexSelectionPanel,
+    OneToOneSelectionPanel,
+    EdgeSelectionPanel,
+    LinkSelectionPanel,
+}
 
 -- Button to give the dana-select item to the player.
 --
