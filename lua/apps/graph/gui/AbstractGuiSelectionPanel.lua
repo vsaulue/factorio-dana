@@ -96,15 +96,6 @@ local AbstractGuiSelectionPanel = ErrorOnInvalidRead.new{
                 self.mainFlow.title.caption = {"", titlePrefix, self.Title}
                 self.mainFlow.content.visible = expanded
             end,
-
-            -- Handles modifications of the controller's `maxHeight` field.
-            --
-            -- Args:
-            -- * self: AbstractGuiSelectionPanel.
-            --
-            updateMaxHeight = function(self)
-                self.mainFlow.style.maximal_height = self.controller.maxHeight
-            end,
         },
     },
 
@@ -132,7 +123,6 @@ local AbstractGuiSelectionPanel = ErrorOnInvalidRead.new{
 
         object:updateElements()
         object:updateExpanded()
-        object:updateMaxHeight()
         return object
     end,
 

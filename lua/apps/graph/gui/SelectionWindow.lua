@@ -52,13 +52,12 @@ local SelectionWindow = ErrorOnInvalidRead.new{
     --
     new = function(object)
         cLogger:assertField(object, "location")
-        local maxHeight = cLogger:assertField(object, "maxHeight")
+        cLogger:assertField(object, "maxHeight")
         cLogger:assertField(object, "rawPlayer")
 
         object.panels = ErrorOnInvalidRead.new()
         for index,categoryClass in ipairs(Panels) do
             local category = categoryClass.new{
-                maxHeight = maxHeight,
                 selectionWindow = object,
             }
             object.panels[index] = category

@@ -27,7 +27,6 @@ local cLogger = ClassLogger.new{className = "AbstractSelectionPanel"}
 -- * elements[any]: any. Map containing the displayed elements (types depends on the category).
 -- * expanded: boolean. True if elements are shown, false if they are hidden.
 -- * gui (override): AbstractGuiSelectionPanel.
--- * maxHeight: int. Maximum height of this GUI.
 -- * selectionWindow: SelectionWindow. Parent controller.
 --
 local AbstractSelectionPanel = ErrorOnInvalidRead.new{
@@ -82,21 +81,6 @@ local AbstractSelectionPanel = ErrorOnInvalidRead.new{
                 end
             end,
 
-            -- Sets the `maxHeight` field of this object.
-            --
-            -- Args:
-            -- * self: AbstractSelectionPanel.
-            -- * value: int.
-            --
-            setMaxHeight = function(self, value)
-                self.maxHeight = value
-
-                local gui = rawget(self, "gui")
-                if gui then
-                    gui:updateMaxHeight()
-                end
-            end,
-
             -- Changes the elements displayed by this object.
             --
             -- Args:
@@ -118,12 +102,11 @@ local AbstractSelectionPanel = ErrorOnInvalidRead.new{
     -- Creates a new AbstractSelectionPanel object.
     --
     -- Args:
-    -- * object: table. Required fields: maxHeight, selectionWindow.
+    -- * object: table. Required fields: selectionWindow.
     --
     -- Returns: AbstractSelectionPanel. The `object` argument turned into the desired type.
     --
     new = function(object, metatable)
-        cLogger:assertField(object, "maxHeight")
         cLogger:assertField(object, "selectionWindow")
         object.expanded = not not object.expanded
         AbstractGuiController.new(object, metatable)
