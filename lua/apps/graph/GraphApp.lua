@@ -78,6 +78,8 @@ local GraphApp = ErrorOnInvalidRead.new{
         object.renderer:drawLayout(layout)
         object.guiSelection = SelectionWindow.new{
             rawPlayer = rawPlayer,
+            location = {0,50},
+            maxHeight = rawPlayer.display_resolution.height - 50,
         }
 
         object.menuFlow = GraphMenuFlow.new{
@@ -120,7 +122,7 @@ Metatable = {
 
         -- Overrides AbstractApp:hide().
         hide = function(self)
-            self.guiSelection.frame.visible = false
+            self.guiSelection:close()
         end,
 
         -- Implements GraphAppInterface:newQuery().
@@ -132,7 +134,7 @@ Metatable = {
 
         -- Overrides AbstractApp:show().
         show = function(self)
-            self.guiSelection.frame.visible = true
+            self.guiSelection:open(self.appResources.rawPlayer.gui.screen)
         end,
 
         -- Overrides AbstractApp:onSelectedArea().

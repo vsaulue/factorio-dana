@@ -14,31 +14,33 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractGuiController = require("lua/gui/AbstractGuiController")
 local Array = require("lua/containers/Array")
 local ClassLogger = require("lua/logger/ClassLogger")
 local Closeable = require("lua/class/Closeable")
 local EdgeSelectionPanel = require("lua/apps/graph/gui/EdgeSelectionPanel")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GuiElement = require("lua/gui/GuiElement")
+local GuiSelectionWindow = require("lua/apps/graph/gui/GuiSelectionWindow")
 local LinkSelectionPanel = require("lua/apps/graph/gui/LinkSelectionPanel")
+local MetaUtils = require("lua/class/MetaUtils")
+local RendererSelection = require("lua/renderers/RendererSelection")
 local OneToOneSelectionPanel = require("lua/apps/graph/gui/OneToOneSelectionPanel")
 local VertexSelectionPanel = require("lua/apps/graph/gui/VertexSelectionPanel")
 
 local cLogger = ClassLogger.new{className = "graphApp/SelectionWindow"}
+local super = AbstractGuiController.Metatable.__index
 
-local Categories
+local Panels
 local Metatable
-local SelectToolButton
 
 -- GUI to display selected parts of a graph.
 --
 -- RO fields:
--- * categories[name]: top-level LuaGuiElement of a given category, indexed by its name.
--- * frame: Gui frame containing all the LuaGuiElement of this class.
--- * maxCategoryHeight: Maximum height of a category.
--- * noSelection: Gui flow displaying the "Empty selection" message.
--- * rawPlayer: LuaPlayer object.
--- * selectToolButton: SelectToolButton of this window.
+-- * location: GuiLocation. Initial location of this frame.
+-- * maxHeight: int. Maximum height of this frame
+-- * panels[int]: AbstractSelectionPanel. Panels owned by this controller (same indices as `Panels`).
+-- * rawPlayer: LuaPlayer. User of this GUI.
+-- * selection: RendererSelection. Elements being displayed.
 --
 local SelectionWindow = ErrorOnInvalidRead.new{
     -- Creates a new SelectionWindow object.
@@ -49,41 +51,20 @@ local SelectionWindow = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a SelectionWindow object.
     --
     new = function(object)
-        local rawPlayer = cLogger:assertField(object, "rawPlayer")
-        object.frame = rawPlayer.gui.screen.add{
-            type = "frame",
-            caption = {"dana.apps.graph.selectionWindow.title"},
-            direction = "vertical",
-        }
-        object.frame.location = {0,50}
-        object.frame.style.maximal_height = rawPlayer.display_resolution.height - 50
+        cLogger:assertField(object, "location")
+        local maxHeight = cLogger:assertField(object, "maxHeight")
+        cLogger:assertField(object, "rawPlayer")
 
-        object.selectToolButton = SelectToolButton.new{
-            rawElement = object.frame.add{
-                type = "button",
-                caption = {"dana.apps.graph.selectionWindow.selectButton"},
-            },
-            rawPlayer = rawPlayer,
-        }
-        object.selectToolButton.rawElement.style.horizontally_stretchable = true
-
-        local categoryHeight = object.frame.style.maximal_height - (1+Categories.count)*20
-        object.categories = ErrorOnInvalidRead.new()
-        for index,categoryClass in ipairs(Categories) do
+        object.panels = ErrorOnInvalidRead.new()
+        for index,categoryClass in ipairs(Panels) do
             local category = categoryClass.new{
-                maxHeight = categoryHeight,
+                maxHeight = maxHeight,
                 selectionWindow = object,
             }
-            object.categories[index] = category
-            category:open(object.frame)
+            object.panels[index] = category
         end
 
-        object.noSelection = object.frame.add{
-            type = "label",
-            caption = {"dana.apps.graph.selectionWindow.emptyCategory"},
-        }
-
-        setmetatable(object, Metatable)
+        AbstractGuiController.new(object, Metatable)
         return object
     end,
 
@@ -93,39 +74,70 @@ local SelectionWindow = ErrorOnInvalidRead.new{
     -- * object: Table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
-        SelectToolButton.setmetatable(object.selectToolButton)
-        ErrorOnInvalidRead.setmetatable(object.categories)
-        for index,classTable in ipairs(Categories) do
-            classTable.setmetatable(object.categories[index])
+        AbstractGuiController.setmetatable(object, Metatable, GuiSelectionWindow.setmetatable)
+        MetaUtils.safeSetField(object, "selection", RendererSelection.setmetatable)
+        ErrorOnInvalidRead.setmetatable(object.panels)
+        for index,classTable in ipairs(Panels) do
+            classTable.setmetatable(object.panels[index])
         end
-    end
+    end,
 }
 
 -- Metatable of the SelectionWindow class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
-        -- Releases all API resources of this object.
+        -- Overrides AbstractGuiController:close().
+        close = function(self)
+            super.close(self)
+            Closeable.closeMapValues(self.panels)
+        end,
+
+        -- Gives Dana's selection tool to the player.
         --
         -- Args:
-        -- * self: SelectionWindow object.
+        -- * self: SelectionWindow.
         --
-        close = function(self)
-            GuiElement.safeDestroy(self.frame)
-            Closeable.closeMapValues(self.categories)
-            self.frame = nil
+        giveSelectionTool = function(self)
+            local rawPlayer = self.rawPlayer
+            rawPlayer.clean_cursor()
+            rawPlayer.cursor_stack.set_stack{
+                name = "dana-select",
+            }
         end,
 
         -- Expands the element list of a given category, and collapses the others.
         --
         -- Args:
-        -- * self: SelectionWindow object.
-        -- * categoryToExpand: SelectionCategory to expand.
+        -- * self: SelectionWindow.
+        -- * selectedPanel: AbstractSelectionPanel. Panel to expand.
         --
-        expandCategory = function(self, categoryToExpand)
-            for _,category in pairs(self.categories) do
-                category:setExpanded(category == categoryToExpand)
+        selectPanel = function(self, selectedPanel)
+            for _,panel in pairs(self.panels) do
+                panel:setExpanded(panel == selectedPanel)
             end
+        end,
+
+        -- Tests if this SelectionWindow currently displays any element.
+        --
+        -- Args:
+        -- * self: SelectionWindow.
+        --
+        -- Returns: boolean. False if it has 0 element, true otherwise.
+        --
+        hasElements = function(self)
+            local result = true
+            for _,panel in ipairs(self.panels) do
+                result = result and panel:hasElements()
+            end
+            return result
+        end,
+
+        -- Implements AbstractGuiController:makeGui().
+        makeGui = function(self, parent)
+            return GuiSelectionWindow.new{
+                controller = self,
+                parent = parent,
+            }
         end,
 
         -- Sets the RendererSelection object to display in this GUI.
@@ -135,43 +147,33 @@ Metatable = {
         -- * selection: RendererSelection object to display.
         --
         setSelection = function(self, selection)
+            self.selection = selection
             local noExpanded = true
-            for _,category in ipairs(self.categories) do
-                category:updateElements(selection)
-                if noExpanded and category:hasElements() then
-                    category:setExpanded(true)
+            for _,panel in ipairs(self.panels) do
+                panel:updateElements(selection)
+                if noExpanded and panel:hasElements() then
+                    panel:setExpanded(true)
                     noExpanded = false
+                else
+                    panel:setExpanded(false)
                 end
             end
-            self.noSelection.visible = noExpanded
+
+            local gui = rawget(self, "gui")
+            if gui then
+                gui:setHasElements(not noExpanded)
+            end
         end,
     },
 }
+MetaUtils.derive(AbstractGuiController.Metatable, Metatable)
 
 -- Array<table>. Classes of AbstractSelectionPanel to instanciate.
-Categories = Array.new{
+Panels = Array.new{
     VertexSelectionPanel,
     OneToOneSelectionPanel,
     EdgeSelectionPanel,
     LinkSelectionPanel,
-}
-
--- Button to give the dana-select item to the player.
---
--- RO Fields:
--- * rawPlayer: Player to give the item to.
---
-SelectToolButton = GuiElement.newSubclass{
-    className = "GraphApp/SelectToolButton",
-    mandatoryFields = {"rawPlayer"},
-    __index = {
-        onClick = function(self, event)
-            self.rawPlayer.clean_cursor()
-            self.rawPlayer.cursor_stack.set_stack{
-                name = "dana-select",
-            }
-        end,
-    },
 }
 
 return SelectionWindow

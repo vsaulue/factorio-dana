@@ -64,7 +64,7 @@ local AbstractSelectionPanel = ErrorOnInvalidRead.new{
             -- * self: AbstractSelectionPanel.
             --
             select = function(self)
-                self.selectionWindow:expandCategory(self)
+                self.selectionWindow:selectPanel(self)
             end,
 
             -- Sets the `expanded` field of this object.
