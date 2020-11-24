@@ -133,7 +133,7 @@ describe("LuaRecipePrototype", function()
             assert.are.same(ingredients, fromData)
             assert.are_not.equals(ingredients,fromData)
             for k,v in pairs(ingredients) do
-                assert.are_not.equals(b, fromData[k])
+                assert.are_not.equals(v, fromData[k])
             end
         end)
 
@@ -143,7 +143,7 @@ describe("LuaRecipePrototype", function()
             assert.are.same(products, fromData)
             assert.are_not.equals(products,fromData)
             for k,v in pairs(products) do
-                assert.are_not.equals(b, fromData[k])
+                assert.are_not.equals(v, fromData[k])
             end
         end)
     end)
