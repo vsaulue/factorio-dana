@@ -44,6 +44,17 @@ local RendererSelection = ErrorOnInvalidRead.new{
         setmetatable(result, Metatable)
         return result
     end,
+
+    -- Restores the metatable of a RendererSelection object, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table.
+    --
+    setmetatable = function(object)
+        setmetatable(object, Metatable)
+        ErrorOnInvalidRead.setmetatable(object.links)
+        ErrorOnInvalidRead.setmetatable(object.nodes, nil, ErrorOnInvalidRead.setmetatable)
+    end,
 }
 
 -- Metatable of the RendererSelection class.
