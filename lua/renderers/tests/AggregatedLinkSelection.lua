@@ -14,19 +14,17 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AggregatedLinkSelection = require("lua/renderers/AggregatedLinkSelection")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local SaveLoadTester = require("lua/testing/SaveLoadTester")
 
--- Class holding the link selection of a RendererSelection, aggregated by LinkIndex.
---
--- RO Fields:
--- [linkIndex]: Set of edges linked by this LinkIndex.
---
-local AggregatedLinkSelection = ErrorOnInvalidRead.new{
-    new = ErrorOnInvalidRead.new,
-
-    setmetatable = function(object)
-        ErrorOnInvalidRead.setmetatable(object, nil, ErrorOnInvalidRead.setmetatable)
-    end,
-}
-
-return AggregatedLinkSelection
+describe("AggregatedLinkSelection", function()
+    it(".setmetatable()", function()
+        local object = AggregatedLinkSelection.new()
+        object.foobar = ErrorOnInvalidRead.new()
+        SaveLoadTester.run{
+            objects = object,
+            metatableSetter = AggregatedLinkSelection.setmetatable,
+        }
+    end)
+end)
