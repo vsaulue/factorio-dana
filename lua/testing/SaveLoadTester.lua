@@ -49,20 +49,45 @@ local SaveLoadTester = {
     run = function(testInput)
         local self = make(testInput)
         testInput.metatableSetter(self.copiedObjects)
-        checkMetatables(self)
+        checkMetatables(self, self.input.objects, {}, {count = 0}, false)
     end,
 }
 
 -- Checks that all metatables are identical between the original & the copy.
 --
 -- Args:
--- * self: SaveLoadTester object.
+-- * self: SaveLoadTester.
+-- * object: any. Current element being checked.
+-- * visited: Set<table>. Table that have already been checked.
+-- * stack: array. Contains the sequence of field indices from `self.input.objects` to `objects`.
+-- **  count: int. Top index of the array.
+-- * isIndex: boolean. True if `object` is a key in the parent table. False for a value.
 --
-checkMetatables = function(self)
-    for original,copied in pairs(self.mapping) do
-        if getmetatable(original) ~= getmetatable(copied) then
-            error("Metatable not restored.")
+checkMetatables = function(self, object, visited, stack, isIndex)
+    if type(object) == "table" and self.mapping[object] and not visited[object] then
+        local mapping = self.mapping
+        visited[object] = true
+        if getmetatable(object) ~= getmetatable(mapping[object]) then
+            local msg = {"Metatable mismatch at: objects"}
+            for i=1,stack.count do
+                table.insert(msg, " -> ")
+                table.insert(msg, tostring(stack[i]))
+            end
+            if isIndex then
+                table.insert(msg, "    -- index")
+            else
+                table.insert(msg, "    -- value")
+            end
+            error(table.concat(msg))
         end
+        local count = stack.count + 1
+        stack.count = count
+        for key,value in next,object do
+            stack[count] = key
+            checkMetatables(self, key, visited, stack, true)
+            checkMetatables(self, value, visited, stack, false)
+        end
+        stack.count = count -1
     end
 end
 
