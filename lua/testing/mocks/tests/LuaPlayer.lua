@@ -54,6 +54,16 @@ describe("LuaPlayer", function()
             }
         end)
 
+        it(":clean_cursor()", function()
+            local data = MockObject.getData(object)
+            data.cursorSlot:setStack{name = "coal", count = 1}
+            local stack = data.cursor_stack
+            assert.is_true(stack.valid_for_read)
+
+            object.clean_cursor()
+            assert.is_false(stack.valid_for_read)
+        end)
+
         it(":cursor_stack", function()
             assert.are.equals(MockObject.getData(object).cursor_stack, object.cursor_stack)
         end)

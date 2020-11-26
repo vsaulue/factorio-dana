@@ -19,6 +19,7 @@ local ItemSlot = require("lua/testing/mocks/ItemSlot")
 local LuaItemStack = require("lua/testing/mocks/LuaItemStack")
 local LuaGui = require("lua/testing/mocks/LuaGui")
 local MockGetters = require("lua/testing/mocks/MockGetters")
+local MockObject = require("lua/testing/mocks/MockObject")
 
 local cLogger
 local lastIndex
@@ -32,6 +33,7 @@ local Metatable
 -- Inherits from AbstractPrototype.
 --
 -- Implemented fields & methods:
+-- * clean_cursor()
 -- * cursor_stack
 -- * force
 -- * gui
@@ -66,6 +68,16 @@ Metatable = CommonMockObject.Metatable:makeSubclass{
     className = "LuaPlayer",
 
     getters = {
+        clean_cursor = function(self)
+            return function()
+                local data = MockObject.getData(self, "clean_cursor")
+                -- Note: should try to place the stack back into hand_location, or the main inventory.
+                -- & return true only if the stack could be placed back.
+                data.cursorSlot:setStack()
+                return true
+            end
+        end,
+
         cursor_stack = MockGetters.validTrivial("cursor_stack"),
         force = MockGetters.validTrivial("force"),
         gui = MockGetters.validTrivial("gui"),
