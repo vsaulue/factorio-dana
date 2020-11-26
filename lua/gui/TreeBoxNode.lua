@@ -18,7 +18,7 @@ local Array = require("lua/containers/Array")
 local ClassLogger = require("lua/logger/ClassLogger")
 local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local TreeBoxNodeGui = require("lua/gui/TreeBoxNodeGui")
+local GuiTreeBoxNode = require("lua/gui/GuiTreeBoxNode")
 
 local cLogger = ClassLogger.new{className = "TreeBoxNode"}
 
@@ -83,7 +83,7 @@ local TreeBoxNode = ErrorOnInvalidRead.new{
 
         local gui = rawget(object, "gui")
         if gui then
-            TreeBoxNodeGui.setmetatable(gui)
+            GuiTreeBoxNode.setmetatable(gui)
         end
     end,
 }
@@ -111,7 +111,7 @@ Metatable = {
             local gui = rawget(self, "gui")
             cLogger:assert(not gui, "Attempt to make multiple GUIs.")
 
-            self.gui = TreeBoxNodeGui.new{
+            self.gui = GuiTreeBoxNode.new{
                 treeBoxNode = self,
                 parent = parent,
             }

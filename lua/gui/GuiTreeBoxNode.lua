@@ -19,7 +19,7 @@ local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 
-local cLogger = ClassLogger.new{className = "TreeBoxNodeGui"}
+local cLogger = ClassLogger.new{className = "GuiTreeBoxNode"}
 
 local getExpandLabelCaption
 local Metatable
@@ -40,13 +40,13 @@ local UnselectableColor
 -- * parent: LuaGuiElement. GUI element in which the TreeBoxNode is created.
 -- * treeBoxNode: TreeBoxNode. Controller owning this GUI.
 --
-local TreeBoxNodeGui = ErrorOnInvalidRead.new{
-    -- Creates a new TreeBoxNodeGui object.
+local GuiTreeBoxNode = ErrorOnInvalidRead.new{
+    -- Creates a new GuiTreeBoxNode object.
     --
     -- Args:
-    -- * object: Table to turn into a TreeBoxNodeGui object (required fields: treeBoxNode, parent).
+    -- * object: Table to turn into a GuiTreeBoxNode object (required fields: treeBoxNode, parent).
     --
-    -- Returns: The argument turned into a TreeBoxNodeGui object.
+    -- Returns: The argument turned into a GuiTreeBoxNode object.
     --
     new = function(object)
         local treeBoxNode = cLogger:assertField(object, "treeBoxNode")
@@ -120,7 +120,7 @@ local TreeBoxNodeGui = ErrorOnInvalidRead.new{
         return object
     end,
 
-    -- Restores the metatable of an TreeBoxNodeGui object, and all its owned objects.
+    -- Restores the metatable of an GuiTreeBoxNode object, and all its owned objects.
     --
     -- Args:
     -- * object: Table to modify.
@@ -132,7 +132,7 @@ local TreeBoxNodeGui = ErrorOnInvalidRead.new{
     end,
 }
 
--- Metatable of the TreeBoxNodeGui.
+-- Metatable of the GuiTreeBoxNode.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements Closeable:close().
@@ -146,7 +146,7 @@ Metatable = {
         -- Updates the "expanded" state of this GUI.
         --
         -- Args:
-        -- * self: TreeBoxNodeGui object.
+        -- * self: GuiTreeBoxNode object.
         --
         updateExpanded = function(self)
             local expanded = self.treeBoxNode.expanded
@@ -157,7 +157,7 @@ Metatable = {
         -- Updates the "selected" state of this GUI.
         --
         -- Args:
-        -- * self: TreeBoxNodeGui.
+        -- * self: GuiTreeBoxNode.
         --
         updateSelected = function(self)
             local selected = self.treeBoxNode.selected
@@ -175,7 +175,7 @@ Metatable = {
 
 -- Callback of the triangle label used to expand/collapse the list of children.
 ExpandLabel = GuiElement.newSubclass{
-    className = "TreeBoxNodeGui/ExpandLabel",
+    className = "GuiTreeBoxNode/ExpandLabel",
     mandatoryFields = {"treeBoxNode"},
     __index = {
         onClick = function(self, event)
@@ -205,7 +205,7 @@ SelectedColor = {0.98, 0.66, 0.22}
 
 -- Callback for the clickable label used to select a node.
 SelectLabel = GuiElement.newSubclass{
-    className = "TreeBoxNodeGui/SelectLabel",
+    className = "GuiTreeBoxNode/SelectLabel",
     mandatoryFields = {"treeBoxNode"},
     __index = {
         onClick = function(self, event)
@@ -218,4 +218,4 @@ SelectLabel = GuiElement.newSubclass{
 -- Color of the text label when the node is not selectable.
 UnselectableColor = {0.7, 0.7, 0.7}
 
-return TreeBoxNodeGui
+return GuiTreeBoxNode
