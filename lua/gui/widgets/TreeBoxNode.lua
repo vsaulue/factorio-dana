@@ -97,7 +97,7 @@ Metatable = {
         -- Implements AbstractGuiController:makeGui().
         makeGui = function(self, parent)
             return GuiTreeBoxNode.new{
-                treeBoxNode = self,
+                controller = self,
                 parent = parent,
             }
         end,

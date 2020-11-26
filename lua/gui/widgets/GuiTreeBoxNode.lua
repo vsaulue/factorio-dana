@@ -35,25 +35,25 @@ local UnselectableColor
 --
 -- RO Fields:
 -- * childrenFlow: LuaGuiElement. GUI element containing the child nodes.
+-- * controller: TreeBoxNode. Controller owning this GUI.
 -- * expandLabel (optional): ExpandLabel. GUI wrapper for the clickable triangle.
 -- * headerFlow: LuaGuiElement. GUI element containing the triangle & text.
 -- * parent: LuaGuiElement. GUI element in which the TreeBoxNode is created.
--- * treeBoxNode: TreeBoxNode. Controller owning this GUI.
 --
 local GuiTreeBoxNode = ErrorOnInvalidRead.new{
     -- Creates a new GuiTreeBoxNode object.
     --
     -- Args:
-    -- * object: Table to turn into a GuiTreeBoxNode object (required fields: treeBoxNode, parent).
+    -- * object: Table to turn into a GuiTreeBoxNode object (required fields: controller, parent).
     --
     -- Returns: The argument turned into a GuiTreeBoxNode object.
     --
     new = function(object)
-        local treeBoxNode = cLogger:assertField(object, "treeBoxNode")
+        local controller = cLogger:assertField(object, "controller")
         local parent = cLogger:assertField(object, "parent")
 
-        local children = treeBoxNode.children
-        local depth = treeBoxNode.depth
+        local children = controller.children
+        local depth = controller.depth
 
         local headerFlow = parent.add{
             type = "flow",
@@ -66,7 +66,7 @@ local GuiTreeBoxNode = ErrorOnInvalidRead.new{
             for i=1,depth-1 do
                 prefix = prefix .. "│"
             end
-            if treeBoxNode.isLast then
+            if controller.isLast then
                 prefix = prefix .. "└"
             else
                 prefix = prefix .. "├"
@@ -78,10 +78,10 @@ local GuiTreeBoxNode = ErrorOnInvalidRead.new{
         end
         if children.count > 0 then
             object.expandLabel = ExpandLabel.new{
-                treeBoxNode = treeBoxNode,
+                controller = controller,
                 rawElement = headerFlow.add{
                     type = "label",
-                    caption = getExpandLabelCaption(treeBoxNode.expanded),
+                    caption = getExpandLabelCaption(controller.expanded),
                     style = "clickable_label",
                 },
             }
@@ -93,11 +93,11 @@ local GuiTreeBoxNode = ErrorOnInvalidRead.new{
         end
         local captionLabel = headerFlow.add{
             type = "label",
-            caption = treeBoxNode.caption,
+            caption = controller.caption,
         }
-        if treeBoxNode.selectable then
+        if controller.selectable then
             object.selectLabel = SelectLabel.new{
-                treeBoxNode = treeBoxNode,
+                controller = controller,
                 rawElement = captionLabel,
             }
             captionLabel.style = "clickable_label"
@@ -108,7 +108,7 @@ local GuiTreeBoxNode = ErrorOnInvalidRead.new{
         local childrenFlow = parent.add{
             type = "flow",
             direction = "vertical",
-            visible = treeBoxNode.expanded,
+            visible = controller.expanded,
         }
         childrenFlow.style.vertical_spacing = 0
         object.childrenFlow = childrenFlow
@@ -149,7 +149,7 @@ Metatable = {
         -- * self: GuiTreeBoxNode object.
         --
         updateExpanded = function(self)
-            local expanded = self.treeBoxNode.expanded
+            local expanded = self.controller.expanded
             self.childrenFlow.visible = expanded
             self.expandLabel.rawElement.caption = getExpandLabelCaption(expanded)
         end,
@@ -160,7 +160,7 @@ Metatable = {
         -- * self: GuiTreeBoxNode.
         --
         updateSelected = function(self)
-            local selected = self.treeBoxNode.selected
+            local selected = self.controller.selected
             local labelStyle = self.selectLabel.rawElement.style
             if selected then
                 labelStyle.font = "default-bold"
@@ -176,10 +176,10 @@ Metatable = {
 -- Callback of the triangle label used to expand/collapse the list of children.
 ExpandLabel = GuiElement.newSubclass{
     className = "GuiTreeBoxNode/ExpandLabel",
-    mandatoryFields = {"treeBoxNode"},
+    mandatoryFields = {"controller"},
     __index = {
         onClick = function(self, event)
-            self.treeBoxNode:toggleExpanded()
+            self.controller:toggleExpanded()
         end,
     },
 }
@@ -206,11 +206,11 @@ SelectedColor = {0.98, 0.66, 0.22}
 -- Callback for the clickable label used to select a node.
 SelectLabel = GuiElement.newSubclass{
     className = "GuiTreeBoxNode/SelectLabel",
-    mandatoryFields = {"treeBoxNode"},
+    mandatoryFields = {"controller"},
     __index = {
         onClick = function(self, event)
-            local treeBoxNode = self.treeBoxNode
-            treeBoxNode.treeBox:setSelection(treeBoxNode)
+            local controller = self.controller
+            controller.treeBox:setSelection(controller)
         end,
     }
 }
