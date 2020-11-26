@@ -50,7 +50,7 @@ local GuiTreeBox = ErrorOnInvalidRead.new{
 
         local roots = treeBox.roots
         for i=1,roots.count do
-            roots[i]:makeGui(object.flow)
+            roots[i]:open(object.flow)
         end
 
         setmetatable(object, Metatable)

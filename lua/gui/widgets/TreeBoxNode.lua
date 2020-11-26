@@ -14,10 +14,12 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractGuiController = require("lua/gui/AbstractGuiController")
 local Array = require("lua/containers/Array")
 local ClassLogger = require("lua/logger/ClassLogger")
 local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local MetaUtils = require("lua/class/MetaUtils")
 local GuiTreeBoxNode = require("lua/gui/widgets/GuiTreeBoxNode")
 
 local cLogger = ClassLogger.new{className = "TreeBoxNode"}
@@ -28,13 +30,14 @@ local _setmetatable
 
 -- Controller of a node in a TreeBox.
 --
--- Implements Closeable.
+-- Inherits from AbstractGuiController.
 --
 -- RO Fields:
 -- * caption: LocalisedString. Label of this node.
 -- * chilren: Array<TreeBoxNode>. Children of this node.
 -- * depth: int. Depth of this node in the tree (starts from 0).
 -- * expanded: boolean. Flag set to show/collapse the list of chilren nodes.
+-- * gui (override): GuiTreeBoxNode or nil.
 -- * isLast: boolean. Flag set if this node is the last child of the parent node.
 -- * selectable: boolan. Flag set if this node can be selected.
 -- * selected: boolean. Flag set if this node is currently selected.
@@ -68,8 +71,7 @@ local TreeBoxNode = ErrorOnInvalidRead.new{
             _new(child)
         end
 
-        setmetatable(object, Metatable)
-        return object
+        return AbstractGuiController.new(object, Metatable)
     end,
 
     -- Restores the metatable of a TreeBoxNode object, and all its owned objects.
@@ -78,40 +80,23 @@ local TreeBoxNode = ErrorOnInvalidRead.new{
     -- * object: Table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        AbstractGuiController.setmetatable(object, Metatable, GuiTreeBoxNode.setmetatable)
         Array.setmetatable(object.children, _setmetatable)
-
-        local gui = rawget(object, "gui")
-        if gui then
-            GuiTreeBoxNode.setmetatable(gui)
-        end
     end,
 }
 
 -- Metatable of the TreeBoxNode class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
-        -- Implements Closeable:close().
-        --
-        -- Resets the gui field to nil.
-        --
+        -- Implements AbstractGuiController:close().
         close = function(self)
             Closeable.safeCloseField(self, "gui")
             self.children:close()
         end,
 
-        -- Creates the GUI defined in this controller.
-        --
-        -- This TreeBoxNode must not have any GUI.
-        --
-        -- Args:
-        -- * self: TreeBoxNode object.
-        --
+        -- Implements AbstractGuiController:makeGui().
         makeGui = function(self, parent)
-            local gui = rawget(self, "gui")
-            cLogger:assert(not gui, "Attempt to make multiple GUIs.")
-
-            self.gui = GuiTreeBoxNode.new{
+            return GuiTreeBoxNode.new{
                 treeBoxNode = self,
                 parent = parent,
             }
@@ -146,10 +131,9 @@ Metatable = {
                 gui:updateExpanded()
             end
         end,
-    }
+    },
 }
-
-
+MetaUtils.derive(AbstractGuiController.Metatable, Metatable)
 
 _new = TreeBoxNode.new
 _setmetatable = TreeBoxNode.setmetatable

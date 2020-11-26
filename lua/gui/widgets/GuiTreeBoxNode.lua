@@ -113,7 +113,7 @@ local GuiTreeBoxNode = ErrorOnInvalidRead.new{
         childrenFlow.style.vertical_spacing = 0
         object.childrenFlow = childrenFlow
         for i=1,children.count do
-            children[i]:makeGui(childrenFlow)
+            children[i]:open(childrenFlow)
         end
 
         setmetatable(object, Metatable)
