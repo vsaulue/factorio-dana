@@ -138,7 +138,7 @@ describe("TreeBox", function()
         end)
 
         it("-- with gui", function()
-            treeBox:makeGui(parent)
+            treeBox:open(parent)
 
             SaveLoadTester.run{
                 objects = treeBox,
@@ -147,44 +147,10 @@ describe("TreeBox", function()
         end)
     end)
 
-    describe(":close()", function()
-        local treeBox
-        before_each(function()
-            treeBox = TreeBox.new{
-                roots = {
-                    {
-                        caption = "top1",
-                        children = {
-                            {
-                                caption = "child_1a",
-                            },
-                        },
-                    },
-                },
-            }
-        end)
-
-        it("-- no gui", function()
-            treeBox:close()
-        end)
-
-        it("-- with gui", function()
-            treeBox:makeGui(parent)
-            local gui = treeBox.gui
-            treeBox:close()
-
-            assert.is_false(gui.flow.valid)
-            assert.is_nil(rawget(treeBox, "gui"))
-            assert.is_nil(rawget(treeBox.roots[1], "gui"))
-            assert.are.equals(GuiElement.count(player.index), 0)
-        end)
-    end)
-
-    describe(":makeGui()", function()
-        local treeBox
-        before_each(function()
-            treeBox = TreeBox.new{
-                roots = {
+    it(":close()", function()
+        local treeBox = TreeBox.new{
+            roots = {
+                {
                     caption = "top1",
                     children = {
                         {
@@ -192,26 +158,36 @@ describe("TreeBox", function()
                         },
                     },
                 },
-            }
-        end)
+            },
+        }
 
-        it("-- valid", function()
-            treeBox:makeGui(parent)
+        treeBox:open(parent)
+        treeBox:close()
+        assert.is_nil(rawget(treeBox, "gui"))
+        assert.is_nil(rawget(treeBox.roots[1], "gui"))
+        assert.is_nil(parent.children[1])
+        assert.are.equals(GuiElement.count(player.index), 0)
+        treeBox:close()
+    end)
 
-            assert.is_not_nil(treeBox.gui.flow)
-            assert.are.same(treeBox.gui, {
-                flow = treeBox.gui.flow,
-                parent = parent,
-                treeBox = treeBox,
-            })
-        end)
+    it(":open()", function()
+        local treeBox = TreeBox.new{
+            roots = {
+                caption = "top1",
+                children = {
+                    {
+                        caption = "child_1a",
+                    },
+                },
+            },
+        }
 
-        it("-- invalid (duplicate gui)", function()
-            treeBox:makeGui(parent)
-            assert.error(function()
-                treeBox:makeGui(parent)
-            end)
-        end)
+        treeBox:open(parent)
+        assert.are.same(treeBox.gui, {
+            flow = treeBox.gui.flow,
+            parent = parent,
+            treeBox = treeBox,
+        })
     end)
 
     describe(":setSelection() -- not selectable", function()
@@ -284,7 +260,7 @@ describe("TreeBoxNode", function()
 
         describe("-- gui", function()
             before_each(function()
-                treeBox:makeGui(parent)
+                treeBox:open(parent)
             end)
 
             it(", true & selectable", function()
@@ -330,7 +306,7 @@ describe("TreeBoxNode", function()
 
         describe("-- with gui", function()
             before_each(function()
-                treeBox:makeGui(parent)
+                treeBox:open(parent)
             end)
 
             it(", true -> false", function()
@@ -353,7 +329,7 @@ describe("TreeBoxNode", function()
 
     describe("-- GUI:", function()
         before_each(function()
-            treeBox:makeGui(parent)
+            treeBox:open(parent)
         end)
 
         it("ExpandLabel", function()
