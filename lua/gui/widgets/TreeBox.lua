@@ -19,8 +19,8 @@ local ClassLogger = require("lua/logger/ClassLogger")
 local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
-local GuiTreeBox = require("lua/gui/GuiTreeBox")
-local TreeBoxNode = require("lua/gui/TreeBoxNode")
+local GuiTreeBox = require("lua/gui/widgets/GuiTreeBox")
+local TreeBoxNode = require("lua/gui/widgets/TreeBoxNode")
 
 local cLogger = ClassLogger.new{className = "TreeBox"}
 

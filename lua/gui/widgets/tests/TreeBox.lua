@@ -17,7 +17,7 @@
 local GuiElement = require("lua/gui/GuiElement")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
-local TreeBox = require("lua/gui/TreeBox")
+local TreeBox = require("lua/gui/widgets/TreeBox")
 
 describe("TreeBox", function()
     local factorio

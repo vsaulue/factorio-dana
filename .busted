@@ -33,6 +33,7 @@ return {
             "lua/graph/tests",
             "lua/graph/algorithms/tests",
             "lua/gui/tests",
+            "lua/gui/widgets/tests",
             "lua/hypergraph/algorithms/tests",
             "lua/layouts/preprocess/algorithms/tests",
             "lua/layouts/preprocess/tests",
