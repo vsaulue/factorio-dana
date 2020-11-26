@@ -27,20 +27,20 @@ local Metatable
 -- Implements Closeable.
 --
 -- RO Fields:
+-- * controller: TreeBox. Controller owning this GUI.
 -- * flow: LuaGuiElement. Top-level GUI element containing all the nodes.
 -- * parent: LuaGuiElement. GUI element in which the TreeBox is created.
--- * treeBox: TreeBox. Controller owning this GUI.
 --
 local GuiTreeBox = ErrorOnInvalidRead.new{
     -- Creates a new GuiTreeBox object.
     --
     -- Args:
-    -- * object: Table to turn into a GuiTreeBox object (required fields: parent, treeBox).
+    -- * object: table. Required fields: controller, parent.
     --
-    -- Returns: The new GuiTreeBox object.
+    -- Returns: GuiTreeBox. The `object` argument turned into the desired type.
     --
     new = function(object)
-        local treeBox = cLogger:assertField(object, "treeBox")
+        local controller = cLogger:assertField(object, "controller")
         local parent = cLogger:assertField(object, "parent")
         object.flow = parent.add{
             type = "flow",
@@ -48,7 +48,7 @@ local GuiTreeBox = ErrorOnInvalidRead.new{
         }
         object.flow.style.vertical_spacing = 0
 
-        local roots = treeBox.roots
+        local roots = controller.roots
         for i=1,roots.count do
             roots[i]:open(object.flow)
         end

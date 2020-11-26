@@ -186,7 +186,7 @@ describe("TreeBox", function()
         assert.are.same(treeBox.gui, {
             flow = treeBox.gui.flow,
             parent = parent,
-            treeBox = treeBox,
+            controller = treeBox,
         })
     end)
 
