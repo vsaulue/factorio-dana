@@ -21,8 +21,6 @@ local MetaUtils = require("lua/class/MetaUtils")
 
 local cLogger = ClassLogger.new{className = "AbstractGuiController"}
 
-local Metatable
-
 -- Class for GUI controllers.
 --
 -- Implements Closeable.
@@ -84,7 +82,5 @@ local AbstractGuiController = ErrorOnInvalidRead.new{
         MetaUtils.safeSetField(object, "gui", guiMetatableSetter)
     end,
 }
-
-Metatable = AbstractGuiController.Metatable
 
 return AbstractGuiController
