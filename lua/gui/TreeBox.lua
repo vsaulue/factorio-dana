@@ -19,7 +19,7 @@ local ClassLogger = require("lua/logger/ClassLogger")
 local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
-local TreeBoxGui = require("lua/gui/TreeBoxGui")
+local GuiTreeBox = require("lua/gui/GuiTreeBox")
 local TreeBoxNode = require("lua/gui/TreeBoxNode")
 
 local cLogger = ClassLogger.new{className = "TreeBox"}
@@ -32,7 +32,7 @@ local Metatable
 --
 -- RO Fields:
 -- * roots: Array<TreeBoxNode>. Set of top-level nodes of the box.
--- * gui (optional): TreeBoxGui. GUI owned by this controller (nil if no GUI is instanciated).
+-- * gui (optional): GuiTreeBox. GUI owned by this controller (nil if no GUI is instanciated).
 -- * selection (optional): TreeBoxNode. Currently selected node (nil if no node is selected).
 --
 local TreeBox = ErrorOnInvalidRead.new{
@@ -70,7 +70,7 @@ local TreeBox = ErrorOnInvalidRead.new{
 
         local gui = rawget(object, "gui")
         if gui then
-            TreeBoxGui.setmetatable(gui)
+            GuiTreeBox.setmetatable(gui)
         end
     end,
 }
@@ -98,7 +98,7 @@ Metatable = {
             local gui = rawget(self, "gui")
             cLogger:assert(not gui, "Attempt to make multiple GUIs.")
 
-            self.gui = TreeBoxGui.new{
+            self.gui = GuiTreeBox.new{
                 treeBox = self,
                 parent = parent,
             }

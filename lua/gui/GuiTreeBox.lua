@@ -18,7 +18,7 @@ local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 
-local cLogger = ClassLogger.new{className = "TreeBoxGui"}
+local cLogger = ClassLogger.new{className = "GuiTreeBox"}
 
 local Metatable
 
@@ -31,13 +31,13 @@ local Metatable
 -- * parent: LuaGuiElement. GUI element in which the TreeBox is created.
 -- * treeBox: TreeBox. Controller owning this GUI.
 --
-local TreeBoxGui = ErrorOnInvalidRead.new{
-    -- Creates a new TreeBoxGui object.
+local GuiTreeBox = ErrorOnInvalidRead.new{
+    -- Creates a new GuiTreeBox object.
     --
     -- Args:
-    -- * object: Table to turn into a TreeBoxGui object (required fields: parent, treeBox).
+    -- * object: Table to turn into a GuiTreeBox object (required fields: parent, treeBox).
     --
-    -- Returns: The new TreeBoxGui object.
+    -- Returns: The new GuiTreeBox object.
     --
     new = function(object)
         local treeBox = cLogger:assertField(object, "treeBox")
@@ -57,7 +57,7 @@ local TreeBoxGui = ErrorOnInvalidRead.new{
         return object
     end,
 
-    -- Restores the metatable of an TreeBoxGui object, and all its owned objects.
+    -- Restores the metatable of an GuiTreeBox object, and all its owned objects.
     --
     -- Args:
     -- * object: Table to modify.
@@ -67,7 +67,7 @@ local TreeBoxGui = ErrorOnInvalidRead.new{
     end,
 }
 
--- Metatable of the TreeBoxGui object.
+-- Metatable of the GuiTreeBox object.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements Closeable:close().
@@ -77,4 +77,4 @@ Metatable = {
     },
 }
 
-return TreeBoxGui
+return GuiTreeBox
