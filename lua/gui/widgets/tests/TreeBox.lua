@@ -34,19 +34,24 @@ describe("TreeBox", function()
         factorio:setup()
     end)
 
+    local controller
     before_each(function()
         parent.clear()
         GuiElement.on_init()
-    end)
 
-    it(".new()", function()
-        local treeBox = TreeBox.new{
+        controller = TreeBox.new{
             roots = {
                 {
                     caption = "top1",
                     children = {
                         {
                             caption = "child_1a",
+                            children = {
+                                {
+                                    caption = "child_1aa",
+                                    selectable = true,
+                                },
+                            },
                         },{
                             caption = "child_1b",
                         },
@@ -58,7 +63,10 @@ describe("TreeBox", function()
                 }
             },
         }
-        assert.are.same(treeBox,{
+    end)
+
+    it(".new()", function()
+        assert.are.same(controller, {
             roots = {
                 count = 2,
                 [1] = {
@@ -67,13 +75,25 @@ describe("TreeBox", function()
                         count = 2,
                         [1] = {
                             caption = "child_1a",
-                            children = {count = 0},
+                            children = {
+                                count = 1,
+                                [1] = {
+                                    caption = "child_1aa",
+                                    children = {count = 0},
+                                    depth = 2,
+                                    expanded = false,
+                                    isLast = true,
+                                    selectable = true,
+                                    selected = false,
+                                    treeBox = controller,
+                                },
+                            },
                             depth = 1,
                             expanded = false,
                             isLast = false,
                             selectable = false,
                             selected = false,
-                            treeBox = treeBox,
+                            treeBox = controller,
                         },
                         [2] = {
                             caption = "child_1b",
@@ -83,7 +103,7 @@ describe("TreeBox", function()
                             isLast = true,
                             selectable = false,
                             selected = false,
-                            treeBox = treeBox,
+                            treeBox = controller,
                         },
                     },
                     depth = 0,
@@ -91,7 +111,7 @@ describe("TreeBox", function()
                     isLast = false,
                     selectable = false,
                     selected = false,
-                    treeBox = treeBox,
+                    treeBox = controller,
                 },
                 [2] = {
                     caption = "top2",
@@ -101,105 +121,51 @@ describe("TreeBox", function()
                     isLast = true,
                     selectable = true,
                     selected = false,
-                    treeBox = treeBox,
+                    treeBox = controller,
                 },
             },
         })
     end)
 
     describe(".setmetatable()", function()
-        local treeBox
-
-        before_each(function()
-            treeBox = TreeBox.new{
-                roots = {
-                    {
-                        caption = "top1",
-                        children = {
-                            {
-                                caption = "middle1",
-                                children = {
-                                    {
-                                        caption = "bottom1",
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            }
-        end)
-
-        it("-- no gui", function()
+        local runTest = function()
             SaveLoadTester.run{
-                objects = treeBox,
+                objects = controller,
                 metatableSetter = TreeBox.setmetatable,
             }
+        end
+        it("-- no gui", function()
+            runTest()
         end)
 
         it("-- with gui", function()
-            treeBox:open(parent)
-
-            SaveLoadTester.run{
-                objects = treeBox,
-                metatableSetter = TreeBox.setmetatable,
-            }
+            controller:open(parent)
+            runTest()
         end)
     end)
 
     it(":close()", function()
-        local treeBox = TreeBox.new{
-            roots = {
-                {
-                    caption = "top1",
-                    children = {
-                        {
-                            caption = "child_1a",
-                        },
-                    },
-                },
-            },
-        }
-
-        treeBox:open(parent)
-        treeBox:close()
-        assert.is_nil(rawget(treeBox, "gui"))
-        assert.is_nil(rawget(treeBox.roots[1], "gui"))
+        controller:open(parent)
+        controller:close()
+        assert.is_nil(rawget(controller, "gui"))
+        assert.is_nil(rawget(controller.roots[1], "gui"))
         assert.is_nil(parent.children[1])
         assert.are.equals(GuiElement.count(player.index), 0)
-        treeBox:close()
+        controller:close()
     end)
 
     it(":open()", function()
-        local treeBox = TreeBox.new{
-            roots = {
-                caption = "top1",
-                children = {
-                    {
-                        caption = "child_1a",
-                    },
-                },
-            },
-        }
-
-        treeBox:open(parent)
-        assert.are.same(treeBox.gui, {
-            flow = treeBox.gui.flow,
+        controller:open(parent)
+        assert.are.same(controller.gui, {
+            flow = parent.children[1],
             parent = parent,
-            controller = treeBox,
+            controller = controller,
         })
     end)
 
     describe(":setSelection() -- not selectable", function()
-        local treeBox = TreeBox.new{
-            roots = {
-                {
-                    caption = "foobar",
-                },
-            },
-        }
-        treeBox:setSelection(treeBox.roots[1])
-        assert.is_nil(rawget(treeBox, "selection"))
+        controller:setSelection(controller.roots[1])
+        assert.is_nil(rawget(controller, "selection"))
     end)
 end)
 
