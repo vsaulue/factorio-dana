@@ -33,6 +33,7 @@ describe("LuaPlayer", function()
                 force = force,
             }
             local data = MockObject.getData(object)
+            assert.are.equals(MockObject.getData(data.cursor_stack).slot, data.cursorSlot)
             assert.are.equals(data.force, force)
             assert.is_not_nil(data.gui)
             checkIndex(object)
@@ -51,6 +52,10 @@ describe("LuaPlayer", function()
             object = LuaPlayer.make{
                 force = force,
             }
+        end)
+
+        it(":cursor_stack", function()
+            assert.are.equals(MockObject.getData(object).cursor_stack, object.cursor_stack)
         end)
 
         describe(":force", function()

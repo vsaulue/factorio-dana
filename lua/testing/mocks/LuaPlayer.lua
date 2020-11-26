@@ -15,6 +15,8 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local CommonMockObject = require("lua/testing/mocks/CommonMockObject")
+local ItemSlot = require("lua/testing/mocks/ItemSlot")
+local LuaItemStack = require("lua/testing/mocks/LuaItemStack")
 local LuaGui = require("lua/testing/mocks/LuaGui")
 local MockGetters = require("lua/testing/mocks/MockGetters")
 
@@ -30,6 +32,7 @@ local Metatable
 -- Inherits from AbstractPrototype.
 --
 -- Implemented fields & methods:
+-- * cursor_stack
 -- * force
 -- * gui
 -- * index
@@ -45,7 +48,10 @@ local LuaPlayer = {
     -- Returns: LuaPlayer.
     --
     make = function(cArgs)
+        local cursorSlot = ItemSlot.new()
         local selfData = {
+            cursorSlot = cursorSlot,
+            cursor_stack = LuaItemStack.make{slot = cursorSlot},
             force = cLogger:assertFieldType(cArgs, "force", "table"),
             index = makeIndex(),
         }
@@ -60,6 +66,7 @@ Metatable = CommonMockObject.Metatable:makeSubclass{
     className = "LuaPlayer",
 
     getters = {
+        cursor_stack = MockGetters.validTrivial("cursor_stack"),
         force = MockGetters.validTrivial("force"),
         gui = MockGetters.validTrivial("gui"),
         index = MockGetters.validTrivial("index"),
