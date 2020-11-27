@@ -14,12 +14,11 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ClassLogger = require("lua/logger/ClassLogger")
+local AbstractGui = require("lua/gui/AbstractGui")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 local GuiMaker = require("lua/gui/GuiMaker")
-
-local cLogger = ClassLogger.new{className = "GuiMenuWindow"}
+local MetaUtils = require("lua/class/MetaUtils")
 
 local GuiConstructorArgs
 local HideButton
@@ -27,11 +26,13 @@ local Metatable
 
 -- Instanciated GUI of a GuiMenuWindow.
 --
+-- Inherits from AbstractGui.
+--
 -- RO Fields:
--- * controller: MenuWindow. Owner of this GUI.
+-- * controller: MenuWindow.
 -- * frame: LuaGuiElement. Top-level element owned by this GUI.
 -- * hideButton: HideButton of this player (in menuFrame).
--- * parent: LuaGuiElement. Element containing this GUI.
+-- + AbstractGui.
 --
 local GuiMenuWindow = ErrorOnInvalidRead.new{
     -- Creates a new GuiMenuWindow object.
@@ -42,19 +43,17 @@ local GuiMenuWindow = ErrorOnInvalidRead.new{
     -- Returns: GuiMenuWindow. The `object` argument turned into the desired type.
     --
     new = function(object)
-        local controller = cLogger:assertField(object, "controller")
-        local parent = cLogger:assertField(object, "parent")
+        AbstractGui.new(object, Metatable)
 
-        object.frame = GuiMaker.run(parent, GuiConstructorArgs)
+        object.frame = GuiMaker.run(object.parent, GuiConstructorArgs)
         object.frame.location = {0,0}
         object.frame.style.maximal_height = 50
 
         object.hideButton = HideButton.new{
-            controller = controller,
+            controller = object.controller,
             rawElement = object.frame.hideButton,
         }
 
-        setmetatable(object, Metatable)
         object:updateAppMenu()
         return object
     end,
@@ -65,18 +64,23 @@ local GuiMenuWindow = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        AbstractGui.setmetatable(object, Metatable)
         HideButton.setmetatable(object.hideButton)
     end,
 }
 
 -- Metatable of the GuiMenuWindow class.
-Metatable = {
+Metatable = MetaUtils.derive(AbstractGui.Metatable, {
     __index = {
-        -- Implements Closeable:close().
+        -- Implements AbstractGui:close().
         close = function(self)
             GuiElement.safeDestroy(self.frame)
             self.hideButton:close()
+        end,
+
+        -- Implements AbstractGui:isValid().
+        isValid = function(self)
+            return self.frame.valid
         end,
 
         -- Handles modifications of the controller's appMenu field.
@@ -91,7 +95,7 @@ Metatable = {
             end
         end,
     }
-}
+})
 
 -- GuiMaker arguments to build this GUI.
 GuiConstructorArgs = {

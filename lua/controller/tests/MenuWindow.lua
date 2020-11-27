@@ -100,6 +100,14 @@ describe("MenuWindow", function()
         end)
     end)
 
+    it(":gui:isValid()", function()
+        controller:open(parent)
+        local gui = controller.gui
+        assert.is_true(gui:isValid())
+        controller:close()
+        assert.is_false(gui:isValid())
+    end)
+
     describe(":setMenuApp()", function()
         local appMenu
         before_each(function()
