@@ -36,10 +36,11 @@ describe("MetaUtils", function()
                 flag2 = "Madness",
             },
         }
-        MetaUtils.derive(MyMetatable, DerivedMetatable)
+        local result = MetaUtils.derive(MyMetatable, DerivedMetatable)
         local object = setmetatable({}, DerivedMetatable)
         assert.are.equals(object.flag, "Spartaaa")
         assert.are.equals(object.flag2, "Madness")
+        assert.are.equals(result, DerivedMetatable)
         assert.is_nil(getmetatable(MyMetatable.__index))
         assert.is_nil(MyMetatable.__index.flag2)
     end)

@@ -37,6 +37,7 @@ local MetaUtils = ErrorOnInvalidRead.new{
             -- Note: if derivedIndex is also a table, adding its elements directly into baseIndex
             -- could help with performances.
         end
+        return derivedMetatable
     end,
 
     -- Restores the metatable of a field (if not nil).
