@@ -60,6 +60,7 @@ describe("EdgeSelectionPanel + Abstract + GUI", function()
         }
 
         fakeSelectionWindow = AutoLoaded.new{
+            appResources = appTestbench.appResources,
             selectPanel = function() end,
         }
 
@@ -114,6 +115,10 @@ describe("EdgeSelectionPanel + Abstract + GUI", function()
         assert.is_nil(parent.children[1])
         assert.is_nil(rawget(controller, "gui"))
         controller:close()
+    end)
+
+    it(":getGuiUpcalls()", function()
+        assert.are.equals(appTestbench.appResources, controller:getGuiUpcalls())
     end)
 
     it(":gui:isValid()", function()

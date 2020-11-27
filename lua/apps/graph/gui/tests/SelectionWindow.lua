@@ -114,7 +114,9 @@ describe("SelectionWindow", function()
     end)
 
     it(":getGuiUpcalls()", function()
-        assert.are.equals(appTestbench.appResources, controller:getGuiUpcalls())
+        local upcalls = appTestbench.appResources
+        assert.are.equals(upcalls, controller:getGuiUpcalls())
+        assert.are.equals(upcalls, controller.panels[1]:getGuiUpcalls())
     end)
 
     it(":gui:isValid()", function()

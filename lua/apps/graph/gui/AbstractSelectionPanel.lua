@@ -45,6 +45,11 @@ local AbstractSelectionPanel = ErrorOnInvalidRead.new{
             extractElements = function(rendererSelection) end,
             --]]
 
+            -- Implements AbstractGuiController:getGuiUpcalls().
+            getGuiUpcalls = function(self)
+                return self.selectionWindow.appResources
+            end,
+
             -- Checks if this panel displays any element.
             --
             -- Args:
