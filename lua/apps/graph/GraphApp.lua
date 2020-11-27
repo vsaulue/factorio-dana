@@ -154,6 +154,11 @@ Metatable = {
             end
         end,
 
+        -- Overrides AbstractApp:repairGui().
+        repairGui = function(self)
+            self.guiSelection:repair(self.appResources.rawPlayer.gui.screen)
+        end,
+
         -- Implements GraphAppInterface:viewGraphCenter().
         viewGraphCenter = function(self)
             local lc = self.renderer.layoutCoordinates
