@@ -17,8 +17,9 @@
 local GraphAppInterface = require("lua/apps/graph/GraphAppInterface")
 
 describe("GraphAppInterface", function()
-    it(".checkMethods()", function()
-        GraphAppInterface.checkMethods{
+    it(".check()", function()
+        GraphAppInterface.check{
+            appResources = {},
             newQuery = function() end,
             viewGraphCenter = function() end,
             viewLegend = function() end,

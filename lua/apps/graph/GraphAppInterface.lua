@@ -19,9 +19,21 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local cLogger = ClassLogger.new{className = "GraphInterface"}
 
+local checkMethods
+
 -- Interface containing callbacks from top-level controller for applications.
 --
 local GraphInterface = ErrorOnInvalidRead.new{
+    -- Checks all methods & fields.
+    --
+    -- Args:
+    -- * object: GraphInterface.
+    --
+    check = function(object)
+        cLogger:assertField(object, "appResources")
+        checkMethods(object)
+    end,
+
     -- Checks that all methods are implemented.
     --
     -- Args:
@@ -77,5 +89,7 @@ Metatable = {
     },
 }
 --]]
+
+checkMethods = GraphInterface.checkMethods
 
 return GraphInterface

@@ -14,7 +14,6 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AppResources = require("lua/apps/AppResources")
 local AppTestbench = require("lua/testing/AppTestbench")
 local AutoLoaded = require("lua/testing/AutoLoaded")
 local GraphAppInterface = require("lua/apps/graph/GraphAppInterface")
@@ -33,11 +32,12 @@ describe("GraphMenuFlow", function()
         appTestbench:setup()
 
         appInterface = AutoLoaded.new{
+            appResources = appTestbench.appResources,
             newQuery = function() end,
             viewGraphCenter = function() end,
             viewLegend = function() end,
         }
-        GraphAppInterface.checkMethods(appInterface)
+        GraphAppInterface.check(appInterface)
 
         parent = appTestbench.player.gui.center
     end)
