@@ -18,7 +18,7 @@ local AbstractFactory = require("lua/class/AbstractFactory")
 local AbstractGuiController = require("lua/gui/AbstractGuiController")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GuiElement = require("lua/gui/GuiElement")
+local MetaUtils = require("lua/class/MetaUtils")
 
 local cLogger = ClassLogger.new{className = "queryApp/AbstractStepWindow"}
 
@@ -39,7 +39,14 @@ local AbstractStepWindow = ErrorOnInvalidRead.new{
         end,
     },
 
-    Metatable = AbstractGuiController.Metatable,
+    Metatable = MetaUtils.derive(AbstractGuiController.Metatable, {
+        __index = {
+            -- Implements AbstractGuiController:getGuiUpcalls.
+            getGuiUpcalls = function(self)
+                return self.appInterface.appResources
+            end,
+        },
+    }),
 
     -- Creates a new AbstractStepWindow object.
     --
