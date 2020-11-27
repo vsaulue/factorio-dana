@@ -180,7 +180,7 @@ Metatable = {
     },
 }
 setmetatable(Metatable.__index, AbstractApp.Metatable.__index)
-GraphAppInterface.check(Metatable.__index)
+GraphAppInterface.checkMethods(Metatable.__index)
 
 AbstractApp.Factory:registerClass(AppName, GraphApp)
 return GraphApp

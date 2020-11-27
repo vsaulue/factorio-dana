@@ -27,7 +27,7 @@ local GraphInterface = ErrorOnInvalidRead.new{
     -- Args:
     -- * object: GraphInterface.
     --
-    check = function(object)
+    checkMethods = function(object)
         cLogger:assertField(object, "newQuery")
         cLogger:assertField(object, "viewGraphCenter")
         cLogger:assertField(object, "viewLegend")

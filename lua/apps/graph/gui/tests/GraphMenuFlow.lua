@@ -37,7 +37,7 @@ describe("GraphMenuFlow", function()
             viewGraphCenter = function() end,
             viewLegend = function() end,
         }
-        GraphAppInterface.check(appInterface)
+        GraphAppInterface.checkMethods(appInterface)
 
         parent = appTestbench.player.gui.center
     end)
