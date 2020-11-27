@@ -14,15 +14,26 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AutoLoaded = require("lua/testing/AutoLoaded")
 local GuiElement = require("lua/gui/GuiElement")
+local GuiUpcalls = require("lua/gui/GuiUpcalls")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 local TreeBox = require("lua/gui/widgets/TreeBox")
+
+local makeUpcalls = function()
+    local result = AutoLoaded.new{
+        notifyGuiCorrupted = function() end,
+    }
+    GuiUpcalls.checkMethods(result)
+    return result
+end
 
 describe("TreeBox", function()
     local factorio
     local player
     local parent
+    local upcalls
     setup(function()
         factorio = MockFactorio.make{
             rawData = {},
@@ -32,6 +43,8 @@ describe("TreeBox", function()
         }
         parent = player.gui.center
         factorio:setup()
+
+        upcalls = makeUpcalls()
     end)
 
     local controller
@@ -62,6 +75,7 @@ describe("TreeBox", function()
                     selectable = true,
                 }
             },
+            upcalls = upcalls,
         }
     end)
 
@@ -124,6 +138,7 @@ describe("TreeBox", function()
                     treeBox = controller,
                 },
             },
+            upcalls = upcalls,
         })
     end)
 
@@ -154,6 +169,10 @@ describe("TreeBox", function()
         controller:close()
     end)
 
+    it(":getGuiUpcalls()", function()
+        assert.are.equals(upcalls, controller:getGuiUpcalls())
+    end)
+
     it(":gui:isValid()", function()
         controller:open(parent)
         local gui = controller.gui
@@ -181,6 +200,7 @@ describe("TreeBoxNode", function()
     local factorio
     local player
     local parent
+    local upcalls
     setup(function()
         factorio = MockFactorio.make{
             rawData = {},
@@ -190,6 +210,8 @@ describe("TreeBoxNode", function()
         }
         parent = player.gui.center
         factorio:setup()
+
+        upcalls = makeUpcalls()
     end)
 
     local treeBox
@@ -222,6 +244,7 @@ describe("TreeBoxNode", function()
                     expanded = false,
                 },
             },
+            upcalls = upcalls,
         }
     end)
 

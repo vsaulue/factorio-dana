@@ -35,6 +35,8 @@ local Metatable
 -- * gui (override): GuiTreeBox or nil.
 -- * roots: Array<TreeBoxNode>. Set of top-level nodes of the box.
 -- * selection (optional): TreeBoxNode. Currently selected node (nil if no node is selected).
+-- * upcalls: GuiUpcalls. Callbacks available to this controller.
+-- + AbstractGuiController.
 --
 local TreeBox = ErrorOnInvalidRead.new{
     -- Creates a new TreeBox object.
@@ -45,6 +47,7 @@ local TreeBox = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a TreeBox object.
     --
     new = function(object)
+        cLogger:assertField(object, "upcalls")
         local roots = Array.new(object.roots)
         local count = roots.count
         for i=1,count do
@@ -77,6 +80,11 @@ Metatable = {
         close = function(self)
             Closeable.safeCloseField(self, "gui")
             self.roots:close()
+        end,
+
+        -- Implements AbstractGuiController:getGuiUpcalls().
+        getGuiUpcalls = function(self)
+            return self.upcalls
         end,
 
         -- Implements AbstractGuiController:makeGui().
