@@ -83,6 +83,14 @@ describe("GraphMenuFlow", function()
         assert.are.equals(GuiElement.count(appTestbench.player.index), 0)
     end)
 
+    it(":gui:isValid()", function()
+        controller:open(parent)
+        local gui = controller.gui
+        assert.is_true(gui:isValid())
+        controller:close()
+        assert.is_false(gui:isValid())
+    end)
+
     describe("-- GUI:", function()
         before_each(function()
             controller:open(parent)

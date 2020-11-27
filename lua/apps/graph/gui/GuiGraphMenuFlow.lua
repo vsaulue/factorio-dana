@@ -14,12 +14,11 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ClassLogger = require("lua/logger/ClassLogger")
+local AbstractGui = require("lua/gui/AbstractGui")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiAlign = require("lua/gui/GuiAlign")
 local GuiElement = require("lua/gui/GuiElement")
-
-local cLogger = ClassLogger.new{className = "GuiGraphMenuFlow"}
+local MetaUtils = require("lua/class/MetaUtils")
 
 local Metatable
 local NewQueryButton
@@ -28,15 +27,15 @@ local ViewLegendButton
 
 -- Instanciated GUI of a GraphMenuFlow.
 --
--- Implements Closeable.
+-- Inherits from AbstractGui.
 --
 -- RO Fields:
--- * controller: GraphMenuFlow. Controller owning this GUI.
+-- * controller (override): GraphMenuFlow.
 -- * mainFlow: LuaGuiElement. Top-level element of this GUI.
 -- * newQueryButton: NewQueryButton. Button to create a new query.
--- * parent: LuaGuiElement. Element containing this GUI.
 -- * viewGraphButton: ViewGraphButton. Button to move the camera on the graph.
 -- * viewLegendButton: ViewLegendButton. Button to move the camera on the legend.
+-- + AbstractGui.
 --
 local GuiGraphMenuFlow = ErrorOnInvalidRead.new{
     -- Creates a new GuiGraphMenuFlow object.
@@ -47,10 +46,10 @@ local GuiGraphMenuFlow = ErrorOnInvalidRead.new{
     -- Returns: GuiGraphMenuFlow. The `object` argument turned into the desired type.
     --
     new = function(object)
-        local controller = cLogger:assertField(object, "controller")
-        local parent = cLogger:assertField(object, "parent")
+        AbstractGui.new(object, Metatable)
+        local controller = object.controller
 
-        object.mainFlow = parent.add{
+        object.mainFlow = object.parent.add{
             type = "flow",
             direction = "horizontal",
         }
@@ -77,7 +76,6 @@ local GuiGraphMenuFlow = ErrorOnInvalidRead.new{
             })
         }
 
-        setmetatable(object, Metatable)
         return object
     end,
 
@@ -87,7 +85,7 @@ local GuiGraphMenuFlow = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        AbstractGui.setmetatable(object, Metatable)
         NewQueryButton.setmetatable(object.newQueryButton)
         ViewGraphButton.setmetatable(object.viewGraphButton)
         ViewLegendButton.setmetatable(object.viewLegendButton)
@@ -95,17 +93,22 @@ local GuiGraphMenuFlow = ErrorOnInvalidRead.new{
 }
 
 -- Metatable of the GuiGraphMenuFlow class.
-Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Implements Closeable:close().
+Metatable = MetaUtils.derive(AbstractGui.Metatable, {
+    __index = {
+        -- Implements AbstractGui:close().
         close = function(object)
             GuiElement.safeDestroy(object.mainFlow)
             object.newQueryButton:close()
             object.viewGraphButton:close()
             object.viewLegendButton:close()
         end,
+
+        -- Implements AbstractGui:isValid().
+        isValid = function(self)
+            return self.mainFlow.valid
+        end,
     },
-}
+})
 
 -- Button to switch to the query app.
 --
