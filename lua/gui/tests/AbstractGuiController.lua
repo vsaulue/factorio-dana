@@ -14,7 +14,9 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractGui = require("lua/gui/AbstractGui")
 local AbstractGuiController = require("lua/gui/AbstractGuiController")
+local MetaUtils = require("lua/class/MetaUtils")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 
 describe("AbstractGuiController", function()
@@ -23,21 +25,27 @@ describe("AbstractGuiController", function()
             close = function(self)
                 self.opened = false
             end,
+
+            isValid = function(self)
+                return self.opened
+            end,
         },
     }
+    MetaUtils.derive(AbstractGui.Metatable, GuiMetatable)
+
     local CtrlMetatable = {
         __index = {
             makeGui = function(self, parent)
                 local result = {
+                    controller = self,
                     parent = parent,
                     opened = true,
                 }
-                setmetatable(result, GuiMetatable)
-                return result
+                return AbstractGui.new(result, GuiMetatable)
             end,
         },
     }
-    setmetatable(CtrlMetatable.__index, { __index = AbstractGuiController.Metatable.__index})
+    MetaUtils.derive(AbstractGuiController.Metatable, CtrlMetatable)
 
     local object
     before_each(function()
@@ -81,6 +89,7 @@ describe("AbstractGuiController", function()
 
         it(":open()", function()
             assert.are.same(object.gui, {
+                controller = object,
                 parent = parent,
                 opened = true,
             })
