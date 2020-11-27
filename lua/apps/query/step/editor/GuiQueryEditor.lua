@@ -14,11 +14,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ClassLogger = require("lua/logger/ClassLogger")
+local AbstractGui = require("lua/gui/AbstractGui")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
-
-local cLogger = ClassLogger.new{className = "GuiQueryEditor"}
+local MetaUtils = require("lua/class/MetaUtils")
 
 local BackButton
 local DrawButton
@@ -26,11 +25,13 @@ local Metatable
 
 -- Instanciated GUI of an IntermediateSetEditor.
 --
+-- Inherits from AbstractGui.
+--
 -- RO Fields:
--- * controller: AbstractQueryEditor. Owner of this GUI.
+-- * controller (override): AbstractQueryEditor.
 -- * frame: LuaGuiElement. Top-level element containing this GUI.
 -- * paramsFrame: LuaGuiElement. Frame containing the paramsEditor GUI.
--- * parent: LuaGuiElement. Element containing this GUI.
+-- + AbstractGui.
 --
 local GuiQueryEditor = ErrorOnInvalidRead.new{
     -- Creates a new GuiQueryEditor object.
@@ -41,10 +42,10 @@ local GuiQueryEditor = ErrorOnInvalidRead.new{
     -- Returns: GuiQueryEditor. `object` turned into the desired type.
     --
     new = function(object)
-        local controller = cLogger:assertField(object, "controller")
-        local parent = cLogger:assertField(object, "parent")
+        AbstractGui.new(object, Metatable)
+        local controller = object.controller
 
-        local frame = parent.add{
+        local frame = object.parent.add{
             type = "frame",
             direction = "vertical",
             caption = {"dana.apps.query.queryEditor.title"},
@@ -85,7 +86,6 @@ local GuiQueryEditor = ErrorOnInvalidRead.new{
             frame.force_auto_center()
         end
 
-        setmetatable(object, Metatable)
         object:updateParamsEditor()
         return object
     end,
@@ -96,20 +96,25 @@ local GuiQueryEditor = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        AbstractGui.setmetatable(object, Metatable)
         BackButton.setmetatable(object.backButton)
         DrawButton.setmetatable(object.drawButton)
     end,
 }
 
 -- Metatable of the GuiQueryEditor class.
-Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Implements Closeable:close().
+Metatable = MetaUtils.derive(AbstractGui.Metatable, {
+    __index = {
+        -- Implements AbstractGui:close().
         close = function(self)
             GuiElement.safeDestroy(self.frame)
             self.backButton:close()
             self.drawButton:close()
+        end,
+
+        -- Implements AbstractGui:isValid().
+        isValid = function(self)
+            return self.frame.valid
         end,
 
         -- Updates this GUI to use the current "paramsEditor" of the controller.
@@ -124,7 +129,7 @@ Metatable = {
             end
         end,
     },
-}
+})
 
 -- Button to go back to the TemplateSelectWindow.
 --

@@ -134,6 +134,14 @@ describe("HowToMakeEditor + Abstract + GUI", function()
             controller:close()
         end)
 
+        it(":gui:isValid()", function()
+            controller:open(parent)
+            local gui = controller.gui
+            assert.is_true(gui:isValid())
+            controller:close()
+            assert.is_false(gui:isValid())
+        end)
+
         it(":open()", function()
             controller:open(parent)
             local wood = items.wood
