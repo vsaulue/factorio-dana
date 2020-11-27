@@ -14,22 +14,21 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ClassLogger = require("lua/logger/ClassLogger")
+local AbstractGui = require("lua/gui/AbstractGui")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
-
-local cLogger = ClassLogger.new{className = "GuiTreeBox"}
+local MetaUtils = require("lua/class/MetaUtils")
 
 local Metatable
 
 -- GUI elements of a TreeBox object.
 --
--- Implements Closeable.
+-- Inherits from AbstractGui.
 --
 -- RO Fields:
--- * controller: TreeBox. Controller owning this GUI.
+-- * controller (override): TreeBox.
 -- * flow: LuaGuiElement. Top-level GUI element containing all the nodes.
--- * parent: LuaGuiElement. GUI element in which the TreeBox is created.
+-- + AbstractGui.
 --
 local GuiTreeBox = ErrorOnInvalidRead.new{
     -- Creates a new GuiTreeBox object.
@@ -40,20 +39,18 @@ local GuiTreeBox = ErrorOnInvalidRead.new{
     -- Returns: GuiTreeBox. The `object` argument turned into the desired type.
     --
     new = function(object)
-        local controller = cLogger:assertField(object, "controller")
-        local parent = cLogger:assertField(object, "parent")
-        object.flow = parent.add{
+        AbstractGui.new(object, Metatable)
+        object.flow = object.parent.add{
             type = "flow",
             direction = "vertical",
         }
         object.flow.style.vertical_spacing = 0
 
-        local roots = controller.roots
+        local roots = object.controller.roots
         for i=1,roots.count do
             roots[i]:open(object.flow)
         end
 
-        setmetatable(object, Metatable)
         return object
     end,
 
@@ -63,18 +60,24 @@ local GuiTreeBox = ErrorOnInvalidRead.new{
     -- * object: Table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        AbstractGui.setmetatable(object, Metatable)
     end,
 }
 
 -- Metatable of the GuiTreeBox object.
 Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Implements Closeable:close().
+    __index = {
+        -- Implements AbstractGui:close().
         close = function(self)
             GuiElement.safeDestroy(self.flow)
         end,
+
+        -- Implements AbstractGui:isValid().
+        isValid = function(self)
+            return self.flow.valid
+        end,
     },
 }
+MetaUtils.derive(AbstractGui.Metatable, Metatable)
 
 return GuiTreeBox
