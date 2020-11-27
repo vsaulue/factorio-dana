@@ -56,6 +56,7 @@ local AppTestbench = {
         }
         local upcalls = AutoLoaded.new{
             makeAndSwitchApp = function() end,
+            notifyGuiCorrupted = function() end,
             setAppMenu = function() end,
             setPosition = function() end,
         }

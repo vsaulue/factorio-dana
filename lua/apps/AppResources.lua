@@ -67,6 +67,11 @@ Metatable = {
             self.upcalls:makeAndSwitchApp(newApp)
         end,
 
+        -- Implements AppUpcalls:notifyGuiCorrupted().
+        notifyGuiCorrupted = function(self)
+            self.upcalls:notifyGuiCorrupted()
+        end,
+
         -- Implements AppUpcalls:setAppMenu
         setAppMenu = function(self, appMenu)
             self.upcalls:setAppMenu(appMenu)

@@ -16,6 +16,7 @@
 
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local GuiUpcalls = require("lua/gui/GuiUpcalls")
 
 local cLogger = ClassLogger.new{className = "AppUpcalls"}
 
@@ -31,6 +32,7 @@ local AppUpcalls = ErrorOnInvalidRead.new{
         cLogger:assertField(object, "makeAndSwitchApp")
         cLogger:assertField(object, "setAppMenu")
         cLogger:assertField(object, "setPosition")
+        GuiUpcalls.checkMethods(object)
     end,
 }
 
@@ -44,6 +46,9 @@ Metatable = {
         -- * newApp: table. Used to build the new AbstractApp.
         --
         makeAndSwitchApp = function(self, newApp) end,
+
+        -- Implements GuiUpcalls:notifyGuiCorrupted().
+        notifyGuiCorrupted = function(self) end,
 
         -- Sets the new application controller for the top-left menu.
         --
