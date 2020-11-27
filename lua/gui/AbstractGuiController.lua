@@ -54,7 +54,17 @@ local AbstractGuiController = ErrorOnInvalidRead.new{
                 Closeable.safeCloseField(self, "gui")
             end,
 
-            -- makeGui = function(self, parent) end,
+            -- Makes the GUI of this controller.
+            --
+            -- Args:
+            -- * self: AbstractGuiController.
+            -- * parent: LuaGuiElement. Element in which this GUI will be created.
+            --
+            -- Returns: AbstractGuiController.
+            --
+            --[[
+            makeGui = function(self, parent) end,
+            --]]
 
             -- Instanciate the GUI of this controller.
             --
