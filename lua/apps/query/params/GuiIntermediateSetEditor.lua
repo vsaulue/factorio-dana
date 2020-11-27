@@ -14,14 +14,13 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ClassLogger = require("lua/logger/ClassLogger")
+local AbstractGui = require("lua/gui/AbstractGui")
 local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiAlign = require("lua/gui/GuiAlign")
 local GuiElement = require("lua/gui/GuiElement")
+local MetaUtils = require("lua/class/MetaUtils")
 local ReversibleArray = require("lua/containers/ReversibleArray")
-
-local cLogger = ClassLogger.new{className = "GuiIntermediateSetEditor"}
 
 local AddElemButton
 local destroyRemoveButton
@@ -34,15 +33,17 @@ local RemoveButton
 
 -- Instanciated GUI of an IntermediateSetEditor.
 --
+-- Inherits from AbstractGui.
+--
 -- RO Fields:
+-- * controller (override): IntermediateSetEditor.
 -- * addFluidButton: AddElemButton. GuiElement to add fluid intermediates.
 -- * addItemButton: AddElemButton. GuiElement to add item intermediates.
--- * controller: IntermediateSetEditor. Owner of this GUI.
 -- * mainFlow: LuaGuiElement. Top-level flow of this GUI.
 -- * removeButtons: Map<Intermediate,RemoveButton>. All RemoveButton objects indexed by their intermediate.
--- * parent: LuaGuiElement. Element in which this GUI is displaying.
 -- * selectedIntermediates: ReversibleArray<Intermediate>. Current selection of intermediates.
 -- * selectionFlow: LuaGuiElement. Flow displaying the currently selected intermediates.
+-- + AbstractGui.
 --
 local GuiIntermediateSetEditor = ErrorOnInvalidRead.new{
     -- Creates a new GuiIntermediateSetEditor object.
@@ -53,13 +54,12 @@ local GuiIntermediateSetEditor = ErrorOnInvalidRead.new{
     -- Returns: GuiIntermediateSetEditor. The `object` argument turned into the desired type.
     --
     new = function(object)
-        local controller = cLogger:assertField(object, "controller")
-        local parent = cLogger:assertField(object, "parent")
+        AbstractGui.new(object, Metatable)
 
         object.removeButtons = ErrorOnInvalidRead.new()
         object.selectedIntermediates = ReversibleArray.new()
 
-        local mainFlow = parent.add{
+        local mainFlow = object.parent.add{
             type = "flow",
             direction = "vertical",
         }
@@ -85,8 +85,7 @@ local GuiIntermediateSetEditor = ErrorOnInvalidRead.new{
         }
         object.selectionFlow.style.minimal_width = 295
 
-        setmetatable(object, Metatable)
-        for intermediate in pairs(controller.output) do
+        for intermediate in pairs(object.controller.output) do
             object:addIntermediate(intermediate)
         end
         return object
@@ -98,7 +97,7 @@ local GuiIntermediateSetEditor = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        AbstractGui.setmetatable(object, Metatable)
         AddElemButton.setmetatable(object.addItemButton)
         AddElemButton.setmetatable(object.addFluidButton)
         ReversibleArray.setmetatable(object.selectedIntermediates)
@@ -107,8 +106,8 @@ local GuiIntermediateSetEditor = ErrorOnInvalidRead.new{
 }
 
 -- Metatable of the GuiIntermediateSetEditor class.
-Metatable = {
-    __index = ErrorOnInvalidRead.new{
+Metatable = MetaUtils.derive(AbstractGui.Metatable, {
+    __index = {
         -- Adds an intermediate to the set.
         --
         -- Args:
@@ -133,12 +132,17 @@ Metatable = {
             end
         end,
 
-        -- Implements Closeable:close().
+        -- Implements AbstractGui:close().
         close = function(self)
             GuiElement.safeDestroy(self.mainFlow)
             self.addItemButton:close()
             self.addFluidButton:close()
             Closeable.closeMapValues(self.removeButtons)
+        end,
+
+        -- Implements AbstractGui:isValid().
+        isValid = function(self)
+            return self.mainFlow.valid
         end,
 
         -- Removes an intermediate from the set.
@@ -176,7 +180,7 @@ Metatable = {
             end
         end,
     },
-}
+})
 
 -- Button to add an item/fluid to the set of source intermediates.
 --

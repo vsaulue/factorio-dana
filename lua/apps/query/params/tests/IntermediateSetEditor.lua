@@ -134,6 +134,14 @@ describe("IntermediateSetEditor (& GUI)", function()
         end)
     end)
 
+    it(":gui:isValid()", function()
+        object:open(parent)
+        local gui = object.gui
+        assert.is_true(gui:isValid())
+        object:close()
+        assert.is_false(gui:isValid())
+    end)
+
     describe(":removeIntermediate()", function()
         it("-- no GUI", function()
             object:removeIntermediate(items.item1)
