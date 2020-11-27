@@ -20,6 +20,7 @@ local AppUpcalls = require("lua/apps/AppUpcalls")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 local MenuWindow = require("lua/controller/MenuWindow")
+local PlayerCtrlInterface = require("lua/controller/PlayerCtrlInterface")
 local PositionController = require("lua/apps/PositionController")
 
 local closeApp
@@ -30,7 +31,7 @@ local ShowButton
 
 -- Class holding data associated to a player in this mod.
 --
--- Implements AppUpcalls, GuiUpcalls.
+-- Implements AppUpcalls, GuiUpcalls, PlayerCtrlInterface.
 --
 -- Fields:
 -- * app: AbstractApp or false. Running application.
@@ -203,6 +204,7 @@ Metatable = {
     },
 }
 AppUpcalls.check(Metatable.__index)
+PlayerCtrlInterface.check(Metatable.__index)
 
 -- Closes the running application.
 --
