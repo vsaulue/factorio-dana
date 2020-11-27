@@ -14,12 +14,11 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ClassLogger = require("lua/logger/ClassLogger")
+local AbstractGui = require("lua/gui/AbstractGui")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiAlign = require("lua/gui/GuiAlign")
 local GuiElement = require("lua/gui/GuiElement")
-
-local cLogger = ClassLogger.new{className = "GuiMinDistEditor"}
+local MetaUtils = require("lua/class/MetaUtils")
 
 local AllowCheckbox
 local DepthCheckbox
@@ -31,10 +30,12 @@ local updateEnableDepth
 
 -- Instanciated GUI of an GuiMinDistEditor.
 --
+-- Inherits from AbstractGui.
+--
 -- RO Fields:
--- * controller: MinDistParamsEditor. Controller owning this GUI.
+-- * controller (override): MinDistParamsEditor.
 -- * mainFlow: LuaGuiElement. Top-level flow owned by this GUI.
--- * parent: LuaGuiElement. Element containing this GUI.
+-- + AbstractGui.
 --
 local GuiMinDistEditor = ErrorOnInvalidRead.new{
     -- Creates a new GuiMinDistEditor object.
@@ -45,11 +46,11 @@ local GuiMinDistEditor = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a GuiMinDistEditor class.
     --
     new = function(object)
-        local controller = cLogger:assertField(object, "controller")
-        local parent = cLogger:assertField(object, "parent")
+        AbstractGui.new(object, Metatable)
+        local controller = object.controller
         localisedStrings = LocalisedStrings[controller.isForward]
 
-        local mainFlow = parent.add{
+        local mainFlow = object.parent.add{
             type = "flow",
             direction = "vertical",
         }
@@ -107,7 +108,7 @@ local GuiMinDistEditor = ErrorOnInvalidRead.new{
                 text = "1",
             },
         }
-        setmetatable(object, Metatable)
+
         object:setDepth(rawget(controller.params, "maxDepth"))
         return object
     end,
@@ -118,7 +119,7 @@ local GuiMinDistEditor = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        AbstractGui.setmetatable(object, Metatable)
         AllowCheckbox.setmetatable(object.allowOtherCheckbox)
         DepthCheckbox.setmetatable(object.depthCheckbox)
         DepthField.setmetatable(object.depthField)
@@ -126,14 +127,19 @@ local GuiMinDistEditor = ErrorOnInvalidRead.new{
 }
 
 -- Metatable of the GuiMinDistEditor class.
-Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Implements Closeable:close().
+Metatable = MetaUtils.derive(AbstractGui.Metatable, {
+    __index = {
+        -- Implements AbstractGui:close().
         close = function(self)
             GuiElement.safeDestroy(self.mainFlow)
             self.allowOtherCheckbox:close()
             self.depthCheckbox:close()
             self.depthField:close()
+        end,
+
+        -- Implements AbstractGui:isValid().
+        isValid = function(self)
+            return self.mainFlow.valid
         end,
 
         -- Checks the "Allow other intermediates" box.
@@ -166,7 +172,7 @@ Metatable = {
             end
         end,
     },
-}
+})
 
 -- Checkbox to enable the allowOther parameter.
 --
