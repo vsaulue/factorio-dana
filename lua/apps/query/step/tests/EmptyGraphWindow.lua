@@ -50,7 +50,7 @@ describe("EmptyGraphWindow", function()
         }
         QueryAppInterface.check(appInterface)
 
-        parent = appTestbench.player.gui.center
+        parent = appTestbench.player.gui.screen
     end)
 
     local controller
