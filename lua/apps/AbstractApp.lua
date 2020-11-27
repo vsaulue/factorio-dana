@@ -63,6 +63,13 @@ local AbstractApp = ErrorOnInvalidRead.new{
             --
             onSelectedArea = function(self, event) end,
 
+            -- Rebuils any opened GUI that is not valid.
+            --
+            -- Args:
+            -- * self: AbstractApp.
+            --
+            repairGui = function(self) end,
+
             -- Shows all GUI elements of this application.
             --
             -- Args:
