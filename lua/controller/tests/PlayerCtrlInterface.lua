@@ -20,6 +20,7 @@ describe("PlayerCtrlInterface", function()
     it(".check()", function()
         PlayerCtrlInterface.check{
             hide = function() end,
+            notifyGuiCorrupted = function() end,
         }
     end)
 end)

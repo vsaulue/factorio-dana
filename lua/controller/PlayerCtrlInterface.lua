@@ -16,10 +16,13 @@
 
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local GuiUpcalls = require("lua/gui/GuiUpcalls")
 
 local cLogger = ClassLogger.new{className = "PlayerCtrlInterface"}
 
 -- Interface containing callbacks of the player controller.
+--
+-- Implements GuiUpcalls.
 --
 local PlayerCtrlInterface = ErrorOnInvalidRead.new{
     -- Checks that all methods are implemented.
@@ -29,6 +32,7 @@ local PlayerCtrlInterface = ErrorOnInvalidRead.new{
     --
     check = function(object)
         cLogger:assertField(object, "hide")
+        GuiUpcalls.checkMethods(object)
     end,
 }
 
@@ -43,6 +47,9 @@ Metatable = {
         --   true to stay at the current position.
         --
         hide = function(self, keepPosition) end,
+
+        -- Implements GuiUpcalls:notifyGuiCorrupted().
+        notifyGuiCorrupted = function(self) end,
     },
 }
 --]]

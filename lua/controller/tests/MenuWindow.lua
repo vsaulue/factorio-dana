@@ -37,6 +37,7 @@ describe("MenuWindow", function()
 
         playerCtrlInterface = AutoLoaded.new{
             hide = function() end,
+            notifyGuiCorrupted = function() end,
         }
         PlayerCtrlInterface.check(playerCtrlInterface)
     end)
