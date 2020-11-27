@@ -37,7 +37,7 @@ local RemoveButton
 -- RO Fields:
 -- * addFluidButton: AddElemButton. GuiElement to add fluid intermediates.
 -- * addItemButton: AddElemButton. GuiElement to add item intermediates.
--- * intermediateSetEditor: IntermediateSetEditor. Owner of this GUI.
+-- * controller: IntermediateSetEditor. Owner of this GUI.
 -- * mainFlow: LuaGuiElement. Top-level flow of this GUI.
 -- * removeButtons: Map<Intermediate,RemoveButton>. All RemoveButton objects indexed by their intermediate.
 -- * parent: LuaGuiElement. Element in which this GUI is displaying.
@@ -45,9 +45,16 @@ local RemoveButton
 -- * selectionFlow: LuaGuiElement. Flow displaying the currently selected intermediates.
 --
 local GuiIntermediateSetEditor = ErrorOnInvalidRead.new{
+    -- Creates a new GuiIntermediateSetEditor object.
+    --
+    -- Args:
+    -- * object: table. Required fields: controller, parent.
+    --
+    -- Returns: GuiIntermediateSetEditor. The `object` argument turned into the desired type.
+    --
     new = function(object)
+        local controller = cLogger:assertField(object, "controller")
         local parent = cLogger:assertField(object, "parent")
-        local controller = cLogger:assertField(object, "intermediateSetEditor")
 
         object.removeButtons = ErrorOnInvalidRead.new()
         object.selectedIntermediates = ReversibleArray.new()
@@ -85,6 +92,11 @@ local GuiIntermediateSetEditor = ErrorOnInvalidRead.new{
         return object
     end,
 
+    -- Restores the metatable of a GuiIntermediateSetEditor object, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table to modify.
+    --
     setmetatable = function(object)
         setmetatable(object, Metatable)
         AddElemButton.setmetatable(object.addItemButton)
@@ -94,6 +106,7 @@ local GuiIntermediateSetEditor = ErrorOnInvalidRead.new{
     end,
 }
 
+-- Metatable of the GuiIntermediateSetEditor class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Adds an intermediate to the set.
@@ -170,17 +183,17 @@ Metatable = {
 -- Inherits from GuiElement.
 --
 -- RO Fields:
--- * setEditor: IntermediateSetEditor owning this button.
+-- * controller: IntermediateSetEditor owning this button.
 --
 AddElemButton = GuiElement.newSubclass{
     className = "IntermediateSetEditor/AddElemButton",
-    mandatoryFields = {"setEditor"},
+    mandatoryFields = {"controller"},
     __index = {
         onElemChanged = function(self, event)
             local element = self.rawElement
             local elemValue = element.elem_value
             if elemValue then
-                self.setEditor:addIntermediate(element.elem_type, elemValue)
+                self.controller:addIntermediate(element.elem_type, elemValue)
                 self.rawElement.elem_value = nil
             end
         end,
@@ -231,7 +244,7 @@ makeAddElemFlow = function(self, parent, elemType)
 
     -- Elem button
     return AddElemButton.new{
-        setEditor = self.intermediateSetEditor,
+        controller = self.controller,
         rawElement = elemFlow.add{
             type = "choose-elem-button",
             elem_type = elemType,
@@ -266,7 +279,7 @@ makeIntermediateFrame = function(self, parent, intermediate)
             caption = "x",
             style = "tool_button_red",
         },
-        setEditor = self.intermediateSetEditor,
+        controller = self.controller,
     }
     self.removeButtons[intermediate] = button
     button.rawElement.style.width = 16
@@ -277,10 +290,10 @@ end
 -- Button to remove a specific intermediate from the selection.
 RemoveButton = GuiElement.newSubclass{
     className = "IntermediateSetEditor/RemoveButton",
-    mandatoryFields = {"setEditor", "intermediate"},
+    mandatoryFields = {"controller", "intermediate"},
     __index = {
         onClick = function(self, event)
-            self.setEditor:removeIntermediate(self.intermediate)
+            self.controller:removeIntermediate(self.intermediate)
         end,
     },
 }

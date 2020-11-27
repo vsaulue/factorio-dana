@@ -122,7 +122,7 @@ describe("IntermediateSetEditor (& GUI)", function()
         end)
 
         it(":open()", function()
-            assert.are.equals(object.gui.intermediateSetEditor, object)
+            assert.are.equals(object.gui.controller, object)
             assert.are.equals(object.gui.selectionFlow, parent.children[1].children[2])
         end)
 

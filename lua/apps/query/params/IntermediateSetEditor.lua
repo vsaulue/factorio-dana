@@ -92,7 +92,7 @@ Metatable = {
         --
         makeGui = function(self, parent)
             return GuiIntermediateSetEditor.new{
-                intermediateSetEditor = self,
+                controller = self,
                 parent = parent,
             }
         end,
