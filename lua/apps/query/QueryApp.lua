@@ -103,6 +103,12 @@ Metatable = {
             self:show()
         end,
 
+        -- Implements AbstractApp:repairGui().
+        repairGui = function(self)
+            local stack = self.stepWindows
+            stack[stack.topIndex]:repair(self.appResources.rawPlayer.gui.screen)
+        end,
+
         -- Implements QueryAppInterface:runQueryAndDraw().
         runQueryAndDraw = function(self, query)
             local force = self.appResources.force

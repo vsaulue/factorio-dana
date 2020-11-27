@@ -173,6 +173,25 @@ describe("QueryApp", function()
         assert.is_nil(appTestbench.player.gui.screen.children[1])
     end)
 
+    it(":repairGui()", function()
+        -- Setup
+        app:show()
+
+        local selectButton = app.stepWindows[1].gui.templateButtons.HowToMake.rawElement
+        GuiElement.on_gui_click{
+            element = selectButton,
+            player_index = selectButton.player_index,
+        }
+
+        -- Test
+        local topGui = app.stepWindows[2].gui
+        app:repairGui()
+        assert.are.equals(app.stepWindows[2].gui, topGui)
+        topGui.frame.destroy()
+        app:repairGui()
+        assert.are_not.equals(app.stepWindows[2].gui, topGui)
+    end)
+
     describe("-- GUI:", function()
         before_each(function()
             app:show()
