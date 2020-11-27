@@ -14,23 +14,22 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ClassLogger = require("lua/logger/ClassLogger")
+local AbstractGui = require("lua/gui/AbstractGui")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
-
-local cLogger = ClassLogger.new{className = "GuiEmptyGraphWindow"}
+local MetaUtils = require("lua/class/MetaUtils")
 
 local BackButton
 local Metatable
 
 -- Instanciated GUI of an EmptyGraphWindow.
 --
--- Implements Closeable.
+-- Inherits from AbstractGui.
 --
 -- RO Fields:
--- * controller: EmptyGraphWindow. Controller owning this GUI.
+-- * controller (override): EmptyGraphWindow.
 -- * frame: LuaGuiElement. Top-level frame owned by this GUI.
--- * parent: LuaGuiElement. Element containing this GUI.
+-- + AbstractGui.
 --
 local GuiEmptyGraphWindow = ErrorOnInvalidRead.new{
     -- Creates a new GuiEmptyGraphWindow object.
@@ -41,10 +40,9 @@ local GuiEmptyGraphWindow = ErrorOnInvalidRead.new{
     -- Returns: GuiEmptyGraphWindow. The argument turned into the desired type.
     --
     new = function(object)
-        local controller = cLogger:assertField(object, "controller")
-        local parent = cLogger:assertField(object, "parent")
+        AbstractGui.new(object, Metatable)
 
-        local frame = parent.add{
+        local frame = object.parent.add{
             type = "frame",
             direction = "vertical",
             caption = {"dana.apps.query.emptyGraphWindow.title"},
@@ -63,7 +61,7 @@ local GuiEmptyGraphWindow = ErrorOnInvalidRead.new{
             frame.force_auto_center()
         end
         object.backButton = BackButton.new{
-            controller = controller,
+            controller = object.controller,
             rawElement = object.frame.add{
                 type = "button",
                 caption = {"gui.cancel"},
@@ -71,7 +69,6 @@ local GuiEmptyGraphWindow = ErrorOnInvalidRead.new{
             },
         }
 
-        setmetatable(object, Metatable)
         return object
     end,
 
@@ -81,21 +78,26 @@ local GuiEmptyGraphWindow = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        AbstractGui.setmetatable(object, Metatable)
         BackButton.setmetatable(object.backButton)
     end,
 }
 
 -- Metatable of the GuiEmptyGraphWindow class
-Metatable = {
+Metatable = MetaUtils.derive(AbstractGui.Metatable, {
     __index = {
-        -- Implements Closeable:close().
+        -- Implements AbstractGui:close().
         close = function(self)
             GuiElement.safeDestroy(self.frame)
             self.backButton:close()
         end,
+
+        -- Implements AbstractGui:isValid().
+        isValid = function(self)
+            return self.frame.valid
+        end,
     },
-}
+})
 
 -- Button to go back to the previous window.
 --
