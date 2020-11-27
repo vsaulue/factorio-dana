@@ -57,6 +57,11 @@ local GraphMenuFlow = ErrorOnInvalidRead.new{
 -- Metatable of the GraphMenuFlow class.
 Metatable = {
     __index = {
+        -- Implements AbstractGuiController:getGuiUpcalls().
+        getGuiUpcalls = function(self)
+            return self.appInterface.appResources
+        end,
+
         -- Implements AbstractGuiController:makeGui().
         makeGui = function(self, parent)
             return GuiGraphMenuFlow.new{
