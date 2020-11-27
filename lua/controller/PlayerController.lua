@@ -30,7 +30,7 @@ local ShowButton
 
 -- Class holding data associated to a player in this mod.
 --
--- Stored in global: yes
+-- Implements AppUpcalls, GuiUpcalls.
 --
 -- Fields:
 -- * app: AbstractApp or false. Running application.
@@ -107,6 +107,17 @@ Metatable = {
             closeApp(self)
             newApp.appResources = self.appResources
             setApp(self, App.new(newApp))
+        end,
+
+        -- Implements GuiUpcalls:notifyGuiCorrupted().
+        --
+        -- Repair all GUIs of this player.
+        --
+        notifyGuiCorrupted = function(self)
+            self.menuWindow:repair(self.rawPlayer.gui.screen)
+            if self.app then
+                self.app:repairGui()
+            end
         end,
 
         -- Function to call when Factorio's on_player_changed_surface is triggered for this player.
