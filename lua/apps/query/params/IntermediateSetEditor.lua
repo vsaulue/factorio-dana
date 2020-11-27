@@ -17,15 +17,11 @@
 local AbstractGuiController = require("lua/gui/AbstractGuiController")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GuiAlign = require("lua/gui/GuiAlign")
-local GuiElement = require("lua/gui/GuiElement")
 local GuiIntermediateSetEditor = require("lua/apps/query/params/GuiIntermediateSetEditor")
-local ReversibleArray = require("lua/containers/ReversibleArray")
 
 local cLogger = ClassLogger.new{className = "IntermediateSetEditor"}
 
 local Metatable
-local removeIntermediate
 
 -- GUI to edit a set of Intermediate.
 --
