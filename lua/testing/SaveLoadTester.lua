@@ -102,7 +102,7 @@ end
 copy = function(self, object)
     local objectType = type(object)
     if not ValidTypes[objectType] then
-        error(ValidTypes[objectType], "Invalid type: " .. objectType)
+        error("Invalid type to serialize: " .. objectType)
     end
 
     local result
