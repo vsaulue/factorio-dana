@@ -225,6 +225,14 @@ describe("TreeBoxNode", function()
         }
     end)
 
+    it(":gui:isValid()", function()
+        treeBox:open(parent)
+        local gui = treeBox.roots[1].gui
+        assert.is_true(gui:isValid())
+        treeBox:close()
+        assert.is_false(gui:isValid())
+    end)
+
     describe(":setSelected()", function()
         it("-- no gui", function()
             local node = treeBox.roots[1].children[1]

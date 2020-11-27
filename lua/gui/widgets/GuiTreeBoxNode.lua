@@ -14,12 +14,11 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ClassLogger = require("lua/logger/ClassLogger")
+local AbstractGui = require("lua/gui/AbstractGui")
 local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
-
-local cLogger = ClassLogger.new{className = "GuiTreeBoxNode"}
+local MetaUtils = require("lua/class/MetaUtils")
 
 local getExpandLabelCaption
 local Metatable
@@ -31,14 +30,14 @@ local UnselectableColor
 
 -- GUI elements of a TreeBoxNode object.
 --
--- Implements Closeable.
+-- Inherits from AbstractGui.
 --
 -- RO Fields:
 -- * childrenFlow: LuaGuiElement. GUI element containing the child nodes.
--- * controller: TreeBoxNode. Controller owning this GUI.
+-- * controller (override): TreeBoxNode.
 -- * expandLabel (optional): ExpandLabel. GUI wrapper for the clickable triangle.
 -- * headerFlow: LuaGuiElement. GUI element containing the triangle & text.
--- * parent: LuaGuiElement. GUI element in which the TreeBoxNode is created.
+-- + AbstractGui.
 --
 local GuiTreeBoxNode = ErrorOnInvalidRead.new{
     -- Creates a new GuiTreeBoxNode object.
@@ -49,8 +48,9 @@ local GuiTreeBoxNode = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a GuiTreeBoxNode object.
     --
     new = function(object)
-        local controller = cLogger:assertField(object, "controller")
-        local parent = cLogger:assertField(object, "parent")
+        AbstractGui.new(object, Metatable)
+        local controller = object.controller
+        local parent = object.parent
 
         local children = controller.children
         local depth = controller.depth
@@ -116,7 +116,6 @@ local GuiTreeBoxNode = ErrorOnInvalidRead.new{
             children[i]:open(childrenFlow)
         end
 
-        setmetatable(object, Metatable)
         return object
     end,
 
@@ -126,7 +125,7 @@ local GuiTreeBoxNode = ErrorOnInvalidRead.new{
     -- * object: Table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        AbstractGui.setmetatable(object, Metatable)
         ExpandLabel.safeSetmetatable(rawget(object, "expandLabel"))
         SelectLabel.safeSetmetatable(rawget(object, "selectLabel"))
     end,
@@ -134,13 +133,18 @@ local GuiTreeBoxNode = ErrorOnInvalidRead.new{
 
 -- Metatable of the GuiTreeBoxNode.
 Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Implements Closeable:close().
+    __index = {
+        -- Implements AbstractGui:close().
         close = function(self)
             GuiElement.safeDestroy(self.headerFlow)
             GuiElement.safeDestroy(self.childrenFlow)
             Closeable.safeCloseField(self, "expandLabel")
             Closeable.safeCloseField(self, "selectLabel")
+        end,
+
+        -- Implements AbstractGui:isValid().
+        isValid = function(self)
+            return self.headerFlow.valid and self.childrenFlow.valid
         end,
 
         -- Updates the "expanded" state of this GUI.
@@ -172,6 +176,7 @@ Metatable = {
         end,
     },
 }
+MetaUtils.derive(AbstractGui.Metatable, Metatable)
 
 -- Callback of the triangle label used to expand/collapse the list of children.
 ExpandLabel = GuiElement.newSubclass{
