@@ -14,10 +14,12 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AbstractGui = require("lua/gui/AbstractGui")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 local GuiMaker = require("lua/gui/GuiMaker")
+local MetaUtils = require("lua/class/MetaUtils")
 
 local cLogger = ClassLogger.new{className = "AbstractGuiSelectionPanel"}
 
@@ -26,22 +28,27 @@ local SelectionCategoryLabel
 
 -- Instanciated GUI of an AbstractSelectionPanel.
 --
--- Implements Closeable.
+-- Inherits from AbstractGui.
 --
 -- RO Fields:
--- * controller: GraphMenuFlow. Controller owning this GUI.
+-- * controller (override): GraphMenuFlow.
 -- * mainFlow: LuaGuiElement. Top-level element owned by this GUI.
--- * parent: LuaGuiElement. Element containing this GUI.
 -- * titleLabel: SelectionCategoryLabel. Title label of this GUI.
+-- + AbstractGui.
 --
 local AbstractGuiSelectionPanel = ErrorOnInvalidRead.new{
     -- Metatable of the AbstractGuiSelectionPanel class.
     Metatable = {
-        __index = ErrorOnInvalidRead.new{
-            -- Implements Closeable:close().
+        __index = {
+            -- Implements AbstractGui:close().
             close = function(self)
                 GuiElement.safeDestroy(self.mainFlow)
                 self.titleLabel:close()
+            end,
+
+            -- Implements AbstractGui:isValid().
+            isValid = function(self)
+                return self.mainFlow.valid
             end,
 
             -- Creates a GUI for a specific element.
@@ -107,13 +114,11 @@ local AbstractGuiSelectionPanel = ErrorOnInvalidRead.new{
     -- Returns: AbstractGuiSelectionPanel. The `object` argument turned into the desired type.
     --
     new = function(object, metatable)
-        cLogger:assertField(object, "controller")
-        local parent = cLogger:assertField(object, "parent")
-        setmetatable(object, metatable)
+        AbstractGui.new(object, metatable)
         cLogger:assertField(object, "makeElementGui")
         local title = cLogger:assertField(object, "Title")
 
-        object.mainFlow = GuiMaker.run(parent, GuiConstructorArgs)
+        object.mainFlow = GuiMaker.run(object.parent, GuiConstructorArgs)
         object.mainFlow.title.caption = title
 
         object.titleLabel = SelectionCategoryLabel.new{
@@ -132,10 +137,11 @@ local AbstractGuiSelectionPanel = ErrorOnInvalidRead.new{
     -- * object: table.
     --
     setmetatable = function(object, metatable)
-        setmetatable(object, metatable)
+        AbstractGui.setmetatable(object, metatable)
         SelectionCategoryLabel.setmetatable(object.titleLabel)
     end,
 }
+MetaUtils.derive(AbstractGui.Metatable, AbstractGuiSelectionPanel.Metatable)
 
 -- GuiMaker's arguments to build this GUI.
 GuiConstructorArgs = {
