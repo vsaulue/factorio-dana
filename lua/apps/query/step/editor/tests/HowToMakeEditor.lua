@@ -55,7 +55,7 @@ describe("HowToMakeEditor + Abstract + GUI", function()
 
         items = appTestbench.prototypes.intermediates.item
 
-        parent = appTestbench.player.gui.center
+        parent = appTestbench.player.gui.screen
     end)
 
     before_each(function()
