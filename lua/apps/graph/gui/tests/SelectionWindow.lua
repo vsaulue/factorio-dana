@@ -113,6 +113,14 @@ describe("SelectionWindow", function()
         end
     end)
 
+    it(":gui:isValid()", function()
+        controller:open(parent)
+        local gui = controller.gui
+        assert.is_true(gui:isValid())
+        controller:close()
+        assert.is_false(gui:isValid())
+    end)
+
     it(":open()", function()
         controller:open(parent)
         assert.are.equals(controller.gui.frame, parent.children[1])

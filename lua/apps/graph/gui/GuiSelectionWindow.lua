@@ -14,12 +14,11 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ClassLogger = require("lua/logger/ClassLogger")
+local AbstractGui = require("lua/gui/AbstractGui")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
 local GuiMaker = require("lua/gui/GuiMaker")
-
-local cLogger = ClassLogger.new{className = "GuiSelectionWindow"}
+local MetaUtils = require("lua/class/MetaUtils")
 
 local GuiConstructorArgs
 local Metatable
@@ -27,7 +26,7 @@ local SelectToolButton
 
 -- Instanciated GUI of an SelectionWindow.
 --
--- Inherits from AbstractGuiSelectionPanel.
+-- Inherits from AbstractGui.
 --
 -- RO Fields:
 -- * controller: SelectionWindow. Owner of this GUI.
@@ -37,11 +36,10 @@ local SelectToolButton
 --
 local GuiSelectionWindow = ErrorOnInvalidRead.new{
     new = function(object)
-        local controller = cLogger:assertField(object, "controller")
-        local parent = cLogger:assertField(object, "parent")
+        AbstractGui.new(object, Metatable)
+        local controller = object.controller
 
-
-        local frame = GuiMaker.run(parent, GuiConstructorArgs)
+        local frame = GuiMaker.run(object.parent, GuiConstructorArgs)
         frame.selectToolButton.style.horizontally_stretchable = true
         object.frame = frame
 
@@ -54,7 +52,6 @@ local GuiSelectionWindow = ErrorOnInvalidRead.new{
             panel:open(frame)
         end
 
-        setmetatable(object, Metatable)
         object:setHasElements(controller:hasElements())
         object:updateLocation()
         object:updateMaxHeight()
@@ -67,18 +64,23 @@ local GuiSelectionWindow = ErrorOnInvalidRead.new{
     -- * object: table.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        AbstractGui.setmetatable(object, Metatable)
         SelectToolButton.setmetatable(object.selectToolButton)
     end,
 }
 
 -- Metatable of the GuiSelectionWindow class.
-Metatable = {
+Metatable = MetaUtils.derive(AbstractGui.Metatable, {
     __index= {
-        -- Implements Closeable:close().
+        -- Implements AbstractGui:close().
         close = function(self)
             GuiElement.safeDestroy(self.frame)
             self.selectToolButton:close()
+        end,
+
+        -- Implements AbstractGui:isValid().
+        isValid = function(self)
+            return self.frame.valid
         end,
 
         -- Handles modifications of the `elements` field of the controller.
@@ -112,7 +114,7 @@ Metatable = {
             self.frame.style.maximal_height = self.controller.maxHeight
         end,
     },
-}
+})
 
 -- GuiMaker arguments to build this GUI.
 GuiConstructorArgs = {
