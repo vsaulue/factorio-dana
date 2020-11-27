@@ -65,8 +65,8 @@ describe("SelectionWindow", function()
         parent.clear()
 
         controller = SelectionWindow.new{
+            appResources = appTestbench.appResources,
             location = {50,50},
-            rawPlayer = appTestbench.player,
             maxHeight = 1024,
         }
     end)
@@ -111,6 +111,10 @@ describe("SelectionWindow", function()
         for _,panel in ipairs(controller.panels) do
            assert.is_nil(rawget(panel, "gui"))
         end
+    end)
+
+    it(":getGuiUpcalls()", function()
+        assert.are.equals(appTestbench.appResources, controller:getGuiUpcalls())
     end)
 
     it(":gui:isValid()", function()

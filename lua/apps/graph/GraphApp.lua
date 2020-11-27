@@ -77,7 +77,7 @@ local GraphApp = ErrorOnInvalidRead.new{
         }
         object.renderer:drawLayout(layout)
         object.guiSelection = SelectionWindow.new{
-            rawPlayer = rawPlayer,
+            appResources = object.appResources,
             location = {0,50},
             maxHeight = rawPlayer.display_resolution.height - 50,
         }

@@ -36,24 +36,24 @@ local Metatable
 -- GUI to display selected parts of a graph.
 --
 -- RO fields:
+-- * appResources: AppResources. Resources of the owning application.
 -- * location: GuiLocation. Initial location of this frame.
 -- * maxHeight: int. Maximum height of this frame
 -- * panels[int]: AbstractSelectionPanel. Panels owned by this controller (same indices as `Panels`).
--- * rawPlayer: LuaPlayer. User of this GUI.
 -- * selection: RendererSelection. Elements being displayed.
 --
 local SelectionWindow = ErrorOnInvalidRead.new{
     -- Creates a new SelectionWindow object.
     --
     -- Args:
-    -- * object: Table to turn into a SelectionWindow object (required field: rawPlayer).
+    -- * object: table. Required field: appResources, location, maxHeight.
     --
     -- Returns: The argument turned into a SelectionWindow object.
     --
     new = function(object)
+        cLogger:assertField(object, "appResources")
         cLogger:assertField(object, "location")
         cLogger:assertField(object, "maxHeight")
-        cLogger:assertField(object, "rawPlayer")
 
         object.panels = ErrorOnInvalidRead.new()
         for index,categoryClass in ipairs(Panels) do
@@ -91,13 +91,18 @@ Metatable = {
             Closeable.closeMapValues(self.panels)
         end,
 
+        -- Implements AbstractGuiController:getGuiUpcalls().
+        getGuiUpcalls = function(self)
+            return self.appResources
+        end,
+
         -- Gives Dana's selection tool to the player.
         --
         -- Args:
         -- * self: SelectionWindow.
         --
         giveSelectionTool = function(self)
-            local rawPlayer = self.rawPlayer
+            local rawPlayer = self.appResources.rawPlayer
             rawPlayer.clean_cursor()
             rawPlayer.cursor_stack.set_stack{
                 name = "dana-select",
