@@ -54,6 +54,17 @@ local AbstractGuiController = ErrorOnInvalidRead.new{
                 Closeable.safeCloseField(self, "gui")
             end,
 
+            -- Gets the GuiUpcalls object to use for this GUI.
+            --
+            -- Args:
+            -- * self: AbstractGuiController.
+            --
+            -- Returns: GuiUpcalls. Callbacks available to this controller.
+            --
+            getGuiUpcalls = function(self)
+                cLogger:error("getGuiUpcalls() was not implemented !")
+            end,
+
             -- Makes the GUI of this controller.
             --
             -- Args:
