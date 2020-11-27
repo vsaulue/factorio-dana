@@ -14,13 +14,12 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local ClassLogger = require("lua/logger/ClassLogger")
+local AbstractGui = require("lua/gui/AbstractGui")
 local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
+local MetaUtils = require("lua/class/MetaUtils")
 local QueryTemplates = require("lua/apps/query/QueryTemplates")
-
-local cLogger = ClassLogger.new{className = "GuiTemplateSelectWindow"}
 
 local FullGraphButton
 local Metatable
@@ -28,12 +27,14 @@ local TemplateSelectButton
 
 -- Instanciated GUI of an TemplateSelectWindow.
 --
+-- Inherits from AbstractGui.
+--
 -- RO Fields:
--- * controller: TemplateSelectWindow. Owner of this GUI.
+-- * controller (override): TemplateSelectWindow.
 -- * frame: LuaGuiElement. Top-level frame owned by this GUI.
 -- * fullGraphButton: FullGraphButton. Button owned by this GUI.
--- * parent: LuaGuiElement. Element containing this GUI.
 -- * templateButtons[string]: TemplateSelectButton. Template selection button, indexed by template name.
+-- + AbstractGui.
 --
 local GuiTemplateSelectWindow = ErrorOnInvalidRead.new{
     -- Creates a new GuiTemplateSelectWindow object.
@@ -44,10 +45,10 @@ local GuiTemplateSelectWindow = ErrorOnInvalidRead.new{
     -- Returns: GuiTemplateSelectWindow. The argument turned into the desired type.
     --
     new = function(object)
-        local controller = cLogger:assertField(object, "controller")
-        local parent = cLogger:assertField(object, "parent")
+        AbstractGui.new(object, Metatable)
+        local controller = object.controller
 
-        local frame = parent.add{
+        local frame = object.parent.add{
             type = "frame",
             direction = "vertical",
             caption = {"dana.apps.query.templateSelectWindow.title"},
@@ -88,7 +89,6 @@ local GuiTemplateSelectWindow = ErrorOnInvalidRead.new{
             frame.force_auto_center()
         end
 
-        setmetatable(object, Metatable)
         return object
     end,
 
@@ -98,23 +98,28 @@ local GuiTemplateSelectWindow = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        AbstractGui.setmetatable(object, Metatable)
         FullGraphButton.setmetatable(object.fullGraphButton)
         ErrorOnInvalidRead.setmetatable(object.templateButtons, nil, TemplateSelectButton.setmetatable)
     end,
 }
 
 -- Metatable of the GuiTemplateSelectWindow class.
-Metatable = {
+Metatable = MetaUtils.derive(AbstractGui.Metatable, {
     __index = {
-        -- Implements Closeable:close().
+        -- Implements AbstractGui:close().
         close = function(self)
             GuiElement.safeDestroy(self.frame)
             self.fullGraphButton:close()
             Closeable.closeMapValues(self.templateButtons)
         end,
-    }
-}
+
+        -- Implements AbstractGui:isValid().
+        isValid = function(self)
+            return self.frame.valid
+        end,
+    },
+})
 
 -- Button to display the full recipe graph.
 --

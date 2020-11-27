@@ -114,6 +114,14 @@ describe("TemplateSelectWindow", function()
         controller:close()
     end)
 
+    it(":gui:isValid()", function()
+        controller:open(parent)
+        local gui = controller.gui
+        assert.is_true(gui:isValid())
+        controller:close()
+        assert.is_false(gui:isValid())
+    end)
+
     it(":open()", function()
         controller:open(parent)
         assert.are.equals(parent.children[1], controller.gui.frame)
