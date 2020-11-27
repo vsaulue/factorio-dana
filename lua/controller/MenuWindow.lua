@@ -68,6 +68,11 @@ Metatable = {
             Closeable.safeClose(rawget(self, "appMenu"))
         end,
 
+        -- Implements AbstractGuiController:getGuiUpcalls().
+        getGuiUpcalls = function(self)
+            return self.playerCtrlInterface
+        end,
+
         -- Implements AbstractGuiController:makeGui().
         makeGui = function(self, parent)
             return GuiMenuWindow.new{

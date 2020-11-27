@@ -101,6 +101,10 @@ describe("MenuWindow", function()
         end)
     end)
 
+    it(":getGuiUpcalls()", function()
+        assert.are.equals(playerCtrlInterface, controller:getGuiUpcalls())
+    end)
+
     it(":gui:isValid()", function()
         controller:open(parent)
         local gui = controller.gui
