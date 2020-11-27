@@ -94,6 +94,11 @@ Metatable = {
             self.children:close()
         end,
 
+        -- Implements AbstractGuiController:getGuiUpcalls().
+        getGuiUpcalls = function(self)
+            return self.treeBox:getGuiUpcalls()
+        end,
+
         -- Implements AbstractGuiController:makeGui().
         makeGui = function(self, parent)
             return GuiTreeBoxNode.new{

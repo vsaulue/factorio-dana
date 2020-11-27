@@ -248,6 +248,10 @@ describe("TreeBoxNode", function()
         }
     end)
 
+    it(":getGuiUpcalls()", function()
+        assert.are.equals(upcalls, treeBox.roots[2]:getGuiUpcalls())
+    end)
+
     it(":gui:isValid()", function()
         treeBox:open(parent)
         local gui = treeBox.roots[1].gui
