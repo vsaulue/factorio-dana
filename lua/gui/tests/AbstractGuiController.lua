@@ -102,5 +102,15 @@ describe("AbstractGuiController", function()
             assert.is_false(gui.opened)
             object:close()
         end)
+
+        it(":repair()", function()
+            local gui = object.gui
+            object:repair(parent)
+            assert.are.equals(gui, object.gui)
+
+            gui.opened = false
+            object:repair(parent)
+            assert.are_not.equals(gui, object.gui)
+        end)
     end)
 end)

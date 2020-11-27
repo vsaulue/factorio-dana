@@ -77,6 +77,20 @@ local AbstractGuiController = ErrorOnInvalidRead.new{
                 cLogger:assert(not gui, "Attempt to make multiple GUIs.")
                 self.gui = self:makeGui(parent)
             end,
+
+            -- Rebuilds the GUI if it is in a corrupted state.
+            --
+            -- Args:
+            -- * self: AbstractGuiController.
+            -- * parent: LuaGuiElement. Element in which this GUI should be recreated.
+            --
+            repair = function(self, parent)
+                local gui = rawget(self, "gui")
+                if gui and (not gui:isValid()) then
+                    self:close()
+                    self:open(parent)
+                end
+            end,
         },
     },
 
