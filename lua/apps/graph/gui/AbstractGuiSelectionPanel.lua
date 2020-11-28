@@ -74,15 +74,17 @@ local AbstractGuiSelectionPanel = ErrorOnInvalidRead.new{
             -- * self: AbstractGuiSelectionPanel.
             --
             updateElements = function(self)
-                local contentPane = self.mainFlow.content
-                contentPane.clear()
-                local elements = rawget(self.controller, "elements")
-                local hasElements = elements and next(elements)
-                self.mainFlow.visible = hasElements
-                if hasElements then
-                    local makeElementGui = self.makeElementGui
-                    for key,value in pairs(elements) do
-                        makeElementGui(contentPane, key, value)
+                if self:sanityCheck() then
+                    local contentPane = self.mainFlow.content
+                    contentPane.clear()
+                    local elements = rawget(self.controller, "elements")
+                    local hasElements = elements and next(elements)
+                    self.mainFlow.visible = hasElements
+                    if hasElements then
+                        local makeElementGui = self.makeElementGui
+                        for key,value in pairs(elements) do
+                            makeElementGui(contentPane, key, value)
+                        end
                     end
                 end
             end,
@@ -93,15 +95,17 @@ local AbstractGuiSelectionPanel = ErrorOnInvalidRead.new{
             -- * self: AbstractGuiSelectionPanel.
             --
             updateExpanded = function(self)
-                local expanded = self.controller.expanded
-                local titlePrefix
-                if expanded then
-                    titlePrefix = "▼ "
-                else
-                    titlePrefix = "▶ "
+                if self:sanityCheck() then
+                    local expanded = self.controller.expanded
+                    local titlePrefix
+                    if expanded then
+                        titlePrefix = "▼ "
+                    else
+                        titlePrefix = "▶ "
+                    end
+                    self.mainFlow.title.caption = {"", titlePrefix, self.Title}
+                    self.mainFlow.content.visible = expanded
                 end
-                self.mainFlow.title.caption = {"", titlePrefix, self.Title}
-                self.mainFlow.content.visible = expanded
             end,
         },
     },
