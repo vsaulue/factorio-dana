@@ -115,6 +115,7 @@ Metatable = {
         -- Repair all GUIs of this player.
         --
         notifyGuiCorrupted = function(self)
+            self.rawPlayer.print{"dana.player.guiCorruptedMessage"}
             self.menuWindow:repair(self.rawPlayer.gui.screen)
             if self.app then
                 self.app:repairGui()

@@ -1,5 +1,7 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.4
+  Features:
+    - Automated GUI sanity-check & recovery: improved stability against #?%@!y-coded mods.
   Changes:
     - Query frames can be dragged.
 
