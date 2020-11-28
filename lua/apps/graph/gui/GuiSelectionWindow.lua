@@ -90,7 +90,9 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
         -- * hasElements: boolean. Flag indicating if controller currently displays any element.
         --
         setHasElements = function(self, hasElements)
-            self.frame.noSelection.visible = not hasElements
+            if self:sanityCheck() then
+                self.frame.noSelection.visible = not hasElements
+            end
         end,
 
         -- Handles modifications of the `location` field of the controller.
@@ -99,9 +101,11 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
         -- * self: GuiSelectionWindow.
         --
         updateLocation = function(self)
-            local frame = self.frame
-            if frame.location then
-                frame.location = self.controller.location
+            if self:sanityCheck() then
+                local frame = self.frame
+                if frame.location then
+                    frame.location = self.controller.location
+                end
             end
         end,
 
@@ -111,7 +115,9 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
         -- * self: GuiSelectionWindow.
         --
         updateMaxHeight = function(self)
-            self.frame.style.maximal_height = self.controller.maxHeight
+            if self:sanityCheck() then
+                self.frame.style.maximal_height = self.controller.maxHeight
+            end
         end,
     },
 })
