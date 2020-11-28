@@ -149,7 +149,9 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
         -- * value: boolean. New checked state.
         --
         setAllowOther = function(self, value)
-            self.allowOtherCheckbox.rawElement.state = value
+            if self:sanityCheck() then
+                self.allowOtherCheckbox.rawElement.state = value
+            end
         end,
 
         -- Updates the depth checkbox & field.
@@ -159,16 +161,18 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
         -- * value: int or nil. The new depth value.
         --
         setDepth = function(self, value)
-            local rawDepthField = self.depthField.rawElement
-            if value then
-                if tonumber(rawDepthField.text) ~= value then
-                    rawDepthField.text = tostring(value)
+            if self:sanityCheck() then
+                local rawDepthField = self.depthField.rawElement
+                if value then
+                    if tonumber(rawDepthField.text) ~= value then
+                        rawDepthField.text = tostring(value)
+                    end
+                    rawDepthField.enabled = true
+                    self.depthCheckbox.rawElement.state = true
+                else
+                    self.depthCheckbox.rawElement.state = false
+                    rawDepthField.enabled = false
                 end
-                rawDepthField.enabled = true
-                self.depthCheckbox.rawElement.state = true
-            else
-                self.depthCheckbox.rawElement.state = false
-                rawDepthField.enabled = false
             end
         end,
     },
@@ -199,7 +203,9 @@ DepthCheckbox = GuiElement.newSubclass{
     mandatoryFields = {"gui"},
     __index = {
         onCheckedStateChanged = function(self, event)
-            updateEnableDepth(self.gui)
+            if self.gui:sanityCheck() then
+                updateEnableDepth(self.gui)
+            end
         end,
     },
 }
@@ -214,7 +220,9 @@ DepthField = GuiElement.newSubclass{
     mandatoryFields = {"gui"},
     __index = {
         onTextChanged = function(self, event)
-            updateDepthValue(self.gui)
+            if self.gui:sanityCheck() then
+                updateDepthValue(self.gui)
+            end
         end,
     },
 }
