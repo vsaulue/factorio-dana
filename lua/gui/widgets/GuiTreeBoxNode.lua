@@ -153,9 +153,11 @@ Metatable = {
         -- * self: GuiTreeBoxNode object.
         --
         updateExpanded = function(self)
-            local expanded = self.controller.expanded
-            self.childrenFlow.visible = expanded
-            self.expandLabel.rawElement.caption = getExpandLabelCaption(expanded)
+            if self:sanityCheck() then
+                local expanded = self.controller.expanded
+                self.childrenFlow.visible = expanded
+                self.expandLabel.rawElement.caption = getExpandLabelCaption(expanded)
+            end
         end,
 
         -- Updates the "selected" state of this GUI.
@@ -164,14 +166,16 @@ Metatable = {
         -- * self: GuiTreeBoxNode.
         --
         updateSelected = function(self)
-            local selected = self.controller.selected
-            local labelStyle = self.selectLabel.rawElement.style
-            if selected then
-                labelStyle.font = "default-bold"
-                labelStyle.font_color = SelectedColor
-            else
-                labelStyle.font = "default"
-                labelStyle.font_color = SelectableColor
+            if self:sanityCheck() then
+                local selected = self.controller.selected
+                local labelStyle = self.selectLabel.rawElement.style
+                if selected then
+                    labelStyle.font = "default-bold"
+                    labelStyle.font_color = SelectedColor
+                else
+                    labelStyle.font = "default"
+                    labelStyle.font_color = SelectableColor
+                end
             end
         end,
     },
