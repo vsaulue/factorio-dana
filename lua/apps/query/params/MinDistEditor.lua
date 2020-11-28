@@ -52,7 +52,7 @@ local MinDistEditor = ErrorOnInvalidRead.new{
         cLogger:assertField(object, "isForward")
         cLogger:assertField(object, "params")
         object.setEditor = IntermediateSetEditor.new{
-            force = object.appResources.force,
+            appResources = object.appResources,
             output = object.params.intermediateSet,
         }
         return object

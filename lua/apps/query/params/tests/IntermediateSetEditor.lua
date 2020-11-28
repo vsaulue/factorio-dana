@@ -62,15 +62,15 @@ describe("IntermediateSetEditor (& GUI)", function()
         end
 
         object = IntermediateSetEditor.new{
-            force = appTestbench.force,
+            appResources = appTestbench.appResources,
             output = output,
         }
     end)
 
     it(".new()", function()
         assert.are.same(object, {
+            appResources = appTestbench.appResources,
             output = output,
-            force = appTestbench.force,
         })
     end)
 

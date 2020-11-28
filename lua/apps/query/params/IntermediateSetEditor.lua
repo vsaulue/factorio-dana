@@ -28,21 +28,21 @@ local Metatable
 -- Inherits from AbstractGuiController.
 --
 -- RO Fields:
--- * force: IntermediateDatabase containing the Intermediate objects to use.
--- * output: Set of Intermediate object to fill.
+-- * appResources: AppResources. Application resources, containing the full set of intermediates.
+-- * output: Set<Intermediate>. Edited set of intermediates.
 -- + AbstractGuiController.
 --
 local IntermediateSetEditor = ErrorOnInvalidRead.new{
     -- Creates a new IntermediateSetEditor object.
     --
     -- Args:
-    -- * object: Table to turn into a IntermediateSetEditor object (required fields: force, parent, output).
+    -- * object: table. Required fields: appResources, output).
     --
     -- Returns: The argument turned into an IntermediateSetEditor object.
     --
     new = function(object)
+        cLogger:assertField(object, "appResources")
         cLogger:assertField(object, "output")
-        cLogger:assertField(object, "force")
         return AbstractGuiController.new(object, Metatable)
     end,
 
@@ -67,7 +67,7 @@ Metatable = {
         -- * name: string. Name of the intermediate to add.
         --
         addIntermediate = function(self, type, name)
-            local intermediate = self.force.prototypes.intermediates[type][name]
+            local intermediate = self.appResources.force.prototypes.intermediates[type][name]
             if not self.output[intermediate] then
                 self.output[intermediate] = true
 
