@@ -35,6 +35,8 @@ describe("AbstractGuiController", function()
 
     local CtrlMetatable = {
         __index = {
+            getGuiUpcalls = function() end,
+
             makeGui = function(self, parent)
                 local result = {
                     controller = self,

@@ -39,6 +39,7 @@ local AbstractGuiController = ErrorOnInvalidRead.new{
     --
     new = function(object, metatable)
         setmetatable(object, metatable)
+        cLogger:assertField(object, "getGuiUpcalls")
         cLogger:assertField(object, "makeGui")
         return object
     end,
@@ -61,9 +62,9 @@ local AbstractGuiController = ErrorOnInvalidRead.new{
             --
             -- Returns: GuiUpcalls. Callbacks available to this controller.
             --
-            getGuiUpcalls = function(self)
-                cLogger:error("getGuiUpcalls() was not implemented !")
-            end,
+            --[[
+            getGuiUpcalls = function(self) end,
+            --]]
 
             -- Makes the GUI of this controller.
             --
