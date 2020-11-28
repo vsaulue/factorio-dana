@@ -89,9 +89,11 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
         -- * self: GuiMenuWindow.
         --
         updateAppMenu = function(self)
-            local appMenu = rawget(self.controller, "appMenu")
-            if appMenu then
-                appMenu:open(self.frame.appFlow)
+            if self:sanityCheck() then
+                local appMenu = rawget(self.controller, "appMenu")
+                if appMenu then
+                    appMenu:open(self.frame.appFlow)
+                end
             end
         end,
     }
