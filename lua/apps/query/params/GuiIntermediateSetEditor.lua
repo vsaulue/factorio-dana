@@ -115,20 +115,22 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
         -- * intermediate: Intermediate. New intermediate in the set.
         --
         addIntermediate = function(self, intermediate)
-            if not rawget(self.selectedIntermediates.reverse, intermediate) then
-                self.selectedIntermediates:pushBack(intermediate)
-                local count = self.selectedIntermediates.count
-                local lineFlow
-                if count % ItemsPerLine == 1 then
-                    lineFlow = self.selectionFlow.add{
-                        type = "flow",
-                        direction = "horizontal",
-                    }
-                else
-                    local lineId = 1 + math.floor((count - 1) / ItemsPerLine)
-                    lineFlow = self.selectionFlow.children[lineId]
+            if self:sanityCheck() then
+                if not rawget(self.selectedIntermediates.reverse, intermediate) then
+                    self.selectedIntermediates:pushBack(intermediate)
+                    local count = self.selectedIntermediates.count
+                    local lineFlow
+                    if count % ItemsPerLine == 1 then
+                        lineFlow = self.selectionFlow.add{
+                            type = "flow",
+                            direction = "horizontal",
+                        }
+                    else
+                        local lineId = 1 + math.floor((count - 1) / ItemsPerLine)
+                        lineFlow = self.selectionFlow.children[lineId]
+                    end
+                    makeIntermediateFrame(self, lineFlow, intermediate)
                 end
-                makeIntermediateFrame(self, lineFlow, intermediate)
             end
         end,
 
@@ -152,31 +154,33 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
         -- * intermediate: Intermediate. Removed intermediate.
         --
         removeIntermediate = function(self, intermediate)
-            local revArray = self.selectedIntermediates
-            local removedIndex = rawget(revArray.reverse, intermediate)
-            if removedIndex then
-                local lineId = 1 + math.floor((removedIndex - 1) / ItemsPerLine)
-                local columnId = 1 + (removedIndex - 1) % ItemsPerLine
+            if self:sanityCheck() then
+                local revArray = self.selectedIntermediates
+                local removedIndex = rawget(revArray.reverse, intermediate)
+                if removedIndex then
+                    local lineId = 1 + math.floor((removedIndex - 1) / ItemsPerLine)
+                    local columnId = 1 + (removedIndex - 1) % ItemsPerLine
 
-                local lines = self.selectionFlow.children
-                lines[lineId].children[columnId].destroy()
-                for i=lineId,#lines-1 do
-                    local firstLine = lines[i]
-                    local secondLine = lines[i+1]
+                    local lines = self.selectionFlow.children
+                    lines[lineId].children[columnId].destroy()
+                    for i=lineId,#lines-1 do
+                        local firstLine = lines[i]
+                        local secondLine = lines[i+1]
 
-                    destroyRemoveButton(self, revArray[5*i+1])
-                    secondLine.children[1].destroy()
+                        destroyRemoveButton(self, revArray[5*i+1])
+                        secondLine.children[1].destroy()
 
-                    makeIntermediateFrame(self, firstLine, revArray[5*i+1])
+                        makeIntermediateFrame(self, firstLine, revArray[5*i+1])
+                    end
+
+                    local count = revArray.count
+                    if count % ItemsPerLine == 1 then
+                        lines[#lines].destroy()
+                    end
+
+                    destroyRemoveButton(self, intermediate)
+                    revArray:removeValue(intermediate)
                 end
-
-                local count = revArray.count
-                if count % ItemsPerLine == 1 then
-                    lines[#lines].destroy()
-                end
-
-                destroyRemoveButton(self, intermediate)
-                revArray:removeValue(intermediate)
             end
         end,
     },
@@ -191,14 +195,17 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
 --
 AddElemButton = GuiElement.newSubclass{
     className = "IntermediateSetEditor/AddElemButton",
-    mandatoryFields = {"controller"},
+    mandatoryFields = {"gui"},
     __index = {
         onElemChanged = function(self, event)
-            local element = self.rawElement
-            local elemValue = element.elem_value
-            if elemValue then
-                self.controller:addIntermediate(element.elem_type, elemValue)
-                self.rawElement.elem_value = nil
+            local gui = self.gui
+            if gui:sanityCheck() then
+                local element = self.rawElement
+                local elemValue = element.elem_value
+                if elemValue then
+                    gui.controller:addIntermediate(element.elem_type, elemValue)
+                    element.elem_value = nil
+                end
             end
         end,
     },
@@ -248,7 +255,7 @@ makeAddElemFlow = function(self, parent, elemType)
 
     -- Elem button
     return AddElemButton.new{
-        controller = self.controller,
+        gui = self,
         rawElement = elemFlow.add{
             type = "choose-elem-button",
             elem_type = elemType,
