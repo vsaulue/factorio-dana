@@ -78,6 +78,11 @@ Metatable = {
             self.setEditor:close()
         end,
 
+        -- Implements AbstractGuiController:getGuiUpcalls().
+        getGuiUpcalls = function(self)
+            return self.appResources
+        end,
+
         -- Implements AbstractGuiController:makeGui().
         makeGui = function(self, parent)
             return GuiMinDistEditor.new{
