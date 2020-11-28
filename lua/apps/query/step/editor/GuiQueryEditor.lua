@@ -123,9 +123,11 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
         -- * self: GuiQueryEditor.
         --
         updateParamsEditor = function(self)
-            local paramsEditor = rawget(self.controller, "paramsEditor")
-            if paramsEditor then
-                paramsEditor:open(self.paramsFrame)
+            if self:sanityCheck() then
+                local paramsEditor = rawget(self.controller, "paramsEditor")
+                if paramsEditor then
+                    paramsEditor:open(self.paramsFrame)
+                end
             end
         end,
     },
