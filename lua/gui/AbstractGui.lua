@@ -43,6 +43,21 @@ local AbstractGui = ErrorOnInvalidRead.new{
             --[[
             isValid = function(self) end,
             --]]
+
+            -- Checks if this GUI is valid, and notify upper controllers of any corruption.
+            --
+            -- Args:
+            -- * self: AbstractGui.
+            --
+            -- Returns: boolean. Same as AbstractGui:isValid().
+            --
+            sanityCheck = function(self)
+                local isValid = self:isValid()
+                if not isValid then
+                    self.controller:getGuiUpcalls():notifyGuiCorrupted()
+                end
+                return isValid
+            end,
         },
     },
 

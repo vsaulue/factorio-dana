@@ -14,8 +14,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local AutoLoaded = require("lua/testing/AutoLoaded")
 local AbstractGui = require("lua/gui/AbstractGui")
 local AbstractGuiController = require("lua/gui/AbstractGuiController")
+local GuiUpcalls = require("lua/gui/GuiUpcalls")
 local MetaUtils = require("lua/class/MetaUtils")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 
@@ -35,7 +37,9 @@ describe("AbstractGuiController", function()
 
     local CtrlMetatable = {
         __index = {
-            getGuiUpcalls = function() end,
+            getGuiUpcalls = function(self)
+                return self.upcalls
+            end,
 
             makeGui = function(self, parent)
                 local result = {
@@ -49,9 +53,19 @@ describe("AbstractGuiController", function()
     }
     MetaUtils.derive(AbstractGuiController.Metatable, CtrlMetatable)
 
+    local upcalls
+    setup(function()
+        upcalls = AutoLoaded.new{
+            notifyGuiCorrupted = function() end,
+        }
+        GuiUpcalls.checkMethods(upcalls)
+    end)
+
     local object
     before_each(function()
-        object = AbstractGuiController.new({}, CtrlMetatable)
+        object = AbstractGuiController.new({
+            upcalls = upcalls,
+        }, CtrlMetatable)
     end)
 
     it(".new()", function()
@@ -113,6 +127,25 @@ describe("AbstractGuiController", function()
             gui.opened = false
             object:repair(parent)
             assert.are_not.equals(gui, object.gui)
+        end)
+
+        describe(":sanityCheck()", function()
+            before_each(function()
+                stub(upcalls, "notifyGuiCorrupted")
+            end)
+
+            it("-- valid", function()
+                local result = object.gui:sanityCheck()
+                assert.is_true(result)
+                assert.stub(upcalls.notifyGuiCorrupted).was_not_called()
+            end)
+
+            it("-- not valid", function()
+            object.gui.opened = false
+            local result = object.gui:sanityCheck()
+            assert.is_false(result)
+            assert.stub(upcalls.notifyGuiCorrupted).was.called_with(match.ref(upcalls))
+            end)
         end)
     end)
 end)
