@@ -78,6 +78,11 @@ Metatable = {
             end
         end,
 
+        -- Implements AbstractGuiController:getGuiUpcalls().
+        getGuiUpcalls = function(self)
+            return self.appResources
+        end,
+
         -- Creates the GUI defined in this controller.
         --
         -- This IntermediateSetEditor must not have any GUI.

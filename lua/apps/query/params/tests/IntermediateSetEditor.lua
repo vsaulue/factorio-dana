@@ -134,6 +134,10 @@ describe("IntermediateSetEditor (& GUI)", function()
         end)
     end)
 
+    it(":getGuiUpcalls()", function()
+        assert.are.equals(appTestbench.appResources, object:getGuiUpcalls())
+    end)
+
     it(":gui:isValid()", function()
         object:open(parent)
         local gui = object.gui
