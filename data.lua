@@ -14,6 +14,16 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local shortcutIcon = {
+    type = "sprite",
+    name = "dana-shortcut-icon",
+    filename = "__dana__/graphics/shortcut-icon-black.png",
+    flags = {"icon"},
+    mipmap_count = 2,
+    priority = "extra-high-no-scale",
+    size = 32,
+}
+
 data:extend{
     {
         type = "selection-tool",
@@ -41,16 +51,12 @@ data:extend{
         type = "shortcut",
         name = "dana-shortcut",
         action = "lua",
-        icon = {
-            filename = "__dana__/graphics/shortcut-icon-black.png",
-            flags = {"icon"},
-            mipmap_count = 2,
-            priority = "extra-high-no-scale",
-            size = 32,
-        },
+        icon = shortcutIcon,
         localised_name = {"dana.longName"},
         toggleable = true,
-    },{
+    },
+    shortcutIcon,
+    {
         type = "sprite",
         name = "dana-boiler-icon",
         filename = "__dana__/graphics/boiler-symbol.png",
