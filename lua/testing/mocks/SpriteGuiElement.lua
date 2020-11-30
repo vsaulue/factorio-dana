@@ -17,6 +17,7 @@
 local AbstractGuiElement = require("lua/testing/mocks/AbstractGuiElement")
 local MockGetters = require("lua/testing/mocks/MockGetters")
 local MockObject = require("lua/testing/mocks/MockObject")
+local SpritePath = require("lua/testing/mocks/SpritePath")
 
 local cLogger
 
@@ -80,7 +81,7 @@ ElementType = "sprite"
 --
 setSprite = function(selfData, value)
     if value ~= nil then
-        cLogger:assert(type(value) == "string", "Invalid sprite value: string expected")
+        SpritePath.check(value)
     end
     selfData.sprite = value
 end
