@@ -18,8 +18,9 @@ local App = require("lua/apps/App")
 local AppResources = require("lua/apps/AppResources")
 local AppUpcalls = require("lua/apps/AppUpcalls")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local GuiElement = require("lua/gui/GuiElement")
 local MenuWindow = require("lua/controller/MenuWindow")
+local ModGui = require("mod-gui")
+local ModGuiButton = require("lua/controller/ModGuiButton")
 local PlayerCtrlInterface = require("lua/controller/PlayerCtrlInterface")
 local PositionController = require("lua/apps/PositionController")
 
@@ -28,7 +29,6 @@ local Metatable
 local setApp
 local setDefaultApp
 local ShortcutName
-local ShowButton
 
 -- Class holding data associated to a player in this mod.
 --
@@ -38,11 +38,11 @@ local ShowButton
 -- * app: AbstractApp or false. Running application.
 -- * appResources: AppResources. Resources used by this player's applications.
 -- * force: Force this player belongs to.
+-- * modGuiButton: ModGuiButton. Button in the mod-gui flow.
 -- * rawPlayer: Associated LuaPlayer instance.
 -- * graphSurface: LuaSurface used to display graphs to this player.
 -- * menuWindow: MenuWindow. Top-left menu window of this player.
 -- * positionController: PositionController.
--- * showButton: ShowButton object owned by this player.
 --
 -- RO properties:
 -- * opened: true if the GUI is opened.
@@ -57,14 +57,10 @@ local PlayerController = ErrorOnInvalidRead.new{
         setmetatable(object, Metatable)
         object.opened = false
         -- Open button
-        object.showButton = ShowButton.new{
-            rawElement = object.rawPlayer.gui.left.add{
-                type = "button",
-                name = "menuButton",
-                caption = "Dana",
-            },
-            player = object,
+        object.modGuiButton = ModGuiButton.new{
+            playerCtrlInterface = object,
         }
+        object.modGuiButton:open(ModGui.get_button_flow(object.rawPlayer))
         -- Top menu
         object.menuWindow = MenuWindow.new{
             playerCtrlInterface = object,
@@ -97,7 +93,7 @@ local PlayerController = ErrorOnInvalidRead.new{
         AppResources.setmetatable(object.appResources)
         PositionController.setmetatable(object.positionController)
         MenuWindow.setmetatable(object.menuWindow)
-        ShowButton.setmetatable(object.showButton)
+        ModGuiButton.setmetatable(object.modGuiButton)
     end,
 }
 
@@ -118,6 +114,7 @@ Metatable = {
         notifyGuiCorrupted = function(self)
             self.rawPlayer.print{"dana.player.guiCorruptedMessage"}
             self.menuWindow:repair(self.rawPlayer.gui.screen)
+            self.modGuiButton:repair(ModGui.get_button_flow(self.rawPlayer))
             if self.app then
                 self.app:repairGui()
             end
@@ -177,7 +174,6 @@ Metatable = {
                 self.opened = true
                 self.rawPlayer.set_shortcut_toggled(ShortcutName, true)
                 self.menuWindow:open(self.rawPlayer.gui.screen)
-                self.showButton.rawElement.visible = false
                 self.positionController:teleportToApp()
                 self.app:show()
             end
@@ -195,7 +191,6 @@ Metatable = {
                 self.opened = false
                 self.rawPlayer.set_shortcut_toggled(ShortcutName, false)
                 self.menuWindow:close()
-                self.showButton.rawElement.visible = true
                 if keepPosition then
                     self.positionController:restoreController()
                 else
@@ -237,23 +232,6 @@ end
 
 -- Name of Dana's open/close shortcut.
 ShortcutName = "dana-shortcut"
-
--- Button to show the application of a player.
---
--- Inherits from GuiElement.
---
--- RO field:
--- * player: PlayerController object attached to this GUI.
---
-ShowButton = GuiElement.newSubclass{
-    className = "Player/ShowButton",
-    mandatoryFields = {"player"},
-    __index = {
-        onClick = function(self, event)
-            self.player:show()
-        end,
-    },
-}
 
 -- Sets a new application.
 --

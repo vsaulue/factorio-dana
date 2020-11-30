@@ -6,6 +6,7 @@ Version: 0.2.4
   Changes:
     - Query frames can be dragged.
     - Removed the selection tool shortcut (bottom-right button).
+    - Top-left button now uses the standard mod-gui format with icon.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.3
