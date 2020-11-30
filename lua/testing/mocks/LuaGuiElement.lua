@@ -26,6 +26,7 @@ require("lua/testing/mocks/FrameGuiElement")
 require("lua/testing/mocks/LabelGuiElement")
 require("lua/testing/mocks/LineGuiElement")
 require("lua/testing/mocks/ScrollPaneGuiElement")
+require("lua/testing/mocks/SpriteButtonGuiElement")
 require("lua/testing/mocks/SpriteGuiElement")
 require("lua/testing/mocks/TextfieldGuiElement")
 
