@@ -32,6 +32,7 @@ local PlayerCtrlInterface = ErrorOnInvalidRead.new{
     --
     check = function(object)
         cLogger:assertField(object, "hide")
+        cLogger:assertField(object, "show")
         GuiUpcalls.checkMethods(object)
     end,
 }
@@ -50,6 +51,13 @@ Metatable = {
 
         -- Implements GuiUpcalls:notifyGuiCorrupted().
         notifyGuiCorrupted = function(self) end,
+
+        -- Shows Dana's GUI, and moves the player to the drawing surface.
+        --
+        -- Args:
+        -- * self: PlayerController object.
+        --
+        show = function(self) end,
     },
 }
 --]]

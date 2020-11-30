@@ -21,6 +21,7 @@ describe("PlayerCtrlInterface", function()
         PlayerCtrlInterface.check{
             hide = function() end,
             notifyGuiCorrupted = function() end,
+            show = function() end,
         }
     end)
 end)

@@ -171,11 +171,7 @@ Metatable = {
             self.positionController:setPosition(position)
         end,
 
-        -- Shows Dana's GUI, and moves the player to the drawing surface.
-        --
-        -- Args:
-        -- * self: PlayerController object.
-        --
+        -- Implements PlayerCtrlInterface:show().
         show = function(self)
             if self.app and not self.opened then
                 self.opened = true
