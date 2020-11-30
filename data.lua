@@ -53,6 +53,19 @@ data:extend{
             size = 32,
         },
     },{
+        type = "shortcut",
+        name = "dana-shortcut",
+        action = "lua",
+        icon = {
+            filename = "__dana__/graphics/shortcut-icon-black.png",
+            flags = {"icon"},
+            mipmap_count = 2,
+            priority = "extra-high-no-scale",
+            size = 32,
+        },
+        localised_name = {"dana.longName"},
+        toggleable = true,
+    },{
         type = "sprite",
         name = "dana-boiler-icon",
         filename = "__dana__/graphics/boiler-symbol.png",

@@ -130,6 +130,17 @@ Metatable = {
         -- Callback for Factorio's event of the same name.
         --
         -- Args:
+        -- * self: Dana.
+        -- * event: table. Factorio event.
+        --
+        on_lua_shortcut = function(self, event)
+            local player = self.players[event.player_index]
+            player:onLuaShortcut(event)
+        end,
+
+        -- Callback for Factorio's event of the same name.
+        --
+        -- Args:
         -- * self: Dana object.
         -- * event: Factorio event.
         --

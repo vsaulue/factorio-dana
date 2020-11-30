@@ -27,6 +27,7 @@ local closeApp
 local Metatable
 local setApp
 local setDefaultApp
+local ShortcutName
 local ShowButton
 
 -- Class holding data associated to a player in this mod.
@@ -134,6 +135,22 @@ Metatable = {
             end
         end,
 
+        -- Function to call when Factorio's on_lua_shortcut is triggered for this player.
+        --
+        -- Args:
+        -- * self: PlayerController.
+        -- * event: table. Factorio event.
+        --
+        onLuaShortcut = function(self, event)
+            if event.prototype_name == ShortcutName then
+                if self.opened then
+                    self:hide(false)
+                else
+                    self:show()
+                end
+            end
+        end,
+
         -- Function to call when Factorio's on_player_selected_area is triggered for this player.
         --
         -- Args:
@@ -162,6 +179,7 @@ Metatable = {
         show = function(self)
             if self.app and not self.opened then
                 self.opened = true
+                self.rawPlayer.set_shortcut_toggled(ShortcutName, true)
                 self.menuWindow:open(self.rawPlayer.gui.screen)
                 self.showButton.rawElement.visible = false
                 self.positionController:teleportToApp()
@@ -179,6 +197,7 @@ Metatable = {
         hide = function(self, keepPosition)
             if self.opened then
                 self.opened = false
+                self.rawPlayer.set_shortcut_toggled(ShortcutName, false)
                 self.menuWindow:close()
                 self.showButton.rawElement.visible = true
                 if keepPosition then
@@ -219,6 +238,9 @@ closeApp = function(self)
         self.app = false
     end
 end
+
+-- Name of Dana's open/close shortcut.
+ShortcutName = "dana-shortcut"
 
 -- Button to show the application of a player.
 --
