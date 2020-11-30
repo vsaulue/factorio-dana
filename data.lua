@@ -39,21 +39,6 @@ data:extend{
         icon_size = 64,
     },{
         type = "shortcut",
-        name = "dana-select-shortcut",
-        action = "create-blueprint-item",
-        item_to_create = "dana-select",
-        icon = {
-            filename = "__base__/graphics/icons/shortcut-toolbar/mip/new-blueprint-x32-white.png",
-            flags = {
-                "gui-icon",
-            },
-            mipmap_count = 2,
-            priority = "extra-high-no-scale",
-            scale = 0.5,
-            size = 32,
-        },
-    },{
-        type = "shortcut",
         name = "dana-shortcut",
         action = "lua",
         icon = {

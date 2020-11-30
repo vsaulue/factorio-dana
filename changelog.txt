@@ -5,6 +5,7 @@ Version: 0.2.4
     - New toggleable shortcut (bottom-right button) to open/close Dana. (https://raw.githubusercontent.com/vsaulue/factorio-dana/assets/v0_2/dana-shortcut.png)
   Changes:
     - Query frames can be dragged.
+    - Removed the selection tool shortcut (bottom-right button).
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.3
