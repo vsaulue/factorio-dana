@@ -172,10 +172,12 @@ Metatable = {
         show = function(self)
             if self.app and not self.opened then
                 self.opened = true
+                self.rawPlayer.opened = nil
                 self.rawPlayer.set_shortcut_toggled(ShortcutName, true)
                 self.menuWindow:open(self.rawPlayer.gui.screen)
                 self.positionController:teleportToApp()
                 self.app:show()
+                self.rawPlayer.opened = self.menuWindow.gui.frame
             end
         end,
 

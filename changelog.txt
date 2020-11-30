@@ -3,6 +3,8 @@ Version: 0.2.4
   Features:
     - Automated GUI sanity-check & recovery: improved stability against #?%@!y-coded mods.
     - New toggleable shortcut (bottom-right button) to open/close Dana. (https://raw.githubusercontent.com/vsaulue/factorio-dana/assets/v0_2/dana-shortcut.png)
+    - The Escape key now closes the mod.
+    - Support of LuaPlayer::opened API. Other mods can close Dana when they want screen space, and inversely.
   Changes:
     - Query frames can be dragged.
     - Removed the selection tool shortcut (bottom-right button).

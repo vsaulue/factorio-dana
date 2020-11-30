@@ -133,6 +133,34 @@ Metatable = {
         -- * self: Dana.
         -- * event: table. Factorio event.
         --
+        on_gui_closed = function(self, event)
+            local element = event.element
+            if element and (element.get_mod() == script.mod_name) then
+                local player = self.players[event.player_index]
+                player:hide(false)
+            end
+        end,
+
+        -- Callback for Factorio's event of the same name.
+        --
+        -- Args:
+        -- * self: Dana.
+        -- * event: table. Factorio event.
+        --
+        on_gui_opened = function(self, event)
+            local element = event.element
+            local player = self.players[event.player_index]
+            if (not element) or (element.get_mod() ~= script.mod_name) then
+                player:hide(false)
+            end
+        end,
+
+        -- Callback for Factorio's event of the same name.
+        --
+        -- Args:
+        -- * self: Dana.
+        -- * event: table. Factorio event.
+        --
         on_lua_shortcut = function(self, event)
             local player = self.players[event.player_index]
             player:onLuaShortcut(event)
