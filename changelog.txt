@@ -1,5 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.4
+Date: 2020-12-01
   Features:
     - Automated GUI sanity-check & recovery: improved stability against #?%@!y-coded mods.
     - New toggleable shortcut (bottom-right button) to open/close Dana. (https://raw.githubusercontent.com/vsaulue/factorio-dana/assets/v0_2/dana-shortcut.png)
