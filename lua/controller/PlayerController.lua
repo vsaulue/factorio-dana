@@ -22,7 +22,7 @@ local MenuWindow = require("lua/controller/MenuWindow")
 local ModGui = require("mod-gui")
 local ModGuiButton = require("lua/controller/ModGuiButton")
 local PlayerCtrlInterface = require("lua/controller/PlayerCtrlInterface")
-local PositionController = require("lua/apps/PositionController")
+local PositionController = require("lua/controller/PositionController")
 
 local closeApp
 local Metatable
