@@ -83,6 +83,9 @@ Metatable = {
                     teleportPos = rawPlayer.position
                     teleportSurface = rawPlayer.surface
                     newController.character = previousCharacter
+                    if teleportSurface ~= previousCharacter.surface then
+                        rawPlayer.teleport(previousCharacter.position, previousCharacter.surface)
+                    end
                 else
                     newController.type = defines.controllers.ghost
                 end

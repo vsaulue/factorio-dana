@@ -10,6 +10,8 @@ Version: 0.2.4
     - Query frames can be dragged.
     - Removed the selection tool shortcut (bottom-right button).
     - Top-left button now uses the standard mod-gui format with icon.
+  Bugfixes:
+    - Fix crash caused by mods teleporting players to different surfaces (again).
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.3
