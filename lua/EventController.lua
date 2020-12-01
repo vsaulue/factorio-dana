@@ -89,6 +89,10 @@ local EventController = ErrorOnInvalidRead.new{
         on_player_selected_area = function(event)
             dana:on_player_selected_area(event)
         end,
+
+        on_runtime_mod_setting_changed = function(event)
+            dana:on_runtime_mod_setting_changed(event)
+        end,
     }
 }
 

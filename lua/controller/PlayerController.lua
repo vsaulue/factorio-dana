@@ -29,6 +29,7 @@ local Metatable
 local setApp
 local setDefaultApp
 local ShortcutName
+local updateModGuiButton
 
 -- Class holding data associated to a player in this mod.
 --
@@ -60,7 +61,6 @@ local PlayerController = ErrorOnInvalidRead.new{
         object.modGuiButton = ModGuiButton.new{
             playerCtrlInterface = object,
         }
-        object.modGuiButton:open(ModGui.get_button_flow(object.rawPlayer))
         -- Top menu
         object.menuWindow = MenuWindow.new{
             playerCtrlInterface = object,
@@ -77,6 +77,7 @@ local PlayerController = ErrorOnInvalidRead.new{
             upcalls = object,
         }
         setDefaultApp(object)
+        updateModGuiButton(object)
         return object
     end,
 
@@ -156,6 +157,18 @@ Metatable = {
         --
         onSelectedArea = function(self, event)
             self.app:onSelectedArea(event)
+        end,
+
+        -- Function to call when a "runtime-per-user" mod setting is changes.
+        --
+        -- Args:
+        -- * self: PlayerController.
+        -- * event: table. Factorio's event from on_runtime_mod_setting_changed.
+        --
+        onUserModSettingChanged = function(self, event)
+            if event.setting == "dana-enable-top-left-button" then
+                updateModGuiButton(self)
+            end
         end,
 
         -- Implements AppUpcalls:setAppMenu().
@@ -260,6 +273,23 @@ setDefaultApp = function(self)
         appName = "query",
         appResources = self.appResources,
     })
+end
+
+-- Updates the modGuiButton's status according to the mod settings.
+--
+-- Args:
+-- * self: PlayerController.
+--
+updateModGuiButton = function(self)
+    local oldValue = rawget(self.modGuiButton, "gui")
+    local newValue = self.rawPlayer.mod_settings["dana-enable-top-left-button"].value
+    if newValue ~= oldValue then
+        if newValue then
+            self.modGuiButton:open(ModGui.get_button_flow(self.rawPlayer))
+        else
+            self.modGuiButton:close()
+        end
+    end
 end
 
 return PlayerController

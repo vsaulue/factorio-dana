@@ -18,3 +18,12 @@ local Updater = require("migrations/framework/Updater")
 
 -- Added for https://mods.factorio.com/mod/dana/discussion/5f38a575532359df0888b9fa.
 Updater.assertModVersion(mods, "informatron", "0.1.12")
+
+data:extend{
+    {
+        type = "bool-setting",
+        name = "dana-enable-top-left-button",
+        setting_type = "runtime-per-user",
+        default_value = true,
+    },
+}

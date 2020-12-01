@@ -14,10 +14,13 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
+local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local Force = require("lua/model/Force")
 local PrototypeDatabase = require("lua/model/PrototypeDatabase")
 local PlayerController = require("lua/controller/PlayerController")
+
+local cLogger = ClassLogger.new{className = "Dana"}
 
 local getModVersion
 local Metatable
@@ -203,6 +206,24 @@ Metatable = {
             if event.surface.index == self.graphSurface.index then
                 local player = self.players[event.player_index]
                 player:onSelectedArea(event)
+            end
+        end,
+
+        -- Callback for Factorio's event of the same name.
+        --
+        -- Args:
+        -- * self: Dana.
+        -- * event: table. Factorio event.
+        --
+        on_runtime_mod_setting_changed = function(self, event)
+            if event.setting_type == "runtime-per-user" then
+                local player_index = event.player_index
+                if player_index then
+                    local player = self.players[player_index]
+                    player:onUserModSettingChanged(event)
+                else
+                    cLogger:warn("'runtime-per-user' mod setting modification ignored (missing player_index).")
+                end
             end
         end,
     },
