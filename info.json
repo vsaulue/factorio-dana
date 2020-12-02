@@ -6,8 +6,8 @@
     "author": "Credne",
     "contact": "",
     "homepage": "",
-    "factorio_version": "0.18",
-    "dependencies": ["base >= 0.18"],
+    "factorio_version": "1.1",
+    "dependencies": ["base >= 1.1"],
     "description": "Dana provides ways to explore and display the crafting graph of Factorio (vanilla or modded).\n\nThis mod is still in alpha stages: it is recommended to use it on a dedicated (sandbox) save, or at minimum to backup your save.\n\nWhile the mod should work in multiplayer, be careful about griefing (rendering huge graphs can freeze the game for several minutes, displaying them might cause FPS/UPS drops).",
     "license": "GPLv3"
 }

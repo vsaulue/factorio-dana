@@ -54,13 +54,13 @@ describe("LuaPlayer", function()
             }
         end)
 
-        it(":clean_cursor()", function()
+        it(":clear_cursor()", function()
             local data = MockObject.getData(object)
             data.cursorSlot:setStack{name = "coal", count = 1}
             local stack = data.cursor_stack
             assert.is_true(stack.valid_for_read)
 
-            object.clean_cursor()
+            object.clear_cursor()
             assert.is_false(stack.valid_for_read)
         end)
 

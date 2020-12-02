@@ -103,7 +103,7 @@ Metatable = {
         --
         giveSelectionTool = function(self)
             local rawPlayer = self.appResources.rawPlayer
-            rawPlayer.clean_cursor()
+            rawPlayer.clear_cursor()
             rawPlayer.cursor_stack.set_stack{
                 name = "dana-select",
             }

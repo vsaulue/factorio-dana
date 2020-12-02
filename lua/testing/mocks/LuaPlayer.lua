@@ -28,12 +28,12 @@ local Metatable
 
 -- Mock implementation of Factorio's LuaItemPrototype.
 --
--- See https://lua-api.factorio.com/1.0.0/LuaItemPrototype.html
+-- See https://lua-api.factorio.com/1.1.0/LuaItemPrototype.html
 --
 -- Inherits from AbstractPrototype.
 --
 -- Implemented fields & methods:
--- * clean_cursor()
+-- * clear_cursor()
 -- * cursor_stack
 -- * force
 -- * gui
@@ -68,9 +68,9 @@ Metatable = CommonMockObject.Metatable:makeSubclass{
     className = "LuaPlayer",
 
     getters = {
-        clean_cursor = function(self)
+        clear_cursor = function(self)
             return function()
-                local data = MockObject.getData(self, "clean_cursor")
+                local data = MockObject.getData(self, "clear_cursor")
                 -- Note: should try to place the stack back into hand_location, or the main inventory.
                 -- & return true only if the stack could be placed back.
                 data.cursorSlot:setStack()
