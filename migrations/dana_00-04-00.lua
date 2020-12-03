@@ -89,7 +89,7 @@ closePositionController = function(positionController)
 end
 
 -- Full delete & reinstall to the latest version.
-Updater.run("0.2.4", "0.3.0", function()
+Updater.run("0.2.4", "0.4.0", function()
     -- Clean-up.
     rendering.clear(script.mod_name)
     closeDana(global.Dana)
