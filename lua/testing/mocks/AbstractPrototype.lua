@@ -49,6 +49,7 @@ local AbstractPrototype = {
         ["item-with-inventory"] = true,
         ["item-with-label"] = true,
         ["item-with-tags"] = true,
+        ["mining-tool"] = true,
         module = true,
         ["rail-planner"] = true,
         ["repair-tool"] = true,
