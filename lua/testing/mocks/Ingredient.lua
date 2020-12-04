@@ -38,19 +38,16 @@ local Ingredient = {
     -- Returns: Ingredient. The new object.
     --
     make = function(rawData)
-        local type = rawData.type
+        local type = rawData.type or "item"
+        cLogger:assert(ValidTypes[type], "Unknown type: " .. tostring(type))
         local name
         local amount
-        if type then
+        if rawData.name then
             amount = cLogger:assertFieldType(rawData, "amount", "number")
             name = cLogger:assertFieldType(rawData, "name", "string")
-            if not ValidTypes[type] then
-                cLogger:error("Unknown type: " .. tostring(type))
-            end
         else
             amount = cLogger:assertFieldType(rawData, 2, "number")
             name = cLogger:assertFieldType(rawData, 1, "string")
-            type = "item"
         end
         return {
             amount = amount,

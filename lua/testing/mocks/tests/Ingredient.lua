@@ -39,6 +39,18 @@ describe("Ingredient.make()", function()
         })
     end)
 
+    it("-- valid long, implicit type", function()
+        local ingredient = Ingredient.make{
+            name = "pistol",
+            amount = 7,
+        }
+        assert.are.same(ingredient, {
+            type = "item",
+            name = "pistol",
+            amount = 7,
+        })
+    end)
+
     it("-- valid long fluid", function()
         local ingredient = Ingredient.make{
             type = "fluid",
