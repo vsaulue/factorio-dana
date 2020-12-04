@@ -118,15 +118,14 @@ describe("Product.make()", function()
         end)
     end)
 
-    it("-- wrong probability", function()
-        assert.error(function()
-            Product.make{
-                type = "fluid",
-                name = "water",
-                amount = 2,
-                probability = 1.5,
-            }
-        end)
+    it("-- probability > 1", function()
+        local object = Product.make{
+            type = "fluid",
+            name = "water",
+            amount = 2,
+            probability = 8,
+        }
+        assert.are.equals(object.probability, 1)
     end)
 
     it("-- only amount_min", function()

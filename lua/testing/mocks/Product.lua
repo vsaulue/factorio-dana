@@ -58,6 +58,7 @@ local Product = {
 
             if rawData.probability then
                 probability = cLogger:assertFieldType(rawData, "probability", "number")
+                probability = math.min(probability, 1)
                 assert(0 <= probability and probability <= 1, "Invalid probability (outsude [0;1]).")
             end
         else
