@@ -37,6 +37,25 @@ local cLogger = ClassLogger.new{className = "AbstractTransform"}
 -- Methods: see the commented Metatable below.
 --
 local AbstractTransform = ErrorOnInvalidRead.new{
+    -- Creates a new AbstractTransform object.
+    --
+    -- Args:
+    -- * transformMaker: TransformMaker. Factory containing the transform to build.
+    -- * metatable: table. Metatable to set.
+    --
+    -- Returns: AbstractTransform. The transform from the `transformMaker` argument.
+    --
+    make = function(transformMaker, metatable)
+        local result = transformMaker.transform
+        setmetatable(result, metatable)
+        ErrorOnInvalidRead.setmetatable(result.ingredients)
+        ErrorOnInvalidRead.setmetatable(result.products)
+        cLogger:assertField(result, "type")
+        result.localisedName = {"dana.model.transform.name", result:getTypeStr(), result:getShortName()}
+        result.spritePath = result:generateSpritePath()
+        return result
+    end,
+
     -- Generates a SpritePath for a prototype.
     --
     -- Args:

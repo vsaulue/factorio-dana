@@ -19,10 +19,12 @@ local IntermediatesDatabase = require("lua/model/IntermediatesDatabase")
 local LuaGameScript = require("lua/testing/mocks/LuaGameScript")
 local ProductAmount = require("lua/model/ProductAmount")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
+local TransformMaker = require("lua/model/TransformMaker")
 
 describe("AbstractTransform", function()
     local gameScript
     local intermediates
+    local maker
     local MyMetatable
     local MyTransform
 
@@ -49,7 +51,7 @@ describe("AbstractTransform", function()
                 },
             },
         }
-        intermediates = IntermediatesDatabase.new()
+        intermediates = IntermediatesDatabase.new(maker)
         intermediates:rebuild(gameScript)
         MyMetatable = {
             __index = {
@@ -71,11 +73,16 @@ describe("AbstractTransform", function()
         }
         setmetatable(MyMetatable.__index, {__index = AbstractTransform.Metatable.__index})
 
+        maker = TransformMaker.new{
+            intermediates = intermediates,
+        }
+
         MyTransform = {
-            new = function(object)
-                local result = object or {}
-                result.type = "MyType"
-                return AbstractTransform.new(result, MyMetatable)
+            new = function(maker)
+                maker:newTransform{
+                    type = "MyType",
+                }
+                return AbstractTransform.make(maker, MyMetatable)
             end,
             setmetatable = function(object)
                 AbstractTransform.setmetatable(object, MyMetatable)
@@ -96,7 +103,7 @@ describe("AbstractTransform", function()
     describe(".make()", function()
         local object
         before_each(function()
-            object = MyTransform.new()
+            object = MyTransform.new(maker)
         end)
 
         it("-- spritePath", function()
@@ -115,7 +122,7 @@ describe("AbstractTransform", function()
     describe("", function()
         local object
         before_each(function()
-            object = MyTransform.new()
+            object = MyTransform.new(maker)
         end)
 
         it(":addIngredient()", function()
@@ -203,14 +210,14 @@ describe("AbstractTransform", function()
         local emptying
 
         before_each(function()
-            filling = MyTransform.new()
+            filling = MyTransform.new(maker)
             filling:addRawIngredientArray(intermediates, {
                 {type = "item", name = "barrel", amount = 10},
                 {type = "fluid", name = "water", amount = 100},
             })
             filling:addRawProduct(intermediates, {type = "item", name = "barreled-water", amount = 10})
 
-            emptying = MyTransform.new()
+            emptying = MyTransform.new(maker)
         end)
 
         it("--valid", function()
