@@ -20,10 +20,12 @@ local ProductAmount = require("lua/model/ProductAmount")
 local ProductData = require("lua/model/ProductData")
 local RecipeTransform = require("lua/model/RecipeTransform")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
+local TransformMaker = require("lua/model/TransformMaker")
 
 describe("RecipeTransform", function()
     local gameScript
     local intermediates
+    local maker
     local prototype
     setup(function()
         gameScript = LuaGameScript.make{
@@ -56,11 +58,15 @@ describe("RecipeTransform", function()
         prototype = gameScript.recipe_prototypes["coal-liquefaction"]
         intermediates = IntermediatesDatabase.new()
         intermediates:rebuild(gameScript)
+
+        maker = TransformMaker.new{
+            intermediates = intermediates,
+        }
     end)
 
     local object
     before_each(function()
-        object = RecipeTransform.make(prototype, intermediates)
+        object = RecipeTransform.make(maker, prototype)
     end)
 
     it(".make()", function()

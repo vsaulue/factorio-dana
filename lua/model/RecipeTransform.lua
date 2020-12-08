@@ -32,19 +32,19 @@ local RecipeTransform = ErrorOnInvalidRead.new{
     -- Creates a new RecipeTransform from a recipe prototype.
     --
     -- Args:
-    -- * recipePrototype: Factorio prototype of a recipe.
-    -- * intermediatesDatabase: Database containing the Intermediate object to use for this transform.
+    -- * transformMaker: TransformMaker.
+    -- * recipePrototype: LuaRecipePrototype. Factorio's prototype.
     --
-    -- Returns: The new RecipeTransform object.
+    -- Returns: RecipeTransform. The transform representing this recipe.
     --
-    make = function(recipePrototype, intermediatesDatabase)
-        local result = AbstractTransform.new({
+    make = function(transformMaker, recipePrototype)
+        transformMaker:newTransform{
             rawRecipe = recipePrototype,
             type = "recipe",
-        }, Metatable)
-        result:addRawIngredientArray(intermediatesDatabase, recipePrototype.ingredients)
-        result:addRawProductArray(intermediatesDatabase, recipePrototype.products)
-        return result
+        }
+        transformMaker:addRawIngredientArray(recipePrototype.ingredients)
+        transformMaker:addRawProductArray(recipePrototype.products)
+        return AbstractTransform.make(transformMaker, Metatable)
     end,
 
     -- Restores the metatable of a RecipeTransform object, and all its owned objects.

@@ -135,7 +135,7 @@ Metatable = {
             end
 
             for _,rawRecipe in pairs(gameScript.recipe_prototypes) do
-                tryAddTransform(self, rawRecipe.name, RecipeTransform.make(rawRecipe, self.intermediates))
+                tryAddTransform(self, rawRecipe.name, RecipeTransform.make(maker, rawRecipe))
             end
 
             for _,item in pairs(self.intermediates.item) do
