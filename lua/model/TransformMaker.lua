@@ -72,7 +72,17 @@ Metatable = {
         -- * amount: int. Amount consumed by the transform.
         --
         addIngredient = function(self, iType, name, amount)
-            local intermediate = self.intermediates[iType][name]
+            self:addIngredientIntermediate(self.intermediates[iType][name], amount)
+        end,
+
+        -- Adds an ingredient to the transform.
+        --
+        -- Args:
+        -- * self: TransformMaker.
+        -- * intermediate: Intermediate. Ingredient to add.
+        -- * amount: int. Amount consumed by the transform.
+        --
+        addIngredientIntermediate = function(self, intermediate, amount)
             local ingredients = self.transform.ingredients
             local oldQuantity = (rawget(ingredients, intermediate) or 0)
             ingredients[intermediate] = oldQuantity + amount

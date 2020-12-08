@@ -64,6 +64,14 @@ describe("TransformMaker", function()
         })
     end)
 
+    it("addIngredientIntermediate()", function()
+        context:newTransform()
+        context:addIngredientIntermediate(intermediates.item.coal, 3)
+        assert.are.same(context.transform.ingredients, {
+            [intermediates.item.coal] = 3,
+        })
+    end)
+
     it(":addRawIngredientArray", function()
         context:newTransform()
         context:addRawIngredientArray{
