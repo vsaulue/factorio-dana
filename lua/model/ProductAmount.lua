@@ -32,6 +32,35 @@ local new
 -- * probability: Probability for this intermediate to be produced (see Product.probability).
 --
 local ProductAmount = ErrorOnInvalidRead.new{
+    -- Creates a copy of a ProductAmount.
+    --
+    -- Args:
+    -- * data: table. Same fields as ProductAmount.
+    --
+    -- Returns: ProductAmount.
+    --
+    copy = function(data)
+        return new{
+            amountMax = data.amountMax,
+            amountMin = data.amountMin,
+            probability = data.probability,
+        }
+    end,
+
+    -- Tests the equality between ProductAmount objects.
+    --
+    -- Args:
+    -- * cached: ProductAmount. Proper object with metatable.
+    -- * data: table. Same fields as the built type. However, it might not have its metatable.
+    --
+    -- Returns: boolean. True if equals, false if different.
+    --
+    equals = function(self, data)
+        return self.amountMax == data.amountMax
+           and self.amountMin == data.amountMin
+           and self.probability == data.probability
+    end,
+
     -- Creates a ProductAmount object for a fixed amount of product.
     --
     -- Args:
