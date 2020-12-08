@@ -20,10 +20,12 @@ local OffshorePumpTransform = require("lua/model/OffshorePumpTransform")
 local ProductAmount = require("lua/model/ProductAmount")
 local ProductData = require("lua/model/ProductData")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
+local TransformMaker = require("lua/model/TransformMaker")
 
 describe("OffshorePumpTransform", function()
     local gameScript
     local intermediates
+    local maker
 
     setup(function()
         gameScript = LuaGameScript.make{
@@ -48,11 +50,15 @@ describe("OffshorePumpTransform", function()
         }
         intermediates = IntermediatesDatabase.new()
         intermediates:rebuild(gameScript)
+
+        maker = TransformMaker.new{
+            intermediates = intermediates,
+        }
     end)
 
     it(".make()", function()
         local prototype = gameScript.entity_prototypes.waterPump
-        local object = OffshorePumpTransform.make(prototype, intermediates)
+        local object = OffshorePumpTransform.make(maker, prototype)
         assert.are.same(object, {
             ingredients = {},
             localisedName = {
@@ -71,7 +77,7 @@ describe("OffshorePumpTransform", function()
 
     it(".setmetatable()", function()
         local prototype = gameScript.entity_prototypes.waterPump
-        local object = OffshorePumpTransform.make(prototype, intermediates)
+        local object = OffshorePumpTransform.make(maker, prototype)
 
         SaveLoadTester.run{
             objects = {

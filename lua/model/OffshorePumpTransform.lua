@@ -40,20 +40,20 @@ local OffshorePumpTransform = ErrorOnInvalidRead.new{
     -- Creates a new OffshorePumpTransform from an offshore-pump prototype.
     --
     -- Args:
-    -- * offshorePumpPrototype: Factorio prototype of an offshore pump.
-    -- * intermediatesDatabase: Database containing the Intermediate object to use for this transform.
+    -- * transformMaker: TransformMaker.
+    -- * offshorePumpPrototype: LuaEntityPrototype. Factorio prototype of an offshore-pump.
     --
-    -- Returns: The new OffshorePumpTransform object.
+    -- Returns: OffshorePumpTransform.
     --
-    make = function(offshorePumpPrototype, intermediatesDatabase)
-        local fluid = intermediatesDatabase.fluid[offshorePumpPrototype.fluid.name]
-        local result = AbstractTransform.new({
+    make = function(transformMaker, offshorePumpPrototype)
+        transformMaker:newTransform({
             rawPump = offshorePumpPrototype,
             type = "offshorePump",
         }, Metatable)
+        local fluidName = offshorePumpPrototype.fluid.name
         local unitsPerSecond = 60 * offshorePumpPrototype.pumping_speed
-        result:addProduct(fluid, ProductAmount.makeConstant(unitsPerSecond))
-        return result
+        transformMaker:addConstantProduct("fluid", fluidName, unitsPerSecond)
+        return AbstractTransform.make(transformMaker, Metatable)
     end,
 
     -- LocalisedString representing the type.

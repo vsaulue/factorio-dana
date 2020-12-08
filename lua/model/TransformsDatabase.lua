@@ -127,7 +127,7 @@ Metatable = {
                 if entity.type == "resource" then
                     transform = ResourceTransform.tryMake(entity, self.intermediates)
                 elseif entity.type == "offshore-pump" then
-                    transform = OffshorePumpTransform.make(entity, self.intermediates)
+                    transform = OffshorePumpTransform.make(maker, entity)
                 elseif entity.type == "boiler" then
                     transform = BoilerTransform.tryMake(maker, entity)
                 end

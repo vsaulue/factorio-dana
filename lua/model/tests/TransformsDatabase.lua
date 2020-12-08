@@ -134,7 +134,7 @@ describe("TransformsDatabase", function()
                 wood = FuelTransform.tryMake(maker, intermediates.item.wood),
             },
             offshorePump = {
-                well = OffshorePumpTransform.make(well, intermediates),
+                well = OffshorePumpTransform.make(maker, well),
             },
             recipe = {
                 ["fill-water-barrel"] = RecipeTransform.make(barreling, intermediates),
