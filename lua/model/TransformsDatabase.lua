@@ -139,7 +139,7 @@ Metatable = {
             end
 
             for _,item in pairs(self.intermediates.item) do
-                tryAddTransform(self, item.rawPrototype.name, FuelTransform.tryMake(item, self.intermediates))
+                tryAddTransform(self, item.rawPrototype.name, FuelTransform.tryMake(maker, item))
             end
         end,
     }

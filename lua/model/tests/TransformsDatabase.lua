@@ -131,7 +131,7 @@ describe("TransformsDatabase", function()
                 myBoiler = BoilerTransform.tryMake(maker, myBoiler),
             },
             fuel = {
-                wood = FuelTransform.tryMake(intermediates.item.wood, intermediates),
+                wood = FuelTransform.tryMake(maker, intermediates.item.wood),
             },
             offshorePump = {
                 well = OffshorePumpTransform.make(well, intermediates),

@@ -42,22 +42,22 @@ local FuelTransform = ErrorOnInvalidRead.new{
     -- Creates a new FuelTransform if the item generates a byproduct when used as fuel.
     --
     -- Args:
-    -- * itemIntermediate: Factorio prototype of an item.
-    -- * intermediatesDatabase: Database containing the Intermediate objects to use for this transform.
+    -- * transformMaker: TransformMaker.
+    -- * itemIntermediate: Intermediate. Intermediate of "item" type.
     --
-    -- Returns: The new FuelTransform if the fuel item generates a byproduct at usage. Nil otherwise.
+    -- Returns: FuelTransform or nil. A transform only if the fuel item generates a byproduct when used.
     --
-    tryMake = function(itemIntermediate, intermediatesDatabase)
+    tryMake = function(transformMaker, itemIntermediate)
         local result = nil
         local burnt_result = itemIntermediate.rawPrototype.burnt_result
         if burnt_result then
-            local product = intermediatesDatabase.item[burnt_result.name]
-            result = AbstractTransform.new({
+            result = transformMaker:newTransform{
                 type = "fuel",
                 inputItem = itemIntermediate,
-            }, Metatable)
-            result:addIngredient(itemIntermediate, 1)
-            result:addProduct(product, ProductAmount.makeConstant(1))
+            }
+            transformMaker:addIngredientIntermediate(itemIntermediate, 1)
+            transformMaker:addConstantProduct("item", burnt_result.name, 1)
+            AbstractTransform.make(transformMaker, Metatable)
         end
         return result
     end,

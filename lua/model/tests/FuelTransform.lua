@@ -20,10 +20,12 @@ local LuaGameScript = require("lua/testing/mocks/LuaGameScript")
 local ProductAmount = require("lua/model/ProductAmount")
 local ProductData = require("lua/model/ProductData")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
+local TransformMaker = require("lua/model/TransformMaker")
 
 describe("FuelTransform", function()
     local gameScript
     local intermediates
+    local maker
     setup(function()
         gameScript = LuaGameScript.make{
             item = {
@@ -33,12 +35,16 @@ describe("FuelTransform", function()
         }
         intermediates = IntermediatesDatabase.new()
         intermediates:rebuild(gameScript)
+
+        maker = TransformMaker.new{
+            intermediates = intermediates,
+        }
     end)
     describe(".tryMake()", function()
         it("-- burnt_result", function()
             local ash = intermediates.item.ash
             local coal = intermediates.item.coal
-            local object = FuelTransform.tryMake(coal, intermediates)
+            local object = FuelTransform.tryMake(maker, coal)
             assert.are.same(object, {
                 ingredients = {
                     [coal] = 1,
@@ -59,13 +65,13 @@ describe("FuelTransform", function()
 
         it("-- no burnt_result", function()
             local ash = intermediates.item.ash
-            local object = FuelTransform.tryMake(ash, intermediates)
+            local object = FuelTransform.tryMake(maker, ash)
             assert.is_nil(object)
         end)
     end)
 
     describe(".setmetatable()", function()
-        local object = FuelTransform.tryMake(intermediates.item.coal, intermediates)
+        local object = FuelTransform.tryMake(maker, intermediates.item.coal)
         SaveLoadTester.run{
             objects = {
                 intermediates = intermediates,
