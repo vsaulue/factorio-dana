@@ -21,6 +21,7 @@ local LuaGameScript = require("lua/testing/mocks/LuaGameScript")
 local ProductAmount = require("lua/model/ProductAmount")
 local ProductData = require("lua/model/ProductData")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
+local TransformMaker = require("lua/model/TransformMaker")
 
 describe("BoilerTransform", function()
     local rawData
@@ -91,10 +92,17 @@ describe("BoilerTransform", function()
         intermediates:rebuild(gameScript)
     end)
 
+    local maker
+    before_each(function()
+        maker = TransformMaker.new{
+            intermediates = intermediates,
+        }
+    end)
+
     describe(".tryMake()", function()
         it("-- valid", function()
             local prototype = gameScript.entity_prototypes.boilerA
-            local transform = BoilerTransform.tryMake(prototype, intermediates)
+            local transform = BoilerTransform.tryMake(maker, prototype)
             assert.are.same(transform, {
                 ingredients = {
                     [intermediates.fluid.water] = 1,
@@ -115,14 +123,14 @@ describe("BoilerTransform", function()
 
         it("-- no filter", function()
             local prototype = gameScript.entity_prototypes.boilerB
-            local transform = BoilerTransform.tryMake(prototype, intermediates)
+            local transform = BoilerTransform.tryMake(maker, prototype)
             assert.is_nil(transform)
         end)
 
         it("-- double input", function()
             stub(Logger, "warn")
             local prototype = gameScript.entity_prototypes.boilerC
-            local transform = BoilerTransform.tryMake(prototype, intermediates)
+            local transform = BoilerTransform.tryMake(maker, prototype)
             assert.stub(Logger.warn).was.called()
             assert.is_nil(transform)
         end)
@@ -130,7 +138,7 @@ describe("BoilerTransform", function()
 
     it(".setmetatable()", function()
         local prototype = gameScript.entity_prototypes.boilerA
-        local transform = BoilerTransform.tryMake(prototype, intermediates)
+        local transform = BoilerTransform.tryMake(maker, prototype)
         SaveLoadTester.run{
             objects = {
                 intermediates = intermediates,

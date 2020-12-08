@@ -22,6 +22,7 @@ local OffshorePumpTransform = require("lua/model/OffshorePumpTransform")
 local RecipeTransform = require("lua/model/RecipeTransform")
 local ResourceTransform = require("lua/model/ResourceTransform")
 local TableUtils = require("lua/containers/TableUtils")
+local TransformMaker = require("lua/model/TransformMaker")
 
 local cLogger = ClassLogger.new{className = "TransformsDatabase"}
 
@@ -117,6 +118,10 @@ Metatable = {
             self.consumersOf = {}
             self.producersOf = {}
 
+            local maker = TransformMaker.new{
+                intermediates = self.intermediates,
+            }
+
             for _,entity in pairs(gameScript.entity_prototypes) do
                 local transform = nil
                 if entity.type == "resource" then
@@ -124,7 +129,7 @@ Metatable = {
                 elseif entity.type == "offshore-pump" then
                     transform = OffshorePumpTransform.make(entity, self.intermediates)
                 elseif entity.type == "boiler" then
-                    transform = BoilerTransform.tryMake(entity, self.intermediates)
+                    transform = BoilerTransform.tryMake(maker, entity)
                 end
                 tryAddTransform(self, entity.name, transform)
             end

@@ -47,38 +47,38 @@ local BoilerTransform = ErrorOnInvalidRead.new{
     -- Creates a new BoilerTransforms if the given boiler prototype actually performs a transformation.
     --
     -- Args:
-    -- * boilerPrototype: Factorio prototype of a boiler.
-    -- * intermediatesDatabase: Database containing the Intermediate object to use for this transform.
+    -- * transformMaker: TransformMaker.
+    -- * boilerPrototype: LuaEntityPrototype. Factorio prototype of a boiler.
     --
-    -- Returns: The new BoilerTransform object if the boiler does a transformation. Nil otherwise.
+    -- Returns: BoilerTransform or nil. The transform object if the boiler defines a transform.
     --
-    tryMake = function(boilerPrototype, intermediatesDatabase)
+    tryMake = function(transformMaker, boilerPrototype)
         local result = nil
-        local inputs = ErrorOnInvalidRead.new()
+        local inputName = nil
         local inputCount = 0
-        local outputs = ErrorOnInvalidRead.new()
+        local outputName = nil
         local outputCount = 0
         for _,fluidbox in pairs(boilerPrototype.fluidbox_prototypes) do
             if fluidbox.filter then
-                local fluid = intermediatesDatabase.fluid[fluidbox.filter.name]
                 local boxType = fluidbox.production_type
                 if boxType == "output" then
-                    outputs[fluid] = true
+                    outputName = fluidbox.filter.name
                     outputCount = outputCount + 1
                 elseif boxType == "input-output" or boxType == "input" then
-                    inputs[fluid] = true
+                    inputName = fluidbox.filter.name
                     inputCount = inputCount + 1
                 end
             end
         end
         if inputCount >= 1 and outputCount >= 1 then
             if inputCount == 1 and outputCount == 1 then
-                result = AbstractTransform.new({
+                result = transformMaker:newTransform{
                     type = "boiler",
                     rawBoiler = boilerPrototype,
-                }, Metatable)
-                result:addIngredient(next(inputs), 1)
-                result:addProduct(next(outputs), ProductAmount.makeConstant(1))
+                }
+                transformMaker:addIngredient("fluid", inputName, 1)
+                transformMaker:addConstantProduct("fluid", outputName, 1)
+                AbstractTransform.make(transformMaker, Metatable)
             else
                 cLogger:warn("Boiler prototype '" .. boilerPrototype.name .. "' ignored (multiple inputs or outputs).")
             end

@@ -22,6 +22,7 @@ local OffshorePumpTransform = require("lua/model/OffshorePumpTransform")
 local RecipeTransform = require("lua/model/RecipeTransform")
 local ResourceTransform = require("lua/model/ResourceTransform")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
+local TransformMaker = require("lua/model/TransformMaker")
 local TransformsDatabase = require("lua/model/TransformsDatabase")
 
 describe("TransformsDatabase", function()
@@ -112,6 +113,9 @@ describe("TransformsDatabase", function()
     end)
 
     it(":rebuild()", function()
+        local maker = TransformMaker.new{
+            intermediates = intermediates,
+        }
         local transforms = TransformsDatabase.new{
             intermediates = intermediates,
         }
@@ -124,7 +128,7 @@ describe("TransformsDatabase", function()
         assert.are.same(transforms, {
             intermediates = intermediates,
             boiler = {
-                myBoiler = BoilerTransform.tryMake(myBoiler, intermediates),
+                myBoiler = BoilerTransform.tryMake(maker, myBoiler),
             },
             fuel = {
                 wood = FuelTransform.tryMake(intermediates.item.wood, intermediates),
