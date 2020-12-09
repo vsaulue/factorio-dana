@@ -78,10 +78,16 @@ describe("AbstractTransform", function()
         }
 
         MyTransform = {
-            new = function(maker)
+            new = function(maker, ingredients, products)
                 maker:newTransform{
                     type = "MyType",
                 }
+                if ingredients then
+                    maker:addRawIngredientArray(ingredients)
+                end
+                if products then
+                    maker:addRawProductArray(products)
+                end
                 return AbstractTransform.make(maker, MyMetatable)
             end,
             setmetatable = function(object)
@@ -119,112 +125,44 @@ describe("AbstractTransform", function()
         end)
     end)
 
-    describe("", function()
-        local object
-        before_each(function()
-            object = MyTransform.new(maker)
-        end)
-
-        it(":addIngredient()", function()
-            local water = intermediates.fluid.water
-            object:addIngredient(water, 10)
-            assert.are.equals(object.ingredients[water], 10)
-        end)
-
-        it(":addProduct()", function()
-            local steel = intermediates.item["steel-plate"]
-            local amount = ProductAmount.makeConstant(7)
-            object:addProduct(steel, amount)
-            assert.are.same(object.products[steel], {
-                count = 1,
-                [1] = amount,
-            })
-        end)
-
-        it(":addRawIngredientArray()", function()
-            local barrel = intermediates.item.barrel
-            local water = intermediates.fluid.water
-            object:addRawIngredientArray(intermediates, {
-                {type = "item", name = "barrel", amount = 1},
-                {type = "fluid", name = "water", amount = 10},
-            })
-            assert.are.equals(object.ingredients[water], 10)
-            assert.are.equals(object.ingredients[barrel], 1)
-        end)
-
-        it(":addRawProduct()", function()
-            local barrel = intermediates.item.barrel
-            object:addRawProduct(intermediates, {
-                type = "item",
-                name = "barrel",
-                amount = 5,
-                probability = 0.75,
-            })
-            assert.are.same(object.products[barrel], {
-                count = 1,
-                [1] = {
-                    amountMax = 5,
-                    amountMin = 5,
-                    probability = 0.75,
-                },
-            })
-        end)
-
-        it(":addRawProductArray()", function()
-            object:addRawProductArray(intermediates, {
-                {type = "item", name = "barrel", amount = 1},
-                {type = "fluid", name = "water", amount_max = 5, amount_min = 1, probability = 0.75},
-                {type = "item", name = "barrel", amount = 2},
-            })
-            assert.are.same(object.products[intermediates.fluid.water], {
-                count = 1,
-                [1] = {amountMax = 5, amountMin = 1, probability = 0.75},
-            })
-            assert.are.same(object.products[intermediates.item.barrel], {
-                count = 2,
-                [1] = {amountMax = 1, amountMin = 1, probability = 1},
-                [2] = {amountMax = 2, amountMin = 2, probability = 1},
-            })
-        end)
-
-        describe(".setmetatable()", function()
-            local steel = intermediates.item["steel-plate"]
-            local barrel = intermediates.item.barrel
-            object:addIngredient(steel, 5)
-            object:addProduct(barrel, ProductAmount.makeConstant(1))
-            SaveLoadTester.run{
-                objects = {
-                    intermediates = intermediates,
-                    transform = object,
-                },
-                metatableSetter = function(objects)
-                    IntermediatesDatabase.setmetatable(objects.intermediates)
-                    MyTransform.setmetatable(objects.transform)
-                end,
-            }
-        end)
+    it(".setmetatable()", function()
+        local ingredients = {
+            {type = "item", name = "steel-plate", amount = 5},
+        }
+        local products = {
+            {type = "item", name = "barrel", amount = 1},
+        }
+        local object = MyTransform.new(maker, ingredients, products)
+        SaveLoadTester.run{
+            objects = {
+                intermediates = intermediates,
+                transform = object,
+            },
+            metatableSetter = function(objects)
+                IntermediatesDatabase.setmetatable(objects.intermediates)
+                MyTransform.setmetatable(objects.transform)
+            end,
+        }
     end)
 
     describe(":isNonPositiveCycleWith()", function()
         local filling
-        local emptying
+        local ingredients
+        local products
 
         before_each(function()
-            filling = MyTransform.new(maker)
-            filling:addRawIngredientArray(intermediates, {
+            ingredients = {
                 {type = "item", name = "barrel", amount = 10},
                 {type = "fluid", name = "water", amount = 100},
-            })
-            filling:addRawProduct(intermediates, {type = "item", name = "barreled-water", amount = 10})
-
-            emptying = MyTransform.new(maker)
+            }
+            products = {
+                {type = "item", name = "barreled-water", amount = 10},
+            }
+            filling = MyTransform.new(maker, ingredients, products)
         end)
 
         it("--valid", function()
-            emptying:addRawIngredientArray(intermediates, {
-                {type = "item", name = "barreled-water", amount = 10},
-            })
-            emptying:addRawProductArray(intermediates, {
+            local emptying = MyTransform.new(maker, products, {
                 {type = "item", name = "barrel", amount = 10},
                 {type = "fluid", name = "water", amount = 150, probability = 0.5},
             })
@@ -233,10 +171,7 @@ describe("AbstractTransform", function()
         end)
 
         it("-- positive", function()
-            emptying:addRawIngredientArray(intermediates, {
-                {type = "item", name = "barreled-water", amount = 10},
-            })
-            emptying:addRawProductArray(intermediates, {
+            local emptying = MyTransform.new(maker, products, {
                 {type = "item", name = "barrel", amount = 1},
                 {type = "fluid", name = "water", amount = 101},
             })
@@ -245,14 +180,10 @@ describe("AbstractTransform", function()
         end)
 
         it("-- set mismatch", function()
-            emptying:addRawIngredientArray(intermediates, {
+            local emptying = MyTransform.new(maker, {
                 {type = "item", name = "barreled-water", amount = 10},
                 {type = "item", name = "steel-plate", amount = 1},
-            })
-            emptying:addRawProductArray(intermediates, {
-                {type = "item", name = "barrel", amount = 10},
-                {type = "fluid", name = "water", amount = 100},
-            })
+            }, ingredients)
             assert.is_false(filling:isNonPositiveCycleWith(emptying))
             assert.is_false(emptying:isNonPositiveCycleWith(filling))
         end)
