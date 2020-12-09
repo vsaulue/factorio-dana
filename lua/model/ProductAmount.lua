@@ -76,29 +76,6 @@ local ProductAmount = ErrorOnInvalidRead.new{
         }
     end,
 
-    -- Creates a ProductAmount from a Product object of Factorio's API.
-    --
-    -- Args:
-    -- * rawProduct: Product object from Factorio.
-    --
-    -- Returns: The new ProductAmount object.
-    --
-    makeFromRawProduct = function(rawProduct)
-        local amountMax = rawProduct.amount
-        local amountMin
-        if amountMax then
-            amountMin = amountMax
-        else
-            amountMax = rawProduct.amount_max
-            amountMin = rawProduct.amount_min
-        end
-        return new{
-            amountMax = amountMax,
-            amountMin = amountMin,
-            probability = rawProduct.probability or 1,
-        }
-    end,
-
     -- Creates a new ProductAmount object.
     --
     -- Args:

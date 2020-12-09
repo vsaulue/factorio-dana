@@ -76,32 +76,6 @@ describe("ProductAmount", function()
         })
     end)
 
-    describe(".makeFromRawProduct", function()
-        it("-- amount_max & amount_min", function()
-            local object = ProductAmount.makeFromRawProduct{
-                amount_max = 999,
-                amount_min = 789,
-                probability = 0.125,
-            }
-            assert.are.same(object, {
-                amountMax = 999,
-                amountMin = 789,
-                probability = 0.125,
-            })
-        end)
-
-        it("-- amount", function()
-            local object = ProductAmount.makeFromRawProduct{
-                amount = 12,
-            }
-            assert.are.same(object, {
-                amountMax = 12,
-                amountMin = 12,
-                probability = 1,
-            })
-        end)
-    end)
-
     it(".setmetatable()", function()
         local object = ProductAmount.new{
             amountMax = 4,
