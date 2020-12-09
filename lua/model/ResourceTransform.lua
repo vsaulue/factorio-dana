@@ -39,27 +39,27 @@ local ResourceTransform = ErrorOnInvalidRead.new{
     -- Creates a new ResourceTransforms if the resource entity prototype is mineable.
     --
     -- Args:
-    -- * resourceEntityPrototype: Factorio prototype of a resource.
-    -- * intermediatesDatabase: Database containing the Intermediate object to use for this transform.
+    -- * transformMaker: TransformMaker.
+    -- * resourcePrototype: LuaEntityPrototype. Factorio's prototype.
     --
-    -- Returns: The new ResourceTransform object if the entity is mineable. Nil otherwise.
+    -- Returns: ResourceTransform. The transform representing this resource.
     --
-    tryMake = function(resourceEntityPrototype, intermediatesDatabase)
+    tryMake = function(transformMaker, resourcePrototype)
         local result = nil
-        local mineable_props = resourceEntityPrototype.mineable_properties
+        local mineable_props = resourcePrototype.mineable_properties
         if mineable_props.minable then
-            result = AbstractTransform.new({
+            result = transformMaker:newTransform{
                 type = "resource",
-                rawResource = resourceEntityPrototype,
-            }, Metatable)
+                rawResource = resourcePrototype,
+            }
 
             local fluidName = mineable_props.required_fluid
             if fluidName then
-                local fluid = intermediatesDatabase.fluid[fluidName]
-                result:addIngredient(fluid, mineable_props.fluid_amount)
+                transformMaker:addIngredient("fluid", fluidName , mineable_props.fluid_amount)
             end
+            transformMaker:addRawProductArray(mineable_props.products)
 
-            result:addRawProductArray(intermediatesDatabase, mineable_props.products)
+            AbstractTransform.make(transformMaker, Metatable)
         end
         return result
     end,

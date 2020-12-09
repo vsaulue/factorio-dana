@@ -20,10 +20,12 @@ local ProductAmount = require("lua/model/ProductAmount")
 local ProductData = require("lua/model/ProductData")
 local ResourceTransform = require("lua/model/ResourceTransform")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
+local TransformMaker = require("lua/model/TransformMaker")
 
 describe("ResourceTransform", function()
     local gameScript
     local intermediates
+    local maker
     setup(function()
         gameScript = LuaGameScript.make{
             fluid = {
@@ -59,18 +61,22 @@ describe("ResourceTransform", function()
         }
         intermediates = IntermediatesDatabase.new()
         intermediates:rebuild(gameScript)
+
+        maker = TransformMaker.new{
+            intermediates = intermediates,
+        }
     end)
 
     describe(".tryMake()", function()
         it("-- not minable", function()
             local prototype = gameScript.entity_prototypes.indestructible
-            local object = ResourceTransform.tryMake(prototype, intermediates)
+            local object = ResourceTransform.tryMake(maker, prototype)
             assert.is_nil(object)
         end)
 
         it("-- no fluid", function()
             local prototype = gameScript.entity_prototypes.coal
-            local object = ResourceTransform.tryMake(prototype, intermediates)
+            local object = ResourceTransform.tryMake(maker, prototype)
 
             assert.are.same(object, {
                 ingredients = {},
@@ -90,7 +96,7 @@ describe("ResourceTransform", function()
 
         it("-- fluid", function()
             local prototype = gameScript.entity_prototypes.steamedCoal
-            local object = ResourceTransform.tryMake(prototype, intermediates)
+            local object = ResourceTransform.tryMake(maker, prototype)
 
             assert.are.same(object, {
                 ingredients = {
@@ -113,7 +119,7 @@ describe("ResourceTransform", function()
 
     it(".setmetatable()", function()
         local prototype = gameScript.entity_prototypes.steamedCoal
-        local object = ResourceTransform.tryMake(prototype, intermediates)
+        local object = ResourceTransform.tryMake(maker, prototype)
         SaveLoadTester.run{
             objects = {
                 intermediates = intermediates,

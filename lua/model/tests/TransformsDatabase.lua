@@ -140,7 +140,7 @@ describe("TransformsDatabase", function()
                 ["fill-water-barrel"] = RecipeTransform.make(maker, barreling),
             },
             resource = {
-                ["wood-ore"] = ResourceTransform.tryMake(woodOre, intermediates),
+                ["wood-ore"] = ResourceTransform.tryMake(maker, woodOre),
             },
             consumersOf = {
                 [intermediates.fluid.water] = {

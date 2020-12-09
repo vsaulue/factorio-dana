@@ -125,7 +125,7 @@ Metatable = {
             for _,entity in pairs(gameScript.entity_prototypes) do
                 local transform = nil
                 if entity.type == "resource" then
-                    transform = ResourceTransform.tryMake(entity, self.intermediates)
+                    transform = ResourceTransform.tryMake(maker, entity)
                 elseif entity.type == "offshore-pump" then
                     transform = OffshorePumpTransform.make(maker, entity)
                 elseif entity.type == "boiler" then
