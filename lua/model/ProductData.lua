@@ -25,8 +25,7 @@ local Metatable
 -- Class holding the data associated to a product in an AbstractTransform.
 --
 -- RO Fields:
--- * count: Number of ProductAmount objects.
--- * [N]: The N-th ProductAmount object.
+-- * [ProductAmount]: int. Set of ProductAmount in this object, with the number of occurences.
 --
 local ProductData = ErrorOnInvalidRead.new{
     -- Creates a new ProductData object wrapping a ProductAmount object.
@@ -39,8 +38,7 @@ local ProductData = ErrorOnInvalidRead.new{
     make = function(productAmount)
         cLogger:assert(productAmount, "missing argument to make().")
         local self = {
-            [1] = productAmount,
-            count = 1,
+            [productAmount] = 1,
         }
         setmetatable(self, Metatable)
         return self
@@ -53,8 +51,8 @@ local ProductData = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
-        for index=1,object.count do
-            ProductAmount.setmetatable(object[index])
+        for productAmount in pairs(object) do
+            ProductAmount.setmetatable(productAmount)
         end
     end,
 }
@@ -69,9 +67,8 @@ Metatable = {
         -- * newAmount: ProductAmount object to add.
         --
         addAmount = function(self, newAmount)
-            local count = self.count + 1
-            self[count] = newAmount
-            self.count = count
+            local count = rawget(self, newAmount) or 0
+            self[newAmount] = 1 + count
         end,
 
         -- Gets the average amount of intermediate produced.
@@ -83,8 +80,8 @@ Metatable = {
         --
         getAvg = function(self)
             local result = 0
-            for i=1,self.count do
-                result = result + self[i]:getAvg()
+            for productAmount,count in pairs(self) do
+                result = result + count * productAmount:getAvg()
             end
             return result
         end,

@@ -20,33 +20,38 @@ local SaveLoadTester = require("lua/testing/SaveLoadTester")
 
 describe("ProductData", function()
     it(".make()", function()
-        local object = ProductData.make(ProductAmount.new{
+        local amount = ProductAmount.new{
             amountMin = 5,
             amountMax = 8,
             probability = 0.5,
-        })
+        }
+        local object = ProductData.make(amount)
         assert.are.same(object, {
-            count = 1,
-            [1] = {
-                amountMin = 5,
-                amountMax = 8,
-                probability = 0.5,
-            },
+            [amount] = 1,
         })
     end)
 
     describe("", function()
+        local amount42
         local object
         before_each(function()
-            object = ProductData.make(ProductAmount.makeConstant(42))
+            amount42 = ProductAmount.makeConstant(42)
+            object = ProductData.make(amount42)
         end)
 
         it(":addAmount()", function()
-            object:addAmount(ProductAmount.makeConstant(24))
+            local amount24 = ProductAmount.makeConstant(24)
+
+            object:addAmount(amount24)
             assert.are.same(object, {
-                count = 2,
-                [1] = ProductAmount.makeConstant(42),
-                [2] = ProductAmount.makeConstant(24),
+                [amount24] = 1,
+                [amount42] = 1,
+            })
+
+            object:addAmount(amount42)
+            assert.are.same(object, {
+                [amount24] = 1,
+                [amount42] = 2,
             })
         end)
 

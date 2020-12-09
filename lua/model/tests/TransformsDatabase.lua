@@ -113,50 +113,25 @@ describe("TransformsDatabase", function()
     end)
 
     it(":rebuild()", function()
-        local maker = TransformMaker.new{
-            intermediates = intermediates,
-        }
         local transforms = TransformsDatabase.new{
             intermediates = intermediates,
         }
         transforms:rebuild(gameScript)
 
-        local myBoiler = gameScript.entity_prototypes.myBoiler
-        local well = gameScript.entity_prototypes.well
-        local barreling = gameScript.recipe_prototypes["fill-water-barrel"]
-        local woodOre = gameScript.entity_prototypes["wood-ore"]
-        assert.are.same(transforms, {
-            intermediates = intermediates,
-            boiler = {
-                myBoiler = BoilerTransform.tryMake(maker, myBoiler),
+        assert.are.same(transforms.consumersOf, {
+            [intermediates.fluid.water] = {
+                [transforms.recipe["fill-water-barrel"]] = true,
+                [transforms.boiler.myBoiler] = true,
             },
-            fuel = {
-                wood = FuelTransform.tryMake(maker, intermediates.item.wood),
-            },
-            offshorePump = {
-                well = OffshorePumpTransform.make(maker, well),
-            },
-            recipe = {
-                ["fill-water-barrel"] = RecipeTransform.make(maker, barreling),
-            },
-            resource = {
-                ["wood-ore"] = ResourceTransform.tryMake(maker, woodOre),
-            },
-            consumersOf = {
-                [intermediates.fluid.water] = {
-                    [transforms.recipe["fill-water-barrel"]] = true,
-                    [transforms.boiler.myBoiler] = true,
-                },
-                [intermediates.item.wood] = {[transforms.fuel.wood] = true},
-                [intermediates.item.barrel] = {[transforms.recipe["fill-water-barrel"]] = true},
-            },
-            producersOf = {
-                [intermediates.fluid.steam] = {[transforms.boiler.myBoiler] = true},
-                [intermediates.item.ash] = {[transforms.fuel.wood] = true},
-                [intermediates.fluid.water] = {[transforms.offshorePump.well] = true},
-                [intermediates.item.wood] = {[transforms.resource["wood-ore"]] = true},
-                [intermediates.item["barreled-water"]] = {[transforms.recipe["fill-water-barrel"]] = true},
-            },
+            [intermediates.item.wood] = {[transforms.fuel.wood] = true},
+            [intermediates.item.barrel] = {[transforms.recipe["fill-water-barrel"]] = true},
+        })
+        assert.are.same(transforms.producersOf, {
+            [intermediates.fluid.steam] = {[transforms.boiler.myBoiler] = true},
+            [intermediates.item.ash] = {[transforms.fuel.wood] = true},
+            [intermediates.fluid.water] = {[transforms.offshorePump.well] = true},
+            [intermediates.item.wood] = {[transforms.resource["wood-ore"]] = true},
+            [intermediates.item["barreled-water"]] = {[transforms.recipe["fill-water-barrel"]] = true},
         })
     end)
 

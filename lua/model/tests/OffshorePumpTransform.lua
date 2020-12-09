@@ -56,6 +56,10 @@ describe("OffshorePumpTransform", function()
         }
     end)
 
+    local getAmount = function(productAmount)
+        return maker.productAmountFactory:get(productAmount)
+    end
+
     it(".make()", function()
         local prototype = gameScript.entity_prototypes.waterPump
         local object = OffshorePumpTransform.make(maker, prototype)
@@ -67,7 +71,7 @@ describe("OffshorePumpTransform", function()
                 prototype.localised_name,
             },
             products = {
-                [intermediates.fluid.water] = ProductData.make(ProductAmount.makeConstant(300)),
+                [intermediates.fluid.water] = ProductData.make(getAmount(ProductAmount.makeConstant(300))),
             },
             rawPump = prototype,
             spritePath = "entity/waterPump",

@@ -67,6 +67,10 @@ describe("ResourceTransform", function()
         }
     end)
 
+    local getAmount = function(productAmount)
+        return maker.productAmountFactory:get(productAmount)
+    end
+
     describe(".tryMake()", function()
         it("-- not minable", function()
             local prototype = gameScript.entity_prototypes.indestructible
@@ -86,7 +90,7 @@ describe("ResourceTransform", function()
                     {"entity-name.coal"},
                 },
                 products = {
-                    [intermediates.item.coal] = ProductData.make(ProductAmount.makeConstant(1))
+                    [intermediates.item.coal] = ProductData.make(getAmount(ProductAmount.makeConstant(1))),
                 },
                 rawResource = prototype,
                 type = "resource",
@@ -108,7 +112,7 @@ describe("ResourceTransform", function()
                     {"entity-name.steamedCoal"},
                 },
                 products = {
-                    [intermediates.item.coal] = ProductData.make(ProductAmount.makeConstant(5))
+                    [intermediates.item.coal] = ProductData.make(getAmount(ProductAmount.makeConstant(5))),
                 },
                 rawResource = prototype,
                 type = "resource",

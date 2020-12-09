@@ -40,6 +40,11 @@ describe("FuelTransform", function()
             intermediates = intermediates,
         }
     end)
+
+    local getAmount = function(productAmount)
+        return maker.productAmountFactory:get(productAmount)
+    end
+
     describe(".tryMake()", function()
         it("-- burnt_result", function()
             local ash = intermediates.item.ash
@@ -56,7 +61,7 @@ describe("FuelTransform", function()
                     coal.rawPrototype.localised_name,
                 },
                 products = {
-                    [ash] = ProductData.make(ProductAmount.makeConstant(1)),
+                    [ash] = ProductData.make(getAmount(ProductAmount.makeConstant(1))),
                 },
                 type = "fuel",
                 spritePath = ash.spritePath,

@@ -77,7 +77,8 @@ describe("RecipeTransform", function()
         local steam = intermediates.fluid.steam
 
         local makeProductData = function(amount)
-            return ProductData.make(ProductAmount.makeConstant(amount))
+            local internedAmount = maker.productAmountFactory:get(ProductAmount.makeConstant(amount))
+            return ProductData.make(internedAmount)
         end
 
         assert.are.same(object, {

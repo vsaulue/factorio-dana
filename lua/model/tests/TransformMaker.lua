@@ -16,9 +16,11 @@
 
 local IntermediatesDatabase = require("lua/model/IntermediatesDatabase")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
+local ProductAmount = require("lua/model/ProductAmount")
 local TransformMaker = require("lua/model/TransformMaker")
 
 describe("TransformMaker", function()
+    local constant = ProductAmount.makeConstant
     local factorio
     local intermediates
     setup(function()
@@ -39,10 +41,12 @@ describe("TransformMaker", function()
     end)
 
     local context
+    local factory
     before_each(function()
         context = TransformMaker.new{
             intermediates = intermediates,
         }
+        factory = context.productAmountFactory
     end)
 
     it(":addConstantProduct()", function()
@@ -50,8 +54,7 @@ describe("TransformMaker", function()
         context:addConstantProduct("item", "coal", 5)
         assert.are.same(context.transform.products, {
             [intermediates.item.coal] = {
-                count = 1,
-                [1] = {amountMax = 5, amountMin = 5, probability = 1},
+                [factory:get(constant(5))] = 1,
             },
         })
     end)
@@ -96,8 +99,7 @@ describe("TransformMaker", function()
         })
         assert.are.same(context.transform.products, {
             [intermediates.fluid.water] = {
-                count = 1,
-                [1] = {amountMax = 5, amountMin = 3, probability = 0.25},
+                [factory:get{amountMax = 5, amountMin = 3, probability = 0.25}] = 1,
             },
         })
     end)
@@ -111,13 +113,11 @@ describe("TransformMaker", function()
         }
         assert.are.same(context.transform.products, {
             [intermediates.item.coal] = {
-                count = 2,
-                [1] = {amountMax = 1, amountMin = 1, probability = 1},
-                [2] = {amountMax = 2, amountMin = 2, probability = 1},
+                [factory:get(constant(1))] = 1,
+                [factory:get(constant(2))] = 1,
             },
             [intermediates.fluid.water] = {
-                count = 1,
-                [1] = {amountMax = 2, amountMin = 1, probability = 0.5},
+                [factory:get{amountMax = 2, amountMin = 1, probability = 0.5}] = 1,
             },
         })
     end)

@@ -99,6 +99,10 @@ describe("BoilerTransform", function()
         }
     end)
 
+    local getAmount = function(productAmount)
+        return maker.productAmountFactory:get(productAmount)
+    end
+
     describe(".tryMake()", function()
         it("-- valid", function()
             local prototype = gameScript.entity_prototypes.boilerA
@@ -113,7 +117,7 @@ describe("BoilerTransform", function()
                     prototype.localised_name,
                 },
                 products = {
-                    [intermediates.fluid.steam] = ProductData.make(ProductAmount.makeConstant(1)),
+                    [intermediates.fluid.steam] = ProductData.make(getAmount(ProductAmount.makeConstant(1))),
                 },
                 rawBoiler = prototype,
                 spritePath = "entity/boilerA",
