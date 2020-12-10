@@ -39,6 +39,14 @@ describe("ProductData", function()
             object = ProductData.make(amount42)
         end)
 
+        it(".copy()", function()
+            local copied = ProductData.copy(object)
+            assert.are.same(copied, {
+                [amount42] = 1,
+            })
+            assert.are_not.equals(copied, object)
+        end)
+
         it(":addAmount()", function()
             local amount24 = ProductAmount.makeConstant(24)
 

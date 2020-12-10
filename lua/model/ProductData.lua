@@ -16,6 +16,7 @@
 
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local Map = require("lua/containers/Map")
 local ProductAmount = require("lua/model/ProductAmount")
 
 local cLogger = ClassLogger.new{className = "ProductData"}
@@ -28,6 +29,22 @@ local Metatable
 -- * [ProductAmount]: int. Set of ProductAmount in this object, with the number of occurences.
 --
 local ProductData = ErrorOnInvalidRead.new{
+    -- Creates a copy of a ProductData.
+    --
+    -- Args:
+    -- * data: table. Same fields as ProductData.
+    --
+    -- Returns: ProductData.
+    --
+    copy = function(data)
+        local result = Map.copy(data)
+        setmetatable(result, Metatable)
+        return result
+    end,
+
+    -- Tests the equality between ProductData objects.
+    equals = Map.equals,
+
     -- Creates a new ProductData object wrapping a ProductAmount object.
     --
     -- Args:
