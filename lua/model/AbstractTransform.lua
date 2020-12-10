@@ -46,7 +46,7 @@ local AbstractTransform = ErrorOnInvalidRead.new{
     -- Returns: AbstractTransform. The transform from the `transformMaker` argument.
     --
     make = function(transformMaker, metatable)
-        local result = transformMaker.transform
+        local result = transformMaker:finaliseTransform()
         setmetatable(result, metatable)
         ErrorOnInvalidRead.setmetatable(result.ingredients)
         ErrorOnInvalidRead.setmetatable(result.products)

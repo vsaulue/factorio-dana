@@ -127,4 +127,28 @@ describe("TransformMaker", function()
         assert.is_not_nil(result)
         assert.are.equals(result, context.transform)
     end)
+
+    it(":finaliseTransform()", function()
+        context:newTransform()
+        context:addRawProductArray{
+            {type = "fluid", name = "water", amount = 1},
+            {type = "item", name = "wood", amount = 1, probability = 0.75},
+            {type = "fluid", name = "steam", amount = 1, probability = 0.75},
+            {type = "fluid", name = "water", amount = 2},
+        }
+        local result = context:finaliseTransform()
+        assert.are.same(result.products, {
+            [intermediates.fluid.water] = {
+                [factory:get{amountMax = 1, amountMin = 1, probability = 1}] = 1,
+                [factory:get{amountMax = 2, amountMin = 2, probability = 1}] = 1,
+            },
+            [intermediates.item.wood] = {
+                [factory:get{amountMax = 1, amountMin = 1, probability = 0.75}] = 1,
+            },
+            [intermediates.fluid.steam] = {
+                [factory:get{amountMax = 1, amountMin = 1, probability = 0.75}] = 1,
+            },
+        })
+        assert.are.equals(result.products[intermediates.fluid.steam], result.products[intermediates.item.wood])
+    end)
 end)

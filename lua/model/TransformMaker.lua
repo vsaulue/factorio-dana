@@ -40,6 +40,10 @@ local TransformMaker = ErrorOnInvalidRead.new{
             make = ProductAmount.copy,
             valueEquals = ProductAmount.equals,
         }
+        object.productDataFactory = FlyweightFactory.new{
+            make = ProductData.copy,
+            valueEquals = ProductData.equals,
+        }
         setmetatable(object, Metatable)
         return object
     end,
@@ -134,6 +138,24 @@ Metatable = {
             end
         end,
 
+        -- Clears the transform field, after running the final value interning pass.
+        --
+        -- Args:
+        -- * self: TransformMaker.
+        --
+        -- Returns: table. The previous value of the `transform` field.
+        --
+        finaliseTransform = function(self)
+            local transform = self.transform
+            local newProducts = {}
+            for intermediate,productData in pairs(transform.products) do
+                newProducts[intermediate] = self.productDataFactory:get(productData)
+            end
+            transform.products = newProducts
+            self.transform = nil
+            return transform
+        end,
+
         -- Resets the transform field, to be used to generate a new transform.
         --
         -- Args:
@@ -165,10 +187,13 @@ addProduct = function(self, iType, name, rawAmount)
         local intermediate = self.intermediates[iType][name]
         local productData = rawget(products, intermediate)
         if not productData then
-            productData = ProductData.make(amount)
+            productData = {
+                [amount] = 1,
+            }
             products[intermediate] = productData
         else
-            productData:addAmount(amount)
+            local count = rawget(productData, amount) or 0
+            productData[amount] = 1 + count
         end
     end
 end
