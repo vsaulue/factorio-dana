@@ -17,6 +17,7 @@
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local FlyweightFactory = require("lua/class/FlyweightFactory")
+local Map = require("lua/containers/Map")
 local ProductAmount = require("lua/model/ProductAmount")
 local ProductData = require("lua/model/ProductData")
 
@@ -29,6 +30,9 @@ local Metatable
 --
 -- RO Fields:
 -- * intermediates: IntermediatesDatabase. Intermediates to use as ingredients or products.
+-- * productAmountFactory: FlyweightFactory<ProductAmount>. Factory interning all ProductAmount objects.
+-- * productDataFactory: FlyweightFactory<ProductData>. Factory interning all ProductData objects.
+-- * productsFactory: FlyweightFactory<Map<Intermediate,ProductData>>. Factory interning all `products` fields.
 -- * transform (optional): table. Future constructor argument for an AbstractTransform.
 -- **  ingredients: table.
 -- **  products: table.
@@ -44,11 +48,16 @@ local TransformMaker = ErrorOnInvalidRead.new{
             make = ProductData.copy,
             valueEquals = ProductData.equals,
         }
+        object.productsFactory = FlyweightFactory.new{
+            make = Map.copy,
+            valueEquals = Map.equals,
+        }
         setmetatable(object, Metatable)
         return object
     end,
 }
 
+-- Metatable of the TransformMaker class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Adds a product to the transform.
@@ -151,7 +160,7 @@ Metatable = {
             for intermediate,productData in pairs(transform.products) do
                 newProducts[intermediate] = self.productDataFactory:get(productData)
             end
-            transform.products = newProducts
+            transform.products = self.productsFactory:get(newProducts)
             self.transform = nil
             return transform
         end,
