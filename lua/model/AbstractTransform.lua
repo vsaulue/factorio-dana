@@ -172,22 +172,6 @@ local AbstractTransform = ErrorOnInvalidRead.new{
         },
     },
 
-    -- Creates a new AbstractTransform object.
-    --
-    -- Args:
-    -- * object: Table to turn into an AbstractTransform object.
-    -- * metatable: Metatable to set.
-    --
-    new = function(object, metatable)
-        setmetatable(object, metatable)
-        local type = cLogger:assertField(object, "type")
-        object.ingredients = ErrorOnInvalidRead.new()
-        object.products = ErrorOnInvalidRead.new()
-        object.localisedName = {"dana.model.transform.name", object:getTypeStr(), object:getShortName()}
-        object.spritePath = object:generateSpritePath()
-        return object
-    end,
-
     -- Restores the metatable of an AbstractTransform object, and all its owned objects.
     --
     -- Args:
