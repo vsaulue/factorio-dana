@@ -72,31 +72,11 @@ local TransformsDatabase = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         setmetatable(object, Metatable)
-
-        ErrorOnInvalidRead.setmetatable(object.boiler)
-        for _,boilerTransform in pairs(object.boiler) do
-            BoilerTransform.setmetatable(boilerTransform)
-        end
-
-        ErrorOnInvalidRead.setmetatable(object.fuel)
-        for _,fuelTransform in pairs(object.fuel) do
-            FuelTransform.setmetatable(fuelTransform)
-        end
-
-        ErrorOnInvalidRead.setmetatable(object.offshorePump)
-        for _,offshoreTransform in pairs(object.offshorePump) do
-            OffshorePumpTransform.setmetatable(offshoreTransform)
-        end
-
-        ErrorOnInvalidRead.setmetatable(object.recipe)
-        for _,recipeTransform in pairs(object.recipe) do
-            RecipeTransform.setmetatable(recipeTransform)
-        end
-
-        ErrorOnInvalidRead.setmetatable(object.resource)
-        for _,resourceTransform in pairs(object.resource) do
-            ResourceTransform.setmetatable(resourceTransform)
-        end
+        ErrorOnInvalidRead.setmetatable(object.boiler, nil, BoilerTransform.setmetatable)
+        ErrorOnInvalidRead.setmetatable(object.fuel, nil, FuelTransform.setmetatable)
+        ErrorOnInvalidRead.setmetatable(object.offshorePump, nil, OffshorePumpTransform.setmetatable)
+        ErrorOnInvalidRead.setmetatable(object.recipe, nil, RecipeTransform.setmetatable)
+        ErrorOnInvalidRead.setmetatable(object.resource, nil, ResourceTransform.setmetatable)
     end,
 }
 
