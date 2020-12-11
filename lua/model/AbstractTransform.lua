@@ -137,6 +137,30 @@ local AbstractTransform = ErrorOnInvalidRead.new{
             --
             getShortName = nil, -- function(self) end
 
+            -- Gets the sink type of this transform.
+            --
+            -- Args:
+            -- * self: AbstractTransform.
+            --
+            -- Returns: string. Either "normal", "none" or "recursive".
+            --
+            getSinkType = function(self)
+                local ingredients = self.ingredients
+                local iIntermediate,iAmount = next(ingredients)
+                if iIntermediate and not next(ingredients, iIntermediate) then
+                    local products = self.products
+                    local pIntermediate,pInfo = next(products)
+                    if not pIntermediate then
+                        return "normal"
+                    elseif not next(products, pIntermediate) then
+                        if (pIntermediate == iIntermediate) and pInfo:getAvg() < iAmount then
+                            return "recursive"
+                        end
+                    end
+                end
+                return "none"
+            end,
+
             -- Gets a LocalisedString of the type of this transform.
             --
             -- Args:

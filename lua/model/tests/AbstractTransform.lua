@@ -145,6 +145,40 @@ describe("AbstractTransform", function()
         }
     end)
 
+    describe(":getSinkType()", function()
+        it("-- normal", function()
+            local transform = MyTransform.new(maker, {
+                {type = "item", name = "barrel", amount = 1},
+            })
+            assert.are.equals(transform:getSinkType(), "normal")
+        end)
+
+        it("-- recursive", function()
+            local transform = MyTransform.new(maker, {
+                {type = "item", name = "barrel", amount = 2},
+            },{
+                {type = "item", name = "barrel", amount_min = 1, amount_max = 2},
+            })
+            assert.are.equals(transform:getSinkType(), "recursive")
+        end)
+
+        it("-- none (positive loop)", function()
+            local transform = MyTransform.new(maker, {
+                {type = "item", name = "barrel", amount = 2},
+            },{
+                {type = "item", name = "barrel", amount = 3},
+            })
+            assert.are.equals(transform:getSinkType(), "none")
+        end)
+
+        it("-- none (source)", function()
+            local transform = MyTransform.new(maker, {}, {
+                {type = "item", name = "barrel", amount = 1},
+            })
+            assert.are.equals(transform:getSinkType(), "none")
+        end)
+    end)
+
     describe(":isNonPositiveCycleWith()", function()
         local filling
         local ingredients
