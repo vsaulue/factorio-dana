@@ -14,16 +14,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local BoilerTransform = require("lua/model/BoilerTransform")
-local FuelTransform = require("lua/model/FuelTransform")
 local IntermediatesDatabase = require("lua/model/IntermediatesDatabase")
 local LuaGameScript = require("lua/testing/mocks/LuaGameScript")
-local OffshorePumpTransform = require("lua/model/OffshorePumpTransform")
-local RecipeTransform = require("lua/model/RecipeTransform")
-local ResourceTransform = require("lua/model/ResourceTransform")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 local Set = require("lua/containers/Set")
-local TransformMaker = require("lua/model/TransformMaker")
 local TransformsDatabase = require("lua/model/TransformsDatabase")
 
 describe("TransformsDatabase", function()
