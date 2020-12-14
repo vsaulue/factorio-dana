@@ -89,6 +89,21 @@ local Set = ErrorOnInvalidRead.new{
         end
         return result
     end,
+
+    -- Creates a set with the values of an array.
+    --
+    -- Args:
+    -- * array: array<any>. Array to copy.
+    --
+    -- Returns: Set<any>. A set containing the same value as `array`.
+    --
+    fromArray = function(array)
+        local result = {}
+        for _,element in ipairs(array) do
+            result[element] = true
+        end
+        return result
+    end,
 }
 
 checkCount = Set.checkCount

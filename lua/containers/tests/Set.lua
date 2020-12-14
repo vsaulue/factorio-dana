@@ -115,4 +115,14 @@ describe("Set",function()
         result = Set.count{foo = true, bar = true}
         assert.are.equals(result, 2)
     end)
+
+    it(".fromArray()", function()
+        local array = {"a","b","c"}
+        local result = Set.fromArray(array)
+        assert.are.same(result, {
+            a = true,
+            b = true,
+            c = true,
+        })
+    end)
 end)
