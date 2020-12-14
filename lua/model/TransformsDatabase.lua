@@ -28,6 +28,7 @@ local cLogger = ClassLogger.new{className = "TransformsDatabase"}
 
 local tryAddTransform
 local Metatable
+local TransformFields
 
 -- Class to hold a set of transforms.
 --
@@ -83,6 +84,20 @@ local TransformsDatabase = ErrorOnInvalidRead.new{
 -- Metatable of the TransformsDatabase class
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Runs a function on each transform of this database.
+        --
+        -- Args:
+        -- * self: TransformDatabase.
+        -- * callback: function(AbstractTransform). Function to call on each transform.
+        --
+        forEach = function(self, callback)
+            for fieldName in pairs(TransformFields) do
+                for _,transform in pairs(self[fieldName]) do
+                    callback(transform)
+                end
+            end
+        end,
+
         -- Resets the content of the database.
         --
         -- Args:
@@ -123,6 +138,14 @@ Metatable = {
             end
         end,
     }
+}
+
+TransformFields = ErrorOnInvalidRead.new{
+    boiler = true,
+    fuel = true,
+    offshorePump = true,
+    recipe = true,
+    resource = true,
 }
 
 -- Adds a transform to this database.

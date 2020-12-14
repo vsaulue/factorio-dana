@@ -22,6 +22,7 @@ local OffshorePumpTransform = require("lua/model/OffshorePumpTransform")
 local RecipeTransform = require("lua/model/RecipeTransform")
 local ResourceTransform = require("lua/model/ResourceTransform")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
+local Set = require("lua/containers/Set")
 local TransformMaker = require("lua/model/TransformMaker")
 local TransformsDatabase = require("lua/model/TransformsDatabase")
 
@@ -99,23 +100,40 @@ describe("TransformsDatabase", function()
         intermediates:rebuild(gameScript)
     end)
 
-    it(".new()", function()
-        local database = TransformsDatabase.new{
+    local transforms
+    before_each(function()
+        transforms = TransformsDatabase.new{
             intermediates = intermediates,
         }
-        assert.is_not_nil(database.boiler)
-        assert.is_not_nil(database.fuel)
-        assert.is_not_nil(database.offshorePump)
-        assert.is_not_nil(database.recipe)
-        assert.is_not_nil(database.resource)
-        assert.is_not_nil(database.producersOf)
-        assert.is_not_nil(database.consumersOf)
+    end)
+
+    it(".new()", function()
+        assert.is_not_nil(transforms.boiler)
+        assert.is_not_nil(transforms.fuel)
+        assert.is_not_nil(transforms.offshorePump)
+        assert.is_not_nil(transforms.recipe)
+        assert.is_not_nil(transforms.resource)
+        assert.is_not_nil(transforms.producersOf)
+        assert.is_not_nil(transforms.consumersOf)
+    end)
+
+    it(":forEach()", function()
+        transforms:rebuild(gameScript)
+        local set = {}
+        transforms:forEach(function(transform)
+            assert.is_nil(set[transform])
+            set[transform] = true
+        end)
+        assert.are.same(set, Set.fromArray{
+            transforms.boiler.myBoiler,
+            transforms.fuel.wood,
+            transforms.offshorePump.well,
+            transforms.recipe["fill-water-barrel"],
+            transforms.resource["wood-ore"],
+        })
     end)
 
     it(":rebuild()", function()
-        local transforms = TransformsDatabase.new{
-            intermediates = intermediates,
-        }
         transforms:rebuild(gameScript)
 
         assert.are.same(transforms.consumersOf, {
@@ -136,9 +154,6 @@ describe("TransformsDatabase", function()
     end)
 
     it(".setmetatable()", function()
-        local transforms = TransformsDatabase.new{
-            intermediates = intermediates,
-        }
         transforms:rebuild(gameScript)
         SaveLoadTester.run{
             objects = {
