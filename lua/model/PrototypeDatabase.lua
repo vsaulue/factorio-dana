@@ -18,6 +18,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local IntermediatesDatabase = require("lua/model/IntermediatesDatabase")
 local Logger = require("lua/logger/Logger")
 local SimpleCyclesDatabase = require("lua/model/SimpleCyclesDatabase")
+local SinkCache = require("lua/model/SinkCache")
 local TransformsDatabase = require("lua/model/TransformsDatabase")
 
 local Metatable
@@ -55,6 +56,9 @@ local PrototypeDatabase = ErrorOnInvalidRead.new{
             simpleCycles = SimpleCyclesDatabase.new{
                 transforms = transforms,
             },
+            sinkCache = SinkCache.new{
+                transforms = transforms,
+            },
         }
         setmetatable(result, Metatable)
         result:rebuild(gameScript)
@@ -71,6 +75,7 @@ local PrototypeDatabase = ErrorOnInvalidRead.new{
         IntermediatesDatabase.setmetatable(object.intermediates)
         TransformsDatabase.setmetatable(object.transforms)
         SimpleCyclesDatabase.setmetatable(object.simpleCycles)
+        SinkCache.setmetatable(object.sinkCache)
     end,
 }
 
@@ -88,6 +93,7 @@ Metatable = {
             self.intermediates:rebuild(gameScript)
             self.transforms:rebuild(gameScript)
             self.simpleCycles:rebuild()
+            self.sinkCache:rebuild()
         end,
     },
 }

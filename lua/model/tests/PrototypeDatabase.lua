@@ -21,12 +21,20 @@ local SaveLoadTester = require("lua/testing/SaveLoadTester")
 describe("PrototypeDatabase", function()
     local gameScript
     setup(function()
-        gameScript = LuaGameScript.make{
+        local data = {
             item = {
                 iron = {type = "item", name = "iron"},
                 ironStack = {type = "item", name = "ironStack"},
             },
             recipe = {
+                sink = {
+                    type = "recipe",
+                    name = "sink",
+                    ingredients = {
+                        {type = "item", name = "iron", amount = 1},
+                    },
+                    results = {},
+                },
                 stacking = {
                     type = "recipe",
                     name = "stacking",
@@ -49,6 +57,26 @@ describe("PrototypeDatabase", function()
                 },
             },
         }
+        for i=1,15 do
+            local itemName = "item" .. i
+            data.item[itemName] = {
+                type = "item",
+                name = itemName,
+            }
+            local recipeName = "indirect" .. i
+            data.recipe[recipeName] = {
+                type = "recipe",
+                name = recipeName,
+                ingredients = {
+                    {type = "item", name = itemName, amount = 2},
+                },
+                results = {
+                    {type = "item", name = "iron", amount = 1},
+                }
+            }
+        end
+
+        gameScript = LuaGameScript.make(data)
     end)
 
     local prototypes
@@ -60,6 +88,7 @@ describe("PrototypeDatabase", function()
         assert.is_not_nil(prototypes.intermediates)
         assert.is_not_nil(prototypes.transforms)
         assert.is_not_nil(prototypes.simpleCycles)
+        assert.is_not_nil(prototypes.sinkCache)
     end)
 
     it(":rebuild()", function()
@@ -71,6 +100,8 @@ describe("PrototypeDatabase", function()
         assert.are.same(prototypes.simpleCycles.nonPositive[stacking],{
             [unstacking] = true,
         })
+        local indirect7 = prototypes.transforms.recipe.indirect7
+        assert.are.equals(prototypes.sinkCache.indirectThresholds.normal[indirect7], 15)
     end)
 
     it(".setmetatable()", function()
