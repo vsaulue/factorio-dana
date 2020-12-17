@@ -39,6 +39,7 @@ return {
             "lua/layouts/preprocess/tests",
             "lua/logger/tests",
             "lua/model/tests",
+            "lua/query/params/tests",
             "lua/renderers/tests",
             "lua/testing/mocks/tests",
             "lua/testing/tests",
