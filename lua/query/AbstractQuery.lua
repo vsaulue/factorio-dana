@@ -19,6 +19,7 @@ local Array = require("lua/containers/Array")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local SinkParams = require("lua/query/params/SinkParams")
 
 local cLogger = ClassLogger.new{className = "AbstractQuery"}
 
@@ -26,6 +27,7 @@ local cLogger = ClassLogger.new{className = "AbstractQuery"}
 --
 -- RO Fields:
 -- * queryType: String encoding the exact subtype of this query.
+-- * sinkParams: SinkParams. Parameters of the sink filter.
 --
 local AbstractQuery = ErrorOnInvalidRead.new{
     -- Factory object able to restore metatables of AbstractQuery instances.
@@ -45,8 +47,19 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     --
     new = function(object, metatable)
         cLogger:assertField(object, "queryType")
+        object.sinkParams = SinkParams.new()
         setmetatable(object, metatable)
         return object
+    end,
+
+    -- Restores the metatable of a AbstractQuery object, and all its owned objects.
+    --
+    -- Args:
+    -- * object: table.
+    --
+    setmetatable = function(object, metatable)
+        setmetatable(object, metatable)
+        SinkParams.setmetatable(object.sinkParams)
     end,
 }
 

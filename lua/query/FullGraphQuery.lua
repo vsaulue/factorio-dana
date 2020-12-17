@@ -44,7 +44,7 @@ local FullGraphQuery = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        AbstractQuery.setmetatable(object, Metatable)
     end,
 }
 

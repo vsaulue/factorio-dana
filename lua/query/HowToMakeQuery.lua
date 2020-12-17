@@ -52,7 +52,7 @@ local HowToMakeQuery = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        setmetatable(object, Metatable)
+        AbstractQuery.setmetatable(object, Metatable)
         MinDistParams.setmetatable(object.destParams)
     end,
 }
