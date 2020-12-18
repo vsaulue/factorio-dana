@@ -32,10 +32,11 @@ local MinDistParams = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a MinDistParams object.
     --
     new = function(object)
-        object.allowOtherIntermediates = object.allowOtherIntermediates or false
-        object.intermediateSet = object.intermediateSet or {}
-        ErrorOnInvalidRead.setmetatable(object)
-        return object
+        local result = object or {}
+        result.allowOtherIntermediates = not not result.allowOtherIntermediates
+        result.intermediateSet = result.intermediateSet or {}
+        ErrorOnInvalidRead.setmetatable(result)
+        return result
     end,
 
     -- Restores the metatable of a MinDistParams object.
