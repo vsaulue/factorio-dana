@@ -49,7 +49,7 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     --
     new = function(object, metatable)
         cLogger:assertField(object, "queryType")
-        object.sinkParams = SinkParams.new()
+        object.sinkParams = SinkParams.new(object.sinkParams)
         setmetatable(object, metatable)
         return object
     end,
