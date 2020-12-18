@@ -15,6 +15,9 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local Map = require("lua/containers/Map")
+
+local new
 
 -- Parameters used for a breadth-first search from/to specific vertices of the graph.
 --
@@ -24,6 +27,21 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 -- * maxDepth (optional): Maximum depth for the breadth-first search (default: unlimited).
 --
 local MinDistParams = ErrorOnInvalidRead.new{
+    -- Copy constructor.
+    --
+    -- Args:
+    -- * map: table. Same fields as a MinDistParams object.
+    --
+    -- Returns: MinDistParams. The new copy.
+    --
+    copy = function(data)
+        return new{
+            allowOtherIntermediates = data.allowOtherIntermediates,
+            intermediateSet = Map.copy(data.intermediateSet),
+            maxDepth = rawget(data, "maxDepth"),
+        }
+    end,
+
     -- Creates a new MinDistParams object.
     --
     -- Args:
@@ -46,5 +64,7 @@ local MinDistParams = ErrorOnInvalidRead.new{
     --
     setmetatable = ErrorOnInvalidRead.setmetatable,
 }
+
+new = MinDistParams.new
 
 return MinDistParams
