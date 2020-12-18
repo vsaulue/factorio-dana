@@ -15,10 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractQuery = require("lua/query/AbstractQuery")
-local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
-local OrderingStep = require("lua/query/steps/OrderingStep")
-local SelectionStep = require("lua/query/steps/SelectionStep")
 
 local Metatable
 local QueryType
@@ -53,13 +50,7 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AbstractQuery:execute().
         execute = function(self, force)
-            local selector = SelectionStep.new()
-            local fullGraph = selector:makeHypergraph(force)
-
-            local orderer = OrderingStep.new()
-            local vertexDists = orderer:makeOrder(force, fullGraph)
-
-            return fullGraph,vertexDists
+            return AbstractQuery.preprocess(self, force)
         end,
     },
 }
