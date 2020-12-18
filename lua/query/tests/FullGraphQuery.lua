@@ -33,4 +33,11 @@ describe("FullGraphQuery", function()
             metatableSetter = FullGraphQuery.setmetatable,
         }
     end)
+
+    it(":copy()", function()
+        query.sinkParams.indirectThreshold = 77
+        local o2 = query:copy()
+        assert.are.same(query, o2)
+        assert.are_not.equals(query.sinkParams, o2.sinkParams)
+    end)
 end)

@@ -48,6 +48,11 @@ local FullGraphQuery = ErrorOnInvalidRead.new{
 -- Metatable of the FullGraphQuery class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Implements AbstractQuery:copy().
+        copy = function(self)
+            return AbstractQuery.copy(self, Metatable)
+        end,
+
         -- Implements AbstractQuery:execute().
         execute = function(self, force)
             return AbstractQuery.preprocess(self, force)

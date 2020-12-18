@@ -56,6 +56,13 @@ local UsagesOfQuery = ErrorOnInvalidRead.new{
 -- Metatable of the UsagesOfQuery class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Implements AbstractQuery:copy().
+        copy = function(self)
+            local result = AbstractQuery.copy(self, Metatable)
+            result.sourceParams = MinDistParams.copy(self.sourceParams)
+            return result
+        end,
+
         -- Implements AbstractQuery:execute().
         execute = function(self, force)
             local fullGraph,fullOrder = AbstractQuery.preprocess(self, force)

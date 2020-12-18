@@ -101,6 +101,15 @@ local AbstractQuery = ErrorOnInvalidRead.new{
 -- Metatable of the AbstractQuery class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Creates a copy of this query.
+        --
+        -- Args:
+        -- * self: AbstractQuery.
+        --
+        -- Returns: AbstractQuery. An identical query.
+        --
+        copy = function(self) end,
+
         -- Executes this query on the specified database.
         --
         -- Args:

@@ -34,4 +34,12 @@ describe("HowToMakeQuery", function()
             metatableSetter = HowToMakeQuery.setmetatable,
         }
     end)
+
+    it(":copy()", function()
+        query.destParams.maxDepth = 123
+        local o2 = query:copy()
+        assert.are.same(query, o2)
+        assert.are.equals(o2.destParams.maxDepth, 123)
+        assert.are_not.equals(query.destParams, o2.destParams)
+    end)
 end)

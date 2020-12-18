@@ -56,6 +56,13 @@ local HowToMakeQuery = ErrorOnInvalidRead.new{
 -- Metatable of the HowToMakeQuery class.
 Metatable = {
     __index = ErrorOnInvalidRead.new{
+        -- Implements AbstractQuery:copy().
+        copy = function(self)
+            local result = AbstractQuery.copy(self, Metatable)
+            result.destParams = MinDistParams.copy(self.destParams)
+            return result
+        end,
+
         -- Implements AbstractQuery:execute().
         execute = function(self, force)
             local fullGraph,fullOrder = AbstractQuery.preprocess(self, force)
