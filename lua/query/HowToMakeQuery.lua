@@ -19,8 +19,6 @@ local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperMinDist = require("lua/hypergraph/algorithms/HyperMinDist")
 local MinDistParams = require("lua/query/params/MinDistParams")
-local OrderingStep = require("lua/query/steps/OrderingStep")
-local SelectionStep = require("lua/query/steps/SelectionStep")
 
 local Metatable
 local QueryType
@@ -62,11 +60,7 @@ Metatable = {
     __index = ErrorOnInvalidRead.new{
         -- Implements AbstractQuery:execute().
         execute = function(self, force)
-            local selector = SelectionStep.new()
-            local fullGraph = selector:makeHypergraph(force)
-
-            local orderer = OrderingStep.new()
-            local fullOrder = orderer:makeOrder(force, fullGraph)
+            local fullGraph,fullOrder = AbstractQuery.preprocess(self, force)
 
             local dest = self.destParams
             local _,edgeDists = HyperMinDist.toDest(fullGraph, dest.intermediateSet, dest.allowOtherIntermediates, rawget(dest, "maxDepth"))
