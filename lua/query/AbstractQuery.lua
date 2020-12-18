@@ -66,10 +66,7 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     --
     preprocess = function(self, force)
         local fullGraph = SelectionStep.run(self, force)
-
-        local orderer = OrderingStep.new()
-        local vertexDists = orderer:makeOrder(force, fullGraph)
-
+        local vertexDists = OrderingStep.run(self, force, fullGraph)
         return fullGraph,vertexDists
     end,
 

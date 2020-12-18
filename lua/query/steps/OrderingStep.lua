@@ -17,62 +17,36 @@
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HyperMinDist = require("lua/hypergraph/algorithms/HyperMinDist")
 
-local Metatable
-
 -- Class used to generate a partial order of the vertices returned by a query.
 --
 local OrderingStep = ErrorOnInvalidRead.new{
-    -- Creates a new OrderingStep object.
+    -- Generates a partial order of all vertices.
     --
-    -- Returns: The new OrderingStep object.
-    --
-    new = function()
-        local result = {}
-        setmetatable(result, Metatable)
-        return result
-    end,
-
-    -- Restores the metatable of a OrderingStep object, and all its owned objects.
+    -- Currently this order is always generated from the raw resources.
     --
     -- Args:
-    -- * object: table to modify.
+    -- * query: AbstractQuery. Parameters to use.
+    -- * force: Force. Database on which this query will be run.
+    -- * graph: DirectedHypergraph. Graph containing the vertices to order.
     --
-    setmetatable = function(object)
-        setmetatable(object, Metatable)
+    -- returns: Map[vertexIndex] -> int. Depth score (starting at 0) inducing a partial order of vertices.
+    --
+    run = function(query, force, graph)
+        local sourceSet = ErrorOnInvalidRead.new()
+
+        for _,resource in pairs(force.prototypes.transforms.resource) do
+            for product in pairs(resource.products) do
+                sourceSet[product] = true
+            end
+        end
+        for _,offshorePump in pairs(force.prototypes.transforms.offshorePump) do
+            for product in pairs(offshorePump.products) do
+                sourceSet[product] = true
+            end
+        end
+
+        return HyperMinDist.fromSource(graph, sourceSet, false)
     end,
-}
-
--- Metatable of the OrderingStep class.
-Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Generates a partial order of all vertices.
-        --
-        -- Currently this order is always generated from the raw resources.
-        --
-        -- Args:
-        -- * self: OrderingStep object.
-        -- * force: Force object on which this query will be run.
-        -- * graph: DirectedHypergraph containing the vertices to order.
-        --
-        -- returns: A map[vertexIndex] -> int (starting at 0).
-        --
-        makeOrder = function(self, force, graph)
-            local sourceSet = ErrorOnInvalidRead.new()
-
-            for _,resource in pairs(force.prototypes.transforms.resource) do
-                for product in pairs(resource.products) do
-                    sourceSet[product] = true
-                end
-            end
-            for _,offshorePump in pairs(force.prototypes.transforms.offshorePump) do
-                for product in pairs(offshorePump.products) do
-                    sourceSet[product] = true
-                end
-            end
-
-            return HyperMinDist.fromSource(graph, sourceSet, false)
-        end,
-    },
 }
 
 return OrderingStep
