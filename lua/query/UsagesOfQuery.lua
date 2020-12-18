@@ -37,9 +37,7 @@ local UsagesOfQuery = ErrorOnInvalidRead.new{
     --
     new = function()
         return AbstractQuery.new({
-            sourceParams = MinDistParams.new{
-                isForward = true,
-            },
+            sourceParams = MinDistParams.new(),
             queryType = QueryType,
         }, Metatable)
     end,
