@@ -65,8 +65,7 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     -- * Map[vertexIndex] -> int. Partial order on the vertices to build a "nicer" layout.
     --
     preprocess = function(self, force)
-        local selector = SelectionStep.new()
-        local fullGraph = selector:makeHypergraph(force)
+        local fullGraph = SelectionStep.run(self, force)
 
         local orderer = OrderingStep.new()
         local vertexDists = orderer:makeOrder(force, fullGraph)

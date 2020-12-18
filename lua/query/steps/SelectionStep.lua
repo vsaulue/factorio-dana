@@ -19,75 +19,48 @@ local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
 local addTransform
-local Metatable
 
 -- Helper class to generate an hypergraph from a Force database.
 --
--- Fields:
--- * includeSinks: Boolean to include sink recipes.
---
 local SelectionStep = ErrorOnInvalidRead.new{
-    -- Creates a new SelectionStep object.
+    -- Generates an hypergraph from a specific database & query parameters.
     --
-    -- Returns: The new SelectionStep object.
-    --
-    new = function()
-        local result = {
-            includeSinks = false,
-        }
-        setmetatable(result, Metatable)
-        return result
-    end,
-
-    -- Restores the metatable of a SelectionStep object, and all its owned objects.
+    -- This step generates an "almost" full graph. Only transforms that do not affect reachability
+    -- or vertex order may be removed (ex: direct sinks).
     --
     -- Args:
-    -- * object: table to modify.
+    -- * query: AbstractQuery. Parameters to use.
+    -- * force: Force. Database on which this query will be run.
     --
-    setmetatable = function(object)
-        setmetatable(object, Metatable)
+    -- Returns: DirectedHypergraph. A graph containing all pre-filtered transforms.
+    --
+    run = function(query, force)
+        local result = DirectedHypergraph.new()
+
+        for _,forceRecipe in pairs(force.recipes) do
+            addTransform(query, result, forceRecipe.recipeTransform)
+        end
+        for _,boiler in pairs(force.prototypes.transforms.boiler) do
+            addTransform(query, result, boiler)
+        end
+        for _,fuel in pairs(force.prototypes.transforms.fuel) do
+            addTransform(query, result, fuel)
+        end
+
+        return result
     end,
-}
-
--- Metatable of the SelectionStep class.
-Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Generates a DirectedHypergraph from a Force database.
-        --
-        -- Args:
-        -- * self: SelectionStep object.
-        -- * force: Force object on which this query will be run.
-        --
-        -- Returns: a DirectedHypergraph (vertices: intermediates & edges: transforms).
-        --
-        makeHypergraph = function(self, force)
-            local result = DirectedHypergraph.new()
-
-            for _,forceRecipe in pairs(force.recipes) do
-                addTransform(self, result, forceRecipe.recipeTransform)
-            end
-            for _,boiler in pairs(force.prototypes.transforms.boiler) do
-                addTransform(self, result, boiler)
-            end
-            for _,fuel in pairs(force.prototypes.transforms.fuel) do
-                addTransform(self, result, fuel)
-            end
-
-            return result
-        end,
-    },
 }
 
 -- Adds a transform as a graph edges if it matches the selector's parameters.
 --
 -- Args:
--- * self: SelectionStep object.
--- * graph: DirectedHypergraph to fill.
--- * transform: AbstractTransform to add.
+-- * query: AbstractQuery. Paremeters to use.
+-- * graph: DirectedHypergraph. Graph to fill.
+-- * transform: AbstractTransform. Transform to add.
 --
-addTransform = function(self, graph, transform)
+addTransform = function(query, graph, transform)
     local products = transform.products
-    if self.includeSinks or next(transform.products) then
+    if next(transform.products) then
         graph:addEdge(DirectedHypergraphEdge.new{
             index = transform,
             inbound = transform.ingredients,
