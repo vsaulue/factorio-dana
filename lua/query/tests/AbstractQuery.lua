@@ -127,6 +127,16 @@ describe("AbstractQuery", function()
         }, myMetatable)
     end)
 
+    it(".copy()", function()
+        query.sinkParams.filterRecursive = true
+        local o2 = AbstractQuery.copy(query, myMetatable)
+        assert.are.same(o2, {
+            sinkParams = query.sinkParams,
+            queryType = query.queryType,
+        })
+        assert.are_not.equals(query.sinkParams, o2.sinkParams)
+    end)
+
     it(".new()", function()
         assert.is_not_nil(query.sinkParams)
     end)

@@ -24,6 +24,7 @@ local SelectionStep = require("lua/query/steps/SelectionStep")
 local SinkParams = require("lua/query/params/SinkParams")
 
 local cLogger = ClassLogger.new{className = "AbstractQuery"}
+local new
 
 -- Class used to generate customized hypergraphs from a Force database.
 --
@@ -32,6 +33,21 @@ local cLogger = ClassLogger.new{className = "AbstractQuery"}
 -- * sinkParams: SinkParams. Parameters of the sink filter.
 --
 local AbstractQuery = ErrorOnInvalidRead.new{
+    -- Creates a copy of this query.
+    --
+    -- Args:
+    -- * self: AbstractQuery.
+    -- * metatable: table. Metatable to set.
+    --
+    -- Returns: AbstractQuery. A copy of the `self` argument.
+    --
+    copy = function(self, metatable)
+        return new({
+            queryType = self.queryType,
+            sinkParams = SinkParams.copy(self.sinkParams),
+        }, metatable)
+    end,
+
     -- Factory object able to restore metatables of AbstractQuery instances.
     Factory = AbstractFactory.new{
         getClassNameOfObject = function(object)
@@ -101,5 +117,7 @@ Metatable = {
     },
 }
 --]]
+
+new = AbstractQuery.new
 
 return AbstractQuery
