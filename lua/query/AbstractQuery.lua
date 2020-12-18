@@ -19,6 +19,8 @@ local Array = require("lua/containers/Array")
 local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local OrderingStep = require("lua/query/steps/OrderingStep")
+local SelectionStep = require("lua/query/steps/SelectionStep")
 local SinkParams = require("lua/query/params/SinkParams")
 
 local cLogger = ClassLogger.new{className = "AbstractQuery"}
@@ -50,6 +52,26 @@ local AbstractQuery = ErrorOnInvalidRead.new{
         object.sinkParams = SinkParams.new()
         setmetatable(object, metatable)
         return object
+    end,
+
+    -- Generates the filtered graph and the vertex order from the abstract parameters.
+    --
+    -- Args:
+    -- * self: AbstractQuery.
+    -- * force: Force. Database on which the query will be run.
+    --
+    -- Returns:
+    -- * DirectedHypergraph. Graph containing the selected transforms & intermediates after filtering.
+    -- * Map[vertexIndex] -> int. Partial order on the vertices to build a "nicer" layout.
+    --
+    preprocess = function(self, force)
+        local selector = SelectionStep.new()
+        local fullGraph = selector:makeHypergraph(force)
+
+        local orderer = OrderingStep.new()
+        local vertexDists = orderer:makeOrder(force, fullGraph)
+
+        return fullGraph,vertexDists
     end,
 
     -- Restores the metatable of a AbstractQuery object, and all its owned objects.

@@ -15,10 +15,110 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractQuery = require("lua/query/AbstractQuery")
+local AppTestbench = require("lua/testing/AppTestbench")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
+local Set = require("lua/containers/Set")
 
 describe("AbstractQuery", function()
-    local myMetatable = {}
+    local appTestbench
+    local myMetatable
+    setup(function()
+        appTestbench = AppTestbench.make{
+            rawData = {
+                boiler = {
+                    boiler = {
+                        energy_source = {
+                            type = "void",
+                        },
+                        fluid_box = {
+                            production_type = "input",
+                            filter = "water",
+                        },
+                        name = "boiler",
+                        output_fluid_box = {
+                            production_type = "output",
+                            filter = "steam",
+                        },
+                        type = "boiler",
+                    },
+                },
+                fluid = {
+                    steam = {type = "fluid", name = "steam"},
+                    water = {type = "fluid", name = "water"},
+                },
+                item = {
+                    barrel = {type = "item", name = "barrel"},
+                    ironOre = {type = "item", name = "ironOre"},
+                    ironPlate = {type = "item", name = "ironPlate"},
+                    waterBarrel = {type = "item", name = "waterBarrel"},
+                },
+                ["offshore-pump"] = {
+                    waterPump = {
+                        type = "offshore-pump",
+                        name = "waterPump",
+                        fluid = "water",
+                        fluid_box = {
+                            production_type = "output",
+                            filter = "water",
+                        },
+                        pumping_speed = 5,
+                    },
+                },
+                recipe = {
+                    barrel = {
+                        type = "recipe",
+                        name = "barrel",
+                        ingredients = {
+                            {type = "item", name = "ironPlate", amount = 5},
+                        },
+                        results = {
+                            {type = "item", name = "barrel", amount = 1},
+                        }
+                    },
+                    barrelSink = {
+                        type = "recipe",
+                        name = "barrelSink",
+                        ingredients = {
+                            {type = "item", name = "barrel", amount = 1},
+                        },
+                        results = {},
+                    },
+                    ironPlate = {
+                        type = "recipe",
+                        name = "ironPlate",
+                        ingredients = {
+                            {type = "item", name = "ironOre", amount = 1},
+                        },
+                        results = {
+                            {type = "item", name = "ironPlate", amount = 1},
+                        }
+                    },
+                    waterBarrel = {
+                        type = "recipe",
+                        name = "waterBarrel",
+                        ingredients = {
+                            {type = "fluid", name = "water", amount = 10},
+                            {type = "item", name = "barrel", amount = 1},
+                        },
+                        results = {
+                            {type = "item", name = "waterBarrel", amount = 1},
+                        },
+                    },
+                },
+                resource = {
+                    ironOre = {
+                        type = "resource",
+                        name = "ironOre",
+                        minable = {
+                            result = "ironOre",
+                            count = 1,
+                        },
+                    },
+                },
+            },
+        }
+        myMetatable = {}
+    end)
 
     local query
     before_each(function()
@@ -29,6 +129,39 @@ describe("AbstractQuery", function()
 
     it(".new()", function()
         assert.is_not_nil(query.sinkParams)
+    end)
+
+    it(".preprocess()", function()
+        local graph,order = AbstractQuery.preprocess(query, appTestbench.force)
+
+        local i = appTestbench.prototypes.intermediates
+        assert.are.same(order, {
+            [i.item.ironOre] = 0,
+            [i.fluid.water] = 0,
+            [i.fluid.steam] = 1,
+            [i.item.ironPlate] = 1,
+            [i.item.barrel] = 2,
+            [i.item.waterBarrel] = 3,
+        })
+
+        local t = appTestbench.prototypes.transforms
+        local makeEdgeMap = function(transforms)
+            local result = {}
+            for _,transform in ipairs(transforms) do
+                result[transform] = {
+                    index = transform,
+                    inbound = transform.ingredients,
+                    outbound = transform.products,
+                }
+            end
+            return result
+        end
+        assert.are.same(graph.edges, makeEdgeMap{
+            t.boiler.boiler,
+            t.recipe.barrel,
+            t.recipe.ironPlate,
+            t.recipe.waterBarrel,
+        })
     end)
 
     it(".setmetatable()", function()
