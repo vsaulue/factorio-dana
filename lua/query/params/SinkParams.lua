@@ -16,6 +16,8 @@
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
+local new
+
 -- Query parameters for sinks filtering.
 --
 -- Fields:
@@ -24,6 +26,21 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 -- * indirectThreshold: int. Threshold for indirect sink filtering (higher value = less transforms removed).
 --
 local SinkParams = ErrorOnInvalidRead.new{
+    -- Copy constructor.
+    --
+    -- Args:
+    -- * map: table. Same fields as a SinkParams object.
+    --
+    -- Returns: SinkParams. The new copy.
+    --
+    copy = function(data)
+        return new{
+            filterNormal = data.filterNormal,
+            filterRecursive = data.filterRecursive,
+            indirectThreshold = data.indirectThreshold,
+        }
+    end,
+
     -- Creates a new SinkParams object.
     --
     -- Args:
@@ -43,5 +60,7 @@ local SinkParams = ErrorOnInvalidRead.new{
     -- Restores the metatable of a SinkParams object.
     setmetatable = ErrorOnInvalidRead.setmetatable,
 }
+
+new = SinkParams.new
 
 return SinkParams

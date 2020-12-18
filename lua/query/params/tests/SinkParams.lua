@@ -23,6 +23,19 @@ describe("SinkParams", function()
         object = SinkParams.new()
     end)
 
+    it(".copy()", function()
+        object.filterNormal = "a"
+        object.filterRecursive = "b"
+        object.indirectThreshold = 11
+        local o2 = SinkParams.copy(object)
+        assert.are.same(o2, {
+            filterNormal = true,
+            filterRecursive = true,
+            indirectThreshold = 11,
+        })
+        assert.are_not.equals(object, o2)
+    end)
+
     it(".new()", function()
         assert.is_false(object.filterNormal)
         assert.is_false(object.filterRecursive)
