@@ -69,7 +69,13 @@ Metatable = {
         -- * self: TemplateSelectWindow.
         --
         selectFullGraph = function(self)
-            self.appInterface:runQueryAndDraw(FullGraphQuery.new())
+            self.appInterface:runQueryAndDraw(FullGraphQuery.new{
+                sinkParams = {
+                    filterNormal = true,
+                    filterRecursive = true,
+                    indirectThreshold = 64,
+                },
+            })
         end,
 
         -- Selects a query template.
