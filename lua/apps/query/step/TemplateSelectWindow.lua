@@ -15,19 +15,14 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractStepWindow = require("lua/apps/query/step/AbstractStepWindow")
-local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local FullGraphQuery = require("lua/query/FullGraphQuery")
 local GuiTemplateSelectWindow = require("lua/apps/query/step/GuiTemplateSelectWindow")
 local QueryEditor = require("lua/apps/query/step/editor/QueryEditor")
 local QueryTemplates = require("lua/apps/query/QueryTemplates")
 
-local cLogger = ClassLogger.new{className = "queryApp/TemplateSelectWindow"}
-
-local FullGraphButton
 local Metatable
 local StepName
-local TemplateSelectButton
 
 -- A menu window with a button for each query template.
 --
