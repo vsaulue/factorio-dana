@@ -33,13 +33,16 @@ local QueryType
 local UsagesOfQuery = ErrorOnInvalidRead.new{
     -- Creates a new UsagesOfQuery object.
     --
+    -- Args:
+    -- * object: table or nil.
+    --
     -- Returns: The new UsagesOfQuery object.
     --
-    new = function()
-        return AbstractQuery.new({
-            sourceParams = MinDistParams.new(),
-            queryType = QueryType,
-        }, Metatable)
+    new = function(object)
+        local result = object or {}
+        result.queryType = QueryType
+        result.sourceParams = MinDistParams.new(result.sourceParams)
+        return AbstractQuery.new(result, Metatable)
     end,
 
     -- Restores the metatable of a UsagesOfQuery object, and all its owned objects.

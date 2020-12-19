@@ -20,12 +20,18 @@ local UsagesOfQuery = require("lua/query/UsagesOfQuery")
 describe("UsagesOfQuery", function()
     local query
     before_each(function()
-        query = UsagesOfQuery.new()
+        query = UsagesOfQuery.new{
+            sourceParams = {
+                maxDepth = 5,
+            },
+        }
     end)
 
     it(".new()", function()
         assert.is_not_nil(query.sourceParams)
         assert.is_not_nil(query.execute)
+        assert.is_not_nil(query.sourceParams.intermediateSet)
+        assert.are.equals(query.sourceParams.maxDepth, 5)
     end)
 
     it(".setmetatable()", function()
