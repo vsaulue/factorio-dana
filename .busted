@@ -40,6 +40,7 @@ return {
             "lua/logger/tests",
             "lua/model/tests",
             "lua/query/params/tests",
+            "lua/query/steps/tests",
             "lua/query/tests",
             "lua/renderers/tests",
             "lua/testing/mocks/tests",

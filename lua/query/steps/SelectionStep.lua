@@ -18,8 +18,6 @@ local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 
-local addTransform
-
 -- Helper class to generate an hypergraph from a Force database.
 --
 local SelectionStep = ErrorOnInvalidRead.new{
@@ -36,37 +34,34 @@ local SelectionStep = ErrorOnInvalidRead.new{
     --
     run = function(query, force)
         local result = DirectedHypergraph.new()
+        local filterSinkType = ErrorOnInvalidRead.new{
+            none = false,
+            normal = query.sinkParams.filterNormal,
+            recursive = query.sinkParams.filterRecursive,
+        }
+
+        local addTransform = function(transform)
+            if not filterSinkType[transform:getSinkType()] then
+                result:addEdge(DirectedHypergraphEdge.new{
+                    index = transform,
+                    inbound = transform.ingredients,
+                    outbound = transform.products,
+                })
+            end
+        end
 
         for _,forceRecipe in pairs(force.recipes) do
-            addTransform(query, result, forceRecipe.recipeTransform)
+            addTransform(forceRecipe.recipeTransform)
         end
         for _,boiler in pairs(force.prototypes.transforms.boiler) do
-            addTransform(query, result, boiler)
+            addTransform(boiler)
         end
         for _,fuel in pairs(force.prototypes.transforms.fuel) do
-            addTransform(query, result, fuel)
+            addTransform(fuel)
         end
 
         return result
     end,
 }
-
--- Adds a transform as a graph edges if it matches the selector's parameters.
---
--- Args:
--- * query: AbstractQuery. Paremeters to use.
--- * graph: DirectedHypergraph. Graph to fill.
--- * transform: AbstractTransform. Transform to add.
---
-addTransform = function(query, graph, transform)
-    local products = transform.products
-    if next(transform.products) then
-        graph:addEdge(DirectedHypergraphEdge.new{
-            index = transform,
-            inbound = transform.ingredients,
-            outbound = products,
-        })
-    end
-end
 
 return SelectionStep

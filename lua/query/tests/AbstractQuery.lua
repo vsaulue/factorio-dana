@@ -142,6 +142,7 @@ describe("AbstractQuery", function()
     end)
 
     it(".preprocess()", function()
+        query.sinkParams.filterNormal = true
         local graph,order = AbstractQuery.preprocess(query, appTestbench.force)
 
         local i = appTestbench.prototypes.intermediates
