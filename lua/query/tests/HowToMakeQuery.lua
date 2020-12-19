@@ -20,12 +20,20 @@ local SaveLoadTester = require("lua/testing/SaveLoadTester")
 describe("HowToMakeQuery", function()
     local query
     before_each(function()
-        query = HowToMakeQuery.new()
+        query = HowToMakeQuery.new{
+            destParams = {
+                intermediateSet = {
+                    a = true,
+                },
+            },
+        }
     end)
 
     it(".new()", function()
         assert.is_not_nil(query.destParams)
         assert.is_not_nil(query.execute)
+        assert.is_not_nil(query.destParams.intermediateSet.a)
+        assert.is_false(query.destParams.allowOtherIntermediates)
     end)
 
     it(".setmetatable()", function()

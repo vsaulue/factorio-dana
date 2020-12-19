@@ -33,13 +33,16 @@ local QueryType
 local HowToMakeQuery = ErrorOnInvalidRead.new{
     -- Creates a new HowToMakeQuery object.
     --
+    -- Args:
+    -- * object: table or nil.
+    --
     -- Returns: The new HowToMakeQuery object.
     --
-    new = function()
-        return AbstractQuery.new({
-            destParams = MinDistParams.new(),
-            queryType = QueryType,
-        }, Metatable)
+    new = function(object)
+        local result = object or {}
+        result.queryType = QueryType
+        result.destParams = MinDistParams.new(result.destParams)
+        return AbstractQuery.new(result, Metatable)
     end,
 
     -- Restores the metatable of a HowToMakeQuery object, and all its owned objects.
