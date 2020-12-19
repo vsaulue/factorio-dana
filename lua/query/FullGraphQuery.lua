@@ -27,12 +27,15 @@ local QueryType
 local FullGraphQuery = ErrorOnInvalidRead.new{
     -- Creates a new FullGraphQuery object.
     --
+    -- Args:
+    -- * object: table or nil.
+    --
     -- Returns: The new FullGraphQuery object.
     --
-    new = function()
-        return AbstractQuery.new({
-            queryType = QueryType,
-        }, Metatable)
+    new = function(object)
+        local result = object or {}
+        result.queryType = QueryType
+        return AbstractQuery.new(result, Metatable)
     end,
 
     -- Restores the metatable of a FullGraphQuery object, and all its owned objects.

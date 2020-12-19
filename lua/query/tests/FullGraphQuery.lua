@@ -20,11 +20,17 @@ local SaveLoadTester = require("lua/testing/SaveLoadTester")
 describe("FullGraphQuery", function()
     local query
     before_each(function()
-        query = FullGraphQuery.new()
+        query = FullGraphQuery.new{
+            sinkParams = {
+                filterNormal = true,
+            },
+        }
     end)
 
     it(".new()", function()
         assert.is_not_nil(query.execute)
+        assert.is_true(query.sinkParams.filterNormal)
+        assert.is_false(query.sinkParams.filterRecursive)
     end)
 
     it(".setmetatable()", function()
