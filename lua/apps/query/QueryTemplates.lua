@@ -22,19 +22,31 @@ local UsagesOfQuery = require("lua/query/UsagesOfQuery")
 --
 -- RO Fields:
 -- * caption: LocalisedString. Caption of the button in the TemplateSelectWindow.
--- * queryClass: table. Class table of the query.
+-- * query: AbstractQuery. Query to copy into the editor.
 --
 local QueryTemplates = ErrorOnInvalidRead.new{
     -- Query to see how to craft a given set of intermediates.
     HowToMake = ErrorOnInvalidRead.new{
         caption = {"dana.apps.query.templateSelectWindow.howToMake"},
-        queryClass = HowToMakeQuery,
+        query = HowToMakeQuery.new{
+            sinkParams = {
+                filterNormal = true,
+                filterRecursive = true,
+                indirectThreshold = 64,
+            },
+        },
     },
 
     -- Query to see what can be crafted from a given set of intermediates.
     UsagesOf = ErrorOnInvalidRead.new{
         caption = {"dana.apps.query.templateSelectWindow.usagesOf"},
-        queryClass = UsagesOfQuery,
+        query = UsagesOfQuery.new{
+            sinkParams = {
+                filterNormal = true,
+                filterRecursive = true,
+                indirectThreshold = 64,
+            },
+        },
     },
 }
 

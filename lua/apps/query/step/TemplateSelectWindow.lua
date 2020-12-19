@@ -89,7 +89,7 @@ Metatable = {
 
             appInterface:pushStepWindow(QueryEditor.new{
                 appInterface = appInterface,
-                query = template.queryClass.new(),
+                query = template.query:copy(),
             })
         end,
     },
