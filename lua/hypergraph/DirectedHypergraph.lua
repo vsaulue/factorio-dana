@@ -111,6 +111,26 @@ Metatable = {
         addVertexIndex = function(self, vertexIndex)
             initVertex(self, vertexIndex)
         end,
+
+        -- Removes an edge from this graph.
+        --
+        -- Args:
+        -- * self: Hypergraph.
+        -- * edgeIndex: any. Index of the edge to remove.
+        --
+        removeEdgeIndex = function(self, edgeIndex)
+            local edge = rawget(self.edges, edgeIndex)
+            local vertices = self.vertices
+            if edge then
+                for vertexIndex in pairs(edge.inbound) do
+                    vertices[vertexIndex].outbound[edgeIndex] = nil
+                end
+                for vertexIndex in pairs(edge.outbound) do
+                    vertices[vertexIndex].inbound[edgeIndex] = nil
+                end
+                self.edges[edgeIndex] = nil
+            end
+        end,
     },
 }
 
