@@ -21,6 +21,7 @@ local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local OrderingStep = require("lua/query/steps/OrderingStep")
 local SelectionStep = require("lua/query/steps/SelectionStep")
+local SinkFilterStep = require("lua/query/steps/SinkFilterStep")
 local SinkParams = require("lua/query/params/SinkParams")
 
 local cLogger = ClassLogger.new{className = "AbstractQuery"}
@@ -81,9 +82,10 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     -- * Map[vertexIndex] -> int. Partial order on the vertices to build a "nicer" layout.
     --
     preprocess = function(self, force)
-        local fullGraph = SelectionStep.run(self, force)
-        local vertexDists = OrderingStep.run(self, force, fullGraph)
-        return fullGraph,vertexDists
+        local graph = SelectionStep.run(self, force)
+        local vertexDists = OrderingStep.run(self, force, graph)
+        SinkFilterStep.run(self, force, graph)
+        return graph,vertexDists
     end,
 
     -- Restores the metatable of a AbstractQuery object, and all its owned objects.
