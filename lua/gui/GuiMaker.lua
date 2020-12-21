@@ -26,11 +26,20 @@ local GuiMaker = ErrorOnInvalidRead.new{
     -- * parent: LuaGuiElement. Root element of the new GUI.
     -- * cArgs: table. Same fields as LuaGuiElement.add() argument, plus:
     -- ** children: array<table>. Table following the same format as `cArgs`.
+    -- ** styleModifiers: table. Values to override in the "style" property of the new element.
     --
     -- Returns: LuaGuiElement. The top-level element created.
     --
     run = function(parent, cArgs)
         local result = parent.add(cArgs)
+
+        local styleModifiers = cArgs.styleModifiers
+        if styleModifiers then
+            local style = result.style
+            for index,value in pairs(styleModifiers) do
+                style[index] = value
+            end
+        end
 
         local children = cArgs.children
         if children then

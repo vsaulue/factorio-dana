@@ -44,6 +44,9 @@ describe("GuiMaker", function()
                             type = "button",
                         },
                     },
+                    styleModifiers = {
+                        horizontally_stretchable = true,
+                    },
                 },{
                     type = "line",
                     direction = "horizontal",
@@ -54,5 +57,6 @@ describe("GuiMaker", function()
         checkClassName(result.children[1], "FlowGuiElement")
         checkClassName(result.children[1].children[1], "ButtonGuiElement")
         checkClassName(result.children[2], "LineGuiElement")
+        assert.is_true(result.children[1].style.horizontally_stretchable)
     end)
 end)
