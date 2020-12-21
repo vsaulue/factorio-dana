@@ -17,10 +17,12 @@
 local AbstractGui = require("lua/gui/AbstractGui")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiElement = require("lua/gui/GuiElement")
+local GuiMaker = require("lua/gui/GuiMaker")
 local MetaUtils = require("lua/class/MetaUtils")
 
 local BackButton
 local DrawButton
+local GuiConstructorArgs
 local Metatable
 
 -- Instanciated GUI of an IntermediateSetEditor.
@@ -28,9 +30,10 @@ local Metatable
 -- Inherits from AbstractGui.
 --
 -- RO Fields:
+-- * backButton: BackButton. Bottom-left back button.
+-- * drawButton: DrawButton. Bottom-right button to draw the graph.
 -- * controller (override): AbstractQueryEditor.
 -- * frame: LuaGuiElement. Top-level element containing this GUI.
--- * paramsFrame: LuaGuiElement. Frame containing the paramsEditor GUI.
 -- + AbstractGui.
 --
 local GuiQueryEditor = ErrorOnInvalidRead.new{
@@ -45,45 +48,18 @@ local GuiQueryEditor = ErrorOnInvalidRead.new{
         AbstractGui.new(object, Metatable)
         local controller = object.controller
 
-        local frame = object.parent.add{
-            type = "frame",
-            direction = "vertical",
-            caption = {"dana.apps.query.queryEditor.title"},
-        }
-        object.frame = frame
-        object.paramsFrame = frame.add{
-            type = "frame",
-            style = "inside_shallow_frame_with_padding",
-            direction = "vertical",
-        }
-
-        local bottomFlow = frame.add{
-            type = "flow",
-            direction = "horizontal",
-        }
+        object.frame = GuiMaker.run(object.parent, GuiConstructorArgs)
         object.backButton = BackButton.new{
             controller = controller,
-            rawElement = bottomFlow.add{
-                type = "button",
-                caption = {"gui.cancel"},
-                style = "back_button",
-            },
+            rawElement = object.frame.footer.backButton,
         }
-        local pusher = bottomFlow.add{
-            type = "empty-widget",
-            style = "draggable_space_with_no_left_margin",
-        }
-        pusher.style.horizontally_stretchable = true
         object.drawButton = DrawButton.new{
             controller = controller,
-            rawElement = bottomFlow.add{
-                type = "button",
-                caption = {"dana.apps.query.queryEditor.draw"},
-                style = "confirm_button",
-            },
+            rawElement = object.frame.footer.drawButton,
         }
-        if frame.location then
-            frame.force_auto_center()
+
+        if object.frame.location then
+            object.frame.force_auto_center()
         end
 
         object:updateParamsEditor()
@@ -126,7 +102,7 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
             if self:sanityCheck() then
                 local paramsEditor = rawget(self.controller, "paramsEditor")
                 if paramsEditor then
-                    paramsEditor:open(self.paramsFrame)
+                    paramsEditor:open(self.frame.params)
                 end
             end
         end,
@@ -164,6 +140,43 @@ DrawButton = GuiElement.newSubclass{
         onClick = function(self, event)
             self.controller:runQueryAndDraw()
         end,
+    },
+}
+
+-- GuiMaker's arguments to build this GUI.
+GuiConstructorArgs = {
+    type = "frame",
+    direction = "vertical",
+    caption = {"dana.apps.query.queryEditor.title"},
+    children = {
+        {
+            type = "frame",
+            style = "inside_shallow_frame_with_padding",
+            direction = "vertical",
+            name = "params",
+        },{
+            type = "flow",
+            direction = "horizontal",
+            name = "footer",
+            children = {
+                {
+                    type = "button",
+                    caption = {"gui.cancel"},
+                    style = "back_button",
+                    name = "backButton",
+                },{
+                    type = "empty-widget",
+                    styleModifiers = {
+                        horizontally_stretchable = true,
+                    },
+                },{
+                    type = "button",
+                    caption = {"dana.apps.query.queryEditor.draw"},
+                    style = "confirm_button",
+                    name = "drawButton",
+                },
+            },
+        },
     },
 }
 
