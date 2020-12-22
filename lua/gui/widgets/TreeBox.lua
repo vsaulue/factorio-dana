@@ -59,6 +59,15 @@ local TreeBox = ErrorOnInvalidRead.new{
                 }
             end,
 
+            -- Method called after the `selection` field is changed.
+            --
+            -- Args:
+            -- * self: TreeBox.
+            --
+            onSelectionChanged = function(self)
+                -- no-op
+            end,
+
             -- Sets which node is currently selected in this TreeBox.
             --
             -- Args:
@@ -78,6 +87,7 @@ local TreeBox = ErrorOnInvalidRead.new{
                     else
                         self.selection = nil
                     end
+                    self:onSelectionChanged()
                 end
             end,
         },

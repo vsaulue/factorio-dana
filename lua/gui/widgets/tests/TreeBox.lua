@@ -31,7 +31,11 @@ local makeUpcalls = function()
 end
 
 local MyMetatable = MetaUtils.derive(TreeBox.Metatable, {
-    __index = {},
+    __index = {
+        onSelectionChanged = function(self)
+            self.mySelection = rawget(self, "selection")
+        end,
+    },
 })
 
 local MyTreeBox = {
@@ -208,6 +212,7 @@ describe("TreeBox", function()
     describe(":setSelection() -- not selectable", function()
         controller:setSelection(controller.roots[1])
         assert.is_nil(rawget(controller, "selection"))
+        assert.is_nil(rawget(controller, "mySelection"))
     end)
 end)
 
@@ -365,18 +370,22 @@ describe("TreeBoxNode", function()
         end)
 
         it("SelectLabel", function()
+            local node1 = treeBox.roots[2].children[1]
             GuiElement.on_gui_click{
                 player_index = player.index,
-                element = treeBox.roots[2].children[1].gui.headerFlow.children[3],
+                element = node1.gui.headerFlow.children[3],
             }
-            assert.is_true(treeBox.roots[2].children[1].selected)
+            assert.is_true(node1.selected)
+            assert.are.equals(treeBox.mySelection, node1)
 
+            local node2 = treeBox.roots[1].children[1]
             GuiElement.on_gui_click{
                 player_index = player.index,
-                element = treeBox.roots[1].children[1].gui.headerFlow.children[3]
+                element = node2.gui.headerFlow.children[3]
             }
-            assert.is_true(treeBox.roots[1].children[1].selected)
-            assert.is_false(treeBox.roots[2].children[1].selected)
+            assert.is_true(node2.selected)
+            assert.is_false(node1.selected)
+            assert.are.equals(treeBox.mySelection, node2)
         end)
     end)
 end)
