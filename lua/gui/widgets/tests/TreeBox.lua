@@ -17,6 +17,7 @@
 local AutoLoaded = require("lua/testing/AutoLoaded")
 local GuiElement = require("lua/gui/GuiElement")
 local GuiUpcalls = require("lua/gui/GuiUpcalls")
+local MetaUtils = require("lua/class/MetaUtils")
 local MockFactorio = require("lua/testing/mocks/MockFactorio")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 local TreeBox = require("lua/gui/widgets/TreeBox")
@@ -28,6 +29,20 @@ local makeUpcalls = function()
     GuiUpcalls.checkMethods(result)
     return result
 end
+
+local MyMetatable = MetaUtils.derive(TreeBox.Metatable, {
+    __index = {},
+})
+
+local MyTreeBox = {
+    new = function(object)
+        return TreeBox.new(object, MyMetatable)
+    end,
+
+    setmetatable = function(object)
+        TreeBox.setmetatable(object, MyMetatable)
+    end,
+}
 
 describe("TreeBox", function()
     local factorio
@@ -52,7 +67,7 @@ describe("TreeBox", function()
         parent.clear()
         GuiElement.on_init()
 
-        controller = TreeBox.new{
+        controller = MyTreeBox.new{
             roots = {
                 {
                     caption = "top1",
@@ -146,7 +161,7 @@ describe("TreeBox", function()
         local runTest = function()
             SaveLoadTester.run{
                 objects = controller,
-                metatableSetter = TreeBox.setmetatable,
+                metatableSetter = MyTreeBox.setmetatable,
             }
         end
         it("-- no gui", function()
@@ -219,7 +234,7 @@ describe("TreeBoxNode", function()
         parent.clear()
         GuiElement.on_init()
 
-        treeBox = TreeBox.new{
+        treeBox = MyTreeBox.new{
             roots = {
                 {
                     caption = "first",

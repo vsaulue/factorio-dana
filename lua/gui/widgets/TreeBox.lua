@@ -25,8 +25,6 @@ local TreeBoxNode = require("lua/gui/widgets/TreeBoxNode")
 
 local cLogger = ClassLogger.new{className = "TreeBox"}
 
-local Metatable
-
 -- GUI controller for a listbox with a tree-like structure.
 --
 -- Inherits from AbstractGuiController.
@@ -39,6 +37,52 @@ local Metatable
 -- + AbstractGuiController.
 --
 local TreeBox = ErrorOnInvalidRead.new{
+    -- Metatable of the TreeBox class.
+    Metatable = MetaUtils.derive(AbstractGuiController.Metatable, {
+        __index = {
+            -- Implements AbstractGuiController:close().
+            close = function(self)
+                Closeable.safeCloseField(self, "gui")
+                self.roots:close()
+            end,
+
+            -- Implements AbstractGuiController:getGuiUpcalls().
+            getGuiUpcalls = function(self)
+                return self.upcalls
+            end,
+
+            -- Implements AbstractGuiController:makeGui().
+            makeGui = function(self, parent)
+                return GuiTreeBox.new{
+                    controller = self,
+                    parent = parent,
+                }
+            end,
+
+            -- Sets which node is currently selected in this TreeBox.
+            --
+            -- Args:
+            -- * self: TreeBox.
+            -- * node: TreeBoxNode. New node being selected (nil to select none).
+            --
+            setSelection = function(self, node)
+                local oldSelection = rawget(self, "selection")
+                if oldSelection ~= node then
+                    if oldSelection then
+                        oldSelection:setSelected(false)
+                    end
+                    cLogger:assert(node.treeBox == self, "Attempt to select a node from another tree.")
+                    if node and node.selectable then
+                        self.selection = node
+                        node:setSelected(true)
+                    else
+                        self.selection = nil
+                    end
+                end
+            end,
+        },
+    }),
+
     -- Creates a new TreeBox object.
     --
     -- Args:
@@ -46,7 +90,7 @@ local TreeBox = ErrorOnInvalidRead.new{
     --
     -- Returns: The argument turned into a TreeBox object.
     --
-    new = function(object)
+    new = function(object, metatable)
         cLogger:assertField(object, "upcalls")
         local roots = Array.new(object.roots)
         local count = roots.count
@@ -59,65 +103,19 @@ local TreeBox = ErrorOnInvalidRead.new{
         end
         object.roots = roots
 
-        return AbstractGuiController.new(object, Metatable)
+        return AbstractGuiController.new(object, metatable)
     end,
 
     -- Restores the metatable of an TreeBox object, and all its owned objects.
     --
     -- Args:
-    -- * object: Table to modify.
+    -- * object: table.
+    -- * metatable: table. Metatable to set.
     --
-    setmetatable = function(object)
-        AbstractGuiController.setmetatable(object, Metatable, GuiTreeBox.setmetatable)
+    setmetatable = function(object, metatable)
+        AbstractGuiController.setmetatable(object, metatable, GuiTreeBox.setmetatable)
         Array.setmetatable(object.roots, TreeBoxNode.setmetatable)
     end,
 }
-
--- Metatable of the TreeBox class.
-Metatable = {
-    __index = ErrorOnInvalidRead.new{
-        -- Implements AbstractGuiController:close().
-        close = function(self)
-            Closeable.safeCloseField(self, "gui")
-            self.roots:close()
-        end,
-
-        -- Implements AbstractGuiController:getGuiUpcalls().
-        getGuiUpcalls = function(self)
-            return self.upcalls
-        end,
-
-        -- Implements AbstractGuiController:makeGui().
-        makeGui = function(self, parent)
-            return GuiTreeBox.new{
-                controller = self,
-                parent = parent,
-            }
-        end,
-
-        -- Sets which node is currently selected in this TreeBox.
-        --
-        -- Args:
-        -- * self: TreeBox.
-        -- * node: TreeBoxNode. New node being selected (nil to select none).
-        --
-        setSelection = function(self, node)
-            local oldSelection = rawget(self, "selection")
-            if oldSelection ~= node then
-                if oldSelection then
-                    oldSelection:setSelected(false)
-                end
-                cLogger:assert(node.treeBox == self, "Attempt to select a node from another tree.")
-                if node and node.selectable then
-                    self.selection = node
-                    node:setSelected(true)
-                else
-                    self.selection = nil
-                end
-            end
-        end,
-    }
-}
-MetaUtils.derive(AbstractGuiController.Metatable, Metatable)
 
 return TreeBox
