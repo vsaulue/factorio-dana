@@ -39,6 +39,7 @@ local _setmetatable
 -- * expanded: boolean. Flag set to show/collapse the list of chilren nodes.
 -- * gui (override): GuiTreeBoxNode or nil.
 -- * isLast: boolean. Flag set if this node is the last child of the parent node.
+-- * parent (optional): TreeBoxNode. Parent node (or nil if this is a root).
 -- * selectable: boolan. Flag set if this node can be selected.
 -- * selected: boolean. Flag set if this node is currently selected.
 -- * treeBox: TreeBox. TreeBox object owning this node.
@@ -67,6 +68,7 @@ local TreeBoxNode = ErrorOnInvalidRead.new{
             local child = children[i]
             child.depth = childDepth
             child.isLast = (i == count)
+            child.parent = object
             child.treeBox = treeBox
             _new(child)
         end
