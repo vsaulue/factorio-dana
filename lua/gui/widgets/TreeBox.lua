@@ -33,7 +33,6 @@ local cLogger = ClassLogger.new{className = "TreeBox"}
 -- * gui (override): GuiTreeBox or nil.
 -- * roots: Array<TreeBoxNode>. Set of top-level nodes of the box.
 -- * selection (optional): TreeBoxNode. Currently selected node (nil if no node is selected).
--- * upcalls: GuiUpcalls. Callbacks available to this controller.
 -- + AbstractGuiController.
 --
 local TreeBox = ErrorOnInvalidRead.new{
@@ -44,11 +43,6 @@ local TreeBox = ErrorOnInvalidRead.new{
             close = function(self)
                 Closeable.safeCloseField(self, "gui")
                 self.roots:close()
-            end,
-
-            -- Implements AbstractGuiController:getGuiUpcalls().
-            getGuiUpcalls = function(self)
-                return self.upcalls
             end,
 
             -- Implements AbstractGuiController:makeGui().
@@ -101,7 +95,6 @@ local TreeBox = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a TreeBox object.
     --
     new = function(object, metatable)
-        cLogger:assertField(object, "upcalls")
         local roots = Array.new(object.roots)
         local count = roots.count
         for i=1,count do

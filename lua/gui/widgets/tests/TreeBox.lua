@@ -32,6 +32,10 @@ end
 
 local MyMetatable = MetaUtils.derive(TreeBox.Metatable, {
     __index = {
+        getGuiUpcalls = function(self)
+            return self.upcalls
+        end,
+
         onSelectionChanged = function(self)
             self.mySelection = rawget(self, "selection")
         end,
