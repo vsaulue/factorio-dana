@@ -287,6 +287,13 @@ describe("TreeBoxNode", function()
         assert.is_false(gui:isValid())
     end)
 
+    it(":isLast()", function()
+        assert.is_false(treeBox.roots[1]:isLast())
+        assert.is_true(treeBox.roots[2]:isLast())
+        assert.is_false(treeBox.roots[2].children[1]:isLast())
+        assert.is_true(treeBox.roots[2].children[2]:isLast())
+    end)
+
     describe(":setSelected()", function()
         it("-- no gui", function()
             local node = treeBox.roots[1].children[1]

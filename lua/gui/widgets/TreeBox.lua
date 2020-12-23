@@ -101,7 +101,6 @@ local TreeBox = ErrorOnInvalidRead.new{
             local node = roots[i]
             node.depth = 0
             node.treeBox = object
-            node.isLast = (i == count)
             TreeBoxNode.new(node)
         end
         object.roots = roots

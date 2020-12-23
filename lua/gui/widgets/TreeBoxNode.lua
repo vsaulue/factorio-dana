@@ -38,7 +38,6 @@ local _setmetatable
 -- * depth: int. Depth of this node in the tree (starts from 0).
 -- * expanded: boolean. Flag set to show/collapse the list of chilren nodes.
 -- * gui (override): GuiTreeBoxNode or nil.
--- * isLast: boolean. Flag set if this node is the last child of the parent node.
 -- * parent (optional): TreeBoxNode. Parent node (or nil if this is a root).
 -- * selectable: boolan. Flag set if this node can be selected.
 -- * selected: boolean. Flag set if this node is currently selected.
@@ -48,7 +47,7 @@ local TreeBoxNode = ErrorOnInvalidRead.new{
     -- Creates a new TreeBoxNode object.
     --
     -- Args:
-    -- * object: Table to turn into a TreeBoxNode object (required fields: caption, depth, isLast).
+    -- * object: Table to turn into a TreeBoxNode object (required fields: caption, depth).
     --
     -- Returns: The argument turned into a TreeBoxNode object.
     --
@@ -56,7 +55,6 @@ local TreeBoxNode = ErrorOnInvalidRead.new{
         local childDepth = 1 + cLogger:assertField(object, "depth")
         local treeBox = cLogger:assertField(object, "treeBox")
         cLogger:assertField(object, "caption")
-        cLogger:assertField(object, "isLast")
         object.expanded = object.expanded or false
         object.selectable = object.selectable or false
         object.selected = false
@@ -67,7 +65,6 @@ local TreeBoxNode = ErrorOnInvalidRead.new{
         for i=1,count do
             local child = children[i]
             child.depth = childDepth
-            child.isLast = (i == count)
             child.parent = object
             child.treeBox = treeBox
             _new(child)
@@ -99,6 +96,24 @@ Metatable = {
         -- Implements AbstractGuiController:getGuiUpcalls().
         getGuiUpcalls = function(self)
             return self.treeBox:getGuiUpcalls()
+        end,
+
+        -- Checks if this node is the last child of its parent.
+        --
+        -- Args:
+        -- * self: TreeBoxNode.
+        --
+        -- Returns: boolean. True if this node is the last root, or the last child of its parent.
+        --
+        isLast = function(self)
+            local array
+            local parent = rawget(self, "parent")
+            if parent then
+                array = parent.children
+            else
+                array = self.treeBox.roots
+            end
+            return array[array.count] == self
         end,
 
         -- Implements AbstractGuiController:makeGui().

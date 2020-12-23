@@ -66,7 +66,7 @@ local GuiTreeBoxNode = ErrorOnInvalidRead.new{
             for i=1,depth-1 do
                 prefix = prefix .. "│"
             end
-            if controller.isLast then
+            if controller:isLast() then
                 prefix = prefix .. "└"
             else
                 prefix = prefix .. "├"
