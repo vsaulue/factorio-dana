@@ -151,6 +151,17 @@ Metatable = {
             end
         end,
 
+        -- Updates the prefix of the title line of this GUI.
+        --
+        -- Args:
+        -- * self: GuiTreeBoxNode.
+        --
+        updatePrefixes = function(self)
+            if self:sanityCheck() then
+                self.headerFlow.children[1].caption = self.controller.titlePrefix
+            end
+        end,
+
         -- Updates the "selected" state of this GUI.
         --
         -- Args:

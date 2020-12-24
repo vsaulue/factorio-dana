@@ -363,6 +363,15 @@ describe("TreeBoxNode", function()
         end)
     end)
 
+    it(":updatePrefixes()", function()
+        treeBox:open(parent)
+        local root = treeBox.roots[2]
+        root.children[1].titlePrefix = "kilroy"
+        root:updatePrefixes()
+        assert.are.equals(root.children[1].titlePrefix, "├")
+        assert.are.equals(root.children[1].gui.headerFlow.children[1].caption, "├")
+    end)
+
     describe("-- GUI:", function()
         before_each(function()
             treeBox:open(parent)

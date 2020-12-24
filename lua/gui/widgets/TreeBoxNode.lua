@@ -137,6 +137,24 @@ Metatable = {
                 gui:updateExpanded()
             end
         end,
+
+        -- Updates the prefixes of this node and its children.
+        --
+        -- Args:
+        -- * self: TreeBox.
+        --
+        updatePrefixes = function(self)
+            computePrefixes(self)
+            local children = self.children
+            for i=1,children.count do
+                children[i]:updatePrefixes()
+            end
+
+            local gui = rawget(self, "gui")
+            if gui then
+                gui:updatePrefixes()
+            end
+        end,
     },
 }
 MetaUtils.derive(AbstractGuiController.Metatable, Metatable)
