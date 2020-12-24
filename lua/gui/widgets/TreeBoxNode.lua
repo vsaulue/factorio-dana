@@ -113,24 +113,6 @@ Metatable = {
             return self.treeBox:getGuiUpcalls()
         end,
 
-        -- Checks if this node is the last child of its parent.
-        --
-        -- Args:
-        -- * self: TreeBoxNode.
-        --
-        -- Returns: boolean. True if this node is the last root, or the last child of its parent.
-        --
-        isLast = function(self)
-            local array
-            local parent = rawget(self, "parent")
-            if parent then
-                array = parent.children
-            else
-                array = self.treeBox.roots
-            end
-            return array[array.count] == self
-        end,
-
         -- Implements AbstractGuiController:makeGui().
         makeGui = function(self, parent)
             return GuiTreeBoxNode.new{

@@ -119,7 +119,6 @@ describe("TreeBox", function()
                                     children = {count = 0},
                                     childrenPrefix = "│ ",
                                     expanded = false,
-                                    isLast = true,
                                     parent = controller.roots[1].children[1],
                                     selectable = true,
                                     selected = false,
@@ -129,7 +128,6 @@ describe("TreeBox", function()
                             },
                             childrenPrefix = "│",
                             expanded = false,
-                            isLast = false,
                             parent = controller.roots[1],
                             selectable = false,
                             selected = false,
@@ -141,7 +139,6 @@ describe("TreeBox", function()
                             children = {count = 0},
                             childrenPrefix = " ",
                             expanded = false,
-                            isLast = true,
                             parent = controller.roots[1],
                             selectable = false,
                             selected = false,
@@ -151,7 +148,6 @@ describe("TreeBox", function()
                     },
                     childrenPrefix = "",
                     expanded = true,
-                    isLast = false,
                     selectable = false,
                     selected = false,
                     titlePrefix = "",
@@ -162,7 +158,6 @@ describe("TreeBox", function()
                     children = {count = 0},
                     childrenPrefix = "",
                     expanded = false,
-                    isLast = true,
                     selectable = true,
                     selected = false,
                     titlePrefix = "",
@@ -290,13 +285,6 @@ describe("TreeBoxNode", function()
         assert.is_true(gui:isValid())
         treeBox:close()
         assert.is_false(gui:isValid())
-    end)
-
-    it(":isLast()", function()
-        assert.is_false(treeBox.roots[1]:isLast())
-        assert.is_true(treeBox.roots[2]:isLast())
-        assert.is_false(treeBox.roots[2].children[1]:isLast())
-        assert.is_true(treeBox.roots[2].children[2]:isLast())
     end)
 
     describe(":setSelected()", function()
