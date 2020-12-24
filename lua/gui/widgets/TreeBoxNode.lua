@@ -24,6 +24,7 @@ local GuiTreeBoxNode = require("lua/gui/widgets/GuiTreeBoxNode")
 
 local cLogger = ClassLogger.new{className = "TreeBoxNode"}
 
+local computePrefixes
 local Metatable
 local _new
 local _setmetatable
@@ -55,37 +56,23 @@ local TreeBoxNode = ErrorOnInvalidRead.new{
     new = function(object)
         local treeBox = cLogger:assertField(object, "treeBox")
         cLogger:assertField(object, "caption")
+        object.children = Array.new(object.children)
         object.expanded = object.expanded or false
         object.selectable = object.selectable or false
         object.selected = false
 
-        local titlePrefix = ""
-        local childrenPrefix = ""
-        local parent = rawget(object, "parent")
-        if parent then
-            local prefix = parent.childrenPrefix
-            if parent.children[parent.children.count] ~= object then
-                titlePrefix = prefix .. "├"
-                childrenPrefix = prefix .. "│"
-            else
-                titlePrefix = prefix .. "└"
-                childrenPrefix = prefix .. " "
-            end
-        end
-        object.titlePrefix = titlePrefix
-        object.childrenPrefix = childrenPrefix
+        AbstractGuiController.new(object, Metatable)
+        computePrefixes(object)
 
-        local children = Array.new(object.children)
-        local count = children.count
-        object.children = children
-        for i=1,count do
+        local children = object.children
+        for i=1,children.count do
             local child = children[i]
             child.parent = object
             child.treeBox = treeBox
             _new(child)
         end
 
-        return AbstractGuiController.new(object, Metatable)
+        return object
     end,
 
     -- Restores the metatable of a TreeBoxNode object, and all its owned objects.
@@ -153,6 +140,29 @@ Metatable = {
     },
 }
 MetaUtils.derive(AbstractGuiController.Metatable, Metatable)
+
+-- Refreshes the values of the `titlePrefix` and `childrenPrefix` fields.
+--
+-- Args:
+-- * self: TreeBoxNode.
+--
+computePrefixes = function(self)
+    local titlePrefix = ""
+    local childrenPrefix = ""
+    local parent = rawget(self, "parent")
+    if parent then
+        local prefix = parent.childrenPrefix
+        if parent.children[parent.children.count] ~= self then
+            titlePrefix = prefix .. "├"
+            childrenPrefix = prefix .. "│"
+        else
+            titlePrefix = prefix .. "└"
+            childrenPrefix = prefix .. " "
+        end
+    end
+    self.titlePrefix = titlePrefix
+    self.childrenPrefix = childrenPrefix
+end
 
 _new = TreeBoxNode.new
 _setmetatable = TreeBoxNode.setmetatable
