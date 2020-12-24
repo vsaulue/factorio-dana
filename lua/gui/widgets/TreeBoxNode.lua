@@ -35,12 +35,14 @@ local _setmetatable
 -- RO Fields:
 -- * caption: LocalisedString. Label of this node.
 -- * chilren: Array<TreeBoxNode>. Children of this node.
+-- * childrenPrefix: string. Prefix for the children's lines.
 -- * depth: int. Depth of this node in the tree (starts from 0).
 -- * expanded: boolean. Flag set to show/collapse the list of chilren nodes.
 -- * gui (override): GuiTreeBoxNode or nil.
 -- * parent (optional): TreeBoxNode. Parent node (or nil if this is a root).
 -- * selectable: boolan. Flag set if this node can be selected.
 -- * selected: boolean. Flag set if this node is currently selected.
+-- * titlePrefix: string. Prefix of the header line of this node.
 -- * treeBox: TreeBox. TreeBox object owning this node.
 --
 local TreeBoxNode = ErrorOnInvalidRead.new{
@@ -58,6 +60,22 @@ local TreeBoxNode = ErrorOnInvalidRead.new{
         object.expanded = object.expanded or false
         object.selectable = object.selectable or false
         object.selected = false
+
+        local titlePrefix = ""
+        local childrenPrefix = ""
+        local parent = rawget(object, "parent")
+        if parent then
+            local prefix = parent.childrenPrefix
+            if parent.children[parent.children.count] ~= object then
+                titlePrefix = prefix .. "├"
+                childrenPrefix = prefix .. "│"
+            else
+                titlePrefix = prefix .. "└"
+                childrenPrefix = prefix .. " "
+            end
+        end
+        object.titlePrefix = titlePrefix
+        object.childrenPrefix = childrenPrefix
 
         local children = Array.new(object.children)
         local count = children.count

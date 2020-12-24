@@ -117,50 +117,60 @@ describe("TreeBox", function()
                                 [1] = {
                                     caption = "child_1aa",
                                     children = {count = 0},
+                                    childrenPrefix = "│ ",
                                     depth = 2,
                                     expanded = false,
                                     isLast = true,
                                     parent = controller.roots[1].children[1],
                                     selectable = true,
                                     selected = false,
+                                    titlePrefix = "│└",
                                     treeBox = controller,
                                 },
                             },
+                            childrenPrefix = "│",
                             depth = 1,
                             expanded = false,
                             isLast = false,
                             parent = controller.roots[1],
                             selectable = false,
                             selected = false,
+                            titlePrefix = "├",
                             treeBox = controller,
                         },
                         [2] = {
                             caption = "child_1b",
                             children = {count = 0},
+                            childrenPrefix = " ",
                             depth = 1,
                             expanded = false,
                             isLast = true,
                             parent = controller.roots[1],
                             selectable = false,
                             selected = false,
+                            titlePrefix = "└",
                             treeBox = controller,
                         },
                     },
+                    childrenPrefix = "",
                     depth = 0,
                     expanded = true,
                     isLast = false,
                     selectable = false,
                     selected = false,
+                    titlePrefix = "",
                     treeBox = controller,
                 },
                 [2] = {
                     caption = "top2",
                     children = {count = 0},
+                    childrenPrefix = "",
                     depth = 0,
                     expanded = false,
                     isLast = true,
                     selectable = true,
                     selected = false,
+                    titlePrefix = "",
                     treeBox = controller,
                 },
             },
@@ -357,7 +367,7 @@ describe("TreeBoxNode", function()
                 node:toggleExpanded()
                 assert.is_false(node.expanded)
                 assert.is_false(node.gui.childrenFlow.visible)
-                assert.are.equals(node.gui.headerFlow.children[1].caption, "▶ ")
+                assert.are.equals(node.gui.headerFlow.children[2].caption, "▶ ")
             end)
 
             it(", false -> true", function()
@@ -365,7 +375,7 @@ describe("TreeBoxNode", function()
                 node:toggleExpanded()
                 assert.is_true(node.expanded)
                 assert.is_true(node.gui.childrenFlow.visible)
-                assert.are.equals(node.gui.headerFlow.children[1].caption, "▼ ")
+                assert.are.equals(node.gui.headerFlow.children[2].caption, "▼ ")
             end)
         end)
     end)
@@ -378,7 +388,7 @@ describe("TreeBoxNode", function()
         it("ExpandLabel", function()
             GuiElement.on_gui_click{
                 player_index = player.index,
-                element = treeBox.roots[1].gui.headerFlow.children[1],
+                element = treeBox.roots[1].gui.headerFlow.children[2],
             }
             assert.is_false(treeBox.roots[1].expanded)
         end)

@@ -53,7 +53,6 @@ local GuiTreeBoxNode = ErrorOnInvalidRead.new{
         local parent = object.parent
 
         local children = controller.children
-        local depth = controller.depth
 
         local headerFlow = parent.add{
             type = "flow",
@@ -61,21 +60,12 @@ local GuiTreeBoxNode = ErrorOnInvalidRead.new{
         }
         headerFlow.style.horizontal_spacing = 0
         object.headerFlow = headerFlow
-        if depth > 0 then
-            local prefix = ""
-            for i=1,depth-1 do
-                prefix = prefix .. "│"
-            end
-            if controller:isLast() then
-                prefix = prefix .. "└"
-            else
-                prefix = prefix .. "├"
-            end
-            headerFlow.add{
-                type = "label",
-                caption = prefix,
-            }
-        end
+
+        headerFlow.add{
+            type = "label",
+            caption = controller.titlePrefix,
+        }
+
         if children.count > 0 then
             object.expandLabel = ExpandLabel.new{
                 controller = controller,
@@ -91,6 +81,7 @@ local GuiTreeBoxNode = ErrorOnInvalidRead.new{
                 caption = "─ ",
             }
         end
+
         local captionLabel = headerFlow.add{
             type = "label",
             caption = controller.caption,
