@@ -36,7 +36,6 @@ local _setmetatable
 -- * caption: LocalisedString. Label of this node.
 -- * chilren: Array<TreeBoxNode>. Children of this node.
 -- * childrenPrefix: string. Prefix for the children's lines.
--- * depth: int. Depth of this node in the tree (starts from 0).
 -- * expanded: boolean. Flag set to show/collapse the list of chilren nodes.
 -- * gui (override): GuiTreeBoxNode or nil.
 -- * parent (optional): TreeBoxNode. Parent node (or nil if this is a root).
@@ -49,12 +48,11 @@ local TreeBoxNode = ErrorOnInvalidRead.new{
     -- Creates a new TreeBoxNode object.
     --
     -- Args:
-    -- * object: Table to turn into a TreeBoxNode object (required fields: caption, depth).
+    -- * object: Table to turn into a TreeBoxNode object (required fields: caption, treeBox).
     --
     -- Returns: The argument turned into a TreeBoxNode object.
     --
     new = function(object)
-        local childDepth = 1 + cLogger:assertField(object, "depth")
         local treeBox = cLogger:assertField(object, "treeBox")
         cLogger:assertField(object, "caption")
         object.expanded = object.expanded or false
@@ -82,7 +80,6 @@ local TreeBoxNode = ErrorOnInvalidRead.new{
         object.children = children
         for i=1,count do
             local child = children[i]
-            child.depth = childDepth
             child.parent = object
             child.treeBox = treeBox
             _new(child)

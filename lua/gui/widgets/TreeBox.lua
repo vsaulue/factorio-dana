@@ -99,7 +99,6 @@ local TreeBox = ErrorOnInvalidRead.new{
         local count = roots.count
         for i=1,count do
             local node = roots[i]
-            node.depth = 0
             node.treeBox = object
             TreeBoxNode.new(node)
         end
