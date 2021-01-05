@@ -1,5 +1,5 @@
 ﻿-- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -205,6 +205,20 @@ describe("TreeBox", function()
         assert.is_true(gui:isValid())
         controller:close()
         assert.is_false(gui:isValid())
+    end)
+
+    it(":newRoot()", function()
+        controller:open(parent)
+        controller:newRoot{
+            caption = "newRoot",
+            children = {
+                {
+                    caption = "newNode",
+                },
+            },
+        }
+        assert.are.equals(controller.roots[3].gui.headerFlow.children[3].caption, "newRoot")
+        assert.are.equals(controller.roots[3].children[1].gui.headerFlow.children[3].caption, "newNode")
     end)
 
     it(":open()", function()

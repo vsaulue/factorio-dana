@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -51,6 +51,28 @@ local TreeBox = ErrorOnInvalidRead.new{
                     controller = self,
                     parent = parent,
                 }
+            end,
+
+            -- Adds a new root at the end of this TreeBox.
+            --
+            -- Args:
+            -- * self: TreeBox.
+            -- * newNode: table. Constructor arguments from .
+            --
+            newRoot = function(self, newNode)
+                local roots = self.roots
+                local previousCount = roots.count
+                roots:pushBack(newNode)
+                newNode.treeBox = self
+                TreeBoxNode.new(newNode)
+                if previousCount > 0 then
+                    roots[previousCount]:updatePrefixes()
+                end
+
+                local gui = rawget(self, "gui")
+                if gui then
+                    gui:notifyNewRoot()
+                end
             end,
 
             -- Method called after the `selection` field is changed.

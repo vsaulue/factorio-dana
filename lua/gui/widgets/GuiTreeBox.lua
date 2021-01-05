@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -75,6 +75,16 @@ Metatable = {
         -- Implements AbstractGui:isValid().
         isValid = function(self)
             return self.flow.valid
+        end,
+
+        -- Notifies that a new root node was added to the owning controller.
+        --
+        -- Args:
+        -- * self: GuiTreeBox.
+        --
+        notifyNewRoot = function(self)
+            local roots = self.controller.roots
+            roots[roots.count]:open(self.flow)
         end,
     },
 }
