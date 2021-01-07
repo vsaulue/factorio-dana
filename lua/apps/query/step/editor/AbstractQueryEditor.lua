@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
 }
 
 -- Metatable of the AbstractQueryEditor class.
-Metatable = {
+Metatable = MetaUtils.derive(AbstractStepWindow.Metatable, {
     __index = {
         -- Implements AbstractStepWindow:close().
         close = function(self)
@@ -121,8 +121,7 @@ Metatable = {
             end
         end,
     },
-}
-setmetatable(Metatable.__index, {__index = super})
+})
 
 -- Unique name for this step.
 StepName = "queryEditor"
