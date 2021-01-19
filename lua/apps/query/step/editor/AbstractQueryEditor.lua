@@ -26,7 +26,6 @@ local MetaUtils = require("lua/class/MetaUtils")
 local cLogger = ClassLogger.new{className = "AbstractQueryEditor"}
 local super = AbstractStepWindow.Metatable.__index
 
-local Metatable
 local StepName
 
 -- Class used to generate a GUI to edit an AbstractQuery.
@@ -52,11 +51,12 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
     --
     -- Args:
     -- * object: table.
+    -- * metatable: table. Metatable to set.
     -- * queryType: Expected value at `self.query.queryType`.
     --
     -- Returns: AbstractQueryEditor. The `object` argument.
     --
-    make = function(object, queryType)
+    make = function(object, metatable, queryType)
         object.stepName = StepName
 
         local query = cLogger:assertField(object, "query")
@@ -64,64 +64,65 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
             cLogger:error("Invalid filter type (found: " .. query.queryType .. ", expected: " .. queryType .. ").")
         end
 
-        AbstractStepWindow.new(object, Metatable)
+        AbstractStepWindow.new(object, metatable)
         return object
     end,
+
+    -- Metatable of the AbstractQueryEditor class.
+    Metatable = MetaUtils.derive(AbstractStepWindow.Metatable, {
+        __index = {
+            -- Implements AbstractStepWindow:close().
+            close = function(self)
+                super.close(self)
+                Closeable.safeClose(rawget(self, "paramsEditor"))
+            end,
+
+            -- Implements AbstractStepWindow:makeGui().
+            makeGui = function(self, parent)
+                return GuiQueryEditor.new{
+                    controller = self,
+                    parent = parent,
+                }
+            end,
+
+            -- Runs the query in the application.
+            --
+            -- Args:
+            -- * self: QueryAppInterface object.
+            --
+            runQueryAndDraw = function(self)
+                self.appInterface:runQueryAndDraw(self.query)
+            end,
+
+            -- Sets the "paramsEditor" field.
+            --
+            -- Args:
+            -- * self: AbstractQueryEditor.
+            -- * value: AbstractGuiController. The new paramsEditor.
+            --
+            setParamsEditor = function(self, value)
+                Closeable.safeClose(rawget(self, "paramsEditor"))
+                self.paramsEditor = value
+
+                local gui = rawget(self, "gui")
+                if gui then
+                    gui:updateParamsEditor()
+                end
+            end,
+        },
+    }),
 
     -- Restores the metatable of a AbstractQueryEditor object, and all its owned objects.
     --
     -- Args:
     -- * object: table.
+    -- * metatable: table. Metatable to set.
     --
-    setmetatable = function(object)
-        AbstractStepWindow.setmetatable(object, Metatable, GuiQueryEditor.setmetatable)
+    setmetatable = function(object, metatable)
+        AbstractStepWindow.setmetatable(object, metatable, GuiQueryEditor.setmetatable)
         AbstractQuery.Factory:restoreMetatable(object.query)
     end,
 }
-
--- Metatable of the AbstractQueryEditor class.
-Metatable = MetaUtils.derive(AbstractStepWindow.Metatable, {
-    __index = {
-        -- Implements AbstractStepWindow:close().
-        close = function(self)
-            super.close(self)
-            Closeable.safeClose(rawget(self, "paramsEditor"))
-        end,
-
-        -- Implements AbstractStepWindow:makeGui().
-        makeGui = function(self, parent)
-            return GuiQueryEditor.new{
-                controller = self,
-                parent = parent,
-            }
-        end,
-
-        -- Runs the query in the application.
-        --
-        -- Args:
-        -- * self: QueryAppInterface object.
-        --
-        runQueryAndDraw = function(self)
-            self.appInterface:runQueryAndDraw(self.query)
-        end,
-
-        -- Sets the "paramsEditor" field.
-        --
-        -- Args:
-        -- * self: AbstractQueryEditor.
-        -- * value: AbstractGuiController. The new paramsEditor.
-        --
-        setParamsEditor = function(self, value)
-            Closeable.safeClose(rawget(self, "paramsEditor"))
-            self.paramsEditor = value
-
-            local gui = rawget(self, "gui")
-            if gui then
-                gui:updateParamsEditor()
-            end
-        end,
-    },
-})
 
 -- Unique name for this step.
 StepName = "queryEditor"

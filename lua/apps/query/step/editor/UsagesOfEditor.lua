@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a UsagesOfEditor object.
     --
     new = function(object)
-        AbstractQueryEditor.make(object, QueryType)
+        AbstractQueryEditor.make(object, AbstractQueryEditor.Metatable, QueryType)
         object:setParamsEditor(MinDistEditor.new{
             appResources = object.appInterface.appResources,
             isForward = true,
@@ -51,7 +51,7 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        AbstractQueryEditor.setmetatable(object)
+        AbstractQueryEditor.setmetatable(object, AbstractQueryEditor.Metatable)
         MinDistEditor.setmetatable(object.paramsEditor)
     end,
 }
