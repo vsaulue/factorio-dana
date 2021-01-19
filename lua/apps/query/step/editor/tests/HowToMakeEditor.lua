@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@ local AutoLoaded = require("lua/testing/AutoLoaded")
 local GuiElement = require("lua/gui/GuiElement")
 local HowToMakeEditor = require("lua/apps/query/step/editor/HowToMakeEditor")
 local HowToMakeQuery = require("lua/query/HowToMakeQuery")
-local MinDistEditor = require("lua/apps/query/params/MinDistEditor")
 local QueryAppInterface = require("lua/apps/query/QueryAppInterface")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 local UsagesOfQuery = require("lua/query/UsagesOfQuery")
@@ -149,27 +148,16 @@ describe("HowToMakeEditor + Abstract + GUI", function()
         end)
 
         describe(":setParamsEditor()", function()
-            local newEditor
-            before_each(function()
-                newEditor = MinDistEditor.new{
-                    appResources = appTestbench.appResources,
-                    isForward = false,
-                    params = controller.query.destParams,
-                }
-            end)
-
             it("-- no GUI", function()
-                controller:setParamsEditor(newEditor)
-                assert.are.equals(controller.paramsEditor, newEditor)
+                controller:setParamsEditor("HowToMakeParams")
                 assert.is_nil(rawget(controller.paramsEditor, "gui"))
             end)
 
             it("-- with GUI", function()
                 local oldEditor = controller.paramsEditor
                 controller:open(parent)
-                controller:setParamsEditor(newEditor)
+                controller:setParamsEditor("HowToMakeParams")
                 assert.is_nil(rawget(oldEditor, "gui"))
-                assert.are.equals(controller.paramsEditor, newEditor)
                 assert.is_not_nil(controller.paramsEditor.gui)
             end)
         end)

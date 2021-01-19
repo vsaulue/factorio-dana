@@ -16,8 +16,12 @@
 
 local AbstractQueryEditor = require("lua/apps/query/step/editor/AbstractQueryEditor")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local MetaUtils = require("lua/class/MetaUtils")
 local MinDistEditor = require("lua/apps/query/params/MinDistEditor")
 
+local super = AbstractQueryEditor.Metatable.__index
+
+local Metatable
 local QueryType
 
 -- Query editor for the UsagesOfQuery class.
@@ -36,12 +40,8 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a UsagesOfEditor object.
     --
     new = function(object)
-        AbstractQueryEditor.make(object, AbstractQueryEditor.Metatable, QueryType)
-        object:setParamsEditor(MinDistEditor.new{
-            appResources = object.appInterface.appResources,
-            isForward = true,
-            params = object.query.sourceParams,
-        })
+        AbstractQueryEditor.make(object, Metatable, QueryType)
+        object:setParamsEditor("UsagesOfParams")
         return object
     end,
 
@@ -51,10 +51,30 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        AbstractQueryEditor.setmetatable(object, AbstractQueryEditor.Metatable)
+        AbstractQueryEditor.setmetatable(object, Metatable)
         MinDistEditor.setmetatable(object.paramsEditor)
     end,
 }
+
+-- Metatable of the UsagesOfEditor class.
+Metatable = MetaUtils.derive(AbstractQueryEditor.Metatable, {
+    __index = {
+        -- Overrides AbstractQueryEditor:makeParamsEditor().
+        makeParamsEditor = function(self, name)
+            local result
+            if name == "UsagesOfParams" then
+                result = MinDistEditor.new{
+                    appResources = self.appInterface.appResources,
+                    isForward = true,
+                    params = self.query.sourceParams,
+                }
+            else
+                result = super.makeParamsEditor(self, name)
+            end
+            return result
+        end,
+    },
+})
 
 -- Type of query handled by this editor.
 QueryType = "UsagesOfQuery"

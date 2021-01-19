@@ -85,6 +85,18 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
                 }
             end,
 
+            -- Creates a new GUI controller to edit a specific subset of parameters.
+            --
+            -- Args:
+            -- * self: AbstractQueryEditor.
+            -- * name: string. Identifier of the editor to open.
+            --
+            -- Returns: AbstractGuiController. The new editor.
+            --
+            makeParamsEditor = function(self, name)
+                cLogger:error("Unknown paramsEditor name: " .. name .. ".")
+            end,
+
             -- Runs the query in the application.
             --
             -- Args:
@@ -98,11 +110,11 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
             --
             -- Args:
             -- * self: AbstractQueryEditor.
-            -- * value: AbstractGuiController. The new paramsEditor.
+            -- * name: string. Identifier of the editor to open.
             --
-            setParamsEditor = function(self, value)
+            setParamsEditor = function(self, name)
                 Closeable.safeClose(rawget(self, "paramsEditor"))
-                self.paramsEditor = value
+                self.paramsEditor = self:makeParamsEditor(name)
 
                 local gui = rawget(self, "gui")
                 if gui then
