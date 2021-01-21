@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ local AppTestbench = require("lua/testing/AppTestbench")
 local GuiElement = require("lua/gui/GuiElement")
 local MinDistEditor = require("lua/apps/query/params/MinDistEditor")
 local MinDistParams = require("lua/query/params/MinDistParams")
-local PrototypeDatabase = require("lua/model/PrototypeDatabase")
+local ParamsEditor = require("lua/apps/query/params/ParamsEditor")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 
 describe("MinDistEditor & GUI", function()
@@ -69,6 +69,7 @@ describe("MinDistEditor & GUI", function()
     end)
 
     it(".new()", function()
+        assert.are.equals(controller.editorName, "MinDistEditor")
         assert.is_not_nil(controller.setEditor)
     end)
 
@@ -82,7 +83,7 @@ describe("MinDistEditor & GUI", function()
                 },
                 metatableSetter = function(objects)
                     AppTestbench.setmetatable(objects.appTestbench)
-                    MinDistEditor.setmetatable(objects.controller)
+                    ParamsEditor.setmetatable(objects.controller)
                     MinDistParams.setmetatable(objects.params)
                 end,
             }

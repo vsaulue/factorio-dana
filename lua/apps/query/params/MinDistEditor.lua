@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -14,15 +14,16 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
-local AbstractGuiController = require("lua/gui/AbstractGuiController")
+local AbstractParamsEditor = require("lua/apps/query/params/AbstractParamsEditor")
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiMinDistEditor = require("lua/apps/query/params/GuiMinDistEditor")
 local IntermediateSetEditor = require("lua/apps/query/params/IntermediateSetEditor")
 
 local cLogger = ClassLogger.new{className = "MinDistParamsEditor"}
-local super = AbstractGuiController.Metatable.__index
+local super = AbstractParamsEditor.Metatable.__index
 
+local EditorName
 local Metatable
 
 -- Editor for the MinDistParams class.
@@ -47,7 +48,8 @@ local MinDistEditor = ErrorOnInvalidRead.new{
     -- Returns: The argument turned into a MinDistEditor object.
     --
     new = function(object)
-        AbstractGuiController.new(object, Metatable)
+        object.editorName = EditorName
+        AbstractParamsEditor.new(object, Metatable)
         cLogger:assertField(object, "appResources")
         cLogger:assertField(object, "isForward")
         cLogger:assertField(object, "params")
@@ -64,7 +66,7 @@ local MinDistEditor = ErrorOnInvalidRead.new{
     -- * object: table to modify.
     --
     setmetatable = function(object)
-        AbstractGuiController.setmetatable(object, Metatable, GuiMinDistEditor.setmetatable)
+        AbstractParamsEditor.setmetatable(object, Metatable, GuiMinDistEditor.setmetatable)
         IntermediateSetEditor.setmetatable(object.setEditor)
     end,
 }
@@ -124,4 +126,7 @@ Metatable = {
 }
 setmetatable(Metatable.__index, {__index = super})
 
+EditorName = "MinDistEditor"
+
+AbstractParamsEditor.Factory:registerClass(EditorName, MinDistEditor)
 return MinDistEditor
