@@ -160,6 +160,12 @@ describe("HowToMakeEditor + Abstract + GUI", function()
                 assert.is_nil(rawget(oldEditor, "gui"))
                 assert.is_not_nil(controller.paramsEditor.gui)
             end)
+
+            it("-- invalid", function()
+                assert.error(function()
+                    controller:setParamsEditor("404")
+                end)
+            end)
         end)
 
         describe("-- GUI:", function()

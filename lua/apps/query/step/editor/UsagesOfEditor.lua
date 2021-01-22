@@ -52,7 +52,6 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         AbstractQueryEditor.setmetatable(object, Metatable)
-        MinDistEditor.setmetatable(object.paramsEditor)
     end,
 }
 

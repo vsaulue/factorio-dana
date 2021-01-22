@@ -22,6 +22,7 @@ local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiQueryEditor = require("lua/apps/query/step/editor/GuiQueryEditor")
 local MetaUtils = require("lua/class/MetaUtils")
+local ParamsEditor = require("lua/apps/query/params/ParamsEditor")
 
 local cLogger = ClassLogger.new{className = "AbstractQueryEditor"}
 local super = AbstractStepWindow.Metatable.__index
@@ -34,7 +35,7 @@ local StepName
 --
 -- RO Fields:
 -- * query: AbstractQuery. The edited query.
--- * paramsEditor: AbstractGuiController or nil. Current editor.
+-- * paramsEditor (optional): AbstractParamsEditor. Current editor.
 -- + AbstractStepWindow.
 --
 local AbstractQueryEditor = ErrorOnInvalidRead.new{
@@ -133,6 +134,7 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
     setmetatable = function(object, metatable)
         AbstractStepWindow.setmetatable(object, metatable, GuiQueryEditor.setmetatable)
         AbstractQuery.Factory:restoreMetatable(object.query)
+        MetaUtils.safeSetField(object, "paramsEditor", ParamsEditor.setmetatable)
     end,
 }
 

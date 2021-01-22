@@ -52,7 +52,6 @@ local HowToMakeEditor = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         AbstractQueryEditor.setmetatable(object, Metatable)
-        MinDistEditor.setmetatable(object.paramsEditor)
     end,
 }
 

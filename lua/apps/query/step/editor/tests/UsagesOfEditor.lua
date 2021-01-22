@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -90,6 +90,14 @@ describe("UsagesOfEditor", function()
         it("-- with gui", function()
             controller:open(parent)
             runTest()
+        end)
+    end)
+
+    describe(":setParamsEditor()", function()
+        it("-- invalid", function()
+            assert.error(function()
+                controller:setParamsEditor("404")
+            end)
         end)
     end)
 end)
