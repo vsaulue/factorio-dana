@@ -149,15 +149,15 @@ describe("HowToMakeEditor + Abstract + GUI", function()
 
         describe(":setParamsEditor()", function()
             it("-- no GUI", function()
-                controller:setParamsEditor("HowToMakeParams")
+                local Name = "HowToMakeParams"
+                controller:setParamsEditor(Name)
+                assert.are.equals(controller.editorName, Name)
                 assert.is_nil(rawget(controller.paramsEditor, "gui"))
             end)
 
             it("-- with GUI", function()
-                local oldEditor = controller.paramsEditor
                 controller:open(parent)
                 controller:setParamsEditor("HowToMakeParams")
-                assert.is_nil(rawget(oldEditor, "gui"))
                 assert.is_not_nil(controller.paramsEditor.gui)
             end)
 
@@ -165,6 +165,14 @@ describe("HowToMakeEditor + Abstract + GUI", function()
                 assert.error(function()
                     controller:setParamsEditor("404")
                 end)
+            end)
+
+            it("-- lazy", function()
+                local Name = "HowToMakeParams"
+                controller:setParamsEditor(Name)
+                local paramsEditor = controller.paramsEditor
+                controller:setParamsEditor(Name)
+                assert.are.equals(controller.paramsEditor, paramsEditor)
             end)
         end)
 

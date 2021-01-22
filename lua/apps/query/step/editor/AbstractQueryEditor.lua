@@ -36,6 +36,7 @@ local StepName
 -- RO Fields:
 -- * query: AbstractQuery. The edited query.
 -- * paramsEditor (optional): AbstractParamsEditor. Current editor.
+-- * paramsName (optional): string. Name of the current editor.
 -- + AbstractStepWindow.
 --
 local AbstractQueryEditor = ErrorOnInvalidRead.new{
@@ -114,12 +115,16 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
             -- * name: string. Identifier of the editor to open.
             --
             setParamsEditor = function(self, name)
-                Closeable.safeClose(rawget(self, "paramsEditor"))
-                self.paramsEditor = self:makeParamsEditor(name)
+                local currentName = rawget(self, "editorName")
+                if name ~= currentName then
+                    Closeable.safeClose(rawget(self, "paramsEditor"))
+                    self.editorName = name
+                    self.paramsEditor = self:makeParamsEditor(name)
 
-                local gui = rawget(self, "gui")
-                if gui then
-                    gui:updateParamsEditor()
+                    local gui = rawget(self, "gui")
+                    if gui then
+                        gui:updateParamsEditor()
+                    end
                 end
             end,
         },
