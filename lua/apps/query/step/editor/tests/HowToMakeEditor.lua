@@ -156,8 +156,11 @@ describe("HowToMakeEditor + Abstract + GUI", function()
             end)
 
             it("-- with GUI", function()
+                local Name = "SinkParams"
                 controller:open(parent)
-                controller:setParamsEditor("HowToMakeParams")
+                controller:setParamsEditor(Name)
+                assert.are.equals(controller.editorName, Name)
+                assert.are.equals(controller.paramsEditor.editorName, "SinkEditor")
                 assert.is_not_nil(controller.paramsEditor.gui)
             end)
 

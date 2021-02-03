@@ -23,6 +23,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiQueryEditor = require("lua/apps/query/step/editor/GuiQueryEditor")
 local MetaUtils = require("lua/class/MetaUtils")
 local ParamsEditor = require("lua/apps/query/params/ParamsEditor")
+local SinkEditor = require("lua/apps/query/params/SinkEditor")
 
 local cLogger = ClassLogger.new{className = "AbstractQueryEditor"}
 local super = AbstractStepWindow.Metatable.__index
@@ -96,7 +97,16 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
             -- Returns: AbstractGuiController. The new editor.
             --
             makeParamsEditor = function(self, name)
-                cLogger:error("Unknown paramsEditor name: " .. name .. ".")
+                local result
+                if name == "SinkParams" then
+                    result = SinkEditor.new{
+                        appResources = self.appInterface.appResources,
+                        params = self.query.sinkParams,
+                    }
+                else
+                    cLogger:error("Unknown paramsEditor name: " .. name .. ".")
+                end
+                return result
             end,
 
             -- Runs the query in the application.
