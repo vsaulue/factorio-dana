@@ -18,6 +18,7 @@ local AbstractParamsEditor = require("lua/apps/query/params/AbstractParamsEditor
 
 -- Importing all AbstractParamsEditor to populate its Factory.
 require("lua/apps/query/params/MinDistEditor")
+require("lua/apps/query/params/SinkEditor")
 
 -- Wrapper of AbstractParamsEditor's factory.
 --
