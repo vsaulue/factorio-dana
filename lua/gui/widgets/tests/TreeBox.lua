@@ -222,7 +222,10 @@ describe("TreeBox", function()
     end)
 
     it(":open()", function()
+        local selectedNode = controller.roots[1].children[1].children[1]
+        controller:setSelection(selectedNode)
         controller:open(parent)
+        assert.are.equals(selectedNode.gui.selectLabel.rawElement.style.font, "default-bold")
         assert.are.same(controller.gui, {
             flow = parent.children[1],
             parent = parent,

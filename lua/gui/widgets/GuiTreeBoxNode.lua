@@ -111,6 +111,7 @@ local GuiTreeBoxNode = ErrorOnInvalidRead.new{
             children[i]:open(childrenFlow)
         end
 
+        object:updateSelected()
         return object
     end,
 
@@ -172,7 +173,7 @@ Metatable = {
         -- * self: GuiTreeBoxNode.
         --
         updateSelected = function(self)
-            if self:sanityCheck() then
+            if self:sanityCheck() and self.controller.selectable then
                 local selected = self.controller.selected
                 local labelStyle = self.selectLabel.rawElement.style
                 if selected then
