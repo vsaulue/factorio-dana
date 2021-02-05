@@ -23,6 +23,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiQueryEditor = require("lua/apps/query/step/editor/GuiQueryEditor")
 local MetaUtils = require("lua/class/MetaUtils")
 local ParamsEditor = require("lua/apps/query/params/ParamsEditor")
+local QueryEditorInterface = require "lua/apps/query/step/editor/QueryEditorInterface"
 local SinkEditor = require("lua/apps/query/params/SinkEditor")
 
 local cLogger = ClassLogger.new{className = "AbstractQueryEditor"}
@@ -32,6 +33,7 @@ local StepName
 
 -- Class used to generate a GUI to edit an AbstractQuery.
 --
+-- Implements QueryEditorInterface.
 -- Inherits from AbstractStepWindow.
 --
 -- RO Fields:
@@ -118,12 +120,7 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
                 self.appInterface:runQueryAndDraw(self.query)
             end,
 
-            -- Sets the "paramsEditor" field.
-            --
-            -- Args:
-            -- * self: AbstractQueryEditor.
-            -- * name: string. Identifier of the editor to open.
-            --
+            -- Implements QueryEditorInterface:setParamsEditor().
             setParamsEditor = function(self, name)
                 local currentName = rawget(self, "editorName")
                 if name ~= currentName then
@@ -152,6 +149,7 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
         MetaUtils.safeSetField(object, "paramsEditor", ParamsEditor.setmetatable)
     end,
 }
+QueryEditorInterface.checkMethods(AbstractQueryEditor.Metatable.__index)
 
 -- Unique name for this step.
 StepName = "queryEditor"
