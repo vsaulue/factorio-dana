@@ -41,6 +41,11 @@ local UsagesOfEditor = ErrorOnInvalidRead.new{
     --
     new = function(object)
         AbstractQueryEditor.make(object, Metatable, QueryType)
+        object.menu:newRoot{
+            caption = AbstractQueryEditor.makeMenuLocale("usagesOf"),
+            selectable = true,
+            editorName = "UsagesOfParams",
+        }
         object:setParamsEditor("UsagesOfParams")
         return object
     end,

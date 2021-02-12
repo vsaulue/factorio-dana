@@ -41,6 +41,11 @@ local HowToMakeEditor = ErrorOnInvalidRead.new{
     --
     new = function(object)
         AbstractQueryEditor.make(object, Metatable, QueryType)
+        object.menu:newRoot{
+            caption = AbstractQueryEditor.makeMenuLocale("howToMake"),
+            selectable = true,
+            editorName = "HowToMakeParams",
+        }
         object:setParamsEditor("HowToMakeParams")
         return object
     end,

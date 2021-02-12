@@ -24,11 +24,13 @@ local GuiQueryEditor = require("lua/apps/query/step/editor/GuiQueryEditor")
 local MetaUtils = require("lua/class/MetaUtils")
 local ParamsEditor = require("lua/apps/query/params/ParamsEditor")
 local QueryEditorInterface = require "lua/apps/query/step/editor/QueryEditorInterface"
+local QueryEditorMenu = require("lua/apps/query/step/editor/QueryEditorMenu")
 local SinkEditor = require("lua/apps/query/params/SinkEditor")
 
 local cLogger = ClassLogger.new{className = "AbstractQueryEditor"}
 local super = AbstractStepWindow.Metatable.__index
 
+local makeMenuLocale
 local StepName
 
 -- Class used to generate a GUI to edit an AbstractQuery.
@@ -37,6 +39,7 @@ local StepName
 -- Inherits from AbstractStepWindow.
 --
 -- RO Fields:
+-- * menu: QueryEditorMenu. Menu to select the parameter tab.
 -- * query: AbstractQuery. The edited query.
 -- * paramsEditor (optional): AbstractParamsEditor. Current editor.
 -- * paramsName (optional): string. Name of the current editor.
@@ -62,6 +65,21 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
     -- Returns: AbstractQueryEditor. The `object` argument.
     --
     make = function(object, metatable, queryType)
+        object.menu = QueryEditorMenu.new{
+            editorInterface = object,
+            roots = {
+                {
+                    caption = makeMenuLocale("filters"),
+                    children = {
+                        {
+                            caption = makeMenuLocale("sinks"),
+                            editorName = "SinkParams",
+                            selectable = true,
+                        },
+                    },
+                },
+            },
+        }
         object.stepName = StepName
 
         local query = cLogger:assertField(object, "query")
@@ -73,12 +91,24 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
         return object
     end,
 
+    -- Makes a LocalisedString for menu nodes.
+    --
+    -- Args:
+    -- * suffix: string. String to append to the common string path.
+    --
+    -- Returns: LocalisedString.
+    --
+    makeMenuLocale = function(suffix)
+        return {"dana.apps.query.queryEditor.menu." .. suffix}
+    end,
+
     -- Metatable of the AbstractQueryEditor class.
     Metatable = MetaUtils.derive(AbstractStepWindow.Metatable, {
         __index = {
             -- Implements AbstractStepWindow:close().
             close = function(self)
                 super.close(self)
+                self.menu:close()
                 Closeable.safeClose(rawget(self, "paramsEditor"))
             end,
 
@@ -132,6 +162,8 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
                     if gui then
                         gui:updateParamsEditor()
                     end
+
+                    self.menu:selectByName(name)
                 end
             end,
         },
@@ -145,11 +177,14 @@ local AbstractQueryEditor = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object, metatable)
         AbstractStepWindow.setmetatable(object, metatable, GuiQueryEditor.setmetatable)
+        QueryEditorMenu.setmetatable(object.menu)
         AbstractQuery.Factory:restoreMetatable(object.query)
         MetaUtils.safeSetField(object, "paramsEditor", ParamsEditor.setmetatable)
     end,
 }
 QueryEditorInterface.checkMethods(AbstractQueryEditor.Metatable.__index)
+
+makeMenuLocale = AbstractQueryEditor.makeMenuLocale
 
 -- Unique name for this step.
 StepName = "queryEditor"

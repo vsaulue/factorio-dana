@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -57,6 +57,7 @@ local GuiQueryEditor = ErrorOnInvalidRead.new{
             controller = controller,
             rawElement = object.frame.footer.drawButton,
         }
+        controller.menu:open(object.frame.content.menu)
 
         if object.frame.location then
             object.frame.force_auto_center()
@@ -102,7 +103,7 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
             if self:sanityCheck() then
                 local paramsEditor = rawget(self.controller, "paramsEditor")
                 if paramsEditor then
-                    paramsEditor:open(self.frame.params)
+                    paramsEditor:open(self.frame.content.params)
                 end
             end
         end,
@@ -150,10 +151,27 @@ GuiConstructorArgs = {
     caption = {"dana.apps.query.queryEditor.title"},
     children = {
         {
-            type = "frame",
-            style = "inside_shallow_frame_with_padding",
-            direction = "vertical",
-            name = "params",
+            type = "flow",
+            direction = "horizontal",
+            name = "content",
+            children = {
+                {
+                    type = "frame",
+                    direction = "vertical",
+                    name = "menu",
+                    style = "inside_deep_frame",
+                    styleModifiers = {
+                        vertically_stretchable = true,
+                        minimal_width = 150,
+                        padding = 2,
+                    },
+                },{
+                    type = "frame",
+                    style = "inside_shallow_frame_with_padding",
+                    direction = "vertical",
+                    name = "params",
+                },
+            },
         },{
             type = "flow",
             direction = "horizontal",
@@ -175,6 +193,9 @@ GuiConstructorArgs = {
                     style = "confirm_button",
                     name = "drawButton",
                 },
+            },
+            styleModifiers = {
+                top_margin = 4,
             },
         },
     },

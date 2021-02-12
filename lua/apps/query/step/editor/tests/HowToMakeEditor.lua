@@ -201,6 +201,16 @@ describe("HowToMakeEditor + Abstract + GUI", function()
                 }
                 assert.stub(appInterface.runQueryAndDraw).was.called()
             end)
+
+            it("Menu", function()
+                local node = controller.menu.roots[1].children[1]
+                GuiElement.on_gui_click{
+                    element = node.gui.selectLabel.rawElement,
+                    player_index = appTestbench.player.index,
+                }
+                assert.are.equals(controller.editorName, "SinkParams")
+                assert.are.equals(controller.paramsEditor.editorName, "SinkEditor")
+            end)
         end)
     end)
 end)
