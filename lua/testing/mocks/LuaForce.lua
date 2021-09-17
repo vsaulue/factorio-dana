@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 
 local CommonMockObject = require("lua/testing/mocks/CommonMockObject")
 local LuaRecipe = require("lua/testing/mocks/LuaRecipe")
+local LuaTechnology = require("lua/testing/mocks/LuaTechnology")
 local MockGetters = require("lua/testing/mocks/MockGetters")
 
 local Metatable
@@ -26,23 +27,33 @@ local Metatable
 --
 -- Implemented fields & methods:
 -- * recipes
+-- * technologies
 -- + CommonMockObject
 --
 local LuaForce = {
     -- Creates a new LuaForce object.
     --
     -- Args:
-    -- * recipePrototypes[string]: LuaRecipePrototype. Map of recipes to wrap.
+    -- * recipePrototypes: Map<string, LuaRecipePrototype>. Map of recipes to wrap, indexed by their names.
+    -- * technologyPrototypes: Map<string, LuaTechnologyPrototype>. Map of technologies to wrap, indexed by their names.
     --
     -- Returns: The new LuaForce object.
     --
-    make = function(recipePrototypes)
+    make = function(recipePrototypes, technologyPrototypes)
         local recipes = {}
+        local technologies = {}
         local result = CommonMockObject.make({
             recipes = recipes,
+            technologies = technologies,
         }, Metatable)
         for name,prototype in pairs(recipePrototypes) do
             recipes[name] = LuaRecipe.make{
+                force = result,
+                prototype = prototype,
+            }
+        end
+        for name,prototype in pairs(technologyPrototypes) do
+            technologies[name] = LuaTechnology.make{
                 force = result,
                 prototype = prototype,
             }
@@ -57,6 +68,7 @@ Metatable = CommonMockObject.Metatable:makeSubclass{
 
     getters = {
         recipes = MockGetters.validReadOnly("recipes"),
+        technologies = MockGetters.validReadOnly("technologies"),
     },
 }
 

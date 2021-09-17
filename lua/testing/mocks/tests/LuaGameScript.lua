@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -92,6 +92,17 @@ describe("LuaGameScript", function()
                     count = 5,
                     required_fluid = "steam",
                 },
+            },
+        },
+        technology = {
+            automation1 = {
+                type = "technology",
+                name = "automation1",
+            },
+            automation2 = {
+                type = "technology",
+                name = "automation2",
+                prerequisites = {"automation1"},
             },
         },
     }
@@ -357,6 +368,33 @@ describe("LuaGameScript", function()
         end)
     end)
 
+    describe("-- technology prototype", function()
+        it(", valid", function ()
+            local data = MockObject.getData(gameScript)
+
+            local automation2 = data.technology_prototypes.automation2
+            assert.are.equals(automation2.name, "automation2")
+            assert.are.equals(getmetatable(automation2).className, "LuaTechnologyPrototype")
+            assert.are.same(automation2.prerequisites, {
+                automation1 = data.technology_prototypes.automation1
+            })
+        end)
+
+        it(", invalid prerequisite", function()
+            assert.error(function()
+                LuaGameScript.make{
+                    technology = {
+                        automation = {
+                            type = "technology",
+                            name = "automation",
+                            prerequisites = {"invalid-tech"},
+                        }
+                    },
+                }
+            end)
+        end)
+    end)
+
     it(":create_force()", function()
         local force = gameScript.create_force("foobar")
         assert.are.equals(getmetatable(force).className, "LuaForce")
@@ -451,5 +489,18 @@ describe("LuaGameScript", function()
 
     it(":surfaces", function()
         assert.are.equals(MockObject.getData(gameScript).surfaces, MockObject.getData(gameScript.surfaces))
+    end)
+
+    describe(":technology_prototypes", function()
+        it("-- read", function()
+            local automation1 = gameScript.technology_prototypes.automation1
+            assert.are.equals(automation1.name, "automation1")
+        end)
+
+        it("-- write", function()
+            assert.error(function()
+                gameScript.technology_prototypes.automation1 = "denied"
+            end)
+        end)
     end)
 end)

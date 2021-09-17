@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ local LuaItemPrototype = require("lua/testing/mocks/LuaItemPrototype")
 local LuaPlayer = require("lua/testing/mocks/LuaPlayer")
 local LuaRecipePrototype = require("lua/testing/mocks/LuaRecipePrototype")
 local LuaSurface = require("lua/testing/mocks/LuaSurface")
+local LuaTechnologyPrototype = require("lua/testing/mocks/LuaTechnologyPrototype")
 local MockGetters = require("lua/testing/mocks/MockGetters")
 local MockObject = require("lua/testing/mocks/MockObject")
 
@@ -51,7 +52,8 @@ local TypeToIndex
 -- * item_prototypes
 -- * recipe_prototypes
 -- * surfaces
--- + AbstractPrototype.
+-- * technology_prototype
+-- + CommonMockObject
 --
 -- Private fields:
 -- * surfaceIndexGenerator: IndexGenerator. Index generator for surfaces.
@@ -93,6 +95,7 @@ local LuaGameScript = {
             recipe_prototypes = {},
             surfaceIndexGenerator = IndexGenerator.new(),
             surfaces = {},
+            technology_prototypes = {},
         }
         parse(selfData.fluid_prototypes, rawData.fluid, LuaFluidPrototype.make)
         for pType in pairs(AbstractPrototype.ItemTypes) do
@@ -102,6 +105,7 @@ local LuaGameScript = {
         parse(selfData.entity_prototypes, rawData.boiler, LuaEntityPrototype.make)
         parse(selfData.entity_prototypes, rawData.resource, LuaEntityPrototype.make)
         parse(selfData.entity_prototypes, rawData["offshore-pump"], LuaEntityPrototype.make)
+        parse(selfData.technology_prototypes, rawData.technology, LuaTechnologyPrototype.make)
 
         for index,linker in pairs(Linkers) do
             for _,prototype in pairs(selfData[index]) do
@@ -142,6 +146,7 @@ Metatable = CommonMockObject.Metatable:makeSubclass{
         players = MockGetters.validReadOnly("players"),
         recipe_prototypes = MockGetters.validReadOnly("recipe_prototypes"),
         surfaces = MockGetters.validReadOnly("surfaces"),
+        technology_prototypes = MockGetters.validReadOnly("technology_prototypes"),
     },
 }
 
@@ -165,7 +170,7 @@ DefaultForceNames = {
 doCreateForce = function(selfData, forceName)
     local forces = selfData.forces
     cLogger:assert(not forces[forceName], "Duplicate force index: " .. forceName)
-    local result = LuaForce.make(selfData.recipe_prototypes)
+    local result = LuaForce.make(selfData.recipe_prototypes, selfData.technology_prototypes)
     forces[forceName] = result
     return result
 end
@@ -291,6 +296,19 @@ Linkers = {
                 linkerError(recipePrototype, "product", productInfo.type, productInfo.name)
             end
         end
+    end,
+
+    technology_prototypes = function(selfData, technologyPrototype)
+        local technologyData = MockObject.getData(technologyPrototype)
+        local newPrerequisites = {}
+        for prerequisiteName in pairs(technologyData.prerequisites) do
+            local prerequisitePrototype = selfData.technology_prototypes[prerequisiteName]
+            if not prerequisitePrototype then
+                linkerError(technologyPrototype, "prerequisites", "technology", prerequisiteName)
+            end
+            newPrerequisites[prerequisiteName] = prerequisitePrototype
+        end
+        technologyData.prerequisites = newPrerequisites
     end,
 }
 

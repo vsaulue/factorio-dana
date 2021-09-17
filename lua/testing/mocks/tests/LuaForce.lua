@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -22,10 +22,13 @@ describe("LuaForce", function()
         a = {},
         b = {},
     }
+    local technologies = {
+        c = {},
+    }
 
     local force
     before_each(function()
-        force = LuaForce.make(recipes)
+        force = LuaForce.make(recipes, technologies)
     end)
 
     it(".make()", function()
@@ -40,6 +43,12 @@ describe("LuaForce", function()
                     prototype = recipes.b,
                 },
             },
+            technologies = {
+                c = MockObject.make{
+                    force = force,
+                    prototype = technologies.c,
+                }
+            }
         })
     end)
 
@@ -51,6 +60,18 @@ describe("LuaForce", function()
         it("-- write", function()
             assert.error(function()
                 force.recipes.b = "denied"
+            end)
+        end)
+    end)
+
+    describe(":technologies", function()
+        it("-- read", function()
+            assert.are.equals(force.technologies.c.prototype, technologies.c)
+        end)
+
+        it("-- write", function()
+            assert.error(function()
+                force.technologies.c = "denied"
             end)
         end)
     end)
