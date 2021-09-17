@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -113,6 +113,55 @@ describe("MockGetters", function()
             local foobar = object.foobar
             assert.error(function()
                 foobar.many = "DKP"
+            end)
+        end)
+    end)
+
+    describe(".validShallowCopy()", function()
+        local Metatable
+        local object
+
+        before_each(function()
+            Metatable = MockObject.Metatable:makeSubclass{
+                className = "Pentakill",
+                getters = {
+                    murdered = MockGetters.validShallowCopy("murdered"),
+                },
+            }
+            object = MockObject.make({
+                murdered = {
+                    Nunu = {"Disco"},
+                    Yuumi = {"Jungle"},
+                },
+            }, Metatable)
+        end)
+
+        it("-- valid", function()
+            local internalValue = MockObject.getData(object).murdered
+            local readValue = object.murdered
+            assert.are.same(readValue, {
+                Nunu = {"Disco"},
+                Yuumi = {"Jungle"},
+            })
+            assert.are_not.equals(readValue, internalValue)
+
+            -- Shallow copy check
+            readValue.Garen = "Demaciaaaaaaaaaaaa"
+            assert.are.same(internalValue, {
+                Nunu = {"Disco"},
+                Yuumi = {"Jungle"},
+            })
+
+            -- Non-deep copy check
+            readValue.Yuumi[2] = "W AFK"
+            assert.are.same(internalValue.Yuumi, {"Jungle", "W AFK"})
+        end)
+
+        it("-- invalid", function()
+            MockObject.invalidate(object)
+            local foo
+            assert.error(function()
+                foo = object.murdered
             end)
         end)
     end)

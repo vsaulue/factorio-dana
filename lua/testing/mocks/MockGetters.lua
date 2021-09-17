@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -79,6 +79,24 @@ local MockGetters = {
         return function(self)
             local data = MockObject.getData(self)
             return MockReadOnlyWrapper.make(data[index])
+        end
+    end,
+
+    -- Makes a getter which generates a shallow copy of the field of the same name.
+    --
+    -- Args:
+    -- * index: any. Index of this getter.
+    --
+    -- Returns: function(object) -> any. The generated getter.
+    --
+    validShallowCopy = function(index)
+        return function(self)
+            local data = MockObject.getData(self, index)
+            local result = {}
+            for k,v in pairs(data[index]) do
+                result[k] = v
+            end
+            return result
         end
     end,
 }
