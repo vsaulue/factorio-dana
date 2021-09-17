@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -114,6 +114,7 @@ LocalisedNamePrefix = {
     ["offshore-pump"] = "entity-name",
     recipe = "recipe-name",
     resource = "entity-name",
+    technology = "technology-name",
 }
 for pType in pairs(AbstractPrototype.ItemTypes) do
     LocalisedNamePrefix[pType] = "item-name"
