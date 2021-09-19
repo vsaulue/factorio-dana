@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -25,9 +25,9 @@ local TypeToLocalisedStr
 --
 -- RO Fields:
 -- * localisedName: A localised string of the form "[type] name".
--- * rawPrototype: Wrapped Item/Fluid prototype from Factorio.
+-- * rawPrototype: Wrapped Item/Fluid/Technology prototype from Factorio.
 -- * spritePath: Sprite path of the underlying prototype.
--- * type: string designing the type of prototype (either "item" or "fluid").
+-- * type: string designing the type of prototype (either "item", "fluid" or "technology").
 --
 local Intermediate = ErrorOnInvalidRead.new{
     -- Creates a new Intermediate object.
@@ -53,6 +53,7 @@ local Intermediate = ErrorOnInvalidRead.new{
     TypeToLocalisedStr = ErrorOnInvalidRead.new{
         fluid = {"dana.model.intermediate.fluidType"},
         item = {"dana.model.intermediate.itemType"},
+        technology = {"dana.model.intermediate.technologyType"},
     },
 }
 

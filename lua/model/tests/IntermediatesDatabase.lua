@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -33,6 +33,12 @@ describe("IntermediatesDatabase", function()
                 name = "wood",
             },
         },
+        technology = {
+            automation = {
+                type = "technology",
+                name = "automation",
+            },
+        },
     }
 
     it(".new()", function()
@@ -40,6 +46,7 @@ describe("IntermediatesDatabase", function()
         assert.is_not_nil(database.fluid)
         assert.is_not_nil(database.item)
         assert.is_not_nil(database.rebuild)
+        assert.is_not_nil(database.technology)
     end)
 
     it(":rebuild()", function()
@@ -47,6 +54,7 @@ describe("IntermediatesDatabase", function()
         database:rebuild(gameScript)
         assert.are.equals(database.item.wood.rawPrototype, gameScript.item_prototypes.wood)
         assert.are.equals(database.fluid.water.rawPrototype, gameScript.fluid_prototypes.water)
+        assert.are.equals(database.technology.automation.rawPrototype, gameScript.technology_prototypes.automation)
     end)
 
     describe("", function()

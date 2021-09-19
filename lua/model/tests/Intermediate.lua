@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@ local Intermediate = require("lua/model/Intermediate")
 
 local LuaFluidPrototype = require("lua/testing/mocks/LuaFluidPrototype")
 local LuaItemPrototype = require("lua/testing/mocks/LuaItemPrototype")
+local LuaTechnologyPrototype = require("lua/testing/mocks/LuaTechnologyPrototype")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 
 describe("Intermediate", function()
@@ -58,6 +59,24 @@ describe("Intermediate", function()
             })
 
             assert.are.equals(intermediate.spritePath, "item/wood")
+        end)
+
+        it("-- valid technology", function()
+            local intermediate = Intermediate.new{
+                rawPrototype = LuaTechnologyPrototype.make{
+                    type = "technology",
+                    name = "automation",
+                },
+                type = "technology",
+            }
+
+            assert.are.same(intermediate.localisedName, {
+                "dana.model.intermediate.name",
+                {"dana.model.intermediate.technologyType"},
+                {"technology-name.automation"},
+            })
+
+            assert.are.equals(intermediate.spritePath, "technology/automation")
         end)
 
         it("-- missing type", function()

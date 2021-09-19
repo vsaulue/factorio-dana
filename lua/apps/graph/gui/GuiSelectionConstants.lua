@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -58,6 +58,12 @@ local GuiSelectionConstants = ErrorOnInvalidRead.new{
             sprite = "dana-item-icon",
             tooltip = Intermediate.TypeToLocalisedStr.item,
         },
+        technology = {
+            type = "sprite",
+            name = "vertexTypeIcon",
+            sprite = "utility/technology_white",
+            tooltip = Intermediate.TypeToLocalisedStr.technology,
+        }
     },
 }
 

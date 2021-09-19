@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ local Metatable
 -- RO Fields:
 -- * fluid[protoName]: Map of Intermediate fluids, indexed by the name of their rawPrototype.
 -- * item[protoName]: Map of Intermediate items, indexed by the name of their rawPrototype.
+-- * technology[string]: Intermediate. Map of technology intermediates, indexed by their names.
 --
 local IntermediatesDatabase = ErrorOnInvalidRead.new{
     -- Creates a new IntermediatesDatabase object.
@@ -34,6 +35,7 @@ local IntermediatesDatabase = ErrorOnInvalidRead.new{
         local result = {
             fluid = ErrorOnInvalidRead.new(),
             item = ErrorOnInvalidRead.new(),
+            technology = ErrorOnInvalidRead.new(),
         }
         setmetatable(result, Metatable)
         return result
@@ -56,6 +58,8 @@ local IntermediatesDatabase = ErrorOnInvalidRead.new{
         for _,item in pairs(object.item) do
             Intermediate.setmetatable(item)
         end
+
+        ErrorOnInvalidRead.setmetatable(object.technology, nil, Intermediate.setmetatable)
     end,
 }
 
@@ -86,6 +90,15 @@ Metatable = {
                 }
             end
             self.item = items
+
+            local technologies = ErrorOnInvalidRead.new()
+            for _,technology in pairs(gameScript.technology_prototypes) do
+                technologies[technology.name] = Intermediate.new{
+                    type = "technology",
+                    rawPrototype = technology,
+                }
+            end
+            self.technology = technologies
         end,
 
         -- Get the Intermediate object wrapping a given ingredient/product from Factorio.
