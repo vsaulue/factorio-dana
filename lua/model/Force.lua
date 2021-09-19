@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 local ClassLogger = require("lua/logger/ClassLogger")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local ForceRecipe = require("lua/model/ForceRecipe")
+local ForceTechnology = require("lua/model/ForceTechnology")
 
 local cLogger = ClassLogger.new{className = "Force"}
 
@@ -27,6 +28,8 @@ local Metatable
 -- RO Fields:
 -- * prototypes: PrototypesDatabase that this object should use to get intermediates and transforms.
 -- * rawForce: LuaForce object wrapped by this object.
+-- * recipes[string]: ForceRecipe. All ForceRecipe of this faction, indexed by their names.
+-- * technologies[string]: ForceTechnology. All ForceTechnology of this faction, indexed by their names.
 --
 local Force = ErrorOnInvalidRead.new{
     -- Creates a new Force object.
@@ -56,6 +59,8 @@ local Force = ErrorOnInvalidRead.new{
         for _,forceRecipe in pairs(object.recipes) do
             ForceRecipe.setmetatable(forceRecipe)
         end
+
+        ErrorOnInvalidRead.setmetatable(object.technologies, nil, ForceTechnology.setmetatable)
     end,
 }
 
@@ -75,8 +80,13 @@ Metatable = {
             for recipeName,recipe in pairs(rawForce.recipes) do
                 recipes[recipeName] = ForceRecipe.make(recipe, prototypes.transforms)
             end
-
             self.recipes = recipes
+
+            local technologies = ErrorOnInvalidRead.new()
+            for technologyName,technology in pairs(rawForce.technologies) do
+                technologies[technologyName] = ForceTechnology.make(technology, prototypes.transforms)
+            end
+            self.technologies = technologies
         end,
     },
 }

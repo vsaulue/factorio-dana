@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -37,6 +37,12 @@ describe("Force", function()
                     },
                 },
             },
+            technology = {
+                automation = {
+                    type = "technology",
+                    name = "automation",
+                },
+            },
         }
         gameScript.create_force("honor")
         prototypes = PrototypeDatabase.new(gameScript)
@@ -58,6 +64,12 @@ describe("Force", function()
                 pump = {
                     rawRecipe = gameScript.forces.honor.recipes.pump,
                     recipeTransform = prototypes.transforms.recipe.pump,
+                },
+            },
+            technologies = {
+                automation = {
+                    rawTechnology = gameScript.forces.honor.technologies.automation,
+                    researchTransform = prototypes.transforms.research.automation,
                 },
             },
         })
