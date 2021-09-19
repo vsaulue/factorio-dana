@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -89,6 +89,17 @@ describe("TransformsDatabase", function()
                     },
                 },
             },
+            technology = {
+                automation1 = {
+                    type = "technology",
+                    name = "automation1",
+                },
+                automation2 = {
+                    type = "technology",
+                    name = "automation2",
+                    prerequisites = {"automation1"},
+                },
+            },
         }
         intermediates = IntermediatesDatabase.new()
         intermediates:rebuild(gameScript)
@@ -123,6 +134,8 @@ describe("TransformsDatabase", function()
             transforms.fuel.wood,
             transforms.offshorePump.well,
             transforms.recipe["fill-water-barrel"],
+            transforms.research.automation1,
+            transforms.research.automation2,
             transforms.resource["wood-ore"],
         })
     end)
@@ -137,6 +150,7 @@ describe("TransformsDatabase", function()
             },
             [intermediates.item.wood] = {[transforms.fuel.wood] = true},
             [intermediates.item.barrel] = {[transforms.recipe["fill-water-barrel"]] = true},
+            [intermediates.technology.automation1] = {[transforms.research.automation2] = true},
         })
         assert.are.same(transforms.producersOf, {
             [intermediates.fluid.steam] = {[transforms.boiler.myBoiler] = true},
@@ -144,6 +158,8 @@ describe("TransformsDatabase", function()
             [intermediates.fluid.water] = {[transforms.offshorePump.well] = true},
             [intermediates.item.wood] = {[transforms.resource["wood-ore"]] = true},
             [intermediates.item["barreled-water"]] = {[transforms.recipe["fill-water-barrel"]] = true},
+            [intermediates.technology.automation1] = {[transforms.research.automation1] = true},
+            [intermediates.technology.automation2] = {[transforms.research.automation2] = true},
         })
     end)
 

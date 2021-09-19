@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019-2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local FuelTransform = require("lua/model/FuelTransform")
 local OffshorePumpTransform = require("lua/model/OffshorePumpTransform")
 local RecipeTransform = require("lua/model/RecipeTransform")
+local ResearchTransform = require("lua/model/ResearchTransform")
 local ResourceTransform = require("lua/model/ResourceTransform")
 local TableUtils = require("lua/containers/TableUtils")
 local TransformMaker = require("lua/model/TransformMaker")
@@ -40,6 +41,7 @@ local TransformFields
 -- * offshorePump[entityName]: Map of OffshorePumpTransform, indexed by the entity's name.
 -- * producersOf[intermediate]: Set of AbstractTransform having `intermediate` as product.
 -- * recipe[recipeName]: Map of RecipeTransform, indexed by the recipe's name.
+-- * research[string]: ResearchTransform. All research transforms, indexed by their names.
 -- * resource[entityName]: Map of ResourceTransform, indexed by the resource's name.
 --
 local TransformsDatabase = ErrorOnInvalidRead.new{
@@ -57,6 +59,7 @@ local TransformsDatabase = ErrorOnInvalidRead.new{
         object.fuel = ErrorOnInvalidRead.new()
         object.offshorePump = ErrorOnInvalidRead.new()
         object.recipe = ErrorOnInvalidRead.new()
+        object.research = ErrorOnInvalidRead.new()
         object.resource = ErrorOnInvalidRead.new()
         -- Other
         object.producersOf = {}
@@ -77,6 +80,7 @@ local TransformsDatabase = ErrorOnInvalidRead.new{
         ErrorOnInvalidRead.setmetatable(object.fuel, nil, FuelTransform.setmetatable)
         ErrorOnInvalidRead.setmetatable(object.offshorePump, nil, OffshorePumpTransform.setmetatable)
         ErrorOnInvalidRead.setmetatable(object.recipe, nil, RecipeTransform.setmetatable)
+        ErrorOnInvalidRead.setmetatable(object.research, nil, ResearchTransform.setmetatable)
         ErrorOnInvalidRead.setmetatable(object.resource, nil, ResourceTransform.setmetatable)
     end,
 }
@@ -109,6 +113,7 @@ Metatable = {
             self.fuel = ErrorOnInvalidRead.new()
             self.offshorePump = ErrorOnInvalidRead.new()
             self.recipe = ErrorOnInvalidRead.new()
+            self.research = ErrorOnInvalidRead.new()
             self.resource = ErrorOnInvalidRead.new()
             self.consumersOf = {}
             self.producersOf = {}
@@ -136,6 +141,10 @@ Metatable = {
             for _,item in pairs(self.intermediates.item) do
                 tryAddTransform(self, item.rawPrototype.name, FuelTransform.tryMake(maker, item))
             end
+
+            for _,rawTechnology in pairs(gameScript.technology_prototypes) do
+                tryAddTransform(self, rawTechnology.name, ResearchTransform.make(maker, rawTechnology))
+            end
         end,
     }
 }
@@ -145,6 +154,7 @@ TransformFields = ErrorOnInvalidRead.new{
     fuel = true,
     offshorePump = true,
     recipe = true,
+    research = true,
     resource = true,
 }
 
