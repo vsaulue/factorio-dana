@@ -19,6 +19,7 @@ local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local FuelTransform = require("lua/model/FuelTransform")
 local Intermediate = require("lua/model/Intermediate")
 local RecipeTransform = require("lua/model/RecipeTransform")
+local ResearchTransform = require("lua/model/ResearchTransform")
 
 -- Some constants for the SelectionWindow & panels.
 local GuiSelectionConstants = ErrorOnInvalidRead.new{
@@ -41,6 +42,12 @@ local GuiSelectionConstants = ErrorOnInvalidRead.new{
             name = "edgeTypeIcon",
             sprite = "dana-recipe-icon",
             tooltip = RecipeTransform.TypeLocalisedStr,
+        },
+        research = {
+            type = "sprite",
+            name = "edgeTypeIcon",
+            sprite = "utility/technology_white",
+            tooltip = ResearchTransform.TypeLocalisedStr,
         },
     },
 
