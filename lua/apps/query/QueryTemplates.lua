@@ -16,6 +16,7 @@
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local HowToMakeQuery = require("lua/query/HowToMakeQuery")
+local QueryTemplate = require("lua/apps/query/QueryTemplate")
 local UsagesOfQuery = require("lua/query/UsagesOfQuery")
 
 -- Map of QueryTemplate object (= preset queries), indexed by names.
@@ -26,7 +27,7 @@ local UsagesOfQuery = require("lua/query/UsagesOfQuery")
 --
 local QueryTemplates = ErrorOnInvalidRead.new{
     -- Query to see how to craft a given set of intermediates.
-    HowToMake = ErrorOnInvalidRead.new{
+    HowToMake = QueryTemplate.new{
         caption = {"dana.apps.query.templateSelectWindow.howToMake"},
         query = HowToMakeQuery.new{
             selectionParams = {
@@ -40,10 +41,11 @@ local QueryTemplates = ErrorOnInvalidRead.new{
                 indirectThreshold = 64,
             },
         },
+        useEditor = true,
     },
 
     -- Query to see what can be crafted from a given set of intermediates.
-    UsagesOf = ErrorOnInvalidRead.new{
+    UsagesOf = QueryTemplate.new{
         caption = {"dana.apps.query.templateSelectWindow.usagesOf"},
         query = UsagesOfQuery.new{
             selectionParams = {
@@ -57,6 +59,7 @@ local QueryTemplates = ErrorOnInvalidRead.new{
                 indirectThreshold = 64,
             },
         },
+        useEditor = true,
     },
 }
 
