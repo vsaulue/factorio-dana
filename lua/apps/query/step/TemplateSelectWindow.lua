@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -82,10 +82,10 @@ Metatable = {
         --
         -- Args:
         -- * self: TemplateSelectWindow.
-        -- * templateName: string. Name of the template in QueryTemplates.
+        -- * templateIndex: string. Name of the template in QueryTemplates.
         --
-        selectTemplate = function(self, templateName)
-            local template = QueryTemplates[templateName]
+        selectTemplate = function(self, templateIndex)
+            local template = QueryTemplates[templateIndex]
             local appInterface = self.appInterface
 
             appInterface:pushStepWindow(QueryEditor.new{

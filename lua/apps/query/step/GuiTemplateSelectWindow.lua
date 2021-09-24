@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -73,7 +73,7 @@ local GuiTemplateSelectWindow = ErrorOnInvalidRead.new{
             },
         }
         object.templateButtons = ErrorOnInvalidRead.new()
-        for templateName,template in pairs(QueryTemplates) do
+        for templateIndex,template in pairs(QueryTemplates) do
             local newButton = TemplateSelectButton.new{
                 controller = controller,
                 rawElement = flow.add{
@@ -81,9 +81,9 @@ local GuiTemplateSelectWindow = ErrorOnInvalidRead.new{
                     caption = template.caption,
                     style = "menu_button",
                 },
-                templateName = templateName,
+                templateIndex = templateIndex,
             }
-            object.templateButtons[templateName] = newButton
+            object.templateButtons[templateIndex] = newButton
         end
         if frame.location then
             frame.force_auto_center()
@@ -144,14 +144,14 @@ FullGraphButton = GuiElement.newSubclass{
 --
 -- RO Fields:
 -- * controller: templateSelectWindow. Owner of this GUI.
--- * templateName: Name of the template to load from QueryTemplates.
+-- * templateIndex: Index of the template to load from QueryTemplates.
 --
 TemplateSelectButton = GuiElement.newSubclass{
     className = "queryApp/TemplateSelectButton",
-    mandatoryFields = {"controller", "templateName"},
+    mandatoryFields = {"controller", "templateIndex"},
     __index = {
         onClick = function(self, event)
-            self.controller:selectTemplate(self.templateName)
+            self.controller:selectTemplate(self.templateIndex)
         end,
     },
 }
