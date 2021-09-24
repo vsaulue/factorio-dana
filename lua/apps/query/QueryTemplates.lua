@@ -19,15 +19,11 @@ local HowToMakeQuery = require("lua/query/HowToMakeQuery")
 local QueryTemplate = require("lua/apps/query/QueryTemplate")
 local UsagesOfQuery = require("lua/query/UsagesOfQuery")
 
--- Map of QueryTemplate object (= preset queries), indexed by names.
---
--- RO Fields:
--- * caption: LocalisedString. Caption of the button in the TemplateSelectWindow.
--- * query: AbstractQuery. Query to copy into the editor.
+-- QueryTemplate[]. The ordered list of templates displayed by the TemplateSelectWindow.
 --
 local QueryTemplates = ErrorOnInvalidRead.new{
     -- Query to see how to craft a given set of intermediates.
-    HowToMake = QueryTemplate.new{
+    QueryTemplate.new{
         caption = {"dana.apps.query.templateSelectWindow.howToMake"},
         query = HowToMakeQuery.new{
             selectionParams = {
@@ -45,7 +41,7 @@ local QueryTemplates = ErrorOnInvalidRead.new{
     },
 
     -- Query to see what can be crafted from a given set of intermediates.
-    UsagesOf = QueryTemplate.new{
+    QueryTemplate.new{
         caption = {"dana.apps.query.templateSelectWindow.usagesOf"},
         query = UsagesOfQuery.new{
             selectionParams = {

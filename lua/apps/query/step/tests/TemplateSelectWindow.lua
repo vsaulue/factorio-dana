@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -15,7 +15,6 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local AbstractStepWindow = require("lua/apps/query/step/AbstractStepWindow")
-local AppResources = require("lua/apps/AppResources")
 local AppTestbench = require("lua/testing/AppTestbench")
 local AutoLoaded = require("lua/testing/AutoLoaded")
 local GuiElement = require("lua/gui/GuiElement")
@@ -31,14 +30,13 @@ assert:register("matcher", "isFullGraphQuery", function()
 end)
 assert:register("matcher", "isQueryEditor", function(state, args)
     return function(value)
-        local queryName = args[1]
-        return (value.stepName == "queryEditor") and (value.query.queryType == queryName)
+        local queryType = args[1]
+        return (value.stepName == "queryEditor") and (value.query.queryType == queryType)
     end
 end)
 
 describe("TemplateSelectWindow", function()
     local parent
-    local force
     local appTestbench
     local appInterface
     setup(function()
@@ -141,22 +139,13 @@ describe("TemplateSelectWindow", function()
             assert.stub(appInterface.runQueryAndDraw).was.called_with(match.ref(appInterface), match.isFullGraphQuery())
         end)
 
-        it("-- TemplateSelectWindow: UsagesOf", function()
+        it(": UsagesOf button", function()
             stub(appInterface, "pushStepWindow")
             GuiElement.on_gui_click{
-                element = controller.gui.templateButtons.UsagesOf.rawElement,
+                element = controller.gui.templateButtons[2].rawElement,
                 player_index = appTestbench.player.index,
             }
             assert.stub(appInterface.pushStepWindow).was.called_with(match.ref(appInterface), match.isQueryEditor("UsagesOfQuery"))
-        end)
-
-        it("-- TemplateSelectWindow: HowToMake", function()
-            stub(appInterface, "pushStepWindow")
-            GuiElement.on_gui_click{
-                element = controller.gui.templateButtons.HowToMake.rawElement,
-                player_index = appTestbench.player.index,
-            }
-            assert.stub(appInterface.pushStepWindow).was.called_with(match.ref(appInterface), match.isQueryEditor("HowToMakeQuery"))
         end)
     end)
 end)

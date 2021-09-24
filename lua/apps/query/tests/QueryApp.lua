@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -20,6 +20,11 @@ local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local GuiElement = require("lua/gui/GuiElement")
 local QueryApp = require("lua/apps/query/QueryApp")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
+
+local indexOfTemplate = {
+    item_howToMake = 1,
+    item_usagesOf = 2,
+}
 
 describe("QueryApp", function()
     local appTestbench
@@ -114,7 +119,7 @@ describe("QueryApp", function()
         before_each(function()
             app:show()
 
-            local selectButton = app.stepWindows[1].gui.templateButtons.HowToMake.rawElement
+            local selectButton = app.stepWindows[1].gui.templateButtons[indexOfTemplate.item_howToMake].rawElement
             GuiElement.on_gui_click{
                 element = selectButton,
                 player_index = selectButton.player_index,
@@ -154,7 +159,7 @@ describe("QueryApp", function()
         -- Setup
         app:show()
 
-        local selectButton = app.stepWindows[1].gui.templateButtons.HowToMake.rawElement
+        local selectButton = app.stepWindows[1].gui.templateButtons[indexOfTemplate.item_howToMake].rawElement
         GuiElement.on_gui_click{
             element = selectButton,
             player_index = selectButton.player_index,
@@ -177,7 +182,7 @@ describe("QueryApp", function()
         -- Setup
         app:show()
 
-        local selectButton = app.stepWindows[1].gui.templateButtons.HowToMake.rawElement
+        local selectButton = app.stepWindows[1].gui.templateButtons[indexOfTemplate.item_howToMake].rawElement
         GuiElement.on_gui_click{
             element = selectButton,
             player_index = selectButton.player_index,
@@ -214,7 +219,7 @@ describe("QueryApp", function()
         end)
 
         it("TemplateSelectWindow.gui -> HowToMake", function()
-            local templateButton = app.stepWindows[1].gui.templateButtons.HowToMake.rawElement
+            local templateButton = app.stepWindows[1].gui.templateButtons[indexOfTemplate.item_howToMake].rawElement
             GuiElement.on_gui_click{
                 element = templateButton,
                 player_index = templateButton.player_index,
@@ -227,7 +232,7 @@ describe("QueryApp", function()
 
         it("HowToMakeEditor.gui -> BackButton", function()
             -- Open HowToMakeEditor
-            local templateButton = app.stepWindows[1].gui.templateButtons.HowToMake.rawElement
+            local templateButton = app.stepWindows[1].gui.templateButtons[indexOfTemplate.item_howToMake].rawElement
             GuiElement.on_gui_click{
                 element = templateButton,
                 player_index = templateButton.player_index,
@@ -247,7 +252,7 @@ describe("QueryApp", function()
 
         it("HowToMakeEditor.gui -> DrawButton (empty graph)", function()
             -- Open HowToMakeEditor
-            local templateButton = app.stepWindows[1].gui.templateButtons.HowToMake.rawElement
+            local templateButton = app.stepWindows[1].gui.templateButtons[indexOfTemplate.item_howToMake].rawElement
             GuiElement.on_gui_click{
                 element = templateButton,
                 player_index = templateButton.player_index,
@@ -267,7 +272,7 @@ describe("QueryApp", function()
 
         it("UsagesOfEditor.gui -> DrawButton (non-empty graph)", function()
             -- Open HowToMakeEditor
-            local templateButton = app.stepWindows[1].gui.templateButtons.UsagesOf.rawElement
+            local templateButton = app.stepWindows[1].gui.templateButtons[indexOfTemplate.item_usagesOf].rawElement
             GuiElement.on_gui_click{
                 element = templateButton,
                 player_index = templateButton.player_index,

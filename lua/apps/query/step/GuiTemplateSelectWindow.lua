@@ -73,7 +73,7 @@ local GuiTemplateSelectWindow = ErrorOnInvalidRead.new{
             },
         }
         object.templateButtons = ErrorOnInvalidRead.new()
-        for templateIndex,template in pairs(QueryTemplates) do
+        for templateIndex,template in ipairs(QueryTemplates) do
             local newButton = TemplateSelectButton.new{
                 controller = controller,
                 rawElement = flow.add{
