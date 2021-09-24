@@ -21,7 +21,6 @@ local GuiElement = require("lua/gui/GuiElement")
 local MetaUtils = require("lua/class/MetaUtils")
 local QueryTemplates = require("lua/apps/query/QueryTemplates")
 
-local FullGraphButton
 local Metatable
 local TemplateSelectButton
 
@@ -32,7 +31,6 @@ local TemplateSelectButton
 -- RO Fields:
 -- * controller (override): TemplateSelectWindow.
 -- * frame: LuaGuiElement. Top-level frame owned by this GUI.
--- * fullGraphButton: FullGraphButton. Button owned by this GUI.
 -- * templateButtons[string]: TemplateSelectButton. Template selection button, indexed by template name.
 -- + AbstractGui.
 --
@@ -64,14 +62,6 @@ local GuiTemplateSelectWindow = ErrorOnInvalidRead.new{
             direction = "vertical",
         }
         flow.style.vertical_spacing = 4
-        object.fullGraphButton = FullGraphButton.new{
-            controller = controller,
-            rawElement = flow.add{
-                type = "button",
-                caption = {"dana.apps.query.templateSelectWindow.fullGraph"},
-                style = "menu_button",
-            },
-        }
         object.templateButtons = ErrorOnInvalidRead.new()
         for templateIndex,template in ipairs(QueryTemplates) do
             local newButton = TemplateSelectButton.new{
@@ -99,7 +89,6 @@ local GuiTemplateSelectWindow = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object)
         AbstractGui.setmetatable(object, Metatable)
-        FullGraphButton.setmetatable(object.fullGraphButton)
         ErrorOnInvalidRead.setmetatable(object.templateButtons, nil, TemplateSelectButton.setmetatable)
     end,
 }
@@ -110,7 +99,6 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
         -- Implements AbstractGui:close().
         close = function(self)
             GuiElement.safeDestroy(self.frame)
-            self.fullGraphButton:close()
             Closeable.closeMapValues(self.templateButtons)
         end,
 
@@ -120,23 +108,6 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
         end,
     },
 })
-
--- Button to display the full recipe graph.
---
--- Inherits from GuiElement.
---
--- RO Fields:
--- * controller: templateSelectWindow. Owner of this GUI.
---
-FullGraphButton = GuiElement.newSubclass{
-    className = "queryApp/FullGraphButton",
-    mandatoryFields = {"controller"},
-    __index = {
-        onClick = function(self, event)
-            self.controller:selectFullGraph()
-        end,
-    },
-}
 
 -- Button to select a preset query template.
 --

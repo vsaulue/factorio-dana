@@ -63,21 +63,6 @@ Metatable = {
             }
         end,
 
-        -- Selects the "Full graph" query.
-        --
-        -- Args:
-        -- * self: TemplateSelectWindow.
-        --
-        selectFullGraph = function(self)
-            self.appInterface:runQueryAndDraw(FullGraphQuery.new{
-                sinkParams = {
-                    filterNormal = true,
-                    filterRecursive = true,
-                    indirectThreshold = 64,
-                },
-            })
-        end,
-
         -- Selects a query template.
         --
         -- Args:
@@ -87,11 +72,16 @@ Metatable = {
         selectTemplate = function(self, templateIndex)
             local template = QueryTemplates[templateIndex]
             local appInterface = self.appInterface
+            local query = template.query:copy()
 
-            appInterface:pushStepWindow(QueryEditor.new{
-                appInterface = appInterface,
-                query = template.query:copy(),
-            })
+            if template.useEditor then
+                appInterface:pushStepWindow(QueryEditor.new{
+                    appInterface = appInterface,
+                    query = query,
+                })
+            else
+                appInterface:runQueryAndDraw(query)
+            end
         end,
     },
 }

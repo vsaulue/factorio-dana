@@ -22,8 +22,9 @@ local QueryApp = require("lua/apps/query/QueryApp")
 local SaveLoadTester = require("lua/testing/SaveLoadTester")
 
 local indexOfTemplate = {
-    item_howToMake = 1,
-    item_usagesOf = 2,
+    item_fullGraph = 1,
+    item_howToMake = 2,
+    item_usagesOf = 3,
 }
 
 describe("QueryApp", function()
@@ -205,7 +206,7 @@ describe("QueryApp", function()
         it("TemplateSelectWindow.gui -> FullGraphButton", function()
             stub(appTestbench.upcalls, "makeAndSwitchApp")
 
-            local fullGraphButton = app.stepWindows[1].gui.fullGraphButton.rawElement
+            local fullGraphButton = app.stepWindows[1].gui.templateButtons[indexOfTemplate.item_fullGraph].rawElement
             GuiElement.on_gui_click{
                 element = fullGraphButton,
                 player_index = fullGraphButton.player_index,

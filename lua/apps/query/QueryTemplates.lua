@@ -15,6 +15,7 @@
 -- along with Dana.  If not, see <https://www.gnu.org/licenses/>.
 
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
+local FullGraphQuery = require("lua/query/FullGraphQuery")
 local HowToMakeQuery = require("lua/query/HowToMakeQuery")
 local QueryTemplate = require("lua/apps/query/QueryTemplate")
 local UsagesOfQuery = require("lua/query/UsagesOfQuery")
@@ -22,6 +23,24 @@ local UsagesOfQuery = require("lua/query/UsagesOfQuery")
 -- QueryTemplate[]. The ordered list of templates displayed by the TemplateSelectWindow.
 --
 local QueryTemplates = ErrorOnInvalidRead.new{
+    -- Query to see the full crafting graph.
+    QueryTemplate.new{
+        caption = {"dana.apps.query.templateSelectWindow.fullGraph"},
+        query = FullGraphQuery.new{
+            selectionParams = {
+                enableBoilers = true,
+                enableFuels = true,
+                enableRecipes = true,
+            },
+            sinkParams = {
+                filterNormal = true,
+                filterRecursive = true,
+                indirectThreshold = 64,
+            },
+        },
+        useEditor = false,
+    },
+
     -- Query to see how to craft a given set of intermediates.
     QueryTemplate.new{
         caption = {"dana.apps.query.templateSelectWindow.howToMake"},

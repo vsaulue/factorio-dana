@@ -130,19 +130,10 @@ describe("TemplateSelectWindow", function()
             controller:open(parent)
         end)
 
-        it("-- FullGraphButton", function()
-            stub(appInterface, "runQueryAndDraw")
-            GuiElement.on_gui_click{
-                element = controller.gui.fullGraphButton.rawElement,
-                player_index = appTestbench.player.index,
-            }
-            assert.stub(appInterface.runQueryAndDraw).was.called_with(match.ref(appInterface), match.isFullGraphQuery())
-        end)
-
         it(": UsagesOf button", function()
             stub(appInterface, "pushStepWindow")
             GuiElement.on_gui_click{
-                element = controller.gui.templateButtons[2].rawElement,
+                element = controller.gui.templateButtons[3].rawElement,
                 player_index = appTestbench.player.index,
             }
             assert.stub(appInterface.pushStepWindow).was.called_with(match.ref(appInterface), match.isQueryEditor("UsagesOfQuery"))
