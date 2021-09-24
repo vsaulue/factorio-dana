@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
 
 local AppTestbench = require("lua/testing/AppTestbench")
 local SinkFilterStep = require("lua/query/steps/SinkFilterStep")
-local FullGraphQuery = require("lua/query/Fullgraphquery")
-local SelectionStep = require("lua/query/steps/Selectionstep")
+local FullGraphQuery = require("lua/query/FullGraphQuery")
+local SelectionStep = require("lua/query/steps/SelectionStep")
 
 describe("SinkFilterStep", function()
     local appTestbench

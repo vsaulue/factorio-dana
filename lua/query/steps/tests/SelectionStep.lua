@@ -16,7 +16,7 @@
 
 local AbstractQuery = require("lua/query/AbstractQuery")
 local AppTestbench = require("lua/testing/AppTestbench")
-local FullGraphQuery = require("lua/query/fullgraphquery")
+local FullGraphQuery = require("lua/query/FullGraphQuery")
 local SelectionStep = require("lua/query/steps/SelectionStep")
 
 describe("SelectionStep", function()
