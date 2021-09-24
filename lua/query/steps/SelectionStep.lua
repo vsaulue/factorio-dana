@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019-2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -50,14 +50,20 @@ local SelectionStep = ErrorOnInvalidRead.new{
             end
         end
 
-        for _,forceRecipe in pairs(force.recipes) do
-            addTransform(forceRecipe.recipeTransform)
+        if query.selectionParams.enableRecipes then
+            for _,forceRecipe in pairs(force.recipes) do
+                addTransform(forceRecipe.recipeTransform)
+            end
         end
-        for _,boiler in pairs(force.prototypes.transforms.boiler) do
-            addTransform(boiler)
+        if query.selectionParams.enableBoilers then
+            for _,boiler in pairs(force.prototypes.transforms.boiler) do
+                addTransform(boiler)
+            end
         end
-        for _,fuel in pairs(force.prototypes.transforms.fuel) do
-            addTransform(fuel)
+        if query.selectionParams.enableFuels then
+            for _,fuel in pairs(force.prototypes.transforms.fuel) do
+                addTransform(fuel)
+            end
         end
 
         return result

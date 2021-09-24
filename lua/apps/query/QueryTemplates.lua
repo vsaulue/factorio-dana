@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -29,6 +29,11 @@ local QueryTemplates = ErrorOnInvalidRead.new{
     HowToMake = ErrorOnInvalidRead.new{
         caption = {"dana.apps.query.templateSelectWindow.howToMake"},
         query = HowToMakeQuery.new{
+            selectionParams = {
+                enableBoilers = true,
+                enableFuels = true,
+                enableRecipes = true,
+            },
             sinkParams = {
                 filterNormal = true,
                 filterRecursive = true,
@@ -41,6 +46,11 @@ local QueryTemplates = ErrorOnInvalidRead.new{
     UsagesOf = ErrorOnInvalidRead.new{
         caption = {"dana.apps.query.templateSelectWindow.usagesOf"},
         query = UsagesOfQuery.new{
+            selectionParams = {
+                enableBoilers = true,
+                enableFuels = true,
+                enableRecipes = true,
+            },
             sinkParams = {
                 filterNormal = true,
                 filterRecursive = true,

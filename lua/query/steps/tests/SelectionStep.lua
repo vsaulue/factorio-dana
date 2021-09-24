@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -90,6 +90,11 @@ describe("SelectionStep", function()
     local query
     before_each(function()
         query = FullGraphQuery.new{
+            selectionParams = {
+                enableBoilers = true,
+                enableFuels = true,
+                enableRecipes = true,
+            },
             sinkParams = {
                 filterNormal = false,
                 filterRecursive = false,
@@ -112,34 +117,57 @@ describe("SelectionStep", function()
             return result
         end
 
-        it("-- no sink filter", function()
-            local graph = SelectionStep.run(query, appTestbench.force)
-            assert.are.same(graph.edges, makeEdgeMap{
-                t.boiler.boiler,
-                t.fuel.wood,
-                t.recipe.ashSink,
-                t.recipe.steamSink,
-            })
+        describe("-- selection filter:", function()
+            it("boilers only", function()
+                query.selectionParams.enableFuels = false
+                query.selectionParams.enableRecipes = false
+                local graph = SelectionStep.run(query, appTestbench.force)
+                assert.are.same(graph.edges, makeEdgeMap{
+                    t.boiler.boiler,
+                })
+            end)
+
+            it("recipes&fuels only", function()
+                query.selectionParams.enableBoilers = false
+                local graph = SelectionStep.run(query, appTestbench.force)
+                assert.are.same(graph.edges, makeEdgeMap{
+                    t.fuel.wood,
+                    t.recipe.ashSink,
+                    t.recipe.steamSink,
+                })
+            end)
         end)
 
-        it("-- normal sink filter", function()
-            query.sinkParams.filterNormal = true
-            local graph = SelectionStep.run(query, appTestbench.force)
-            assert.are.same(graph.edges, makeEdgeMap{
-                t.boiler.boiler,
-                t.fuel.wood,
-                t.recipe.ashSink,
-            })
-        end)
+        describe("-- sink filter:", function()
+            it("none", function()
+                local graph = SelectionStep.run(query, appTestbench.force)
+                assert.are.same(graph.edges, makeEdgeMap{
+                    t.boiler.boiler,
+                    t.fuel.wood,
+                    t.recipe.ashSink,
+                    t.recipe.steamSink,
+                })
+            end)
 
-        it("-- recursive sink filter", function()
-            query.sinkParams.filterRecursive = true
-            local graph = SelectionStep.run(query, appTestbench.force)
-            assert.are.same(graph.edges, makeEdgeMap{
-                t.boiler.boiler,
-                t.fuel.wood,
-                t.recipe.steamSink,
-            })
+            it("normal", function()
+                query.sinkParams.filterNormal = true
+                local graph = SelectionStep.run(query, appTestbench.force)
+                assert.are.same(graph.edges, makeEdgeMap{
+                    t.boiler.boiler,
+                    t.fuel.wood,
+                    t.recipe.ashSink,
+                })
+            end)
+
+            it("recursive", function()
+                query.sinkParams.filterRecursive = true
+                local graph = SelectionStep.run(query, appTestbench.force)
+                assert.are.same(graph.edges, makeEdgeMap{
+                    t.boiler.boiler,
+                    t.fuel.wood,
+                    t.recipe.steamSink,
+                })
+            end)
         end)
     end)
 end)

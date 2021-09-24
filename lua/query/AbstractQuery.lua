@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ local ClassLogger = require("lua/logger/ClassLogger")
 local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local OrderingStep = require("lua/query/steps/OrderingStep")
+local SelectionParams = require("lua/query/params/SelectionParams")
 local SelectionStep = require("lua/query/steps/SelectionStep")
 local SinkFilterStep = require("lua/query/steps/SinkFilterStep")
 local SinkParams = require("lua/query/params/SinkParams")
@@ -31,6 +32,7 @@ local new
 --
 -- RO Fields:
 -- * queryType: String encoding the exact subtype of this query.
+-- * selectionParams: SelectionParams. Parameters od the selection step.
 -- * sinkParams: SinkParams. Parameters of the sink filter.
 --
 local AbstractQuery = ErrorOnInvalidRead.new{
@@ -45,6 +47,7 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     copy = function(self, metatable)
         return new({
             queryType = self.queryType,
+            selectionParams = self.selectionParams:newCopy(),
             sinkParams = SinkParams.copy(self.sinkParams),
         }, metatable)
     end,
@@ -66,6 +69,7 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     --
     new = function(object, metatable)
         cLogger:assertField(object, "queryType")
+        object.selectionParams = SelectionParams.new(object.selectionParams)
         object.sinkParams = SinkParams.new(object.sinkParams)
         setmetatable(object, metatable)
         return object
@@ -95,6 +99,7 @@ local AbstractQuery = ErrorOnInvalidRead.new{
     --
     setmetatable = function(object, metatable)
         setmetatable(object, metatable)
+        SelectionParams.setmetatable(object.selectionParams)
         SinkParams.setmetatable(object.sinkParams)
     end,
 }
