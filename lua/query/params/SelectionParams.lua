@@ -24,6 +24,7 @@ local Metatable
 -- * enableBoilers: boolean. Include "boiler" type transforms.
 -- * enableFuels: boolean. Include "fuel" type transforms.
 -- * enableRecipes: boolean. Include "recipe" type transforms.
+-- * enableResearches: boolean. Include "research" type transforms.
 
 local SelectionParams = ErrorOnInvalidRead.new{
     -- Creates a new SelectionParams object.
@@ -40,11 +41,13 @@ local SelectionParams = ErrorOnInvalidRead.new{
                 enableBoilers = true,
                 enableFuels = true,
                 enableRecipes = true,
+                enableResearches = false,
             }
         else
             result.enableBoilers = not not result.enableBoilers
             result.enableFuels = not not result.enableFuels
             result.enableRecipes = not not result.enableRecipes
+            result.enableResearches = not not result.enableResearches
         end
         return setmetatable(result, Metatable)
     end,
@@ -74,6 +77,7 @@ Metatable = {
                 enableBoilers = self.enableBoilers,
                 enableFuels = self.enableFuels,
                 enableRecipes = self.enableRecipes,
+                enableResearches = self.enableResearches,
             }
         end,
     },

@@ -65,6 +65,11 @@ local SelectionStep = ErrorOnInvalidRead.new{
                 addTransform(fuel)
             end
         end
+        if query.selectionParams.enableResearches then
+            for _,research in pairs(force.prototypes.transforms.research) do
+                addTransform(research)
+            end
+        end
 
         return result
     end,

@@ -83,6 +83,12 @@ describe("SelectionStep", function()
                         },
                     },
                 },
+                technology = {
+                    automation = {
+                        type = "technology",
+                        name = "automation",
+                    },
+                },
             },
         }
     end)
@@ -118,22 +124,43 @@ describe("SelectionStep", function()
         end
 
         describe("-- selection filter:", function()
+            before_each(function()
+                local params = query.selectionParams
+                params.enableBoilers = false
+                params.enableFuels = false
+                params.enableRecipes = false
+            end)
+
             it("boilers only", function()
-                query.selectionParams.enableFuels = false
-                query.selectionParams.enableRecipes = false
+                query.selectionParams.enableBoilers = true
                 local graph = SelectionStep.run(query, appTestbench.force)
                 assert.are.same(graph.edges, makeEdgeMap{
                     t.boiler.boiler,
                 })
             end)
 
-            it("recipes&fuels only", function()
-                query.selectionParams.enableBoilers = false
+            it("fuels only", function()
+                query.selectionParams.enableFuels = true
                 local graph = SelectionStep.run(query, appTestbench.force)
                 assert.are.same(graph.edges, makeEdgeMap{
                     t.fuel.wood,
+                })
+            end)
+
+            it("recipes only", function()
+                query.selectionParams.enableRecipes = true
+                local graph = SelectionStep.run(query, appTestbench.force)
+                assert.are.same(graph.edges, makeEdgeMap{
                     t.recipe.ashSink,
                     t.recipe.steamSink,
+                })
+            end)
+
+            it("researches only", function()
+                query.selectionParams.enableResearches = true
+                local graph = SelectionStep.run(query, appTestbench.force)
+                assert.are.same(graph.edges, makeEdgeMap{
+                    t.research.automation,
                 })
             end)
         end)

@@ -31,6 +31,7 @@ describe("SelectionParams", function()
                 enableBoilers = false,
                 enableFuels = true,
                 enableRecipes = false,
+                enableResearches = false,
             })
         end)
 
@@ -41,6 +42,7 @@ describe("SelectionParams", function()
                 enableBoilers = true,
                 enableFuels = true,
                 enableRecipes = true,
+                enableResearches = false,
             })
         end)
     end)
@@ -51,6 +53,7 @@ describe("SelectionParams", function()
             object = SelectionParams.new{
                 enableBoilers = true,
                 enableFuels = false,
+                enableResearches = true,
             }
         end)
 
@@ -61,6 +64,7 @@ describe("SelectionParams", function()
                 enableBoilers = true,
                 enableFuels = false,
                 enableRecipes = false,
+                enableResearches = true,
             })
             assert.are.equals(object.newCopy, copy.newCopy)
         end)
