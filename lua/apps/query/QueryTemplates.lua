@@ -76,6 +76,25 @@ local QueryTemplates = ErrorOnInvalidRead.new{
         },
         useEditor = true,
     },
+
+    -- Query to see the full Tech graph.
+    QueryTemplate.new{
+        caption = {"dana.apps.query.templateSelectWindow.techFullGraph"},
+        query = FullGraphQuery.new{
+            selectionParams = {
+                enableBoilers = false,
+                enableFuels = false,
+                enableRecipes = false,
+                enableResearches = true,
+            },
+            sinkParams = {
+                filterNormal = false,
+                filterRecursive = false,
+                indirectThreshold = 64,
+            },
+        },
+        useEditor = false,
+    },
 }
 
 return QueryTemplates
