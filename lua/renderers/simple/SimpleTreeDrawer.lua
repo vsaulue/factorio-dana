@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019-2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ local SimpleTreeDrawer = ErrorOnInvalidRead.new{
 
         local root = treeLink.tree
         local linkIndex = root.linkIndex
-        linkDrawer:setSpritePath(linkIndex.symbol.spritePath)
+        linkDrawer:setIntermediateSprite(linkIndex.symbol)
         if linkIndex.isFromRoot then
             linkDrawer.drawSpriteAtSrc = false
             drawFromVertex(linkDrawer, root)

@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019-2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -118,9 +118,12 @@ Metatable = {
                     canvasObject.rendererType = "node"
                     canvasObject.rendererIndex = nodeIndex
                 end
+                local scale = nodeIndex.index.spriteScale
                 canvas:newSprite{
                     sprite = nodeIndex.index.spritePath,
                     target = {node:getMiddle()},
+                    x_scale = scale,
+                    y_scale = scale,
                 }
             end
 

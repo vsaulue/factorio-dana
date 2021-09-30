@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2019,2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2019-2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -188,14 +188,18 @@ Metatable = {
             from.y = y
         end,
 
-        -- Set the path of the sprite to draw near the ends of the line.
+        -- Set the sprite to represent an Intermediate object.
         --
         -- Args:
-        -- * self: SimpleLinkDrawer object.
-        -- * value: New SpritePath to set.
+        -- * self: SimpleLinkDrawer.
+        -- * intermediate: Intermediate. Sprite to use.
         --
-        setSpritePath = function(self, value)
-            self.spriteArgs.sprite = value
+        setIntermediateSprite = function(self, intermediate)
+            local spriteArgs = self.spriteArgs
+            spriteArgs.sprite = intermediate.spritePath
+            local scale = SimpleConfig.LinkSpriteScale * intermediate.spriteScale
+            spriteArgs.x_scale = scale
+            spriteArgs.y_scale = scale
         end,
 
         -- Set the destination end point of this link.
