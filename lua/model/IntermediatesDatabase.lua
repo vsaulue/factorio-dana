@@ -78,6 +78,7 @@ Metatable = {
                 fluids[fluid.name] = Intermediate.new{
                     type = "fluid",
                     rawPrototype = fluid,
+                    spriteScale = 1,
                 }
             end
             self.fluid = fluids
@@ -87,6 +88,7 @@ Metatable = {
                 items[item.name] = Intermediate.new{
                     type = "item",
                     rawPrototype = item,
+                    spriteScale = 1,
                 }
             end
             self.item = items
@@ -96,6 +98,7 @@ Metatable = {
                 technologies[technology.name] = Intermediate.new{
                     type = "technology",
                     rawPrototype = technology,
+                    spriteScale = 0.125,
                 }
             end
             self.technology = technologies

@@ -40,6 +40,7 @@ local Intermediate = ErrorOnInvalidRead.new{
     new = function(object)
         local rawPrototype = cLogger:assertField(object, "rawPrototype")
         local type = cLogger:assertField(object, "type")
+        cLogger:assertFieldType(object, "spriteScale", "number")
         ErrorOnInvalidRead.setmetatable(object)
         object.localisedName = {"dana.model.intermediate.name", TypeToLocalisedStr[type], rawPrototype.localised_name}
         object.spritePath = type .. "/" .. rawPrototype.name

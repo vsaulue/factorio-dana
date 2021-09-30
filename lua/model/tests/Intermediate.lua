@@ -34,6 +34,7 @@ describe("Intermediate", function()
                     type = "fluid",
                     name = "water",
                 },
+                spriteScale = 2,
                 type = "fluid",
             }
 
@@ -49,6 +50,7 @@ describe("Intermediate", function()
         it("-- valid item", function()
             local intermediate = Intermediate.new{
                 rawPrototype = woodPrototype,
+                spriteScale = 2,
                 type = "item",
             }
 
@@ -67,6 +69,7 @@ describe("Intermediate", function()
                     type = "technology",
                     name = "automation",
                 },
+                spriteScale = 4,
                 type = "technology",
             }
 
@@ -83,6 +86,7 @@ describe("Intermediate", function()
             assert.error(function()
                 Intermediate.new{
                     rawPrototype = woodPrototype,
+                    spriteScale = 0.5,
                 }
             end)
         end)
@@ -91,6 +95,16 @@ describe("Intermediate", function()
             assert.error(function()
                 Intermediate.new{
                     type = "item",
+                    spriteScale = 0.5,
+                }
+            end)
+        end)
+
+        it("-- missing spriteScale", function()
+            assert.error(function()
+                Intermediate.new{
+                    type = "item",
+                    rawPrototype = woodPrototype,
                 }
             end)
         end)
@@ -101,6 +115,7 @@ describe("Intermediate", function()
             objects = Intermediate.new{
                 rawPrototype = woodPrototype,
                 type = "item",
+                spriteScale = 2,
             },
             metatableSetter = Intermediate.setmetatable,
         }
