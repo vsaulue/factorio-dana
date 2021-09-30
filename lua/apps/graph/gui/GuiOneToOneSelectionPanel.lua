@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -73,7 +73,9 @@ Metatable = {
                     {
                         type = "sprite",
                         name = "edgeIcon",
+                        resize_to_sprite = false,
                         sprite = edgeIndex.spritePath,
+                        styleModifiers = GuiSelectionConstants.IconStyleModifiers,
                         tooltip = edgeIndex.localisedName,
                     },
                     PlusLabelCtorArgs,
@@ -81,15 +83,13 @@ Metatable = {
                     {
                         type = "sprite",
                         name = "vertexIcon",
+                        resize_to_sprite = false,
                         sprite = vertexIndex.spritePath,
+                        styleModifiers = GuiSelectionConstants.IconStyleModifiers,
                         tooltip = vertexIndex.localisedName,
                     },
                 },
             })
-            elemFlow.edgeTypeIcon.style.minimal_width = 32
-            elemFlow.edgeIcon.style.minimal_width = 32
-            elemFlow.vertexTypeIcon.style.minimal_width = 32
-            elemFlow.vertexIcon.style.minimal_width = 21
         end,
 
         -- Defines AbstractGuiSelectionPanel.Title.

@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 local AbstractGuiSelectionPanel = require("lua/apps/graph/gui/AbstractGuiSelectionPanel")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiMaker = require("lua/gui/GuiMaker")
+local GuiSelectionConstants = require("lua/apps/graph/gui/GuiSelectionConstants")
 local MetaUtils = require("lua/class/MetaUtils")
 local Set = require("lua/containers/Set")
 
@@ -70,7 +71,10 @@ Metatable = {
                 children = {
                     {
                         type = "sprite",
+                        name = "rootIcon",
+                        resize_to_sprite = false,
                         sprite = linkIndex.symbol.spritePath,
+                        styleModifiers = GuiSelectionConstants.IconStyleModifiers,
                         tooltip = linkIndex.symbol.localisedName,
                     },
                     LinkArrowLabel[linkIndex.isFromRoot],
@@ -81,11 +85,13 @@ Metatable = {
             local count = Set.count(nodeIndices)
             if count <= 5 then
                 for nodeIndex in pairs(nodeIndices) do
-                    elemFlow.add{
+                    GuiMaker.run(elemFlow, {
                         type = "sprite",
+                        resize_to_sprite = false,
                         sprite = nodeIndex.index.spritePath,
+                        styleModifiers = GuiSelectionConstants.IconStyleModifiers,
                         tooltip = nodeIndex.index.localisedName,
-                    }
+                    })
                 end
             else
                 elemFlow.add{

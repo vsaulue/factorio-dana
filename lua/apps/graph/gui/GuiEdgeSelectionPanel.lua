@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ Metatable = {
         makeElementGui = function(parent, prepNodeIndex)
             local edgeIndex = prepNodeIndex.index
 
-            local elemFlow = GuiMaker.run(parent, {
+            GuiMaker.run(parent, {
                 type = "flow",
                 direction = "horizontal",
                 children = {
@@ -71,15 +71,15 @@ Metatable = {
                     {
                         type = "sprite",
                         name = "edgeIcon",
+                        resize_to_sprite = false,
                         sprite = edgeIndex.spritePath,
+                        styleModifiers = GuiSelectionConstants.IconStyleModifiers,
                     },{
                         type = "label",
                         caption = edgeIndex:getShortName(),
                     },
                 },
             })
-            elemFlow.edgeTypeIcon.style.minimal_width = 32
-            elemFlow.edgeIcon.style.minimal_width = 32
         end,
 
         -- Defines AbstractGuiSelectionPanel.Title.
