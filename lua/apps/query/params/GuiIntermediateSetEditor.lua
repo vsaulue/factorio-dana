@@ -292,11 +292,16 @@ makeIntermediateFrame = function(self, parent, intermediate)
         style = "borderless_deep_frame",
     }
     newFrame.style.padding = 2
-    local sprite = newFrame.add{
+    local sprite = GuiMaker.run(newFrame, {
         type = "sprite",
+        resize_to_sprite = false,
         sprite = intermediate.spritePath,
         tooltip = intermediate.localisedName,
-    }
+        styleModifiers = {
+            height = 32,
+            width = 32,
+        },
+    })
     sprite.style.right_margin = 3
     local button = RemoveButton.new{
         intermediate = intermediate,
