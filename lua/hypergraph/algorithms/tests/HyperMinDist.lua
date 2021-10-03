@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@ local DirectedHypergraph = require("lua/hypergraph/DirectedHypergraph")
 local DirectedHypergraphEdge = require("lua/hypergraph/DirectedHypergraphEdge")
 local HyperMinDist = require("lua/hypergraph/algorithms/HyperMinDist")
 
-local assertMapsAreEquals
 local setSampleGraph
 
 describe("HyperMinDist", function()
@@ -37,20 +36,18 @@ describe("HyperMinDist", function()
             setSampleGraph(graph)
             local vertexDist,edgeDist = HyperMinDist.fromSource(graph, {a = true, c = true}, false)
 
-            assertMapsAreEquals(vertexDist, {
+            assert.are.same(vertexDist, {
                 a = 0,
                 c = 0,
                 d = 1,
-                z = 1,
                 f1 = 1,
                 e = 2,
                 f2 = 2,
                 f3 = 3,
                 f4 = 4,
             })
-            assertMapsAreEquals(edgeDist, {
+            assert.are.same(edgeDist, {
                 ["a -> d"] = 1,
-                ["-> z"] = 1,
                 ["c -> f1"] = 1,
                 ["d -> ef1"] = 2,
                 ["f1 -> f2"] = 2,
@@ -63,16 +60,14 @@ describe("HyperMinDist", function()
             setSampleGraph(graph)
             local vertexDist,edgeDist = HyperMinDist.fromSource(graph, {a = true, e = true}, false, 2)
 
-            assertMapsAreEquals(vertexDist, {
+            assert.are.same(vertexDist, {
                 a = 0,
                 e = 0,
                 d = 1,
-                z = 1,
                 f1 = 2,
             })
-            assertMapsAreEquals(edgeDist, {
+            assert.are.same(edgeDist, {
                 ["a -> d"] = 1,
-                ["-> z"] = 1,
                 ["d -> ef1"] = 2,
             })
         end)
@@ -81,18 +76,16 @@ describe("HyperMinDist", function()
             setSampleGraph(graph)
             local vertexDist,edgeDist = HyperMinDist.fromSource(graph, {b = true}, true)
 
-            assertMapsAreEquals(vertexDist, {
+            assert.are.same(vertexDist, {
                 b = 0,
-                z = 1,
                 c = 1,
                 f1 = 2,
                 f2 = 3,
                 f3 = 4,
                 f4 = 5,
             })
-            assertMapsAreEquals(edgeDist, {
+            assert.are.same(edgeDist, {
                 ["ab -> c"] = 1,
-                ["-> z"] = 1,
                 ["c -> f1"] = 2,
                 ["f1 -> f2"] = 3,
                 ["f2 -> f3"] = 4,
@@ -106,7 +99,7 @@ describe("HyperMinDist", function()
             setSampleGraph(graph)
             local vertexDist,edgeDist = HyperMinDist.toDest(graph, {f3 = true, z = true}, false)
 
-            assertMapsAreEquals(vertexDist, {
+            assert.are.same(vertexDist, {
                 f3 = 0,
                 z = 0,
                 f2 = 1,
@@ -115,7 +108,7 @@ describe("HyperMinDist", function()
                 a = 4,
                 b = 4,
             })
-            assertMapsAreEquals(edgeDist, {
+            assert.are.same(edgeDist, {
                 ["f2 -> f3"] = 1,
                 ["-> z"] = 1,
                 ["f1 -> f2"] = 2,
@@ -128,7 +121,7 @@ describe("HyperMinDist", function()
             setSampleGraph(graph)
             local vertexDist,edgeDist = HyperMinDist.toDest(graph, {f2 = true}, true)
 
-            assertMapsAreEquals(vertexDist, {
+            assert.are.same(vertexDist, {
                 f2 = 0,
                 f1 = 1,
                 c = 2,
@@ -136,7 +129,7 @@ describe("HyperMinDist", function()
                 a = 3,
                 b = 3,
             })
-            assertMapsAreEquals(edgeDist, {
+            assert.are.same(edgeDist, {
                 ["f1 -> f2"] = 1,
                 ["c -> f1"] = 2,
                 ["d -> ef1"] = 2,
@@ -149,13 +142,13 @@ describe("HyperMinDist", function()
             setSampleGraph(graph)
             local vertexDist,edgeDist = HyperMinDist.toDest(graph, {f2 = true}, true, 2)
 
-            assertMapsAreEquals(vertexDist, {
+            assert.are.same(vertexDist, {
                 f2 = 0,
                 f1 = 1,
                 c = 2,
                 d = 2,
             })
-            assertMapsAreEquals(edgeDist, {
+            assert.are.same(edgeDist, {
                 ["f1 -> f2"] = 1,
                 ["c -> f1"] = 2,
                 ["d -> ef1"] = 2,
@@ -163,22 +156,6 @@ describe("HyperMinDist", function()
         end)
     end)
 end)
-
--- Tests the keys & values of a map.
---
--- Args:
--- * map: Key/value table to test.
--- * expected: map containing the expected keys & values.
---
-assertMapsAreEquals = function(map, expected)
-    for key,value in pairs(expected) do
-        assert.are.equals(map[key], value)
-    end
-
-    for key in pairs(map) do
-        assert.is_not_nil(expected[key])
-    end
-end
 
 -- Fills a DirectedHypergraph object with hardcoded values.
 --
