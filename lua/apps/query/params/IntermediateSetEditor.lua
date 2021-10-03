@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ Metatable = {
         --
         -- Args:
         -- * self: IntermediateSetEditor.
-        -- * type: string. Type of the intermediate to add ("fluid" or "item").
+        -- * type: string. Type of the intermediate to add ("fluid", "item" or "technology").
         -- * name: string. Name of the intermediate to add.
         --
         addIntermediate = function(self, type, name)

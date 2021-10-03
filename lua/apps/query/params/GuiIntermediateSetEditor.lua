@@ -70,6 +70,8 @@ local GuiIntermediateSetEditor = ErrorOnInvalidRead.new{
         object.addItemButton = makeAddElemFlow(object, elemButtonFlow, "item")
         GuiMaker.run(elemButtonFlow, GuiElemButtonPaddingArgs)
         object.addFluidButton = makeAddElemFlow(object, elemButtonFlow, "fluid")
+        GuiMaker.run(elemButtonFlow, GuiElemButtonPaddingArgs)
+        object.addTechnologyButton = makeAddElemFlow(object, elemButtonFlow, "technology")
 
         for intermediate in pairs(object.controller.output) do
             object:addIntermediate(intermediate)
@@ -86,6 +88,7 @@ local GuiIntermediateSetEditor = ErrorOnInvalidRead.new{
         AbstractGui.setmetatable(object, Metatable)
         AddElemButton.setmetatable(object.addItemButton)
         AddElemButton.setmetatable(object.addFluidButton)
+        AddElemButton.setmetatable(object.addTechnologyButton)
         ReversibleArray.setmetatable(object.selectedIntermediates)
         ErrorOnInvalidRead.setmetatable(object.removeButtons, nil, RemoveButton.setmetatable)
     end,
@@ -125,6 +128,7 @@ Metatable = MetaUtils.derive(AbstractGui.Metatable, {
             GuiElement.safeDestroy(self.mainFlow)
             self.addItemButton:close()
             self.addFluidButton:close()
+            self.addTechnologyButton:close()
             Closeable.closeMapValues(self.removeButtons)
         end,
 
@@ -213,6 +217,7 @@ end
 ElemTypeToLabelCaption = ErrorOnInvalidRead.new{
     fluid = {"dana.apps.query.intermediateSetEditor.addFluid"},
     item = {"dana.apps.query.intermediateSetEditor.addItem"},
+    technology = {"dana.apps.query.intermediateSetEditor.addTechnology"},
 }
 
 -- GuiMaker's arguments to build this GUI.

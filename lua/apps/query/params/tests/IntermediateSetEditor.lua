@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -33,6 +33,9 @@ describe("IntermediateSetEditor (& GUI)", function()
             item = {
                 coal = {type = "item", name = "coal"},
                 wood = {type = "item", name = "wood"},
+            },
+            technology = {
+                automation = {type = "technology", name = "automation"},
             },
         }
         for i=1,5 do
@@ -191,22 +194,42 @@ describe("IntermediateSetEditor (& GUI)", function()
             object:open(parent)
         end)
 
-        it("AddIntermediateButton", function()
-            local rawElement = object.gui.addFluidButton.rawElement
-            rawElement.elem_value = "steam"
-            GuiElement.on_gui_elem_changed{
-                player_index = appTestbench.player.index,
-                element = rawElement,
+        describe("AddIntermediateButton, ", function()
+            local typeToButtonIndex = {
+                fluid = "addFluidButton",
+                item = "addItemButton",
+                technology = "addTechnologyButton",
             }
-            assert.are.same(output, {
-                [items.item1] = true,
-                [items.item2] = true,
-                [items.item3] = true,
-                [items.item4] = true,
-                [items.item5] = true,
-                [fluids.steam] = true,
-            })
-            assert.is_nil(rawElement.elem_value)
+
+            local runTest = function(type, name)
+                local intermediate = appTestbench.prototypes.intermediates[type][name]
+                local expectedSet = {
+                    [items.item1] = true,
+                    [items.item2] = true,
+                    [items.item3] = true,
+                    [items.item4] = true,
+                    [items.item5] = true,
+                    [intermediate] = true,
+                }
+
+                local rawElement = object.gui[typeToButtonIndex[type]].rawElement
+                GuiElement.on_gui_elem_changed{
+                    player_index = appTestbench.player.index,
+                    element = rawElement,
+                }
+            end
+
+            it("item", function()
+                runTest("item", "coal")
+            end)
+
+            it("fluid", function()
+                runTest("fluid", "steam")
+            end)
+
+            it("technology", function()
+                runTest("technology", "automation")
+            end)
         end)
 
         it("RemoveIntermediateButton", function()
