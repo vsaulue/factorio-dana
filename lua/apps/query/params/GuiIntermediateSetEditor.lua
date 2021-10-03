@@ -1,5 +1,5 @@
 -- This file is part of Dana.
--- Copyright (C) 2020 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
+-- Copyright (C) 2020,2021 Vincent Saulue-Laborde <vincent_saulue@hotmail.fr>
 --
 -- Dana is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -19,12 +19,15 @@ local Closeable = require("lua/class/Closeable")
 local ErrorOnInvalidRead = require("lua/containers/ErrorOnInvalidRead")
 local GuiAlign = require("lua/gui/GuiAlign")
 local GuiElement = require("lua/gui/GuiElement")
+local GuiMaker = require("lua/gui/GuiMaker")
 local MetaUtils = require("lua/class/MetaUtils")
 local ReversibleArray = require("lua/containers/ReversibleArray")
 
 local AddElemButton
 local destroyRemoveButton
 local ElemTypeToLabelCaption
+local GuiConstructorArgs
+local GuiElemButtonPaddingArgs
 local ItemsPerLine
 local makeAddElemFlow
 local makeIntermediateFrame
@@ -59,31 +62,14 @@ local GuiIntermediateSetEditor = ErrorOnInvalidRead.new{
         object.removeButtons = ErrorOnInvalidRead.new()
         object.selectedIntermediates = ReversibleArray.new()
 
-        local mainFlow = object.parent.add{
-            type = "flow",
-            direction = "vertical",
-        }
-        object.mainFlow = mainFlow
+        object.mainFlow = GuiMaker.run(object.parent, GuiConstructorArgs)
+        object.selectionFlow = object.mainFlow.selectionFlow
 
         -- Elem buttons
-        local elemButtonFlow = mainFlow.add{
-            type = "flow",
-            direction = "horizontal",
-        }
+        local elemButtonFlow = object.mainFlow.elemButtonFlow
         object.addItemButton = makeAddElemFlow(object, elemButtonFlow, "item")
-        local pusher = elemButtonFlow.add{
-            type = "empty-widget",
-            style = "draggable_space_with_no_left_margin",
-        }
-        pusher.style.width = 20
-
+        GuiMaker.run(elemButtonFlow, GuiElemButtonPaddingArgs)
         object.addFluidButton = makeAddElemFlow(object, elemButtonFlow, "fluid")
-        -- Selection flow
-        object.selectionFlow = mainFlow.add{
-            type = "flow",
-            direction = "vertical",
-        }
-        object.selectionFlow.style.minimal_width = 295
 
         for intermediate in pairs(object.controller.output) do
             object:addIntermediate(intermediate)
@@ -227,6 +213,35 @@ end
 ElemTypeToLabelCaption = ErrorOnInvalidRead.new{
     fluid = {"dana.apps.query.intermediateSetEditor.addFluid"},
     item = {"dana.apps.query.intermediateSetEditor.addItem"},
+}
+
+-- GuiMaker's arguments to build this GUI.
+GuiConstructorArgs = {
+    type = "flow",
+    direction = "vertical",
+    children = {
+        {
+            type = "flow",
+            direction = "horizontal",
+            name = "elemButtonFlow",
+        },{
+            type = "flow",
+            direction = "vertical",
+            name = "selectionFlow",
+            styleModifiers = {
+                minimal_width = 295,
+            },
+        }
+    },
+}
+
+-- GuiMaker's arguments to build the padding elements between "Add" buttons.
+GuiElemButtonPaddingArgs = {
+    type = "empty-widget",
+    style = "draggable_space_with_no_left_margin",
+    styleModifiers = {
+        width = 20,
+    },
 }
 
 -- Maximum number of items per line in the selectionFlow.
