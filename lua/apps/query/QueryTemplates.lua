@@ -41,7 +41,7 @@ local QueryTemplates = ErrorOnInvalidRead.new{
         useEditor = false,
     },
 
-    -- Query to see how to craft a given set of intermediates.
+    -- Query to see how to craft a given set of items & fluids.
     QueryTemplate.new{
         caption = {"dana.apps.query.templateSelectWindow.howToMake"},
         query = HowToMakeQuery.new{
@@ -59,7 +59,7 @@ local QueryTemplates = ErrorOnInvalidRead.new{
         useEditor = true,
     },
 
-    -- Query to see what can be crafted from a given set of intermediates.
+    -- Query to see what can be crafted from a given set of items & fluids.
     QueryTemplate.new{
         caption = {"dana.apps.query.templateSelectWindow.usagesOf"},
         query = UsagesOfQuery.new{
@@ -94,6 +94,44 @@ local QueryTemplates = ErrorOnInvalidRead.new{
             },
         },
         useEditor = false,
+    },
+
+    -- Query to see how to unlock a set of technologies.
+    QueryTemplate.new{
+        caption = {"dana.apps.query.templateSelectWindow.techHowToMake"},
+        query = HowToMakeQuery.new{
+            selectionParams = {
+                enableBoilers = false,
+                enableFuels = false,
+                enableRecipes = false,
+                enableResearches = true,
+            },
+            sinkParams = {
+                filterNormal = true,
+                filterRecursive = true,
+                indirectThreshold = 64,
+            },
+        },
+        useEditor = true,
+    },
+
+    -- Query to see all technologies that requires a given set.
+    QueryTemplate.new{
+        caption = {"dana.apps.query.templateSelectWindow.techUsagesOf"},
+        query = UsagesOfQuery.new{
+            selectionParams = {
+                enableBoilers = false,
+                enableFuels = false,
+                enableRecipes = false,
+                enableResearches = true,
+            },
+            sinkParams = {
+                filterNormal = true,
+                filterRecursive = true,
+                indirectThreshold = 64,
+            },
+        },
+        useEditor = true,
     },
 }
 

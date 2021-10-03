@@ -2,6 +2,7 @@
 Version: 0.4.0
   Features:
     - New query filters: sinks. Automatic removal of (generated) recipes destroying items.
+    - Added tech graph queries: full tech graph, how to unlock, required by.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.3.0
