@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.1
+  Bugfixes:
+    - Fix "Duplicate link index" crashes (caused by recipes having the same item as input/output) (https://mods.factorio.com/mod/dana/discussion/62f7d0c5438d5c033845f57f)
+
+---------------------------------------------------------------------------------------------------
 Version: 0.3.0
 Date: 2020-12-02
   Info:

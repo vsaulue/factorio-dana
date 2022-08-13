@@ -234,7 +234,7 @@ makeSubgraphWithDists = function(graph, nodeIndices, nodeOrder)
     end
     for nodeIndex,node in pairs(nodeIndices) do
         for linkIndex in pairs(node.inboundSlots) do
-            if linkIndex.rootNodeIndex == nodeIndex then
+            if linkIndex.rootNodeIndex == nodeIndex and not linkIndex.isFromRoot then
                 local newLeaves = makeSubgraphLeaves(linkIndex, graph.links[linkIndex], nodeIndices, nodeOrder)
                 if next(newLeaves) then
                     result:addLink(linkIndex, newLeaves)
@@ -242,7 +242,7 @@ makeSubgraphWithDists = function(graph, nodeIndices, nodeOrder)
             end
         end
         for linkIndex in pairs(node.outboundSlots) do
-            if linkIndex.rootNodeIndex == nodeIndex then
+            if linkIndex.rootNodeIndex == nodeIndex and linkIndex.isFromRoot then
                 local newLeaves = makeSubgraphLeaves(linkIndex, graph.links[linkIndex], nodeIndices, nodeOrder)
                 if next(newLeaves) then
                     result:addLink(linkIndex, newLeaves)
