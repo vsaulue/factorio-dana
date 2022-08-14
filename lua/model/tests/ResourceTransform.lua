@@ -45,6 +45,11 @@ describe("ResourceTransform", function()
                     type = "resource",
                     name = "indestructible",
                 },
+                noResult = {
+                    type = "resource",
+                    name = "noResult",
+                    minable = {},
+                },
                 steamedCoal = {
                     type = "resource",
                     name = "steamedCoal",
@@ -64,6 +69,12 @@ describe("ResourceTransform", function()
     describe(".tryMake()", function()
         it("-- not minable", function()
             local prototype = gameScript.entity_prototypes.indestructible
+            local object = ResourceTransform.tryMake(prototype, intermediates)
+            assert.is_nil(object)
+        end)
+
+        it("-- no result", function()
+            local prototype = gameScript.entity_prototypes.noResult
             local object = ResourceTransform.tryMake(prototype, intermediates)
             assert.is_nil(object)
         end)

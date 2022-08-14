@@ -47,7 +47,8 @@ local ResourceTransform = ErrorOnInvalidRead.new{
     tryMake = function(resourceEntityPrototype, intermediatesDatabase)
         local result = nil
         local mineable_props = resourceEntityPrototype.mineable_properties
-        if mineable_props.minable then
+        local rawProducts = mineable_props.products
+        if mineable_props.minable and rawProducts and rawProducts[1] then
             result = AbstractTransform.new({
                 type = "resource",
                 rawResource = resourceEntityPrototype,
@@ -59,7 +60,7 @@ local ResourceTransform = ErrorOnInvalidRead.new{
                 result:addIngredient(fluid, mineable_props.fluid_amount)
             end
 
-            result:addRawProductArray(intermediatesDatabase, mineable_props.products)
+            result:addRawProductArray(intermediatesDatabase, rawProducts)
         end
         return result
     end,
